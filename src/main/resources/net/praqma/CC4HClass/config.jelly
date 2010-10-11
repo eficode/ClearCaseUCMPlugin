@@ -6,6 +6,16 @@
     <f:entry title="${%Component}" help="/plugin/CC4H/help-component.html">
       <f:textbox name="component" value="${it.component}"/>
     </f:entry>
+
+    <j:set var="levels" value="${descriptor.getLevels()}"/>
+      <f:entry  title="Promotion level" description="Choose promotion level">
+      <select class="setting-input"   name="level">
+       <j:forEach var="l" items="${levels}">
+        <f:option selected="${l.displayName==it.getLevel()}">${l.displayName}</f:option>
+          </j:forEach>
+         </select>
+       </f:entry>
+
     <f:entry title="${%At the moment snapshot view is not supported.}" help="/plugin/CC4H/help-view.html" />
     <f:entry title="${%Load modules}" help="/plugin/CC4H/help-loadModules.html">
       <f:textbox name="modules" value="${it.modules}"/>

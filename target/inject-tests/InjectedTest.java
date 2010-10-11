@@ -7,10 +7,10 @@ import java.util.*;
 public class InjectedTest extends junit.framework.TestCase {
   public static junit.framework.Test suite() throws Exception {
     Map parameters = new HashMap();
-    parameters.put("basedir","C:\\Documents and Settings\\Administrator\\workspace\\CC4H");
+    parameters.put("basedir","C:\\Users\\Lars\\EclipseWorkspace\\CC4H\\trunk");
     parameters.put("artifactId","CC4H");
-    parameters.put("outputDirectory","C:\\Documents and Settings\\Administrator\\workspace\\CC4H\\target\\classes");
-    parameters.put("testOutputDirectory","C:\\Documents and Settings\\Administrator\\workspace\\CC4H\\target\\test-classes");
+    parameters.put("outputDirectory","C:\\Users\\Lars\\EclipseWorkspace\\CC4H\\trunk\\target\\classes");
+    parameters.put("testOutputDirectory","C:\\Users\\Lars\\EclipseWorkspace\\CC4H\\trunk\\target\\test-classes");
     return new org.jvnet.hudson.test.PluginAutomaticTestBuilder().build(parameters);
   }
 }

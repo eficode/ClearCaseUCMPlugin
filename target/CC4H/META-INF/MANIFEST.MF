@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Built-By: Administrator
+Built-By: Lars
 Created-By: Apache Maven
 Build-Jdk: 1.6.0_21
 Extension-Name: CC4H
@@ -9,7 +9,7 @@ Group-Id: net.praqma
 Short-Name: CC4H
 Long-Name: CC4H
 Url: https://hudson.dev.java.net/plugin/CC4H
-Plugin-Version: 1.1-SNAPSHOT (private-10/11/2010 11:34-Administrator)
+Plugin-Version: 1.1-SNAPSHOT (private-10/11/2010 13:23-Lars)
 Hudson-Version: 1.373
 Plugin-Developers: 
 

@@ -1,7 +1,7 @@
 Signature-Version: 1.0
 SHA1-Digest-Manifest-Main-Attributes: rfd//G7Lj0SYOUbtol7vK2Q9sZs=
 Created-By: 1.6.0_20 (Sun Microsystems Inc.)
-SHA1-Digest-Manifest: xwVCOKMloQaSOu/Za7YmCF0saqs=
+SHA1-Digest-Manifest: HepKBHVBoTBDfuDYFKYmveKbPRM=
 
 Name: images/48x48/red_anime.gif
 SHA1-Digest: GoViCs9kw+dnkbThLosxxJYOg2Q=
@@ -49,7 +49,7 @@ Name: scripts/yui/treeview/treeview-min.js
 SHA1-Digest: c1EyjKprX76SRkKyyjVI2YJzDsc=
 
 Name: WEB-INF/hudson-cli.jar
-SHA1-Digest: 3WSG1BiNeSTp9lBYtEba3v8DLuw=
+SHA1-Digest: Rd1AH2wMnLlkTy0Oo/bJJdm6qTw=
 
 Name: images/24x24/new-package.gif
 SHA1-Digest: qOfP7c+KlZvF0CpXJ5/QzK9Ul34=
@@ -91,7 +91,7 @@ Name: help/system-config/csrf_de.html
 SHA1-Digest: KBm4mHKLfefh/2iQ2hPEKmZ1Lxs=
 
 Name: WEB-INF/remoting.jar
-SHA1-Digest: gcZJXblEV+e0d5OliCroeqmJJj4=
+SHA1-Digest: Oq6sR1QNQ3mqGVccSRUoHMIpeVE=
 
 Name: images/16x16/grey.gif
 SHA1-Digest: q4gH4T6p8o8R2PCfokRVM3LprLI=
@@ -1293,7 +1293,7 @@ Name: help/system-config/master-slave/availability_fr.html
 SHA1-Digest: IHYM71b560QXrirfSdoVcbmQI5I=
 
 Name: WEB-INF/slave.jar
-SHA1-Digest: GDvmjfvlZamhvUH7cRourYgFyEI=
+SHA1-Digest: gLJ8ZYuejtfCQLJ9PYL0vfMNATc=
 
 Name: help/tasks/junit/report_de.html
 SHA1-Digest: ntaRJsh4yGTpMxpbG0QOwrYvowQ=
@@ -1504,7 +1504,7 @@ Name: images/16x16/user.gif
 SHA1-Digest: 3QKfFymOJzaTEPFS2jiP+5Z0VXw=
 
 Name: WEB-INF/plugins/maven-plugin.hpi
-SHA1-Digest: 8r6uNrhN7mSlBTZXCoRUZsfVnmM=
+SHA1-Digest: WMwvx8fEJB+up80PgIPIua8AkX0=
 
 Name: images/16x16/notepad.gif
 SHA1-Digest: MOAaJVCFqUz93frnyOX0HMZzFcw=
@@ -2020,7 +2020,7 @@ Name: env-vars_fr.html
 SHA1-Digest: 2au5AYQYhBesBWdLNizFIwE+YaU=
 
 Name: WEB-INF/lib/hudson-core-1.373.jar
-SHA1-Digest: imf+X45l/pN8oxUv+toHNR4rBIc=
+SHA1-Digest: RrcKGOSQlDn4ddZcltYWOn+2R78=
 
 Name: help/system-config/master-slave/numExecutors_zh_CN.html
 SHA1-Digest: BfXzA398f28MgVeQqgkZQTtk9Bg=
@@ -2529,7 +2529,7 @@ Name: help/project-config/custom-workspace_de.html
 SHA1-Digest: 22gCMsGlhgUBHwZN4DPz7rcJ7QI=
 
 Name: WEB-INF/lib/remoting-1.373.jar
-SHA1-Digest: S44BNG3ek3LiWakzcoBFoRO+4yg=
+SHA1-Digest: GUKvV1zQ4VmeganbKvMDKNjjS1Y=
 
 Name: WEB-INF/lib/localizer-1.10.jar
 SHA1-Digest: 1t6E1OUxJTHtDCf7iMYcdWZjHMI=
@@ -2553,7 +2553,7 @@ Name: help/matrix/jdk.html
 SHA1-Digest: StIF6c+MoIbmSiyJegNNCtcR5vc=
 
 Name: META-INF/maven/org.jvnet.hudson.main/hudson-war/pom.properties
-SHA1-Digest: L688uOauOT4UtiolCnYqC+G9qvc=
+SHA1-Digest: xpV+d45Q5kCq7uXUkZVas70DCAE=
 
 Name: help/security/private-realm_fr.html
 SHA1-Digest: YXcXPQkxC5GktFirhu7HQEvo3Vc=
@@ -2855,7 +2855,7 @@ Name: help/project-config/timer-format_tr.html
 SHA1-Digest: CNw58YLZ+Rzrf3j7nvcYw52I+Y4=
 
 Name: WEB-INF/lib/cli-1.373.jar
-SHA1-Digest: it6YrNresifXlfwjmgVPMM+kdds=
+SHA1-Digest: egAKGT68FppD1OL+96K7cnRubD8=
 
 Name: WEB-INF/lib/commons-lang-2.4.jar
 SHA1-Digest: jw79AfZ3X69rHXa5mFbsiTLDoOw=
