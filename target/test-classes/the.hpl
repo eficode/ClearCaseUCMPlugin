@@ -1,0 +1,119 @@
+Manifest-Version: 1.0
+Group-Id: net.praqma
+Short-Name: CC4H
+Long-Name: CC4H
+Url: https://hudson.dev.java.net/plugin/CC4H
+Plugin-Version: 1.1-SNAPSHOT (private-10/11/2010 11:33-Administrator)
+Hudson-Version: 1.373
+Plugin-Developers: 
+Libraries: C:\Documents and Settings\Administrator\workspace\CC4H\targ
+ et\classes,C:\Documents and Settings\Administrator\.m2\repository\org
+ \jvnet\hudson\main\hudson-war\1.373\hudson-war-1.373.war,C:\Documents
+  and Settings\Administrator\.m2\repository\junit\junit\4.3.1\junit-4.
+ 3.1.jar,C:\Documents and Settings\Administrator\.m2\repository\org\jv
+ net\hudson\main\hudson-test-harness\1.373\hudson-test-harness-1.373.j
+ ar,C:\Documents and Settings\Administrator\.m2\repository\org\jvnet\h
+ udson\main\hudson-war\1.373\hudson-war-1.373-war-for-test.jar,C:\Docu
+ ments and Settings\Administrator\.m2\repository\org\jvnet\hudson\main
+ \maven-plugin\1.373\maven-plugin-1.373.jar,C:\Documents and Settings\
+ Administrator\.m2\repository\org\jvnet\hudson\main\maven-agent\1.373\
+ maven-agent-1.373.jar,C:\Documents and Settings\Administrator\.m2\rep
+ ository\org\jvnet\hudson\main\maven-interceptor\1.373\maven-intercept
+ or-1.373.jar,C:\Documents and Settings\Administrator\.m2\repository\o
+ rg\apache\maven\maven-core\2.0.9\maven-core-2.0.9.jar,C:\Documents an
+ d Settings\Administrator\.m2\repository\org\apache\maven\maven-settin
+ gs\2.0.9\maven-settings-2.0.9.jar,C:\Documents and Settings\Administr
+ ator\.m2\repository\org\apache\maven\maven-model\2.0.9\maven-model-2.
+ 0.9.jar,C:\Documents and Settings\Administrator\.m2\repository\org\co
+ dehaus\plexus\plexus-utils\1.5.1\plexus-utils-1.5.1.jar,C:\Documents 
+ and Settings\Administrator\.m2\repository\org\codehaus\plexus\plexus-
+ container-default\1.0-alpha-9-stable-1\plexus-container-default-1.0-a
+ lpha-9-stable-1.jar,C:\Documents and Settings\Administrator\.m2\repos
+ itory\classworlds\classworlds\1.1\classworlds-1.1.jar,C:\Documents an
+ d Settings\Administrator\.m2\repository\org\apache\maven\wagon\wagon-
+ file\1.0-beta-2\wagon-file-1.0-beta-2.jar,C:\Documents and Settings\A
+ dministrator\.m2\repository\org\apache\maven\wagon\wagon-provider-api
+ \1.0-beta-2\wagon-provider-api-1.0-beta-2.jar,C:\Documents and Settin
+ gs\Administrator\.m2\repository\org\apache\maven\maven-plugin-paramet
+ er-documenter\2.0.9\maven-plugin-parameter-documenter-2.0.9.jar,C:\Do
+ cuments and Settings\Administrator\.m2\repository\slide\slide-webdavl
+ ib\2.1\slide-webdavlib-2.1.jar,C:\Documents and Settings\Administrato
+ r\.m2\repository\commons-httpclient\commons-httpclient\3.1\commons-ht
+ tpclient-3.1.jar,C:\Documents and Settings\Administrator\.m2\reposito
+ ry\de\zeigermann\xml\xml-im-exporter\1.1\xml-im-exporter-1.1.jar,C:\D
+ ocuments and Settings\Administrator\.m2\repository\org\apache\maven\w
+ agon\wagon-http-lightweight\1.0-beta-2\wagon-http-lightweight-1.0-bet
+ a-2.jar,C:\Documents and Settings\Administrator\.m2\repository\org\ap
+ ache\maven\wagon\wagon-http-shared\1.0-beta-2\wagon-http-shared-1.0-b
+ eta-2.jar,C:\Documents and Settings\Administrator\.m2\repository\org\
+ apache\maven\reporting\maven-reporting-api\2.0.9\maven-reporting-api-
+ 2.0.9.jar,C:\Documents and Settings\Administrator\.m2\repository\org\
+ apache\maven\doxia\doxia-sink-api\1.0-alpha-10\doxia-sink-api-1.0-alp
+ ha-10.jar,C:\Documents and Settings\Administrator\.m2\repository\org\
+ apache\maven\maven-profile\2.0.9\maven-profile-2.0.9.jar,C:\Documents
+  and Settings\Administrator\.m2\repository\org\apache\maven\maven-art
+ ifact\2.0.9\maven-artifact-2.0.9.jar,C:\Documents and Settings\Admini
+ strator\.m2\repository\org\apache\maven\maven-repository-metadata\2.0
+ .9\maven-repository-metadata-2.0.9.jar,C:\Documents and Settings\Admi
+ nistrator\.m2\repository\org\apache\maven\maven-error-diagnostics\2.0
+ .9\maven-error-diagnostics-2.0.9.jar,C:\Documents and Settings\Admini
+ strator\.m2\repository\org\apache\maven\maven-project\2.0.9\maven-pro
+ ject-2.0.9.jar,C:\Documents and Settings\Administrator\.m2\repository
+ \org\apache\maven\maven-artifact-manager\2.0.9\maven-artifact-manager
+ -2.0.9.jar,C:\Documents and Settings\Administrator\.m2\repository\org
+ \apache\maven\maven-plugin-registry\2.0.9\maven-plugin-registry-2.0.9
+ .jar,C:\Documents and Settings\Administrator\.m2\repository\org\apach
+ e\maven\maven-plugin-api\2.0.9\maven-plugin-api-2.0.9.jar,C:\Document
+ s and Settings\Administrator\.m2\repository\org\apache\maven\wagon\wa
+ gon-ssh-external\1.0-beta-2\wagon-ssh-external-1.0-beta-2.jar,C:\Docu
+ ments and Settings\Administrator\.m2\repository\org\apache\maven\wago
+ n\wagon-ssh-common\1.0-beta-2\wagon-ssh-common-1.0-beta-2.jar,C:\Docu
+ ments and Settings\Administrator\.m2\repository\org\codehaus\plexus\p
+ lexus-interactivity-api\1.0-alpha-4\plexus-interactivity-api-1.0-alph
+ a-4.jar,C:\Documents and Settings\Administrator\.m2\repository\org\ap
+ ache\maven\maven-plugin-descriptor\2.0.9\maven-plugin-descriptor-2.0.
+ 9.jar,C:\Documents and Settings\Administrator\.m2\repository\org\apac
+ he\maven\maven-monitor\2.0.9\maven-monitor-2.0.9.jar,C:\Documents and
+  Settings\Administrator\.m2\repository\org\apache\maven\wagon\wagon-s
+ sh\1.0-beta-2\wagon-ssh-1.0-beta-2.jar,C:\Documents and Settings\Admi
+ nistrator\.m2\repository\com\jcraft\jsch\0.1.27\jsch-0.1.27.jar,C:\Do
+ cuments and Settings\Administrator\.m2\repository\org\jvnet\hudson\ma
+ ven2.1-interceptor\1.2\maven2.1-interceptor-1.2.jar,C:\Documents and 
+ Settings\Administrator\.m2\repository\org\jvnet\hudson\maven-embedder
+ \2.0.4-hudson-1\maven-embedder-2.0.4-hudson-1.jar,C:\Documents and Se
+ ttings\Administrator\.m2\repository\org\apache\maven\maven-embedder\2
+ .0.4\maven-embedder-2.0.4.jar,C:\Documents and Settings\Administrator
+ \.m2\repository\org\jvnet\hudson\wagon-webdav\1.0-beta-2-hudson-1\wag
+ on-webdav-1.0-beta-2-hudson-1.jar,C:\Documents and Settings\Administr
+ ator\.m2\repository\org\jvnet\hudson\plugins\subversion\1.11\subversi
+ on-1.11.jar,C:\Documents and Settings\Administrator\.m2\repository\or
+ g\jvnet\hudson\svnkit\svnkit\1.3.0-hudson-4\svnkit-1.3.0-hudson-4.jar
+ ,C:\Documents and Settings\Administrator\.m2\repository\org\mortbay\j
+ etty\jetty\6.1.11\jetty-6.1.11.jar,C:\Documents and Settings\Administ
+ rator\.m2\repository\org\mortbay\jetty\jetty-util\6.1.11\jetty-util-6
+ .1.11.jar,C:\Documents and Settings\Administrator\.m2\repository\org\
+ mortbay\jetty\servlet-api-2.5\6.1.11\servlet-api-2.5-6.1.11.jar,C:\Do
+ cuments and Settings\Administrator\.m2\repository\org\jvnet\mock-java
+ mail\mock-javamail\1.7\mock-javamail-1.7.jar,C:\Documents and Setting
+ s\Administrator\.m2\repository\org\jvnet\hudson\htmlunit\2.6-hudson-2
+ \htmlunit-2.6-hudson-2.jar,C:\Documents and Settings\Administrator\.m
+ 2\repository\xalan\xalan\2.7.1\xalan-2.7.1.jar,C:\Documents and Setti
+ ngs\Administrator\.m2\repository\xalan\serializer\2.7.1\serializer-2.
+ 7.1.jar,C:\Documents and Settings\Administrator\.m2\repository\org\jv
+ net\hudson\htmlunit-core-js\2.6-hudson-1\htmlunit-core-js-2.6-hudson-
+ 1.jar,C:\Documents and Settings\Administrator\.m2\repository\xerces\x
+ ercesImpl\2.9.1\xercesImpl-2.9.1.jar,C:\Documents and Settings\Admini
+ strator\.m2\repository\net\sourceforge\nekohtml\nekohtml\1.9.13\nekoh
+ tml-1.9.13.jar,C:\Documents and Settings\Administrator\.m2\repository
+ \net\sourceforge\cssparser\cssparser\0.9.5\cssparser-0.9.5.jar,C:\Doc
+ uments and Settings\Administrator\.m2\repository\org\w3c\css\sac\1.3\
+ sac-1.3.jar,C:\Documents and Settings\Administrator\.m2\repository\or
+ g\jvnet\hudson\embedded-rhino-debugger\1.2\embedded-rhino-debugger-1.
+ 2.jar,C:\Documents and Settings\Administrator\.m2\repository\org\jvne
+ t\hudson\netx\0.5-hudson-2\netx-0.5-hudson-2.jar,C:\Documents and Set
+ tings\Administrator\.m2\repository\org\easymock\easymock\2.4\easymock
+ -2.4.jar,C:\Documents and Settings\Administrator\.m2\repository\org\j
+ vnet\hudson\main\ui-samples-plugin\1.373\ui-samples-plugin-1.373.jar
+Resource-Path: C:\Documents and Settings\Administrator\workspace\CC4H\
+ src\main\webapp
+

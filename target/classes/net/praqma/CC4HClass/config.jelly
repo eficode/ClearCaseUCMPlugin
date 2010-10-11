@@ -1,0 +1,13 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+     <f:entry title="${%Stream}" help="/plugin/CC4H/help-projectConfig.html">
+      <f:textbox name="stream" value="${it.stream}"/>
+    </f:entry>
+    <f:entry title="${%Component}" help="/plugin/CC4H/help-component.html">
+      <f:textbox name="component" value="${it.component}"/>
+    </f:entry>
+    <f:entry title="${%At the moment snapshot view is not supported.}" help="/plugin/CC4H/help-view.html" />
+    <f:entry title="${%Load modules}" help="/plugin/CC4H/help-loadModules.html">
+      <f:textbox name="modules" value="${it.modules}"/>
+    </f:entry>    
+</j:jelly>
