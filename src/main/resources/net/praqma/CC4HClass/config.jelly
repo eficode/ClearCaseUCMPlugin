@@ -11,7 +11,7 @@
       <f:entry  title="Promotion level" description="Choose promotion level">
       <select class="setting-input"   name="level">
        <j:forEach var="l" items="${levels}">
-        <f:option selected="${l.displayName==it.getLevel()}">${l.displayName}</f:option>
+        <f:option value="${l}">${l}</f:option>
           </j:forEach>
          </select>
        </f:entry>

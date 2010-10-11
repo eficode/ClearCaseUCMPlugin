@@ -59,6 +59,7 @@ public class CC4HClass extends SCM {
 	public static class CC4HClassDescriptor extends SCMDescriptor<CC4HClass> {
 		private String cleartool;
 		private List<String> levels;
+		private String modules = "write something";
 		
 		public CC4HClassDescriptor(){
 			super(CC4HClass.class,null);
@@ -89,6 +90,10 @@ public class CC4HClass extends SCM {
 
 		public List<String> getLevels() {
 			return levels;
+		}
+		
+		public String getModules(){
+			return modules;
 		}
 		
 		public String getCleartool() {
