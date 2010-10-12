@@ -22,6 +22,7 @@ import hudson.scm.SCMDescriptor;
 import hudson.scm.PollingResult;
 import hudson.scm.SCMRevisionState;
 import hudson.util.FormValidation;
+import org.kohsuke.stapler.DataBoundConstructor;
 
 import net.sf.json.JSONObject;
 
@@ -29,6 +30,25 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 public class CC4HClass extends SCM {
+	private List<String> levels;
+	private String level;
+	private String loadModules;
+	private String component;
+	private String stream;
+	
+	@DataBoundConstructor
+	public CC4HClass(String component, String level, String loadModules, String stream){
+		this.component = component;
+		this.level = level;
+		this.loadModules = loadModules;
+		this.stream = stream;
+		levels = new ArrayList<String>();
+		levels.add("INITIAL");
+		levels.add("BUILT");
+		levels.add("TESTED");
+		levels.add("RELEASED");
+		levels.add("REJECTED");
+	}
 
 	@Override
 	public boolean checkout(AbstractBuild arg0, Launcher arg1, FilePath arg2,
@@ -54,21 +74,38 @@ public class CC4HClass extends SCM {
 	public SCMRevisionState	calcRevisionsFromBuild(AbstractBuild<?,?> build, Launcher launcher, TaskListener listener)  throws IOException, InterruptedException {
 	  return null;
 	}
+  
+  public List<String> getLevels() {
+		return levels;
+	}
+	
+	public String getLoadModules(){
+		if (loadModules==null)
+			return "all";
+		return loadModules;
+	}
   	
-  @Extension
+	public String getLevel() {
+		return level;
+	}
+
+	public String getComponent() {
+		return component;
+	}
+
+	public String getStream() {
+		return stream;
+	}
+
+@Extension
 	public static class CC4HClassDescriptor extends SCMDescriptor<CC4HClass> {
 		private String cleartool;
-		private List<String> levels;
-		private String modules = "write something";
+
+		
 		
 		public CC4HClassDescriptor(){
 			super(CC4HClass.class,null);
-			levels = new ArrayList<String>();
-			levels.add("INITIAL");
-			levels.add("BUILT");
-			levels.add("TESTED");
-			levels.add("RELEASED");
-			levels.add("REJECTED");
+
 			load();
 		}
 
@@ -88,13 +125,7 @@ public class CC4HClass extends SCM {
 		    return FormValidation.validateExecutable(value);
 		}
 
-		public List<String> getLevels() {
-			return levels;
-		}
 		
-		public String getModules(){
-			return modules;
-		}
 		
 		public String getCleartool() {
 			if(cleartool==null)

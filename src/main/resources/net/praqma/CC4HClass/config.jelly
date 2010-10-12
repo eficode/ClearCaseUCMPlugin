@@ -1,23 +1,27 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
      <f:entry title="${%Stream}" help="/plugin/CC4H/help-projectConfig.html">
-      <f:textbox name="stream" value="${it.stream}"/>
+      <f:textbox name="stream" value="${scm.stream}"/>
     </f:entry>
     <f:entry title="${%Component}" help="/plugin/CC4H/help-component.html">
-      <f:textbox name="component" value="${it.component}"/>
+      <f:textbox name="component" value="${scm.component}"/>
     </f:entry>
 
-    <j:set var="levels" value="${descriptor.getLevels()}"/>
-      <f:entry  title="Promotion level" description="Choose promotion level">
+    <j:set var="levels" value="${scm.getLevels()}"/>
+      <f:entry  title="Promotion level" description="Choose promotion level for polling">
       <select class="setting-input"   name="level">
        <j:forEach var="l" items="${levels}">
-        <f:option value="${l}">${l}</f:option>
+        <f:option selected="${scm.level==l}" value="${l}">${l}</f:option>
           </j:forEach>
          </select>
        </f:entry>
 
     <f:entry title="${%At the moment snapshot view is not supported.}" help="/plugin/CC4H/help-view.html" />
-    <f:entry title="${%Load modules}" help="/plugin/CC4H/help-loadModules.html">
-      <f:textbox name="modules" value="${it.modules}"/>
-    </f:entry>    
+
+<f:entry title="${%Load my modules}"> 
+ <f:radio name="loadModules" value="all" checked="${scm.getLoadModules() == 'all'}" id="loadModules.all"/>All
+ <f:radio name="loadModules" value="modifiable"
+checked="${scm.getLoadModules() == 'modifiable'}" id="loadModules.modifiable"/>Modifiable
+</f:entry>
+    
 </j:jelly>
