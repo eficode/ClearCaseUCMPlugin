@@ -1,9 +1,0 @@
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
-         xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-  <f:section title="Clearcase 4 Hudson">
-    <f:entry title="Cleartool"  help="/plugin/CC4H/ctexe.html">
-      <f:textbox name="cc4h.cleartool" value="${descriptor.cleartool}"
-                 checkUrl="'${rootURL}/scm/CC4HClass/executableCheck?value='+escape(this.value)"/>
-    </f:entry>
-  </f:section>
-</j:jelly>
