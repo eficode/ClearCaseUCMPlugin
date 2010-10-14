@@ -159,12 +159,13 @@ class Debug
 	public void print_trace( boolean tolog )
 	{
 		StringBuffer sb = new StringBuffer();
+		sb.append( "Function tracing" + linesep );
 		 
 		for( int i = 0 ; i < trace.size() ; i++ )
 		{
 			if( tolog )
 			{
-				sb.append( "/ " + trace.get( i ) + " " );
+				sb.append( "[" + i + "] " + trace.get( i ) + linesep );
 			}
 			else
 			{
