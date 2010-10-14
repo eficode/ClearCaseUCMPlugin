@@ -31,6 +31,9 @@ class ClearBase
 	protected static final String BUILD_IN_PROGRESS_ENUM_TRUE = "\"TRUE\"";
 	protected static final String ATTR_BUILD_IN_PROGRESS      = "BuildInProgress";
 	
+	protected static final String filesep                     = System.getProperty( "file.separator" );
+	protected static final String linesep                     = System.getProperty( "line.separator" );
+	
 	/**
 	 * Test if a component is a fully qualified component in the format: baseline\@\\PVOB (not: $fqobj)
 	 */

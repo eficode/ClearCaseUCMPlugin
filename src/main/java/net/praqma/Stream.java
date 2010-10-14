@@ -64,6 +64,10 @@ class Stream extends ClearBase
 		return this.fqstream;
 	}
 	
+	public String GetPvob()
+	{
+		return pvob;
+	}
 
 	
 }
