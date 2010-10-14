@@ -3,6 +3,7 @@ package net.praqma;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.praqma.Debug;
 
 class ClearBase
 {
@@ -10,6 +11,8 @@ class ClearBase
 	protected static final String delim    = "::";
 	
 	protected static final String rx_fqobj = "(.*)\\@(\\.*)$";
+	
+	protected static Debug logger = Debug.GetLogger();
 	
 	/**
 	 * Test if a component is a fully qualified component in the format: baseline\@\\PVOB (not: $fqobj)
