@@ -35,9 +35,10 @@ public class CC4HClass extends SCM {
 	private String loadModules;
 	private String component;
 	private String stream;
-	
+
 	@DataBoundConstructor
-	public CC4HClass(String component, String level, String loadModules, String stream){
+	public CC4HClass(String component, String level, String loadModules,
+			String stream) {
 		this.component = component;
 		this.level = level;
 		this.loadModules = loadModules;
@@ -64,27 +65,31 @@ public class CC4HClass extends SCM {
 		return null;
 	}
 
-  @Override
-	public PollingResult compareRemoteRevisionWith(AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener,
-            SCMRevisionState baseline) throws IOException, InterruptedException {
+	@Override
+	public PollingResult compareRemoteRevisionWith(
+			AbstractProject<?, ?> project, Launcher launcher,
+			FilePath workspace, TaskListener listener, SCMRevisionState baseline)
+			throws IOException, InterruptedException {
 		return PollingResult.NO_CHANGES;
 	}
-  
-  @Override
-	public SCMRevisionState	calcRevisionsFromBuild(AbstractBuild<?,?> build, Launcher launcher, TaskListener listener)  throws IOException, InterruptedException {
-	  return null;
+
+	@Override
+	public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?, ?> build,
+			Launcher launcher, TaskListener listener) throws IOException,
+			InterruptedException {
+		return null;
 	}
-  
-  public List<String> getLevels() {
+
+	public List<String> getLevels() {
 		return levels;
 	}
-	
-	public String getLoadModules(){
-		if (loadModules==null)
+
+	public String getLoadModules() {
+		if (loadModules == null)
 			return "all";
 		return loadModules;
 	}
-  	
+
 	public String getLevel() {
 		return level;
 	}
@@ -97,20 +102,19 @@ public class CC4HClass extends SCM {
 		return stream;
 	}
 
-@Extension
+	@Extension
 	public static class CC4HClassDescriptor extends SCMDescriptor<CC4HClass> {
 		private String cleartool;
 
-		
-		
-		public CC4HClassDescriptor(){
-			super(CC4HClass.class,null);
+		public CC4HClassDescriptor() {
+			super(CC4HClass.class, null);
 
 			load();
 		}
 
 		@Override
-		public boolean configure(org.kohsuke.stapler.StaplerRequest req, JSONObject json) throws FormException {
+		public boolean configure(org.kohsuke.stapler.StaplerRequest req,
+				JSONObject json) throws FormException {
 			cleartool = req.getParameter("cc4h.cleartool").trim();
 			save();
 			return true;
@@ -120,15 +124,13 @@ public class CC4HClass extends SCM {
 		public String getDisplayName() {
 			return "Clearcase 4 Hudson";
 		}
-				
+
 		public FormValidation doExecutableCheck(@QueryParameter String value) {
-		    return FormValidation.validateExecutable(value);
+			return FormValidation.validateExecutable(value);
 		}
 
-		
-		
 		public String getCleartool() {
-			if(cleartool==null)
+			if (cleartool == null)
 				return "ct";
 			return cleartool;
 		}

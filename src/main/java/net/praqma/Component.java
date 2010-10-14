@@ -24,5 +24,12 @@ class Component extends ClearBase
 	}
 	
 	
+	/* Not verified! */
+	public String GetName()
+	{
+		logger.trace_function();
+		
+		return shortname;
+	}
 
 }

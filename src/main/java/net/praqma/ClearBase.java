@@ -3,6 +3,7 @@ package net.praqma;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.praqma.Debug;
 
 class ClearBase
 {
@@ -10,6 +11,20 @@ class ClearBase
 	protected static final String delim    = "::";
 	
 	protected static final String rx_fqobj = "(.*)\\@(\\.*)$";
+	
+	protected static Debug logger = Debug.GetLogger();
+	
+	protected static enum Plevel
+	{
+		REJECTED,
+		INITIAL,
+		BUILT,
+		TESTED,
+		PLEVEL_RELEASED;
+	}
+	
+	protected static final String BUILD_IN_PROGRESS_ENUM_TRUE = "\"TRUE\"";
+	protected static final String ATTR_BUILD_IN_PROGRESS      = "BuildInProgress";
 	
 	/**
 	 * Test if a component is a fully qualified component in the format: baseline\@\\PVOB (not: $fqobj)
@@ -31,5 +46,20 @@ class ClearBase
 		}
 		
 		return null;
+	}
+	
+	protected Plevel GetPlevelFromString( String level )
+	{
+		int l = 0;
+		try
+		{
+			l = Integer.parseInt( level );
+		}
+		catch( NumberFormatException e )
+		{
+			return Plevel.INITIAL;
+		}
+		
+		return Plevel.values()[l];
 	}
 }

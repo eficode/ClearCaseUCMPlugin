@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -27,6 +28,11 @@ class Debug
 	
 	private static boolean enabled            = true;
 	
+	private static final String filesep       = System.getProperty( "file.separator" );
+	private static final String linesep       = System.getProperty( "line.separator" );
+	
+	private static ArrayList<String> trace    = null;
+	
 	
 	private Debug()
 	{
@@ -35,6 +41,8 @@ class Debug
 		format    = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" );
 		logformat = new SimpleDateFormat( "yyyyMMdd" );
 		//logformat = new SimpleDateFormat( "yyyyMMdd_HHmmss" );
+		
+		trace = new ArrayList<String>();
 		
 		NewDate( nowDate );
 	}
@@ -57,7 +65,7 @@ class Debug
 	
 	public void setPathHomeLogs()
 	{
-		this.path = System.getProperty( "user.home" ) + "/logs/";
+		this.path = System.getProperty( "user.home" ) + filesep + "logs" + filesep;
 		NewDate( nowDate );
 	}
 	
@@ -98,7 +106,7 @@ class Debug
 		}
 		catch ( IOException e )
 		{
-			System.err.println( "Cannot use the specified path. Defaulting to current working directory." );
+			System.err.println( "Cannot use the specified path, \"" + path + "\". Defaulting to current working directory." );
 			path = "./";
 			try
 			{
@@ -124,17 +132,49 @@ class Debug
 		return logger;
 	}
 	
-	public void trace()
+	public void stacktrace()
 	{
 		StackTraceElement[] stack = Thread.currentThread().getStackTrace();
 		StringBuffer sb = new StringBuffer();
-		sb.append( "Tracing\r\n" );
+		sb.append( "Tracing" + linesep );
 		for( int i = 2 ; i < stack.length ; i++ )
 		{
-			sb.append( stack[i].getClassName() + "::" + stack[i].getMethodName() + "," + stack[i].getLineNumber() + "\r\n" );
+			sb.append( stack[i].getClassName() + "::" + stack[i].getMethodName() + "," + stack[i].getLineNumber() + linesep );
 		}
 		
 		_log( sb.toString(), "trace" );
+	}
+	
+	public void trace_function( )
+	{
+		StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+		trace.add( stack[2].getClassName() + "::" + stack[2].getMethodName() );
+	}
+	
+	public void print_trace( )
+	{
+		print_trace( true );
+	}
+	
+	public void print_trace( boolean tolog )
+	{
+		StringBuffer sb = new StringBuffer();
+		 
+		for( int i = 0 ; i < trace.size() ; i++ )
+		{
+			if( tolog )
+			{
+				sb.append( "/ " + trace.get( i ) + " " );
+			}
+			else
+			{
+				System.out.println( trace.get( i ) );
+			}
+		}
+		if( tolog )
+		{
+			_log( sb.toString(), "trace" );
+		}
 	}
 	
 	public void log( String msg )
@@ -167,7 +207,7 @@ class Debug
 		
 		try
 		{
-			out.write( format.format( now.getTime() ) + " [" + type + "] " + stack[3].getClassName() + "::" + stack[3].getMethodName() + "," + stack[3].getLineNumber() + ": " + msg + "\r\n" );
+			out.write( format.format( now.getTime() ) + " [" + type + "] " + stack[3].getClassName() + "::" + stack[3].getMethodName() + "," + stack[3].getLineNumber() + ": " + msg + linesep );
 			out.flush();
 		}
 		catch ( IOException e )
