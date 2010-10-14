@@ -27,6 +27,9 @@ class Debug
 	
 	private static boolean enabled            = true;
 	
+	private static final String filesep       = System.getProperty( "file.separator" );
+	private static final String linesep       = System.getProperty( "line.separator" );
+	
 	
 	private Debug()
 	{
@@ -57,7 +60,7 @@ class Debug
 	
 	public void setPathHomeLogs()
 	{
-		this.path = System.getProperty( "user.home" ) + "/logs/";
+		this.path = System.getProperty( "user.home" ) + filesep + "logs" + filesep;
 		NewDate( nowDate );
 	}
 	
@@ -98,7 +101,7 @@ class Debug
 		}
 		catch ( IOException e )
 		{
-			System.err.println( "Cannot use the specified path. Defaulting to current working directory." );
+			System.err.println( "Cannot use the specified path, \"" + path + "\". Defaulting to current working directory." );
 			path = "./";
 			try
 			{
@@ -128,10 +131,10 @@ class Debug
 	{
 		StackTraceElement[] stack = Thread.currentThread().getStackTrace();
 		StringBuffer sb = new StringBuffer();
-		sb.append( "Tracing\r\n" );
+		sb.append( "Tracing" + linesep );
 		for( int i = 2 ; i < stack.length ; i++ )
 		{
-			sb.append( stack[i].getClassName() + "::" + stack[i].getMethodName() + "," + stack[i].getLineNumber() + "\r\n" );
+			sb.append( stack[i].getClassName() + "::" + stack[i].getMethodName() + "," + stack[i].getLineNumber() + linesep );
 		}
 		
 		_log( sb.toString(), "trace" );
@@ -167,7 +170,7 @@ class Debug
 		
 		try
 		{
-			out.write( format.format( now.getTime() ) + " [" + type + "] " + stack[3].getClassName() + "::" + stack[3].getMethodName() + "," + stack[3].getLineNumber() + ": " + msg + "\r\n" );
+			out.write( format.format( now.getTime() ) + " [" + type + "] " + stack[3].getClassName() + "::" + stack[3].getMethodName() + "," + stack[3].getLineNumber() + ": " + msg + linesep );
 			out.flush();
 		}
 		catch ( IOException e )
