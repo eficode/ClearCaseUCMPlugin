@@ -9,19 +9,34 @@
 
     <j:set var="levels" value="${scm.getLevels()}"/>
       <f:entry  title="Promotion level" description="Choose promotion level for polling">
-      <select class="setting-input"   name="level">
+      <select class="setting-input" name="levelToPoll">
        <j:forEach var="l" items="${levels}">
-        <f:option selected="${scm.level==l}" value="${l}">${l}</f:option>
+        <f:option selected="${scm.levelToPoll==l}" value="${l}">${l}</f:option>
           </j:forEach>
          </select>
        </f:entry>
 
-    <f:entry title="${%At the moment snapshot view is not supported.}" help="/plugin/CC4H/help-view.html" />
+    <f:entry title="${%View}" help="/plugin/CC4H/help-view.html">
+	At the moment snapshot view is not supported.
+    </f:entry>
 
-<f:entry title="${%Load my modules}"> 
- <f:radio name="loadModules" value="all" checked="${scm.getLoadModules() == 'all'}" id="loadModules.all"/>All
- <f:radio name="loadModules" value="modifiable"
-checked="${scm.getLoadModules() == 'modifiable'}" id="loadModules.modifiable"/>Modifiable
-</f:entry>
-    
+    <f:entry title="${%Load my modules}"> 
+     <f:radio name="loadModules" value="all" checked="${scm.getLoadModules() == 'all'}" id="loadModules.all"/>All
+     <f:radio name="loadModules" value="modifiable" checked="${scm.getLoadModules() == 'modifiable'}" id="loadModules.modifiable"/>Modifiable
+    </f:entry>
+
+    <f:entry title="${%Promote to}" help="/plugin/CC4H/help-promoteToLevel.html">
+      <select class="setting-input" name="promoteToLevel">
+       <j:set var="postlevels" value="${scm.getLevels()}"/>
+       <j:forEach var="pl" items="${postlevels}">
+        <f:option selected="${scm.promoteToLevel==pl}" value="${l}">${pl}</f:option>
+       </j:forEach>
+      </select>
+    </f:entry>
+   
+
+    <f:entry title="${%Tag post-build}" help="/plugin/CC4H/help-tagPostBuild.html">
+      <f:textbox name="tagPostBuild" value="${scm.tagPostBuild}"/>
+    </f:entry> 
+   
 </j:jelly>

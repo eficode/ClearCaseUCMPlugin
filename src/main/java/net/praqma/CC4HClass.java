@@ -31,24 +31,31 @@ import org.kohsuke.stapler.StaplerRequest;
 
 public class CC4HClass extends SCM {
 	private List<String> levels;
-	private String level;
+	private String levelToPoll;
 	private String loadModules;
 	private String component;
 	private String stream;
+	private String promoteToLevel;
+	private String tagPostBuild;
+
 
 	@DataBoundConstructor
-	public CC4HClass(String component, String level, String loadModules,
-			String stream) {
+	public CC4HClass(String component, String levelToPoll, String loadModules,
+			String stream, String promoteToLevel, String tagPostBuild) {
+
 		this.component = component;
-		this.level = level;
+		this.levelToPoll = levelToPoll;
 		this.loadModules = loadModules;
 		this.stream = stream;
+		this.promoteToLevel = promoteToLevel;
+		this.tagPostBuild = tagPostBuild;
 		levels = new ArrayList<String>();
 		levels.add("INITIAL");
 		levels.add("BUILT");
 		levels.add("TESTED");
 		levels.add("RELEASED");
 		levels.add("REJECTED");
+
 	}
 
 	@Override
@@ -90,8 +97,8 @@ public class CC4HClass extends SCM {
 		return loadModules;
 	}
 
-	public String getLevel() {
-		return level;
+	public String getLevelToPoll() {
+		return levelToPoll;
 	}
 
 	public String getComponent() {
@@ -100,6 +107,14 @@ public class CC4HClass extends SCM {
 
 	public String getStream() {
 		return stream;
+	}
+
+	public String getPromoteToLevel() {
+		return promoteToLevel;
+	}
+
+	public String getTagPostBuild() {
+		return tagPostBuild;
 	}
 
 	@Extension
