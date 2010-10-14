@@ -7,7 +7,7 @@
       <f:textbox name="component" value="${scm.component}"/>
     </f:entry>
 
-    <j:set var="levels" value="${scm.getLevels()}"/>
+    <j:set var="levels" value="${descriptor.getLevels()}"/>
       <f:entry  title="Promotion level" description="Choose promotion level for polling">
       <select class="setting-input" name="levelToPoll">
        <j:forEach var="l" items="${levels}">
@@ -21,15 +21,20 @@
     </f:entry>
 
     <f:entry title="${%Load my modules}"> 
-     <f:radio name="loadModules" value="all" checked="${scm.getLoadModules() == 'all'}" id="loadModules.all"/>All
-     <f:radio name="loadModules" value="modifiable" checked="${scm.getLoadModules() == 'modifiable'}" id="loadModules.modifiable"/>Modifiable
+     <select class="setting-input" name="loadModule">
+      <j:set var="modules" value="${descriptor.getLoadModules()}"/>
+       <j:forEach var="lm" items="${modules}">
+        <f:option selected="${scm.loadModule==lm}" value="${lm}">${lm}</f:option>
+          </j:forEach>
+     </select>
     </f:entry>
 
     <f:entry title="${%Promote to}" help="/plugin/CC4H/help-promoteToLevel.html">
       <select class="setting-input" name="promoteToLevel">
-       <j:set var="postlevels" value="${scm.getLevels()}"/>
-       <j:forEach var="pl" items="${postlevels}">
-        <f:option selected="${scm.promoteToLevel==pl}" value="${l}">${pl}</f:option>
+
+    <j:set var="plevels" value="${descriptor.getLevels()}"/>       
+       <j:forEach var="pl" items="${plevels}">
+        <f:option selected="${scm.promoteToLevel==pl}" value="${pl}">${pl}</f:option>
        </j:forEach>
       </select>
     </f:entry>
