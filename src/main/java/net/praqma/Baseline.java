@@ -19,12 +19,13 @@ class Baseline extends ClearBase
 	private String pvob                   = null;
 	
 	private boolean build_in_progess      = false;
+	private String diffs                  = "";
 	
 	
 	
 	public Baseline( String fqobj, boolean trusted )
 	{
-
+		logger.trace_function();
 		
 		/*  $fqobj = 'baseline:'.$fqobj;
     	 *	$fqobj =~ s/baseline:baseline:/baseline:/;
@@ -286,5 +287,85 @@ class Baseline extends ClearBase
 	    return rbls;
 	}
 	
+	
+	public int SetPromotionLevel( Plevel plevel )
+	{
+		logger.trace_function();
+		
+		//cleartool('chbl -level '.$plevel.' '.$self->get_fqname() )
+		String cms = "chbl -level " + plevel.GetName() + " " + this.GetFQName();
+		
+		return 1;
+	}
+	
+	public Plevel GetPromotionLevel(  )
+	{
+		logger.trace_function();
+		
+		//cleartool('desc -fmt %[plevel]p '.$self->get_fqname()
+		String cmd = "desc -fmt %[plevel]p " + this.GetFQName();
+		String result = Cleartool.run( cmd );
+				
+		return GetPlevelFromString( result );
+	}
+	
+	/* Waiting for Lars. */
+	public void GetActivities()
+	{
+		logger.trace_function();
+	}
+	
+	public ArrayList<String> GetDiff( String format, String nmerge, String viewroot )
+	{
+		logger.trace_function();
+		
+		String sw_nmerge = ( nmerge.equals( "0" ) ? " -nmerge " : "" );
+		
+		// cleartool('diffbl -pre -act -ver '.$sw_nmerge.$self->get_fqname );
+		String cmd = "diffbl -pre -act -ver " + sw_nmerge + this.GetFQName();
+		this.diffs = Cleartool.run( cmd );
+		
+		String msg = this.diffs;
+		
+		if( viewroot != null )
+		{
+			msg = msg.replace( viewroot, "" );
+		}
+		
+		ArrayList<String> list = new ArrayList<String>();
+		
+		logger.log( "Format = " + format );
+		
+		if( format.equals( "list" ) )
+		{
+			msg = msg.replaceAll( "^>>.*$", "" );
+			msg = msg.replaceAll( "\\@\\@.*$", "" );
+			msg = msg.replaceAll( "^\\s+", "" );
+			
+			String[] groslist = msg.split( "\n" );
+			
+			HashMap<String, String> hash = new HashMap<String, String>();
+			for( int i = 0 ; i < groslist.length ; i++ )
+			{
+				hash.put( groslist[i], "" );
+			}
+			
+			SortedSet<String> sortedset = new TreeSet<String>( hash.keySet() );
+			Iterator<String> it = sortedset.iterator();
+			
+		    while ( it.hasNext() )
+		    {
+		        list.add( hash.get( it.next() ) );
+		    }
+		}
+		
+		if( format.equals( "scalar" ) )
+		{
+			list.add( msg );
+		}
+		
+		return list;
+		
+	}
 	
 }

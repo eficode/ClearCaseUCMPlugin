@@ -21,6 +21,11 @@ class ClearBase
 		BUILT,
 		TESTED,
 		PLEVEL_RELEASED;
+		
+		String GetName()
+		{
+			return this.GetName();
+		}
 	}
 	
 	protected static final String BUILD_IN_PROGRESS_ENUM_TRUE = "\"TRUE\"";
