@@ -1,4 +1,4 @@
 .project
 .settings
-.log
+*.log
 target/

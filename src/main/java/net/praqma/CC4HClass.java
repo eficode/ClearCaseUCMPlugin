@@ -38,6 +38,9 @@ public class CC4HClass extends SCM {
 	private String promoteToLevel;
 	private String tagPostBuild;
 	
+	private List<String> levels = null;
+	private List<String> loadModules = null;
+	
 	protected static Debug logger = Debug.GetLogger();
 
 
@@ -52,7 +55,6 @@ public class CC4HClass extends SCM {
 		this.stream = stream;
 		this.promoteToLevel = promoteToLevel;
 		this.tagPostBuild = tagPostBuild;
-
 	}
 
 	@Override
@@ -123,15 +125,19 @@ public class CC4HClass extends SCM {
 		return loadModule;
 	}
 
+
 	@Extension
 	public static class CC4HClassDescriptor extends SCMDescriptor<CC4HClass> {
 		private String cleartool;
-		protected List<String> levels;
-		protected List<String> loadModules;
+		private List<String> levels;
+
+		private List<String> loadModules;
 
 		public CC4HClassDescriptor() {
 			super(CC4HClass.class, null);
 			logger.trace_function();
+			levels = getLevels();
+			loadModules = getLoadModules();
 
 			load();
 		}
@@ -173,8 +179,7 @@ public class CC4HClass extends SCM {
 			levels.add("REJECTED");
 			return levels;
 		}
-		
-
+	
 		public List<String> getLoadModules() {
 			logger.trace_function();
 			loadModules = new ArrayList<String>();
@@ -182,6 +187,5 @@ public class CC4HClass extends SCM {
 			loadModules.add("Modifiable");
 			return loadModules;
 		}
-
 	}
 }
