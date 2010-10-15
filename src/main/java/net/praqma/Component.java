@@ -31,5 +31,34 @@ class Component extends ClearBase
 		
 		return shortname;
 	}
+	
+	public String ShortName()
+	{
+		logger.trace_function();
+		
+		return shortname;
+	}
+
+
+	public String GetFQName()
+	{
+		logger.trace_function();
+		
+		return fqobj;
+	}
+	
+	public String GetRootDir()
+	{
+		logger.trace_function();
+		
+		if( rootdir == null )
+		{
+			// cleartool("desc -fmt %[root_dir]p ".$self->get_fqname());
+			String cmd = "desc -fmt %[root_dir]p " + this.GetFQName();
+			this.rootdir = Cleartool.run( cmd ).trim();
+		}
+		
+		return rootdir;
+	}
 
 }

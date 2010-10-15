@@ -36,7 +36,8 @@ class Baseline extends ClearBase
 			fqobj = "baseline:" + fqobj;
 		}
 		
-		this.fqobj = fqobj;
+		this.fqobj   = fqobj;
+		this.fqname  = fqobj;
 		String[] res = TestComponent( fqobj );
 		
 		this.pvob  = res[1];
@@ -256,7 +257,7 @@ class Baseline extends ClearBase
 	/* NOTICE! Inner for loop does not comply with baseline.pm 
 	 * The return type is NOT determined yet!!!
 	 * */
-	public ArrayList<Baseline> StaticExpandBls( ArrayList<Baseline> bls )
+	public static ArrayList<Baseline> StaticExpandBls( ArrayList<Baseline> bls )
 	{
 		logger.trace_function();
 		

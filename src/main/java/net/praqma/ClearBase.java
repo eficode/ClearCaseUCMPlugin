@@ -14,6 +14,8 @@ class ClearBase
 	
 	protected static Debug logger = Debug.GetLogger();
 	
+	protected String fqname = null;
+	
 	protected static enum Plevel
 	{
 		REJECTED,
@@ -69,5 +71,11 @@ class ClearBase
 		}
 		
 		return Plevel.values()[l];
+	}
+	
+	
+	protected String GetFQName()
+	{
+		return this.fqname;
 	}
 }

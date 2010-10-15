@@ -1,20 +1,24 @@
 package net.praqma;
 
+import java.util.ArrayList;
+
 class Stream extends ClearBase
 {
-	private String fqstream   = null;
-	private String found_bls  = null;
-	private String rec_bls    = null;
-	private String latest_bls = null;
-	private String parent     = null;
-	private String brtype     = null;
-	private String viewroot   = null;
-	private String activities = null;
-	private String shortname  = null;
-	private String pvob       = null;	
+	private String fqstream                = null;
+	private String found_bls               = null;
+	private String rec_bls                 = null;
+	private ArrayList<Baseline> latest_bls = null;
+	private String parent                  = null;
+	private String brtype                  = null;
+	private String viewroot                = null;
+	private ArrayList<Activity> activities = null;
+	private String shortname               = null;
+	private String pvob                    = null;	
 	
 	public Stream( String fqstream, boolean trusted )
 	{
+		logger.trace_function();
+		
 		/* Delete the object prefix, if it exists: */
 		if( fqstream.startsWith( "stream:" ) )
 		{
@@ -22,7 +26,8 @@ class Stream extends ClearBase
 		}
 		
 		this.fqstream = fqstream;
-		String[] res = TestComponent( fqstream );
+		this.fqname   = fqstream;
+		String[] res  = TestComponent( fqstream );
 		
 		this.shortname = res[0];
 		this.pvob      = res[1];
@@ -36,6 +41,8 @@ class Stream extends ClearBase
 	
 	public static Stream Create( String stream_fqname, Stream parent_stream, String comment, Baseline baseline, boolean readonly )
 	{
+		logger.trace_function();
+		
 		String args_bl = "";
 		String args_cm = " -nc ";
 		String args_ro = "";
@@ -59,13 +66,104 @@ class Stream extends ClearBase
 		return new Stream( stream_fqname, false );
 	}
 	
+	
+	public ArrayList<Baseline> GetLatestBls( boolean expanded )
+	{
+		logger.trace_function();
+		
+		if( this.latest_bls == null )
+		{
+			// 'cleartool desc -fmt %[latest_bls]p stream:' . $self->{'fqstream'} . ' 2>&1';
+			String cmd = "desc -fmt %[latest_bls]p stream:" + this.fqstream;
+			String result = Cleartool.run( cmd );
+			
+			String[] rs = result.split( " " );
+			
+			for( int i = 0 ; i < rs.length ; i++ )
+			{
+				if( rs[i].matches( "\\S+" ) )
+				{
+					this.latest_bls.add( new Baseline( rs[i].trim(), true ) );
+				}				
+			}
+		}
+				
+		if( expanded )
+		{
+			return Baseline.StaticExpandBls( this.latest_bls );
+		}
+		
+		return this.latest_bls;
+	}
+	
+	/**
+	 * 
+	 * @param baseline
+	 * @param view
+	 * @param complete
+	 * @return
+	 */
+	public int Rebase( Baseline baseline, View view, String complete )
+	{
+		logger.trace_function();
+		
+		Snapview sview = (Snapview)view;
+		
+		if( baseline == null && view == null )
+		{
+			System.err.println( "required parameters are missing" );
+			logger.log( "required parameters are missing", "error" );
+			System.exit( 1 );
+		}
+		
+		if( complete != null )
+		{
+			complete = complete.length() == 0 ? " -complete " : complete;
+		}
+		else
+		{
+			complete = " -complete ";
+		}
+		
+		// cleartool( "rebase $complete -force -view " . $params{view}->get_viewtag(). " -stream " . $self->get_fqname(). " -baseline " . $params{baseline}->get_fqname()
+		String cmd = "rebase " + complete + " -force -view " + sview.GetViewTag() + " -stream " + this.GetFQName() + " -baseline " + baseline.GetFQName();
+		Cleartool.run( cmd );
+		
+		return 1;
+	}
+	
+	public ArrayList<Activity> GetActivities()
+	{
+		logger.trace_function();
+		
+		if( this.activities != null )
+		{
+			return this.activities;
+		}
+		
+		// 'desc -fmt %[activities]p stream:' . $self->{'fqstream'} );
+		String cmd = "desc -fmt %[activities]p stream:" + this.fqstream;
+		String result = Cleartool.run( cmd );
+		this.activities = new ArrayList<Activity>();
+		
+		String[] rs = result.split( " " );
+		for( int i = 0 ; i < rs.length ; i++ )
+		{
+			this.activities.add( new Activity( rs[i] + "@" + this.pvob, true ) );
+		}
+		
+		return this.activities;
+	}
+	
 	public String GetFQName()
 	{
+		logger.trace_function();
 		return this.fqstream;
 	}
 	
 	public String GetPvob()
 	{
+		logger.trace_function();
 		return pvob;
 	}
 
