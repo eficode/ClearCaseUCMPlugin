@@ -1,10 +1,14 @@
 package net.praqma;
 
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.digester.Digester;
 import org.apache.commons.lang.StringUtils;
 
 import hudson.Extension;
@@ -21,6 +25,8 @@ import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
 import hudson.scm.PollingResult;
 import hudson.scm.SCMRevisionState;
+
+import hudson.util.Digester2;
 import hudson.util.FormValidation;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -59,21 +65,22 @@ public class CC4HClass extends SCM {
 
 	@Override
 	public boolean checkout(AbstractBuild arg0, Launcher arg1, FilePath arg2,
-			BuildListener arg3, File arg4) throws IOException,
+			BuildListener arg3, File changelogFile) throws IOException,
 			InterruptedException {
 		logger.trace_function();
-		logger.print_trace();	
-		// TODO Auto-generated method stub
-		//return false;
+		logger.print_trace();
+		//TODO perform actual checkout
+		
 		return true;
 	}
+
 
 	@Override
 	public ChangeLogParser createChangeLogParser() {
 		// TODO Auto-generated method stub
 		logger.trace_function();
 		logger.print_trace();
-		return null;
+		return new ChangeLogParserImpl();
 	}
 
 	@Override
@@ -83,7 +90,7 @@ public class CC4HClass extends SCM {
 			throws IOException, InterruptedException {
 		logger.trace_function();
 		logger.print_trace();
-		return PollingResult.NO_CHANGES;
+		return PollingResult.BUILD_NOW;
 	}
 
 	@Override
@@ -92,6 +99,7 @@ public class CC4HClass extends SCM {
 			InterruptedException {
 		logger.trace_function();
 		logger.print_trace();
+		//logger.print_trace();
 		//return null;
 		return new SCMRevisionStateImpl();
 	}
