@@ -32,9 +32,9 @@ public class ChangeLogParserImpl extends ChangeLogParser {
         //TODO: Make a loop that reads the changeset from file
         
         
-        entries.add(new ChangeLogEntryImpl("Msg 1"));
-        entries.add(new ChangeLogEntryImpl("Msg 2"));
-        entries.add(new ChangeLogEntryImpl("Msg 3"));
+        entries.add(new ChangeLogEntryImpl("Livet? "));
+        entries.add(new ChangeLogEntryImpl("Universet? "));
+        entries.add(new ChangeLogEntryImpl("..og alting? "));
         
         
 		return new ChangeLogSetImpl(build, entries);

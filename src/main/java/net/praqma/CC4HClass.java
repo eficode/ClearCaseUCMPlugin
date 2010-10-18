@@ -1,6 +1,8 @@
 package net.praqma;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -11,6 +13,7 @@ import java.util.List;
 import org.apache.commons.digester.Digester;
 import org.apache.commons.lang.StringUtils;
 
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -64,13 +67,23 @@ public class CC4HClass extends SCM {
 	}
 
 	@Override
-	public boolean checkout(AbstractBuild arg0, Launcher arg1, FilePath arg2,
-			BuildListener arg3, File changelogFile) throws IOException,
+	public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspace,
+			BuildListener listener, File changelogFile) throws IOException,
 			InterruptedException {
 		logger.trace_function();
 		logger.print_trace();
 		//TODO perform actual checkout
 		
+		//Write the changelog to changelogFile
+			//copypaste from bazaar:
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			//launcher.launch().cmds(getDescriptor().getBzrExe(), "log", "-v", "-r", version, "--long", "--show-ids")
+	        //.envs(EnvVars.masterEnvVars).stdout(baos).pwd(workspace).join();
+			baos.write("Hello world!".getBytes());
+			FileOutputStream fos = new FileOutputStream(changelogFile);
+		    fos.write(baos.toByteArray());
+		    fos.close();
+		   
 		return true;
 	}
 

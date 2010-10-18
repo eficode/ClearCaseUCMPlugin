@@ -34,7 +34,7 @@ public class ChangeLogEntryImpl extends Entry {
 	public String getMsg() {
 		// TODO Auto-generated method stub
 		logger.trace_function();
-		return msg += "Svaret er 42";
+		return msg + "Svaret er 42";
 	}
 	
 	public void setParent(ChangeLogSet parent){
