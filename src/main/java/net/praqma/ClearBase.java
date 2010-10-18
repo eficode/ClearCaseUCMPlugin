@@ -55,6 +55,10 @@ class ClearBase
 			
 		}
 		
+		/* CHW: Should this generate an error? Like the following: */
+		/* 			logger.log( "ERROR: Activity constructor: The first parameter ("+fqactivity+") must be a fully qualified activity in the format: activity\\@\\PVOB" + linesep, "error" );
+			System.err.println( "ERROR: Activity constructor: The first parameter ("+fqactivity+") must be a fully qualified activity in the format: activity\\@\\PVOB" + linesep );
+			System.exit( 1 ); */
 		return null;
 	}
 	

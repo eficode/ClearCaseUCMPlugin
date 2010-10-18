@@ -351,6 +351,8 @@ class Baseline extends ClearBase
 				hash.put( groslist[i], "" );
 			}
 			
+			/* CHW: Experimental sorting. UNTESTED! */
+			logger.debug( "Experimental sorting. UNTESTED!" );
 			SortedSet<String> sortedset = new TreeSet<String>( hash.keySet() );
 			Iterator<String> it = sortedset.iterator();
 			
