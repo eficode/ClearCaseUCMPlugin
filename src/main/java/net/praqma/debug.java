@@ -183,6 +183,11 @@ class Debug
 		_log( msg, "info" );
 	}
 	
+	public void debug( String msg )
+	{
+		_log( msg, "debug" );
+	}
+	
 	public void log( String msg, String type )
 	{
 		_log( msg, type );
