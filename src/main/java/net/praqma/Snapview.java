@@ -1,8 +1,11 @@
 package net.praqma;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -356,16 +359,82 @@ class Snapview extends View
 		}
 	}
 	
-	/* CHW: Still not implemented */
-	public void StaticViewrootIsValid()
-	{
-		
-	}
 	
-	/* CHW: Still not implemented */
-	public void StaticRegenViewDotDat()
+	public int StaticRegenViewDotDat( String dir, String tag )
 	{
+		logger.trace_function();
 		
+		String view_dat_pn = dir + filesep + "view.dat";
+		//String[] result = Cleartool.run( "lsview -l " + tag, true );
+		//ArrayList<String> list = Utilities.GetArrayElements( new ArrayList<String>( Arrays.asList( result ) ), "^View uuid:", true );
+		logger.debug( "This is assumed to be a one liner result!" );
+		String result = Cleartool.run( "lsview -l " + tag );
+		Pattern pattern = Pattern.compile( "^View uuid:\\s*(.*)$" );
+		Matcher match = pattern.matcher( result );
+		
+		/* No uuid is found */
+		if( !match.find() )
+		{
+			logger.log( "No uuid found!", "warning" );
+			System.err.println( "No uuid found!" );
+			System.exit( 1 );
+		}
+		
+		logger.debug( "The rx result is \"" + match.group( 1 ) + "\"" );
+		
+		/* Trim uuid */
+		String viewuuid = match.group( 1 ).trim();
+		viewuuid        = viewuuid.replaceAll( "[:\\.]", "" );
+		
+		// cleartool( 'lsview -uuid ' . $viewuuid ) );
+		/* CHW: Is this correct? What is the return value of cleartool if the uuid does not exist? */
+		logger.debug( "Running the uuid cleartool command!" );
+		if( Cleartool.run( "lsview --uid " + viewuuid ).length() == 0 )
+		{
+			logger.log( "Could not read view uuid on view-tag " + tag, "warning" );
+			System.err.println( "Could not read view uuid on view-tag " + tag );
+			System.exit( 1 );
+		}
+		
+		File f = new File( dir );
+		if( f.exists() )
+		{
+			logger.warning( "The view-root " + dir + " already exist - reuse may be problematic" );
+		}
+		else
+		{
+			logger.log( "Making the directory: " + dir );
+			f.mkdir();
+		}
+		
+		try
+		{
+			logger.debug( "Trying to create/truncate the file: " + view_dat_pn );
+			DataOutputStream out = new DataOutputStream( new BufferedOutputStream( new FileOutputStream( view_dat_pn, false ) ) );
+			out.writeBytes( "ws_oid:00000000000000000000000000000000 view_uuid:" + viewuuid );
+			out.close();
+		}
+		catch ( FileNotFoundException e )
+		{
+			logger.log( "Could not create the file: " + view_dat_pn, "error" );
+			System.err.println( "Could not create the file: " + view_dat_pn );
+			
+			e.printStackTrace();
+			System.exit( 1 );
+		}
+		catch ( Exception e )
+		{
+			logger.log( "An error occured while working on the file: " + view_dat_pn, "error" );
+			System.err.println( "An error occured while working on the file: " + view_dat_pn );
+			
+			e.printStackTrace();
+			System.exit( 1 );
+		}
+		
+		// cmd("attrib +h +r $view_dat_pn");
+		Cmd.run( "attrib +h +r " + view_dat_pn );
+
+		return 1;
 	}
 	
 	
