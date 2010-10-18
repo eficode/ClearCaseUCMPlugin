@@ -15,7 +15,9 @@ import hudson.scm.ChangeLogSet;
 import hudson.scm.ChangeLogSet.Entry;
 
 public class ChangeLogParserImpl extends ChangeLogParser {
+	
 	protected static Debug logger = Debug.GetLogger();
+	
 	@Override
 	public ChangeLogSet<? extends Entry> parse(AbstractBuild build, File changelogFile)
 			throws IOException, SAXException {
@@ -23,19 +25,17 @@ public class ChangeLogParserImpl extends ChangeLogParser {
 		logger.trace_function();
 		List<ChangeLogEntryImpl> entries = new ArrayList<ChangeLogEntryImpl>();
 		
-        BufferedReader in = new BufferedReader(new FileReader(changelogFile));
+        /*BufferedReader in = new BufferedReader(new FileReader(changelogFile));
         StringBuilder message = new StringBuilder();
-        String s;
+        String s;*/
         
         ChangeLogEntryImpl entry = null;
         
         //TODO: Make a loop that reads the changeset from file
         
-        
-        entries.add(new ChangeLogEntryImpl("Livet? "));
-        entries.add(new ChangeLogEntryImpl("Universet? "));
-        entries.add(new ChangeLogEntryImpl("..og alting? "));
-        
+        entries.add(new ChangeLogEntryImpl("Life? "));
+        entries.add(new ChangeLogEntryImpl("The Universe? "));
+        entries.add(new ChangeLogEntryImpl("..and everything? "));
         
 		return new ChangeLogSetImpl(build, entries);
 	}

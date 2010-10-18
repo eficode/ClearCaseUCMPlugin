@@ -14,11 +14,13 @@ import hudson.scm.ChangeLogSet;
 public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl> {
 	
 	protected static Debug logger = Debug.GetLogger();
+	
 	private List<ChangeLogEntryImpl> history = null;
 
 	protected ChangeLogSetImpl(AbstractBuild<?, ?> build, List<ChangeLogEntryImpl> logs) {
 		super(build);
 		logger.trace_function();
+		logger.print_trace();
 		this.history = Collections.unmodifiableList(logs);
         for (ChangeLogEntryImpl log : logs) {
             log.setParent(this);

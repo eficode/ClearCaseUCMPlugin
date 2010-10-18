@@ -52,12 +52,11 @@ public class CC4HClass extends SCM {
 	
 	protected static Debug logger = Debug.GetLogger();
 
-
 	@DataBoundConstructor
 	public CC4HClass(String component, String levelToPoll, String loadModule,
 			String stream, String promoteToLevel, String tagPostBuild) {
 		
-		logger.print_trace();
+		logger.trace_function();
 		this.component = component;
 		this.levelToPoll = levelToPoll;
 		this.loadModule = loadModule;
@@ -71,28 +70,23 @@ public class CC4HClass extends SCM {
 			BuildListener listener, File changelogFile) throws IOException,
 			InterruptedException {
 		logger.trace_function();
-		logger.print_trace();
 		//TODO perform actual checkout
 		
 		//Write the changelog to changelogFile
 			//copypaste from bazaar:
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			//launcher.launch().cmds(getDescriptor().getBzrExe(), "log", "-v", "-r", version, "--long", "--show-ids")
-	        //.envs(EnvVars.masterEnvVars).stdout(baos).pwd(workspace).join();
-			baos.write("Hello world!".getBytes());
-			FileOutputStream fos = new FileOutputStream(changelogFile);
-		    fos.write(baos.toByteArray());
-		    fos.close();
-		   
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		//launcher.launch().cmds(getDescriptor().getBzrExe(), "log", "-v", "-r", version, "--long", "--show-ids")
+        //.envs(EnvVars.masterEnvVars).stdout(baos).pwd(workspace).join();
+		baos.write("Hello world!".getBytes());
+		FileOutputStream fos = new FileOutputStream(changelogFile);
+	    fos.write(baos.toByteArray());
+	    fos.close();
 		return true;
 	}
 
-
 	@Override
 	public ChangeLogParser createChangeLogParser() {
-		// TODO Auto-generated method stub
 		logger.trace_function();
-		logger.print_trace();
 		return new ChangeLogParserImpl();
 	}
 
@@ -102,7 +96,6 @@ public class CC4HClass extends SCM {
 			FilePath workspace, TaskListener listener, SCMRevisionState baseline)
 			throws IOException, InterruptedException {
 		logger.trace_function();
-		logger.print_trace();
 		return PollingResult.BUILD_NOW;
 	}
 
@@ -111,9 +104,6 @@ public class CC4HClass extends SCM {
 			Launcher launcher, TaskListener listener) throws IOException,
 			InterruptedException {
 		logger.trace_function();
-		logger.print_trace();
-		//logger.print_trace();
-		//return null;
 		return new SCMRevisionStateImpl();
 	}
 
@@ -143,6 +133,7 @@ public class CC4HClass extends SCM {
 	}
 
 	public String getLoadModule() {
+		logger.trace_function();
 		return loadModule;
 	}
 
@@ -151,7 +142,6 @@ public class CC4HClass extends SCM {
 	public static class CC4HClassDescriptor extends SCMDescriptor<CC4HClass> {
 		private String cleartool;
 		private List<String> levels;
-
 		private List<String> loadModules;
 
 		public CC4HClassDescriptor() {
@@ -159,7 +149,6 @@ public class CC4HClass extends SCM {
 			logger.trace_function();
 			levels = getLevels();
 			loadModules = getLoadModules();
-
 			load();
 		}
 
