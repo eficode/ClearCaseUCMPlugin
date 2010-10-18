@@ -28,11 +28,39 @@ class Activity extends ClearBase
 		if( !trusted )
 		{
 			// cleartool desc activity:$fqactivity 
-			String cmd = "desc activity:"+fqactivity;
+			String cmd = "desc activity:" + fqactivity;
 			Cleartool.run( cmd );
-			/* CHW: Catch any output to stderr, if so, fail! */
 			
 		}
 	}
+	
+	public void Create()
+	{
+		logger.trace_function();
+	}
+	
+	public String toString()
+	{
+		logger.trace_function();
+		
+		return "";
+	}
+	
+	public void GetChangeSet()
+	{
+		logger.trace_function();
+		
+	}
+	
+	public void GetShortname()
+	{
+		logger.trace_function();
+	}
+	
+	public void GetChangeSetAsElements()
+	{
+		logger.trace_function();
+	}
+	
 	
 }

@@ -10,17 +10,36 @@ class Component extends ClearBase
 	
 	public Component( String fqobj, boolean trusted )
 	{
+		logger.trace_function();
+		
 		/* Prefix the object with component: */
 		if( !fqobj.startsWith( "component:" ) )
 		{
 			fqobj = "component:" + fqobj;
 		}
 		
-		this.fqobj = fqobj;
+		this.fqobj   = fqobj;
+		this.fqname  = fqobj;
 		String[] res = TestComponent( fqobj );
 		
 		this.shortname = res[0];
 		this.pvob      = res[1];
+		
+		if( !trusted )
+		{
+			// 'desc '.$fqobj
+			Cleartool.run( "desc " + fqobj );
+		}
+	}
+	
+	public void GetBlsQueuedFor()
+	{
+		logger.trace_function();
+	}
+	
+	public void GetBlsWithPlevel()
+	{
+		logger.trace_function();
 	}
 	
 	
@@ -32,19 +51,18 @@ class Component extends ClearBase
 		return shortname;
 	}
 	
-	public String ShortName()
+	public String GetShortName()
 	{
 		logger.trace_function();
 		
 		return shortname;
 	}
-
-
-	public String GetFQName()
+	
+	public String GetPvob()
 	{
 		logger.trace_function();
 		
-		return fqobj;
+		return pvob;
 	}
 	
 	public String GetRootDir()
@@ -59,6 +77,11 @@ class Component extends ClearBase
 		}
 		
 		return rootdir;
+	}
+	
+	public void GetAttr()
+	{
+		logger.trace_function();
 	}
 
 }

@@ -22,6 +22,7 @@ class Stream extends ClearBase
 		/* Delete the object prefix, if it exists: */
 		if( fqstream.startsWith( "stream:" ) )
 		{
+			logger.debug( "Removing \"stream:\" from name" );
 			fqstream.substring( 0, 7 );
 		}
 		
@@ -35,8 +36,10 @@ class Stream extends ClearBase
 		if( !trusted )
 		{
 			String cmd = "desc stream:" + fqstream;
-			String result = Cleartool.run( cmd );
+			Cleartool.run( cmd );
 		}
+		
+		
 	}
 	
 	public static Stream Create( String stream_fqname, Stream parent_stream, String comment, Baseline baseline, boolean readonly )
@@ -67,33 +70,9 @@ class Stream extends ClearBase
 	}
 	
 	
-	public ArrayList<Baseline> GetLatestBls( boolean expanded )
+	public void Recommend()
 	{
-		logger.trace_function();
 		
-		if( this.latest_bls == null )
-		{
-			// 'cleartool desc -fmt %[latest_bls]p stream:' . $self->{'fqstream'} . ' 2>&1';
-			String cmd = "desc -fmt %[latest_bls]p stream:" + this.fqstream;
-			String result = Cleartool.run( cmd );
-			
-			String[] rs = result.split( " " );
-			
-			for( int i = 0 ; i < rs.length ; i++ )
-			{
-				if( rs[i].matches( "\\S+" ) )
-				{
-					this.latest_bls.add( new Baseline( rs[i].trim(), true ) );
-				}				
-			}
-		}
-				
-		if( expanded )
-		{
-			return Baseline.StaticExpandBls( this.latest_bls );
-		}
-		
-		return this.latest_bls;
 	}
 	
 	/**
@@ -132,6 +111,90 @@ class Stream extends ClearBase
 		return 1;
 	}
 	
+	public void Remove()
+	{
+		logger.trace_function();
+	}
+	
+	public String GetPvob()
+	{
+		logger.trace_function();
+		return pvob;
+	}
+	
+	public void GetSingleTopComponent()
+	{
+		logger.trace_function();
+	}
+	
+	public void GetSingleLatestBaseline()
+	{
+		logger.trace_function();
+	}
+	
+	public void GetRecBls()
+	{
+		logger.trace_function();
+	}
+	
+	
+	/**
+	 * 
+	 * @param expanded
+	 * @return
+	 */
+	public ArrayList<Baseline> GetLatestBls( boolean expanded )
+	{
+		logger.trace_function();
+		
+		if( this.latest_bls == null )
+		{
+			// 'cleartool desc -fmt %[latest_bls]p stream:' . $self->{'fqstream'} . ' 2>&1';
+			String cmd = "desc -fmt %[latest_bls]p stream:" + this.fqstream;
+			String result = Cleartool.run( cmd );
+			
+			String[] rs = result.split( " " );
+			
+			for( int i = 0 ; i < rs.length ; i++ )
+			{
+				if( rs[i].matches( "\\S+" ) )
+				{
+					this.latest_bls.add( new Baseline( rs[i].trim(), true ) );
+				}				
+			}
+		}
+				
+		if( expanded )
+		{
+			return Baseline.StaticExpandBls( this.latest_bls );
+		}
+		
+		return this.latest_bls;
+	}
+	
+	public void GetFoundBls()
+	{
+		logger.trace_function();
+	}
+	
+	public String GetFQName()
+	{
+		logger.trace_function();
+		return this.fqstream;
+	}
+	
+	public String Shortname()
+	{
+		logger.trace_function();
+		return this.shortname;
+	}
+	
+	public void BetBrType()
+	{
+		logger.trace_function();
+	}
+	
+	
 	public ArrayList<Activity> GetActivities()
 	{
 		logger.trace_function();
@@ -155,17 +218,29 @@ class Stream extends ClearBase
 		return this.activities;
 	}
 	
-	public String GetFQName()
+	public void GetFullChangeSetAsElements()
 	{
 		logger.trace_function();
-		return this.fqstream;
 	}
 	
-	public String GetPvob()
+	public void DiffRecLatest()
 	{
 		logger.trace_function();
-		return pvob;
 	}
+	
+	public static void GetStreamOfWorkingView()
+	{
+		logger.trace_function();
+	}
+	
+	public static void StreamExists()
+	{
+		logger.trace_function();
+	}
+	
+
+	
+
 
 	
 }
