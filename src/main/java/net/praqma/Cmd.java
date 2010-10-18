@@ -15,6 +15,7 @@ class Cmd
 		
 		try
 		{
+			logger.debug( "$ " + cmd );
 			Process p = Runtime.getRuntime().exec( cmd );
 			p.waitFor();
 			BufferedReader br = new BufferedReader( new InputStreamReader( p.getInputStream() ) );
