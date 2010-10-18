@@ -188,6 +188,16 @@ class Debug
 		_log( msg, "debug" );
 	}
 	
+	public void warning( String msg )
+	{
+		_log( msg, "warning" );
+	}
+	
+	public void error( String msg )
+	{
+		_log( msg, "error" );
+	}
+	
 	public void log( String msg, String type )
 	{
 		_log( msg, type );
