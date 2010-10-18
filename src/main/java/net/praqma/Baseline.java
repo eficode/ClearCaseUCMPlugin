@@ -66,6 +66,15 @@ class Baseline extends ClearBase
 		
 	}
 	
+	/**
+	 * CHW: This function is not implemented in the Perl code!!!
+	 * @return
+	 */
+	public boolean QueuedForTest( int queue_level )
+	{
+		return false;
+	}
+	
 	public String GetFQName()
 	{
 		return this.fqobj;

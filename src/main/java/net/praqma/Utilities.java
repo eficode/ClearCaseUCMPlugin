@@ -1,6 +1,10 @@
 package net.praqma;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 
 class Utilities
@@ -101,6 +105,31 @@ class Utilities
 		}
 		
 		return result;
+	}
+	
+	public static String GetFileToString( String filename ) throws FileNotFoundException
+	{
+		FileReader fr = null;
+		fr = new FileReader( filename );
+		
+		
+		BufferedReader br = new BufferedReader( fr );
+		String line;
+		StringBuffer result = new StringBuffer();
+		
+		try
+		{
+			while( ( line = br.readLine() ) != null )
+			{
+				result.append( line );
+			}
+			
+			return result.toString();
+		}
+		catch ( IOException e )
+		{
+			return "";
+		}
 	}
 	
 	

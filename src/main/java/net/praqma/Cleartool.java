@@ -58,11 +58,11 @@ class Cleartool
 		}
 	}
 	
-	public static String[] run( String cmd, boolean ls )
+	public static String[] run_a( String cmd )
 	{
-		/* Call the system */
-		String result = "";
+		logger.trace_function();
 		
+		String result = run( cmd );		
 		return result.split( linesep );
 	}
 	

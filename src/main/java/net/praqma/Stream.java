@@ -1,12 +1,19 @@
 package net.praqma;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 class Stream extends ClearBase
 {
 	private String fqstream                = null;
-	private String found_bls               = null;
-	private String rec_bls                 = null;
+	private ArrayList<Baseline> found_bls  = null;
+	private ArrayList<Baseline> rec_bls    = null;
 	private ArrayList<Baseline> latest_bls = null;
 	private String parent                  = null;
 	private String brtype                  = null;
@@ -70,9 +77,16 @@ class Stream extends ClearBase
 	}
 	
 	
-	public void Recommend()
+	public int Recommend( Baseline baseline, String comment )
 	{
+		comment = comment != null ? " -c \"" + comment + "\"" : " -nc";
+		// cleartool chstream " . $comment . " -recommend " . $baseline->get_fqname() . ' ' . $self->get_fqname() . ' 2>&1';
+		String cmd = "chstream " + comment + " -recommend " + baseline.GetFQName() + " " + this.GetFQName();
+		String result = Cleartool.run( cmd );
 		
+		/* If not, return 0 */
+		
+		return 1;
 	}
 	
 	/**
@@ -111,9 +125,14 @@ class Stream extends ClearBase
 		return 1;
 	}
 	
-	public void Remove()
+	public int Remove()
 	{
 		logger.trace_function();
+		
+		// cleartool( "rmstream -force -nc " . $self->get_fqname() );
+		String cmd = "rmstream -force -nc " + this.GetFQName();
+		
+		return 1;
 	}
 	
 	public String GetPvob()
@@ -122,19 +141,67 @@ class Stream extends ClearBase
 		return pvob;
 	}
 	
-	public void GetSingleTopComponent()
+	public Component GetSingleTopComponent()
 	{
 		logger.trace_function();
+		
+		ArrayList<Baseline> recbls = GetRecBls( false );
+		
+		if( recbls.size() != 1 )
+		{
+
+		}
+		
+		return recbls.get( 0 ).GetComponent();
 	}
 	
-	public void GetSingleLatestBaseline()
+	public Baseline GetSingleLatestBaseline()
 	{
 		logger.trace_function();
+		
+		// 'lsbl -s -component ' . $self->get_single_top_component->get_fqname . ' -stream  ' . $self->get_fqname;
+		String cmd = "lsbl -s -component " + this.GetSingleTopComponent().GetFQName() + " -stream  " + this.GetFQName();
+		String[] bls = Cleartool.run_a( cmd );
+		String latest = bls[bls.length-1].trim();
+		
+		return new Baseline( latest + "@" + this.GetPvob(), false );
 	}
 	
-	public void GetRecBls()
+	public ArrayList<Baseline> GetRecBls( boolean expanded )
 	{
 		logger.trace_function();
+		
+		ArrayList<Baseline> bls = new ArrayList<Baseline>();
+		
+		if( this.rec_bls != null )
+		{
+			bls = this.rec_bls;
+		}
+		else
+		{
+			// cleartool( 'desc -fmt %[rec_bls]p stream:' . $self->{'fqstream'} );
+			String cmd = "desc -fmt %[rec_bls]p stream:" + this.GetFQName();
+			String result = Cleartool.run( cmd );
+			String[] rs = result.split( " " );
+			
+			for( int i = 0 ; i < rs.length ; i++ )
+			{
+				/* There is something in the element. */
+				if( rs[i].matches( "\\S+" ) )
+				{
+					bls.add( new Baseline( rs[i] + "@" + this.pvob, true ) );
+				}
+			}
+			
+			this.rec_bls = bls;
+		}
+		
+		if( expanded )
+		{
+			bls = Baseline.StaticExpandBls( bls );
+		}
+		
+		return bls;
 	}
 	
 	
@@ -147,7 +214,13 @@ class Stream extends ClearBase
 	{
 		logger.trace_function();
 		
-		if( this.latest_bls == null )
+		ArrayList<Baseline> bls = new ArrayList<Baseline>();
+		
+		if( this.latest_bls != null )
+		{
+			bls = this.latest_bls;
+		}
+		else
 		{
 			// 'cleartool desc -fmt %[latest_bls]p stream:' . $self->{'fqstream'} . ' 2>&1';
 			String cmd = "desc -fmt %[latest_bls]p stream:" + this.fqstream;
@@ -159,22 +232,53 @@ class Stream extends ClearBase
 			{
 				if( rs[i].matches( "\\S+" ) )
 				{
-					this.latest_bls.add( new Baseline( rs[i].trim(), true ) );
+					bls.add( new Baseline( rs[i].trim(), true ) );
 				}				
 			}
 		}
 				
 		if( expanded )
 		{
-			return Baseline.StaticExpandBls( this.latest_bls );
+			bls = Baseline.StaticExpandBls( bls );
 		}
 		
-		return this.latest_bls;
+		return bls;
 	}
 	
-	public void GetFoundBls()
+	public ArrayList<Baseline> GetFoundBls( boolean expanded )
 	{
 		logger.trace_function();
+		
+		ArrayList<Baseline> bls = new ArrayList<Baseline>();
+		
+		if( this.found_bls != null )
+		{
+			bls = this.found_bls;
+		}
+		else
+		{
+			// cleartool desc -fmt %[found_bls]p stream:' . $self->{'fqstream'} . ' 2>&1';
+			String cmd = "desc -fmt %[found_bls]p stream:" + this.GetFQName();
+			String result = Cleartool.run( cmd );
+			String[] rs = result.split( " " );
+			
+			for( int i = 0 ; i < rs.length ; i++ )
+			{
+				if( rs[i].matches( "\\S+" ) )
+				{
+					bls.add( new Baseline( rs[i].trim(), true ) );
+				}
+			}
+			
+			this.found_bls = bls;
+		}
+		
+		if( expanded )
+		{
+			bls = Baseline.StaticExpandBls( bls );
+		}
+		
+		return bls;
 	}
 	
 	public String GetFQName()
@@ -183,15 +287,36 @@ class Stream extends ClearBase
 		return this.fqstream;
 	}
 	
-	public String Shortname()
+	public String GetShortname()
 	{
 		logger.trace_function();
 		return this.shortname;
 	}
 	
-	public void BetBrType()
+	public String BetBrType()
 	{
 		logger.trace_function();
+		
+		if( this.brtype != null )
+		{
+			return this.brtype;
+		}
+		
+		// cleartool( 'desc -ahlink IndependentGuard -s stream:' . $self->{'fqstream'} );
+		String cmd = "desc -ahlink IndependentGuard -s stream:" + this.GetFQName();
+		String result = Cleartool.run( cmd );
+		
+		Pattern p = Pattern.compile( "brtype:(.*)\\@.*$" );
+		Matcher match = p.matcher( result );
+		
+		/* There's a match */
+		if( match.find() )
+		{
+			this.brtype = match.group( 1 );
+			return this.brtype;
+		}
+		
+		return null;
 	}
 	
 	
@@ -218,24 +343,131 @@ class Stream extends ClearBase
 		return this.activities;
 	}
 	
-	public void GetFullChangeSetAsElements()
+	public ArrayList<String> GetFullChangeSetAsElements()
 	{
 		logger.trace_function();
+		
+		HashMap<String, String> accumulated_filelist = new HashMap<String, String>();
+		
+		ArrayList<Activity> act = this.GetActivities();
+		for( int i = 0 ; i < act.size() ; i++ )
+		{
+			ArrayList<String> elem = act.get( i ).GetChangeSetAsElements();
+			for( int j = 0 ; j < elem.size() ; j++ )
+			{
+				accumulated_filelist.put( elem.get( j ), "" );
+			}
+		}
+		
+		/* CHW: Experimental sorting. UNTESTED! */
+		logger.debug( "Experimental sorting. UNTESTED!" );
+		SortedSet<String> sortedset = new TreeSet<String>( accumulated_filelist.keySet() );
+		Iterator<String> it = sortedset.iterator();
+		
+		ArrayList<String> r = new ArrayList<String>();
+		
+	    while ( it.hasNext() )
+	    {
+	        r.add( accumulated_filelist.get( it.next() ) );
+	    }
+		
+		return r;
 	}
 	
-	public void DiffRecLatest()
+	public ArrayList<Baseline> DiffRecLatest()
 	{
 		logger.trace_function();
+		
+		HashMap<String, Baseline> diff = new HashMap<String, Baseline>();
+		
+		ArrayList<Baseline> bl = GetLatestBls( true );
+		for( int i = 0 ; i < bl.size() ; i++ )
+		{
+			diff.put( bl.get( i ).GetComponentName(), bl.get( i ) );
+		}
+		
+		bl = GetRecBls( true );
+		for( int i = 0 ; i < bl.size() ; i++ )
+		{
+			/* The Baseline exists, identified by the component name */
+			if( diff.get( bl.get( i ).GetComponent() ) != null )
+			{
+				/* If the two shortnames are equal! */
+				if( diff.get( bl.get( i ).GetComponent() ).GetShortname().equals( bl.get( i ).GetShortname() ) )
+				{
+					/* Same baseline was also in rec_bls, remove from diff list */
+					diff.remove( bl.get( i ).GetComponent() );
+				}
+			}
+		}
+		
+		ArrayList<Baseline> bls = new ArrayList<Baseline>();
+		
+		/* CHW: Experimental sorting. UNTESTED! */
+		logger.debug( "Experimental sorting. UNTESTED!" );
+		SortedSet<String> sortedset = new TreeSet<String>( diff.keySet() );
+		Iterator<String> it = sortedset.iterator();
+		
+		ArrayList<Baseline> r = new ArrayList<Baseline>();
+		
+	    while ( it.hasNext() )
+	    {
+	        r.add( diff.get( it.next() ) );
+	    }
+		
+		return r;
+		
 	}
 	
-	public static void GetStreamOfWorkingView()
+	public static String GetStreamOfWorkingView()
 	{
 		logger.trace_function();
+		
+		// cleartool('pwv -root');
+		String vw = Cleartool.run( "pwv -root" ).trim();
+		
+		String viewdotdatpname = vw + filesep + "view.dat";
+		
+		String file = "";
+		try
+		{
+			file = Utilities.GetFileToString( viewdotdatpname );
+		}
+		catch ( FileNotFoundException e )
+		{
+			logger.error( vw + " is not a valid snapshot view" );
+			System.err.println( vw + " is not a valid snapshot view" );
+			System.exit( 1 );
+		}
+		
+		/* CHW: May miss multiline regex!!! Check manual! */
+		Pattern p = Pattern.compile( "view_uuid:(.*)" );
+		Matcher match = p.matcher( file );
+		
+		if( !match.find() )
+		{
+			logger.error( "ERROR: " + viewdotdatpname + " is not valid - can't read view uuid." );
+			System.err.println( "ERROR: " + viewdotdatpname + " is not valid - can't read view uuid." );
+			System.exit( 1 );
+		}
+		
+		// cleartool("lsview -s -uuid $1");
+		String viewtag = Cleartool.run( "lsview -s -uuid " + match.group( 1 ) ).trim();
+		// cleartool( 'lsstream -fmt %Xn -view ' . $viewtag );
+		String result = Cleartool.run( "lsstream -fmt %Xn -view " + viewtag );
+		
+		return result.replace( "stream:", "" );
 	}
 	
-	public static void StreamExists()
+	public static boolean StreamExists( String fqstream )
 	{
 		logger.trace_function();
+		
+		// cleartool( "describe stream:" . $fqstream );
+		/* CHW: Something with try catch.... From cleartool class */
+		Cleartool.run( "describe stream:" + fqstream );
+		
+		return false;
 	}
 	
 
