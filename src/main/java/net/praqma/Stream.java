@@ -419,6 +419,10 @@ class Stream extends ClearBase
 		
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
 	public static String GetStreamOfWorkingView()
 	{
 		logger.trace_function();
@@ -458,16 +462,26 @@ class Stream extends ClearBase
 		
 		return result.replace( "stream:", "" );
 	}
-	
+
+	/**
+	 * Tells whether a Stream exists or not
+	 * @param fqstream
+	 * @return boolean
+	 */
 	public static boolean StreamExists( String fqstream )
 	{
 		logger.trace_function();
 		
 		// cleartool( "describe stream:" . $fqstream );
-		/* CHW: Something with try catch.... From cleartool class */
-		Cleartool.run( "describe stream:" + fqstream );
-		
-		return false;
+		try
+		{
+			Cleartool.run( "describe stream:" + fqstream );
+			return true;
+		}
+		catch( CleartoolException e )
+		{
+			return false;
+		}
 	}
 	
 

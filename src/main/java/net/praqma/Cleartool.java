@@ -3,7 +3,7 @@ package net.praqma;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
-class CleartoolException extends Exception
+class CleartoolException extends RuntimeException
 {
 	CleartoolException()
 	{
@@ -36,7 +36,7 @@ class Cleartool
 	 * @param cmd
 	 * @return The return value of the cleartool command as a String
 	 */
-	public static String run( String cmd ) // throws CleartoolException
+	public static String run( String cmd ) throws CleartoolException
 	{
 		logger.trace_function();
 		
@@ -59,8 +59,7 @@ class Cleartool
 			{
 				logger.log( "Abnormal process termination", "warning" );
 				System.err.println( "Abnormal process termination" );
-				System.exit( 1 );
-				//throw new CleartoolException();
+				throw new CleartoolException();
 			}
 			
 			/* Return the buffer as a String */
