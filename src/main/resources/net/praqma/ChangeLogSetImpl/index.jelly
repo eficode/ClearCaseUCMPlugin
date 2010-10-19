@@ -1,35 +1,27 @@
 <!--
-  Displays our change log.
+  Displays CC4H change log. Data in this file is set in the ChangeLogSetImpl
 -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
   <h2>Summary</h2>
   <ol>
-    <j:forEach var="cs" items="${it.logs}">
+    <j:forEach var="cs" items="${it.history}">
       <li><st:out value="${cs.msg}"/></li>
     </j:forEach>
   </ol>
   <table class="pane" style="border:none">
-    <j:forEach var="cs" items="${it.logs}" varStatus="loop">
+    <j:forEach var="cs" items="${it.history}" varStatus="loop">
       <tr class="pane">
         <td colspan="2" class="changeset">
           <a name="detail${loop.index}"></a>
           <div class="changeset-message">
             <b>
-              Changeset revno ${cs.revno} by ${cs.author} (Revision id: ${cs.revid}):
+              Dummydata ${cs.dummydata} 
             </b><br/>
-            ${cs.msgAnnotated}
+            ${cs.msgAnnotated}<br/>
+	   
           </div>
         </td>
       </tr>
-
-      <j:forEach var="k" items="${cs.editTypes}">
-        <j:forEach var="p" items="${cs.getPaths(k)}">
-          <tr>
-            <td width="20"><t:editTypeIcon type="${k}" /></td>
-            <td>${p}</td>
-          </tr>
-        </j:forEach>
-      </j:forEach>
     </j:forEach>
   </table>
 </j:jelly>

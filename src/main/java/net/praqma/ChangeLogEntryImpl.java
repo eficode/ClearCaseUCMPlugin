@@ -1,6 +1,8 @@
 package net.praqma;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import hudson.model.User;
 import hudson.scm.ChangeLogSet;
@@ -8,8 +10,10 @@ import hudson.scm.ChangeLogSet.Entry;
 
 public class ChangeLogEntryImpl extends Entry {
 	
+	private String dummydata;
 	private String filepath;
 	protected static Debug logger = Debug.GetLogger();
+	private volatile List<String> affectedPaths;
 	
 	public ChangeLogEntryImpl(String filepath){
 		logger.trace_function();
@@ -18,9 +22,13 @@ public class ChangeLogEntryImpl extends Entry {
 
 	@Override
 	public Collection<String> getAffectedPaths() {
-		// TODO Auto-generated method stub
 		logger.trace_function();
-		return null;
+		if(affectedPaths==null){
+			List<String> r = new ArrayList<String>();
+			r.add("En filepath");
+			affectedPaths = r;
+		}
+		return affectedPaths;
 	}
 
 	@Override
@@ -45,8 +53,16 @@ public class ChangeLogEntryImpl extends Entry {
 
 	@Override
 	public String getMsg() {
-		// TODO Auto-generated method stub
 		return "The answer is 42";
+	}
+	
+	public void setDummydata(String dummydata){
+		this.dummydata = dummydata;
+	}
+	
+	public String getDummydata(){
+		
+		return dummydata;
 	}
 
 }

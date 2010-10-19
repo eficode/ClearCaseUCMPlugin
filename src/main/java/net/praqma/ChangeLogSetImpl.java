@@ -14,6 +14,7 @@ import hudson.scm.ChangeLogSet;
 public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl> {
 	
 	protected static Debug logger = Debug.GetLogger();
+	private List<String> dummydata;
 	
 	private List<ChangeLogEntryImpl> history = null;
 
@@ -24,6 +25,7 @@ public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl> {
 		this.history = Collections.unmodifiableList(logs);
         for (ChangeLogEntryImpl log : logs) {
             log.setParent(this);
+            log.setDummydata("dumber data");
         }
 	}
 
@@ -37,6 +39,11 @@ public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl> {
 		logger.trace_function();
 		return history.isEmpty();
 	}
+	
+	public List<ChangeLogEntryImpl> getHistory(){
+		return history;
+	}
+
 
 	
 }
