@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<commands>
+	
+	<baselines>
+		<baseline>
+		</baseline>
+	</baselines>
+	
+	<!-- DIFFS -->
+	<diffbls>
+		<diffbl fqname="baseline:something@\my\vob\path">
+			<diff>diff1</diff>
+			<diff>diff2</diff>
+		</diffbl>
+	</diffbls>
+</commands>
