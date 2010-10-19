@@ -6,14 +6,18 @@ import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-
+/**
+ * 
+ * @author wolfgang
+ *
+ */
 class Baseline extends ClearBase
 {
 	private String fqobj                  = null;
 	private String user                   = null;
 	private Component component           = null;
 	private ArrayList<Baseline> depends_on_closure = null;
-	private Plevel plevel                = null;
+	private Plevel plevel                 = null;
 	private String shortname              = null;
 	private Stream stream                 = null;
 	private String pvob                   = null;
@@ -22,7 +26,11 @@ class Baseline extends ClearBase
 	private String diffs                  = "";
 	
 	
-	
+	/**
+	 * 
+	 * @param fqobj
+	 * @param trusted
+	 */
 	public Baseline( String fqobj, boolean trusted )
 	{
 		logger.trace_function();
@@ -48,7 +56,9 @@ class Baseline extends ClearBase
 		}
 	}
 	
-	
+	/**
+	 * Loads the member variables from clear case
+	 */
 	public void Load()
 	{
 		logger.trace_function();
@@ -75,11 +85,11 @@ class Baseline extends ClearBase
 		return false;
 	}
 	
-	public String GetFQName()
-	{
-		return this.fqobj;
-	}
 	
+	/**
+	 * 
+	 * @return The Baselines user
+	 */
 	public String GetUser()
 	{
 		logger.trace_function();
@@ -92,6 +102,10 @@ class Baseline extends ClearBase
 		return user;
 	}
 	
+	/**
+	 * 
+	 * @return The Baselines Component
+	 */
 	public Component GetComponent()
 	{
 		logger.trace_function();
@@ -104,6 +118,10 @@ class Baseline extends ClearBase
 		return component;
 	}
 	
+	/**
+	 * 
+	 * @return The Baselines Stream
+	 */
 	public Stream GetStream()
 	{
 		logger.trace_function();
@@ -116,6 +134,10 @@ class Baseline extends ClearBase
 		return stream;
 	}
 	
+	/**
+	 * 
+	 * @return ArrayList<Baseline>
+	 */
 	public ArrayList<Baseline> GetDependencies()
 	{
 		logger.trace_function();
@@ -151,6 +173,11 @@ class Baseline extends ClearBase
 		return this.depends_on_closure;
 	}
 	
+	/**
+	 * Get the next Plevel for the Baseline
+	 * CHW: This is not same as the Perl code! See declaration of Plevel
+	 * @return Plevel
+	 */
 	public Plevel GetNextPlevel()
 	{
 		logger.trace_function();
@@ -176,6 +203,10 @@ class Baseline extends ClearBase
 		
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
 	public String GetShortname()
 	{
 		logger.trace_function();
@@ -188,6 +219,10 @@ class Baseline extends ClearBase
 		return shortname;
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
 	public String GetPlevel()
 	{
 		logger.trace_function();
@@ -197,27 +232,12 @@ class Baseline extends ClearBase
 		return Cleartool.run( cmd );
 	}
 	
+
+	
 	/**
-	 * Not complete... Waiting for Lars!
+	 * 
+	 * @return
 	 */
-	public void Promote()
-	{
-		logger.trace_function();
-		
-		int i = 0;
-		
-		while( i < Plevel.values().length )
-		{
-			if( plevel.equals( Plevel.values()[i] ) )
-			{
-				// $self->{'plevel'} = $PLEVEL_ENUM[++$i];
-				//this.plevel = 
-			}
-			i++;
-		}
-	}
-	
-	
 	public boolean BuildInProgess()
 	{
 		logger.trace_function();
@@ -229,6 +249,10 @@ class Baseline extends ClearBase
 		return ( result.matches( BUILD_IN_PROGRESS_ENUM_TRUE ) ) ? true : false;
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
 	public int MarkBuildInProgess()
 	{
 		logger.trace_function();
@@ -249,6 +273,10 @@ class Baseline extends ClearBase
 		return this.component.GetName();
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
 	public int UnMarkBuildInProgess()
 	{
 		logger.trace_function();
@@ -263,7 +291,7 @@ class Baseline extends ClearBase
 		return 1;
 	}
 	
-	/* NOTICE! Inner for loop does not comply with baseline.pm 
+	/* CHW: NOTICE! Inner for loop does not comply with baseline.pm 
 	 * The return type is NOT determined yet!!!
 	 * */
 	public static ArrayList<Baseline> StaticExpandBls( ArrayList<Baseline> bls )
@@ -297,7 +325,11 @@ class Baseline extends ClearBase
 	    return rbls;
 	}
 	
-	
+	/**
+	 * 
+	 * @param plevel
+	 * @return
+	 */
 	public int SetPromotionLevel( Plevel plevel )
 	{
 		logger.trace_function();
@@ -308,6 +340,10 @@ class Baseline extends ClearBase
 		return 1;
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
 	public Plevel GetPromotionLevel(  )
 	{
 		logger.trace_function();
@@ -325,11 +361,18 @@ class Baseline extends ClearBase
 		logger.trace_function();
 	}
 	
-	public ArrayList<String> GetDiff( String format, String nmerge, String viewroot )
+	/**
+	 * 
+	 * @param format
+	 * @param nmerge
+	 * @param viewroot
+	 * @return
+	 */
+	public ArrayList<String> GetDiff( String format, boolean nmerge, String viewroot )
 	{
 		logger.trace_function();
 		
-		String sw_nmerge = ( nmerge.equals( "0" ) ? " -nmerge " : "" );
+		String sw_nmerge = ( nmerge ? " -nmerge " : "" );
 		
 		// cleartool('diffbl -pre -act -ver '.$sw_nmerge.$self->get_fqname );
 		String cmd = "diffbl -pre -act -ver " + sw_nmerge + this.GetFQName();
@@ -378,6 +421,37 @@ class Baseline extends ClearBase
 		
 		return list;
 		
+	}
+	
+	/**
+	 * Pretty printing of the Baseline object.
+	 */
+	public String toString()
+	{
+		logger.trace_function();
+		
+		StringBuffer tostr = new StringBuffer();
+		tostr.append( "fqobj: " + this.fqobj );
+		tostr.append( "user: " + this.user );
+		tostr.append( "component: " + this.component.toString() );
+		tostr.append( "depends_on_closure: " + ( depends_on_closure != null ? depends_on_closure.size() : "None" ) );
+		if( depends_on_closure != null )
+		{
+			/* Let's hope there's no circular dependencies!!! */
+			for( int i = 0 ; i < depends_on_closure.size() ; i++ )
+			{
+				tostr.append( "["+i+"] " + depends_on_closure.get( i ).toString() );
+			}
+		}
+		tostr.append( "plevel: " + this.plevel.GetName() );
+		tostr.append( "shortname: " + this.shortname );
+		tostr.append( "stream: " + this.stream.toString() );
+		tostr.append( "pvob: " + this.pvob.toString() );
+		
+		tostr.append( "build_in_progess: " + this.build_in_progess );
+		tostr.append( "diffs: " + this.diffs.toString() );
+		
+		return tostr.toString();		
 	}
 	
 }
