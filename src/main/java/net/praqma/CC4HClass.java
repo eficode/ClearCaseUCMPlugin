@@ -71,13 +71,23 @@ public class CC4HClass extends SCM {
 			InterruptedException {
 		logger.trace_function();
 		//TODO perform actual checkout
-		
 		//Write the changelog to changelogFile
-			//copypaste from bazaar:
+		//copypaste from bazaar:
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		//launcher.launch().cmds(getDescriptor().getBzrExe(), "log", "-v", "-r", version, "--long", "--show-ids")
-        //.envs(EnvVars.masterEnvVars).stdout(baos).pwd(workspace).join();
-		baos.write("Hello world!".getBytes());
+
+		//List<String> changes = new Baseline("format",true,"viewroot");
+		List<String> changes = new ArrayList<String>();
+		changes.add("One");
+		changes.add("Two");
+		changes.add("Three");		
+		baos.write("<changelog>".getBytes());
+		String temp;
+		for(String s:changes){
+			temp = "<file>" + s + "</file>";
+			baos.write(temp.getBytes());
+		}
+		baos.write("</changelog>".getBytes());
+		
 		FileOutputStream fos = new FileOutputStream(changelogFile);
 	    fos.write(baos.toByteArray());
 	    fos.close();
@@ -104,7 +114,10 @@ public class CC4HClass extends SCM {
 			Launcher launcher, TaskListener listener) throws IOException,
 			InterruptedException {
 		logger.trace_function();
-		return new SCMRevisionStateImpl();
+		SCMRevisionStateImpl scmRS = new SCMRevisionStateImpl();
+		logger.log (" scmRS: "+scmRS.toString());
+		//DET  ER HER, DER SNER - her skal returneres null (ingen nye baselines) eller en liste af baselines eller noget boolean-noget
+		return scmRS;
 	}
 
 	public String getLevelToPoll() {

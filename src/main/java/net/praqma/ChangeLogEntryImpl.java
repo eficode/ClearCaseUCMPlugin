@@ -8,12 +8,12 @@ import hudson.scm.ChangeLogSet.Entry;
 
 public class ChangeLogEntryImpl extends Entry {
 	
-	private String msg;
+	private String filepath;
 	protected static Debug logger = Debug.GetLogger();
 	
-	public ChangeLogEntryImpl(String msg){
+	public ChangeLogEntryImpl(String filepath){
 		logger.trace_function();
-		this.msg = msg;
+		this.filepath = filepath;
 	}
 
 	@Override
@@ -27,19 +27,26 @@ public class ChangeLogEntryImpl extends Entry {
 	public User getAuthor() {
 		// TODO Auto-generated method stub
 		logger.trace_function();
-		return null;
+		User u = User.getUnknown();
+		logger.log(" Unknown user: "+u.toString());
+		return u;
 	}
 
-	@Override
-	public String getMsg() {
+	public String getFilepath() {
 		// TODO Auto-generated method stub
 		logger.trace_function();
-		return msg + "The answer is 42";
+		return filepath;
 	}
 	
 	public void setParent(ChangeLogSet parent){
 		logger.trace_function();
 		super.setParent(parent);
+	}
+
+	@Override
+	public String getMsg() {
+		// TODO Auto-generated method stub
+		return "The answer is 42";
 	}
 
 }

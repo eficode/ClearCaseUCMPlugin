@@ -23,19 +23,18 @@ public class ChangeLogParserImpl extends ChangeLogParser {
 			throws IOException, SAXException {
 		// TODO Auto-generated method stub
 		logger.trace_function();
+		logger.log("build: "+build.toString()+" changelogFile: "+changelogFile.toString());
 		List<ChangeLogEntryImpl> entries = new ArrayList<ChangeLogEntryImpl>();
 		
-        /*BufferedReader in = new BufferedReader(new FileReader(changelogFile));
+        BufferedReader in = new BufferedReader(new FileReader(changelogFile));
         StringBuilder message = new StringBuilder();
-        String s;*/
-        
+        String s;
+
         ChangeLogEntryImpl entry = null;
-        
-        //TODO: Make a loop that reads the changeset from file
-        
-        entries.add(new ChangeLogEntryImpl("Life? "));
-        entries.add(new ChangeLogEntryImpl("The Universe? "));
-        entries.add(new ChangeLogEntryImpl("..and everything? "));
+        while((s = in.readLine()) != null) {
+        	entry = new ChangeLogEntryImpl(s);
+        	entries.add(entry);
+        }
         
 		return new ChangeLogSetImpl(build, entries);
 	}
