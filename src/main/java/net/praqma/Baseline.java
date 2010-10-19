@@ -35,6 +35,9 @@ class Baseline extends ClearBase
 	{
 		logger.trace_function();
 		
+		
+		String[] res = TestComponent( fqobj );
+		
 		/*  $fqobj = 'baseline:'.$fqobj;
     	 *	$fqobj =~ s/baseline:baseline:/baseline:/;
     	 * Prefix the object with baseline:
@@ -46,7 +49,6 @@ class Baseline extends ClearBase
 		
 		this.fqobj   = fqobj;
 		this.fqname  = fqobj;
-		String[] res = TestComponent( fqobj );
 		
 		this.pvob  = res[1];
 		
@@ -368,15 +370,18 @@ class Baseline extends ClearBase
 	 * @param viewroot
 	 * @return
 	 */
-	public ArrayList<String> GetDiff( String format, boolean nmerge, String viewroot )
+	public ArrayList<String> GetDiffs( String format, boolean nmerge, String viewroot )
 	{
 		logger.trace_function();
 		
 		String sw_nmerge = ( nmerge ? " -nmerge " : "" );
 		
 		// cleartool('diffbl -pre -act -ver '.$sw_nmerge.$self->get_fqname );
-		String cmd = "diffbl -pre -act -ver " + sw_nmerge + this.GetFQName();
-		this.diffs = Cleartool.run( cmd );
+		//String cmd = "diffbl -pre -act -ver " + sw_nmerge + this.GetFQName();
+		//this.diffs = Cleartool.run( cmd );
+		this.diffs = CF.diffbl( sw_nmerge, this.GetFQName() ).trim();
+		
+		logger.debug( "DIFFS=\"" + this.diffs + "\"" );
 		
 		String msg = this.diffs;
 		
@@ -396,12 +401,13 @@ class Baseline extends ClearBase
 			msg = msg.replaceAll( "^\\s+", "" );
 			
 			String[] groslist = msg.split( "\n" );
-			
+						
 			HashMap<String, String> hash = new HashMap<String, String>();
 			for( int i = 0 ; i < groslist.length ; i++ )
 			{
 				hash.put( groslist[i], "" );
 			}
+
 			
 			/* CHW: Experimental sorting. UNTESTED! */
 			logger.debug( "Experimental sorting. UNTESTED!" );
@@ -422,6 +428,7 @@ class Baseline extends ClearBase
 		return list;
 		
 	}
+	
 	
 	/**
 	 * Pretty printing of the Baseline object.

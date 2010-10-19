@@ -10,11 +10,14 @@ class ClearBase
 	
 	protected static final String delim    = "::";
 	
-	protected static final String rx_fqobj = "(.*)\\@(\\.*)$";
+	protected static final String rx_fqobj = "(.*)@(\\\\.*)$";
 	
 	protected static Debug logger = Debug.GetLogger();
 	
 	protected String fqname = null;
+	
+	private static final boolean isTest = true;
+	protected static AbstractCleartoolFactory CF = null;
 	
 	/**
 	 * CHW: This is not the same as the Perl Plevel!!!
@@ -36,6 +39,18 @@ class ClearBase
 		}
 	}
 	
+	public ClearBase( )
+	{
+		if( isTest )
+		{
+			CF = CleartoolTestFactory.CFGet();
+		}
+		else
+		{
+			CF = CleartoolFactory.CFGet();
+		}
+	}
+	
 	protected static final String BUILD_IN_PROGRESS_ENUM_TRUE = "\"TRUE\"";
 	protected static final String ATTR_BUILD_IN_PROGRESS      = "BuildInProgress";
 	
@@ -47,8 +62,12 @@ class ClearBase
 	 */
 	public String[] TestComponent( String component )
 	{
+		logger.trace_function();
+		
 		Pattern pattern = Pattern.compile( rx_fqobj );
 		Matcher matches = pattern.matcher( component );
+		
+		logger.debug( "I am matching for " + rx_fqobj + " on " + component );
 		
 		/* A match is found */
 		if( matches.find() )
@@ -56,6 +75,8 @@ class ClearBase
 			String res[] = new String[2];
 			res[0] = matches.group( 1 );
 			res[1] = matches.group( 2 );
+			
+			logger.debug( "0 = " + res[0] + ". 1 = " + res[1] );
 			
 			return res;
 			
@@ -70,6 +91,8 @@ class ClearBase
 	
 	protected Plevel GetPlevelFromString( String level )
 	{
+		logger.trace_function();
+		
 		int l = 0;
 		try
 		{
@@ -86,6 +109,7 @@ class ClearBase
 	
 	protected String GetFQName()
 	{
+		logger.trace_function();
 		return this.fqname;
 	}
 }
