@@ -17,12 +17,25 @@ class CleartoolException extends Exception
 
 }
 
+/**
+ * The Cleartool proxy class
+ * All calls to cleartool, should be done through these static functions.
+ * run( String )  : returns the return value as String.
+ * run_a( String ): returns the return value as an array of Strings, separated by new lines. 
+ * @author wolfgang
+ *
+ */
 class Cleartool
 {
 	protected static Debug logger = Debug.GetLogger();
 	
 	protected static final String linesep = System.getProperty( "line.separator" );
 	
+	/**
+	 * Executes a cleartool command.
+	 * @param cmd
+	 * @return The return value of the cleartool command as a String
+	 */
 	public static String run( String cmd ) // throws CleartoolException
 	{
 		logger.trace_function();
@@ -31,6 +44,7 @@ class Cleartool
 		{
 			logger.debug( "$ cleartool " + cmd );
 			
+			/* Call cleartool and wait for it to finish. */
 			Process p = Runtime.getRuntime().exec( "cleartool " + cmd );
 			p.waitFor();
 			BufferedReader br = new BufferedReader( new InputStreamReader( p.getInputStream() ) );
@@ -41,7 +55,7 @@ class Cleartool
 			 * Should an exception be thrown or should the system die?
 			 * CHW: Currently, the system dies 
 			 * */
-			if ( p.exitValue() > 0 )
+			if ( p.exitValue() != 0 )
 			{
 				logger.log( "Abnormal process termination", "warning" );
 				System.err.println( "Abnormal process termination" );
@@ -49,6 +63,7 @@ class Cleartool
 				//throw new CleartoolException();
 			}
 			
+			/* Return the buffer as a String */
 			return br.toString();
 		}
 		catch ( Exception e )
@@ -58,10 +73,16 @@ class Cleartool
 		}
 	}
 	
+	/**
+	 * Executes a cleartool command.
+	 * @param cmd
+	 * @return The return value of the cleartool command as an array Strings, separated by new lines.
+	 */
 	public static String[] run_a( String cmd )
 	{
 		logger.trace_function();
 		
+		/* Just call the run method an split the result */
 		String result = run( cmd );		
 		return result.split( linesep );
 	}

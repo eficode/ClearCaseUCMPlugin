@@ -16,6 +16,12 @@ class ClearBase
 	
 	protected String fqname = null;
 	
+	/**
+	 * CHW: This is not the same as the Perl Plevel!!!
+	 * Rejected is "0", not "4", because of a simpler implementation issue.
+	 * @author wolfgang
+	 *
+	 */
 	protected static enum Plevel
 	{
 		REJECTED,

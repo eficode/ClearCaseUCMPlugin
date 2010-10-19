@@ -6,14 +6,24 @@ import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+/**
+ * 
+ * @author wolfgang
+ *
+ */
 class Activity extends ClearBase
 {
 	private String fqactivity           = null;
 	private String shortname            = null;
 	private ArrayList<String> changeset = null;
-	private String stream               = null;
+	private Stream stream               = null;
 	private String pvob                 = null;
 	
+	/**
+	 * Constructor
+	 * @param fqactivity
+	 * @param trusted
+	 */
 	public Activity( String fqactivity, boolean trusted )
 	{
 		logger.trace_function();
@@ -40,6 +50,11 @@ class Activity extends ClearBase
 		}
 	}
 	
+	/**
+	 * Create an Activity
+	 * @param id
+	 * @param comment
+	 */
 	public void Create( String id, String comment )
 	{
 		logger.trace_function();
@@ -66,7 +81,22 @@ class Activity extends ClearBase
 	{
 		logger.trace_function();
 		
-		return "";
+		StringBuffer tostr = new StringBuffer();
+		tostr.append( "fqactivity: " + this.fqactivity );
+		tostr.append( "shortname: " + this.shortname );
+		tostr.append( "changeset: " + ( changeset != null ? changeset.size() : "None" ) );
+		if( changeset != null )
+		{
+			for( int i = 0 ; i < changeset.size() ; i++ )
+			{
+				tostr.append( "["+i+"] " + changeset.get( i ).toString() );
+			}
+		}
+		
+		tostr.append( "stream: " + this.stream );
+		tostr.append( "pvob: " + this.pvob );
+		
+		return tostr.toString();
 	}
 	
 	public ArrayList<String> GetChangeSet()
