@@ -33,9 +33,18 @@ class Debug
 	
 	private static ArrayList<String> trace    = null;
 	
+	private static boolean append             = false;
 	
-	private Debug()
+	/* Styling */
+	private static final int typemaxlength    = 8;
+	private static final int methodmaxlength  = 55;
+	private static final boolean indent       = false;
+	
+	
+	private Debug( boolean append )
 	{
+		this.append = append;
+		
 		nowDate   = Calendar.getInstance();
 		
 		format    = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" );
@@ -45,6 +54,21 @@ class Debug
 		trace = new ArrayList<String>();
 		
 		NewDate( nowDate );
+	}
+	
+	public static Debug GetLogger( boolean append )
+	{
+		if( logger == null )
+		{
+			logger = new Debug( append );
+		}
+		
+		return logger;
+	}
+	
+	public static Debug GetLogger( )
+	{
+		return GetLogger( true );
 	}
 	
 	public void disable()
@@ -101,7 +125,7 @@ class Debug
 		try
 		{
 
-			fw = new FileWriter( path +  "debug_" + logformat.format( nowDate.getTime() ) + ".log" , true );
+			fw = new FileWriter( path +  "debug_" + logformat.format( nowDate.getTime() ) + ".log" , append );
 			
 		}
 		catch ( IOException e )
@@ -110,7 +134,7 @@ class Debug
 			path = "./";
 			try
 			{
-				fw = new FileWriter( path +  "debug_" + logformat.format( nowDate.getTime() ) + ".log" , true );
+				fw = new FileWriter( path +  "debug_" + logformat.format( nowDate.getTime() ) + ".log" , append );
 			}
 			catch ( IOException e1 )
 			{
@@ -120,16 +144,6 @@ class Debug
 		}
 		
 		out = new BufferedWriter( fw );
-	}
-	
-	public static Debug GetLogger()
-	{
-		if( logger == null )
-		{
-			logger = new Debug();
-		}
-		
-		return logger;
 	}
 	
 	public void stacktrace()
@@ -203,6 +217,11 @@ class Debug
 		_log( msg, type );
 	}
 	
+	public void empty( String msg )
+	{
+		_log( msg, null );
+	}
+	
 	private void _log( String msg, String type )
 	{
 		if( !enabled )
@@ -210,25 +229,69 @@ class Debug
 			return;
 		}
 		
-		/* Check if the date is changed */
-		Calendar now = Calendar.getInstance();
-
-		if( GetDate( now ).after( GetDate( nowDate ) ) )
+		if( type != null )
 		{
-			NewDate( now );
+			
+			if( type.length() > this.typemaxlength )
+			{
+				type = type.substring( 0, 8 );
+			}
+			
+			/* Check if the date is changed */
+			Calendar now = Calendar.getInstance();
+	
+			if( GetDate( now ).after( GetDate( nowDate ) ) )
+			{
+				NewDate( now );
+			}
+			
+			StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+	
+			String stackMsg = stack[3].getClassName() + "::" + stack[3].getMethodName() + "," + stack[3].getLineNumber();
+			String msg_ = format.format( now.getTime() ) + " [" + type + "] " + new String(new char[this.typemaxlength - type.length()]).replace("\0", " ") + stackMsg;
+			
+			try
+			{
+				//out.write( format.format( now.getTime() ) + " [" + type + "] " + new String(new char[this.typemaxlength - type.length()]).replace("\0", " ") + stack[3].getClassName() + "::" + stack[3].getMethodName() + "," + stack[3].getLineNumber() + ": " + new String(new char[this.methodmaxlength - type.length()]).replace("\0", " ") + msg + linesep );
+				if( indent )
+				{
+					out.write( msg_ + ": " + new String(new char[this.methodmaxlength - stackMsg.length()]).replace("\0", " ") + msg + linesep );
+				}
+				else
+				{
+					out.write( msg_ + ": " + msg + linesep );
+				}
+				out.flush();
+			}
+			catch ( IOException e )
+			{
+				e.printStackTrace();
+			}
+			catch( NegativeArraySizeException e )
+			{
+				try
+				{
+					out.write( msg_ + ": " + msg + linesep );
+					out.flush();
+				}
+				catch ( IOException e1 )
+				{
+					e1.printStackTrace();
+				}
+				
+			}
 		}
-		
-		StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-
-		
-		try
+		else
 		{
-			out.write( format.format( now.getTime() ) + " [" + type + "] " + stack[3].getClassName() + "::" + stack[3].getMethodName() + "," + stack[3].getLineNumber() + ": " + msg + linesep );
-			out.flush();
-		}
-		catch ( IOException e )
-		{
-			e.printStackTrace();
+			try
+			{
+				out.write( msg + linesep );
+				out.flush();
+			}
+			catch ( IOException e )
+			{
+				e.printStackTrace();
+			}
 		}
 	}
 }
