@@ -381,13 +381,14 @@ class Baseline extends ClearBase
 		//this.diffs = Cleartool.run( cmd );
 		this.diffs = CF.diffbl( sw_nmerge, this.GetFQName() ).trim();
 		
-		logger.debug( "DIFFS=\"" + this.diffs + "\"" );
+		//logger.debug( "DIFFS=\"" + this.diffs + "\"" );
 		
 		String msg = this.diffs;
 		
 		if( viewroot != null )
 		{
-			msg = msg.replace( viewroot, "" );
+			/* CHW: Why is this performed?	my $snr = quotemeta($params{viewroot}); $msg =~ s/$snr//g; */
+			msg = msg.replaceAll( java.util.regex.Pattern.quote( viewroot ), "" );
 		}
 		
 		ArrayList<String> list = new ArrayList<String>();
@@ -396,27 +397,27 @@ class Baseline extends ClearBase
 		
 		if( format.equals( "list" ) )
 		{
-			msg = msg.replaceAll( "^>>.*$", "" );
-			msg = msg.replaceAll( "\\@\\@.*$", "" );
-			msg = msg.replaceAll( "^\\s+", "" );
-			
+			msg = msg.replaceAll( "(?m)^>>.*$", "" );
+			msg = msg.replaceAll( "(?m)\\@\\@.*$", "" );
+			msg = msg.replaceAll( "(?m)^\\s+", "" );
+
 			String[] groslist = msg.split( "\n" );
-						
+			
+			/* Also removes duplicate files. */
 			HashMap<String, String> hash = new HashMap<String, String>();
 			for( int i = 0 ; i < groslist.length ; i++ )
 			{
 				hash.put( groslist[i], "" );
 			}
 
-			
-			/* CHW: Experimental sorting. UNTESTED! */
-			logger.debug( "Experimental sorting. UNTESTED!" );
+			/* CHW: Experimental sorting. TESTED! */
+			logger.log( "Experimental sorting. TESTED!", "experimental" );
 			SortedSet<String> sortedset = new TreeSet<String>( hash.keySet() );
 			Iterator<String> it = sortedset.iterator();
 			
 		    while ( it.hasNext() )
 		    {
-		        list.add( hash.get( it.next() ) );
+		       list.add( it.next() );
 		    }
 		}
 		
