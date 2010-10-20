@@ -155,7 +155,7 @@ class Activity extends ClearBase
 		
 	    while ( it.hasNext() )
 	    {
-	        r.add( cs.get( it.next() ) );
+	        r.add( it.next() );
 	    }
 		
 		return r;
