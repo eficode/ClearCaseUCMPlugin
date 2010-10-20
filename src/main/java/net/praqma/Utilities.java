@@ -27,6 +27,14 @@ class Utilities
 		return result;
 	}
 	
+	public static void PrintArray( String[] var )
+	{
+		for( int i = 0 ; i < var.length ; i++ )
+		{
+			logger.empty( "["+i+"] " + var[i] );
+		}
+	}
+	
 	/**
 	 * CHW: Scary stuff!
 	 * @param <T>

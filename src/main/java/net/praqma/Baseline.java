@@ -65,11 +65,13 @@ class Baseline extends ClearBase
 	{
 		logger.trace_function();
 		
-		String cmd = "desc -fmt %n" + delim + "%[component]p" + delim + "%[bl_stream]p" + delim + "%[plevel]p" + delim + "%u " + fqobj;
-		String result = Cleartool.run( cmd );
+		//String cmd = "desc -fmt %n" + delim + "%[component]p" + delim + "%[bl_stream]p" + delim + "%[plevel]p" + delim + "%u " + fqobj;
+		//String result = Cleartool.run( cmd );
+		String result = CF.LoadBaseline( this.fqname );
 		
 		//my ($shortname, $component, $stream, $plevel, $user) = split /$delim/, $retval;
 		String[] rs = result.split( delim );
+		
 		this.shortname = rs[0];
 		this.component = new Component( rs[1] + "@" + this.pvob, true );
 		this.stream    = new Stream( rs[2] + "@" + this.pvob, true );
@@ -245,7 +247,7 @@ class Baseline extends ClearBase
 		logger.trace_function();
 		
 		// cleartool('desc -fmt %['.ATTR_BUILD_IN_PROGRESS.']NSa '.$self->get_fqname());
-		String cmd = "desc -fmt %['.ATTR_BUILD_IN_PROGRESS.']NSa " + this.GetFQName();
+		String cmd = "desc -fmt %[" + ATTR_BUILD_IN_PROGRESS + "]NSa " + this.GetFQName();
 		String result = Cleartool.run( cmd );
 		
 		return ( result.matches( BUILD_IN_PROGRESS_ENUM_TRUE ) ) ? true : false;
@@ -262,8 +264,11 @@ class Baseline extends ClearBase
 		if( !build_in_progess )
 		{
 			// cleartool('mkattr -default '.ATTR_BUILD_IN_PROGRESS.' '.$self->get_fqname());
-			String cmd = "mkattr -default " + ATTR_BUILD_IN_PROGRESS + " " + this.GetFQName();
-			Cleartool.run( cmd );
+			//String cmd = "mkattr -default " + ATTR_BUILD_IN_PROGRESS + " " + this.GetFQName();
+			//Cleartool.run( cmd );
+			CF.BaselineMakeAttribute( this.fqname, ATTR_BUILD_IN_PROGRESS );
+			/* ASK This is not in the Perl code */
+			this.build_in_progess = true;
 		}
 		
 		return 1;
@@ -286,8 +291,11 @@ class Baseline extends ClearBase
 		if( build_in_progess )
 		{
 			// cleartool('mkattr -default '.ATTR_BUILD_IN_PROGRESS.' '.$self->get_fqname());
-			String cmd = "rmattr -default " + ATTR_BUILD_IN_PROGRESS + " " + this.GetFQName();
-			Cleartool.run( cmd );
+			//String cmd = "rmattr -default " + ATTR_BUILD_IN_PROGRESS + " " + this.GetFQName();
+			//Cleartool.run( cmd );
+			CF.BaselineRemoveAttribute( this.fqname, ATTR_BUILD_IN_PROGRESS );
+			/* ASK This is not in the Perl code */
+			this.build_in_progess = false;
 		}
 		
 		return 1;
@@ -363,6 +371,20 @@ class Baseline extends ClearBase
 		logger.trace_function();
 	}
 	
+	/* Public GettDiffs overloads */
+	
+	public ArrayList<String> GetDiffs( String format, boolean nmerge, String viewroot )
+	{
+		/* Argument correcting */
+		viewroot = viewroot.length() == 0 ? null : viewroot;
+		return _GetDiffs( format, nmerge, viewroot );
+	}
+	
+	public ArrayList<String> GetDiffs( String format, boolean nmerge )
+	{
+		return _GetDiffs( format, nmerge, null );
+	}
+	
 	/**
 	 * 
 	 * @param format
@@ -370,9 +392,12 @@ class Baseline extends ClearBase
 	 * @param viewroot
 	 * @return
 	 */
-	public ArrayList<String> GetDiffs( String format, boolean nmerge, String viewroot )
+	private ArrayList<String> _GetDiffs( String format, boolean nmerge, String viewroot )
 	{
 		logger.trace_function();
+		
+		/* Argument correcting */
+		format   = format.equals( "list" ) || format.equals( "scalar" ) ? format : "list";
 		
 		String sw_nmerge = ( nmerge ? " -nmerge " : "" );
 		
@@ -387,7 +412,6 @@ class Baseline extends ClearBase
 		
 		if( viewroot != null )
 		{
-			/* CHW: Why is this performed?	my $snr = quotemeta($params{viewroot}); $msg =~ s/$snr//g; */
 			msg = msg.replaceAll( java.util.regex.Pattern.quote( viewroot ), "" );
 		}
 		
@@ -439,26 +463,28 @@ class Baseline extends ClearBase
 		logger.trace_function();
 		
 		StringBuffer tostr = new StringBuffer();
-		tostr.append( "fqobj: " + this.fqobj );
-		tostr.append( "user: " + this.user );
-		tostr.append( "component: " + this.component.toString() );
-		tostr.append( "depends_on_closure: " + ( depends_on_closure != null ? depends_on_closure.size() : "None" ) );
+		tostr.append( "fqobj: " + this.fqobj + linesep );
+		tostr.append( "user: " + this.user + linesep );
+		tostr.append( "component: " + this.component.toString() + linesep );
+		tostr.append( "depends_on_closure: " + ( depends_on_closure != null ? depends_on_closure.size() : "None" ) + linesep );
 		if( depends_on_closure != null )
 		{
 			/* Let's hope there's no circular dependencies!!! */
 			for( int i = 0 ; i < depends_on_closure.size() ; i++ )
 			{
-				tostr.append( "["+i+"] " + depends_on_closure.get( i ).toString() );
+				tostr.append( "["+i+"] " + depends_on_closure.get( i ).toString() + linesep );
 			}
 		}
-		tostr.append( "plevel: " + this.plevel.GetName() );
-		tostr.append( "shortname: " + this.shortname );
-		tostr.append( "stream: " + this.stream.toString() );
-		tostr.append( "pvob: " + this.pvob.toString() );
+		tostr.append( "plevel: " + this.plevel.GetName() + linesep );
+		tostr.append( "shortname: " + this.shortname + linesep );
+		tostr.append( "stream: " + this.stream.toString() + linesep );
+		tostr.append( "pvob: " + this.pvob.toString() + linesep );
 		
-		tostr.append( "build_in_progess: " + this.build_in_progess );
-		tostr.append( "diffs: " + this.diffs.toString() );
+		tostr.append( "build_in_progess: " + this.build_in_progess + linesep );
+		tostr.append( "diffs: " + this.diffs.toString() + linesep );
 		
+		tostr.append( "Build in progress: " + this.build_in_progess + linesep );
+
 		return tostr.toString();		
 	}
 	

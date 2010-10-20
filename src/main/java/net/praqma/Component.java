@@ -39,8 +39,9 @@ class Component extends ClearBase
 		logger.trace_function();
 		
 		// cleartool_qx('lsbl -s -component '.$self->get_fqname().' -stream '.$stream->get_fqname());
-		String cmd = "lsbl -s -component "  +this.GetFQName() + " -stream " + stream.GetFQName();
-		String[] result = Cleartool.run_a( cmd );
+		//String cmd = "lsbl -s -component "  + this.GetFQName() + " -stream " + stream.GetFQName();
+		//String[] result = Cleartool.run_a( cmd );
+		String[] result = CF.lsbl_s_comp_stream( this.GetFQName(), stream.GetFQName() );
 		
 		ArrayList<Baseline> qbls = new ArrayList<Baseline>();
 		
@@ -61,6 +62,7 @@ class Component extends ClearBase
 	
 	
 	/**
+	 * EXPERIMENTAL
 	 * CHW: WORK IN PROGRESS. Needs Stream class implemented.
 	 * @param stream
 	 * @param plevel
@@ -117,6 +119,11 @@ class Component extends ClearBase
 		return rootdir;
 	}
 	
+	/**
+	 * UNTESTED GettAttr is not tested and the return value from cleartool is not determined
+	 * @param attr
+	 * @return
+	 */
 	public String GetAttr( String attr )
 	{
 		logger.trace_function();

@@ -55,7 +55,7 @@ class Activity extends ClearBase
 	 * @param id
 	 * @param comment
 	 */
-	public void Create( String id, String comment )
+	public Activity Create( String id, String comment )
 	{
 		logger.trace_function();
 		
@@ -63,7 +63,7 @@ class Activity extends ClearBase
 		{
 			logger.warning( "ERROR: Activity::create(): Nothing to create!" );
 			System.err.println( "ERROR: Activity::create(): Nothing to create!" );
-			return;
+			return null;
 		}
 		
 		String commentswitch = comment != null ? " -comment " + comment : "";
@@ -73,8 +73,8 @@ class Activity extends ClearBase
 		// my $cmd = 'cleartool mkact '.$commentswitch.' '.$options{'id'}.' 2>&1';
 		String cmd = "mkact " + commentswitch + " " + id;
 		String result = Cleartool.run( cmd );
-		/* CHW: I cannot figure out what is newed! */
-		// return $package->new($options{'id'}.'@'.$view->get_pvob(),1);
+		
+		return new Activity( id + "@" + view.GetPvob(), true );
 	}
 	
 	public String toString()

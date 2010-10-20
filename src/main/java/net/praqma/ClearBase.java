@@ -35,7 +35,7 @@ class ClearBase
 		
 		String GetName()
 		{
-			return this.GetName();
+			return this.name();
 		}
 	}
 	

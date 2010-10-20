@@ -5,6 +5,11 @@ import java.io.InputStreamReader;
 
 import net.praqma.Debug;
 
+/**
+ * UNTESTED cmd class
+ * @author wolfgang
+ *
+ */
 class Cmd
 {
 	protected static Debug logger = Debug.GetLogger();
