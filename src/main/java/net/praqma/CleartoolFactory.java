@@ -30,4 +30,34 @@ class CleartoolFactory extends AbstractCleartoolFactory
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	public String[] lsbl_s_comp_stream( String compFqname, String streamFqname )
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public String LoadBaseline( String fqname )
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public void BaselineMarkBuildInProgress( String fqname, String mark )
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void BaselineMakeAttribute( String fqname, String attr )
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void BaselineRemoveAttribute( String fqname, String attr )
+	{
+		// TODO Auto-generated method stub
+		
+	}
 }
