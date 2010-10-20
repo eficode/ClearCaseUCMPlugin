@@ -368,7 +368,7 @@ class Stream extends ClearBase
 		
 	    while ( it.hasNext() )
 	    {
-	        r.add( accumulated_filelist.get( it.next() ) );
+	        r.add( it.next() );
 	    }
 		
 		return r;
