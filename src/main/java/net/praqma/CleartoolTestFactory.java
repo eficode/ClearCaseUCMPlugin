@@ -79,21 +79,7 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 		
 		StringBuffer sb = new StringBuffer();
 		
-		logger.debug( "dbl="+dbl.getTagName() );
-
-		NodeList list = dbl.getChildNodes( );
-		
-		for( int i = 0 ; i < list.getLength( ) ; i++ )
-		{
-	    	Node node = list.item( i );
-	    	
-    		if( node.getNodeType( ) == Node.ELEMENT_NODE )
-    		{
-    			sb.append( node.getTextContent() + linesep );
-    		}
-		}
-		
-		return sb.toString();
+		return dbl.getTextContent();
 	}
 	
 	
