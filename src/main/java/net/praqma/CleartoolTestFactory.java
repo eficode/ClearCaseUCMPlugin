@@ -23,8 +23,8 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 	public static AbstractCleartoolFactory cfInstance = null;
 	
 	private static Document testBase = null;
-	//private static final File testBaseFile = new File( "testbase.xml" );
-	private static final File testBaseFile = new File( "c:\\temp\\testbase.xml" );
+	private static final File testBaseFile = new File( "testbase.xml" );
+	//private static final File testBaseFile = new File( "c:\\temp\\testbase.xml" );
 	
 	private static Element root      = null;
 	private static Element baselines = null;
@@ -45,7 +45,7 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 			if( hudson )
 			{
 				logger.log( "Getting XML as stream" );
-				testBase = builder.parse( this.getClass().getResourceAsStream( testBaseFile.getName() ) );
+				testBase = builder.parse( this.getClass().getClassLoader().getResourceAsStream( testBaseFile.getName() ) );
 			}
 			else
 			{
