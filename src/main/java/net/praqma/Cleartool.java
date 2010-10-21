@@ -83,7 +83,7 @@ class Cleartool
 		
 		/* Just call the run method an split the result */
 		String result = run( cmd );		
-		return result.split( linesep );
+		return result.split( "\n" );
 	}
 	
 	

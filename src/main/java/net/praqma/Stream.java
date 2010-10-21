@@ -26,6 +26,8 @@ class Stream extends ClearBase
 	{
 		logger.trace_function();
 		
+		String[] res  = TestComponent( fqstream );
+		
 		/* Delete the object prefix, if it exists: */
 		if( fqstream.startsWith( "stream:" ) )
 		{
@@ -35,7 +37,7 @@ class Stream extends ClearBase
 		
 		this.fqstream = fqstream;
 		this.fqname   = fqstream;
-		String[] res  = TestComponent( fqstream );
+		
 		
 		this.shortname = res[0];
 		this.pvob      = res[1];
@@ -180,8 +182,9 @@ class Stream extends ClearBase
 		else
 		{
 			// cleartool( 'desc -fmt %[rec_bls]p stream:' . $self->{'fqstream'} );
-			String cmd = "desc -fmt %[rec_bls]p stream:" + this.GetFQName();
-			String result = Cleartool.run( cmd );
+			//String cmd = "desc -fmt %[rec_bls]p stream:" + this.GetFQName();
+			//String result = Cleartool.run( cmd );
+			String result = CF.GetRecommendedBaseline( this.fqname );
 			String[] rs = result.split( " " );
 			
 			for( int i = 0 ; i < rs.length ; i++ )

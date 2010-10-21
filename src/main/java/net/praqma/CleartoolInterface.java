@@ -11,6 +11,13 @@ interface CleartoolInterface
 	public void BaselineRemoveAttribute( String fqname, String attr );
 	public void SetPromotionLevel( String fqname, String plevel );
 	public String GetPromotionLevel( String fqname );
+	public boolean BuildInProgess( String fqname );
+	
+	/* Components */
+	public String[] ListBaselines( String component, String stream, String plevel );
+	
+	/* Streams */
+	public String GetRecommendedBaseline( String stream );
 	
 	/* Diffs */
 	public String diffbl( String nmerge, String fqname );

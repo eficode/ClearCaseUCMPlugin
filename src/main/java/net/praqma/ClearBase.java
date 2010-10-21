@@ -17,6 +17,7 @@ class ClearBase
 	protected String fqname = null;
 	
 	private static final boolean isTest = true;
+	private static boolean hudson = false;
 	protected static AbstractCleartoolFactory CF = null;
 	
 	/**
@@ -43,7 +44,7 @@ class ClearBase
 	{
 		if( isTest )
 		{
-			CF = CleartoolTestFactory.CFGet();
+			CF = CleartoolTestFactory.CFGet( hudson );
 		}
 		else
 		{
@@ -67,7 +68,7 @@ class ClearBase
 		Pattern pattern = Pattern.compile( rx_fqobj );
 		Matcher matches = pattern.matcher( component );
 		
-		//logger.debug( "I am matching for " + rx_fqobj + " on " + component );
+		logger.debug( "I am matching for " + rx_fqobj + " on " + component );
 		
 		/* A match is found */
 		if( matches.find() )
@@ -76,7 +77,7 @@ class ClearBase
 			res[0] = matches.group( 1 );
 			res[1] = matches.group( 2 );
 			
-			//logger.debug( "0 = " + res[0] + ". 1 = " + res[1] );
+			logger.debug( "0 = " + res[0] + ". 1 = " + res[1] );
 			
 			return res;
 			

@@ -8,7 +8,7 @@
 			<plevel>INITIAL</plevel>
 			<pvob>\PDS_PVOB</pvob>
 			<shortname>Remote_15-10-2010_MPSX_Fixed_NFC_timer_subscription</shortname>
-			<stream>EH2</stream>
+			<stream>stream:EH@\PDS_PVOB</stream>
 			<user>someone</user>
 			<!-- White space separated Baseline list -->
 			<depends_on_closure></depends_on_closure>
@@ -49,12 +49,17 @@
 	</baselines>
 	
 	<!-- STREAMS -->
+	<streams>
+		<stream fqname="stream:EH@\PDS_PVOB">
+			<recommended_baseline>baseline:Remote_15-10-2010_MPSX_Fixed_NFC_timer_subscription</recommended_baseline>
+		</stream>
+	</streams>
 	
 	<!-- COMPONENTS -->
 	<components>
 		<component fqname="component:EH@\PDS_PVOB">
 			<pvob>\PDS_PVOB</pvob>
-			<shortname>Remote_15-10-2010_MPSX_Fixed_NFC_timer_subscription</shortname>
+			<shortname>EH</shortname>
 			<rootdir>EH2</rootdir>
 		</component>
 	</components>

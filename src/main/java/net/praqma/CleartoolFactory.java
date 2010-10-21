@@ -72,4 +72,23 @@ class CleartoolFactory extends AbstractCleartoolFactory
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	public boolean BuildInProgess( String fqname )
+	{
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	public String[] ListBaselines( String component, String stream,
+			String plevel )
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public String GetRecommendedBaseline( String stream )
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

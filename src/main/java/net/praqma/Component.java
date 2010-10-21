@@ -1,6 +1,7 @@
 package net.praqma;
 
 import java.util.ArrayList;
+import java.util.Stack;
 
 class Component extends ClearBase
 {
@@ -69,17 +70,71 @@ class Component extends ClearBase
 	 * @param include_builds_in_progress
 	 * @param newer_than_reccommended
 	 */
-	public void GetBlsWithPlevel( Stream stream, Plevel plevel, boolean include_builds_in_progress, boolean newer_than_reccommended )
+	public ArrayList<Baseline> GetBlsWithPlevel( Stream stream, Plevel plevel, boolean include_builds_in_progress, boolean newer_than_recommended )
 	{
 		logger.trace_function();
 		
+		logger.debug( "Getting recommended baseline" );
+		
 		ArrayList<Baseline> grb = stream.GetRecBls( false );
+		
+		logger.debug( "Got it" );
 		if( grb.size() != 1 )
 		{
 			logger.error( "ERROR: Componet::get_bls_with_plevel( ). Didn't expect more than a single baseline as Recommended baseline on " + stream.GetFQName() );
 			System.err.println( "ERROR: Componet::get_bls_with_plevel( ). Didn't expect more than a single baseline as Recommended baseline on " + stream.GetFQName() );
 			System.exit( 1 );
 		}
+		
+		logger.debug( "Got the recommended baseline" );
+		
+		Baseline recbl = grb.get( 0 );
+		if( !recbl.GetComponent().GetShortName().equals( this.GetShortName() ) )
+		{
+			logger.debug( recbl.GetComponent().GetShortName() + " == " + this.GetShortName() );
+			logger.warning( this.shortname + " is not represented in " + stream.GetShortname() + " Recommended baseline" );
+			return null;
+		}
+		
+		logger.debug( "The baseline was correct" );
+		
+		ArrayList<Baseline> bls = new ArrayList<Baseline>();
+		// my @retval = cleartool_qx(' lsbl -s -component '.$self->get_fqname().' -stream '.$stream->get_fqname().' -level '.$params{'plevel'});
+		//String cmd = "lsbl -s -component "  + this.fqname + " -stream " + stream.GetFQName() + " -level " + plevel.GetName();
+		//String[] result = Cleartool.run_a( cmd );
+		String[] result = CF.ListBaselines( this.fqname, stream.GetFQName(), plevel.GetName() );
+		Utilities.PrintArray( result );
+		logger.debug( "List Baselines" );
+		
+		boolean match = false;
+		int counter = result.length;
+		/* ASK shouldn't it be NOT newer? */
+		if( newer_than_recommended )
+		{
+			/* Remove newer baselines */
+			while( counter > 0 && !match )
+			{
+				counter--;
+				match = result[counter].trim().equals( recbl.GetShortname() );
+			}
+		}
+		
+		logger.debug( "Got newer" );
+		
+		Utilities.PrintArray( result );
+		
+		for( int i = 0 ; i < counter ; i++ )
+		{
+			Baseline blobj = new Baseline( result[i].trim(), true );
+			if( include_builds_in_progress && !blobj.BuildInProgess() )
+			{
+				bls.add( blobj );
+			}
+		}
+		
+		logger.debug( "Returning" );
+		
+		return bls;
 	}
 	
 	

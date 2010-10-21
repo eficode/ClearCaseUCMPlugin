@@ -1,6 +1,10 @@
 package net.praqma;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -23,8 +27,9 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 	
 	private static Element root      = null;
 	private static Element baselines = null;
+	private static Element streams   = null;
 	
-	private CleartoolTestFactory()
+	private CleartoolTestFactory( boolean hudson )
 	{
 		logger.trace_function();
 		
@@ -36,7 +41,16 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 		try
 		{
 			builder = factory.newDocumentBuilder();
-			testBase = builder.parse( testBaseFile );
+			if( hudson )
+			{
+				logger.log( "Getting XML as stream" );
+				testBase = builder.parse( this.getClass().getResourceAsStream( testBaseFile.getName() ) );
+			}
+			else
+			{
+				logger.log( "Getting XML as file" );
+				testBase = builder.parse( testBaseFile );
+			}
 		}
 		catch ( Exception e )
 		{
@@ -46,22 +60,25 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 		
 		root      = testBase.getDocumentElement();
 		baselines = this.GetFirstElement( root, "baselines" );
+		streams   = this.GetFirstElement( root, "streams" );
 		
 		logger.debug( "root=" + root.getTagName() );
 		logger.debug( "baselines=" + baselines.getTagName() );
+		logger.debug( "streams=" + streams.getTagName() );
 	}
 	
-	public static AbstractCleartoolFactory CFGet()
+	public static AbstractCleartoolFactory CFGet( boolean hudson )
 	{
 		logger.trace_function();
 		
 		if( cfInstance == null )
 		{
-			cfInstance = new CleartoolTestFactory();
+			cfInstance = new CleartoolTestFactory( hudson );
 		}
 		
 		return cfInstance;
 	}
+	
 
 	public void Update()
 	{
@@ -69,11 +86,32 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 		
 	}
 	
+	/*
+	 *  STREAM FUNCTIONALITY
+	 *  
+	 */
+	
+	public String GetRecommendedBaseline( String stream )
+	{
+		logger.trace_function();
+		logger.debug( "TestFactory: GetRecommendedBaseline" );
+		
+		return GetElement( GetElementWithFqname( streams, stream ), "recommended_baseline" ).getTextContent();
+	}
+	
+	/*
+	 *  BASELINE FUNCTIONALITY
+	 *  
+	 */
+	
 	/**
 	 * Loads a baseline from XML Document
 	 */
 	public String LoadBaseline( String fqname )
 	{
+		logger.trace_function();
+		logger.debug( "TestFactory: LoadBaseline" );
+		
 		Element ble = GetElementWithFqname( baselines, fqname );
 		
 		/* ($shortname, $component, $stream, $plevel, $user) */
@@ -85,13 +123,43 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 		
 		return baseline;
 	}
-
+	
+	public String[] ListBaselines( String component, String stream, String plevel )
+	{
+		logger.trace_function();
+		logger.debug( "TestFactory: ListBaselines: " + component + ", " + stream + ", " + plevel );
+		
+		NodeList list = baselines.getChildNodes( );
+		StringBuffer sb = new StringBuffer();
+		
+		for( int i = 0 ; i < list.getLength( ) ; i++ )
+		{
+	    	Node node = list.item( i );
+	    	
+    		if( node.getNodeType( ) == Node.ELEMENT_NODE )
+    		{
+    			HashMap<String, String> attrs = GetAttributes( (Element)node );
+    			
+    			String c = GetElement( (Element)node, "component" ).getTextContent();
+    			String s = GetElement( (Element)node, "stream" ).getTextContent();
+    			String p = GetElement( (Element)node, "plevel" ).getTextContent();
+    			if( c.equals( component ) && s.equals( stream ) && p.equals( plevel ) )
+    			{
+    				sb.append( attrs.get( "fqname" ) );
+    			}
+    		}
+		}
+		
+		return sb.toString().split( "\n" );
+	}
+	
 	/**
 	 * 
 	 */
 	public String diffbl( String nmerge, String fqname )
 	{
 		logger.trace_function();
+		logger.debug( "TestFactory: diffbl" );
 		
 		//String cmd = "diffbl -pre -act -ver " + nmerge + fqname;
 		
@@ -107,6 +175,8 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 	{
 		logger.trace_function();
 		
+		logger.debug( "TestFactory: BaselineMakeAttribute" );
+		
 		logger.debug( fqname + " = " + attr );
 		Element bip = GetElement( GetElement( GetElementWithFqname( baselines, fqname ), "attributes" ), attr );
 //		Element e1 = GetElementBtFqname( baselines, fqname );
@@ -115,9 +185,17 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 		bip.setTextContent( "true" );
 	}
 	
+	public boolean BuildInProgess( String fqname )
+	{
+		logger.trace_function();
+		logger.debug( "TestFactory: BuildInProgess" );
+		return GetElement( GetElement( GetElementWithFqname( baselines, fqname ), "attributes" ), "BuildInProgress" ).getTextContent().equals( "true" );
+	}
+	
 	public void SetPromotionLevel( String fqname, String plevel )
 	{
 		logger.trace_function();
+		logger.debug( "TestFactory: SetPromotionLevel" );
 		
 		logger.debug( "setting plevel " + plevel );
 		
@@ -129,6 +207,7 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 	public String GetPromotionLevel( String fqname )
 	{
 		logger.trace_function();
+		logger.debug( "TestFactory: GetPromotionLevel" );
 		
 		String plevel = GetElement( GetElementWithFqname( baselines, fqname ), "plevel" ).getTextContent( );
 		logger.debug( "Getting plevel " + plevel );
@@ -140,6 +219,8 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 	 */
 	public void BaselineRemoveAttribute( String fqname, String attr )
 	{
+		logger.trace_function();
+		logger.debug( "TestFactory: BaselineRemoveAttribute" );
 		Element bip = GetElement( GetElement( GetElementWithFqname( baselines, fqname ), "attributes" ), attr );
 		bip.setTextContent( "false" );
 	}
@@ -150,6 +231,7 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 	public String[] lsbl_s_comp_stream( String component, String stream )
 	{
 		logger.trace_function();
+		logger.debug( "TestFactory: lsbl_s_comp_stream" );
 		
 		//String cmd = "lsbl -s -component "  + this.GetFQName() + " -stream " + stream.GetFQName();
 		

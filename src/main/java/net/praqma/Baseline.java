@@ -72,9 +72,15 @@ class Baseline extends ClearBase
 		//my ($shortname, $component, $stream, $plevel, $user) = split /$delim/, $retval;
 		String[] rs = result.split( delim );
 		
+		String c = rs[1].matches( ".*@\\\\.*$" ) ? rs[1] : rs[1] + "@" + this.pvob;
+		String s = rs[2].matches( ".*@\\\\.*$" ) ? rs[2] : rs[2] + "@" + this.pvob;
+		
+		logger.debug( "c="+c + "("+rs[1]+")" );
+		logger.debug( "s="+s + "("+rs[2]+")" );
+		
 		this.shortname = rs[0];
-		this.component = new Component( rs[1] + "@" + this.pvob, true );
-		this.stream    = new Stream( rs[2] + "@" + this.pvob, true );
+		this.component = new Component( c, true );
+		this.stream    = new Stream( s, true );
 		this.plevel    = GetPlevelFromString( rs[3] );
 		this.user      = rs[4];
 		
@@ -247,10 +253,12 @@ class Baseline extends ClearBase
 		logger.trace_function();
 		
 		// cleartool('desc -fmt %['.ATTR_BUILD_IN_PROGRESS.']NSa '.$self->get_fqname());
-		String cmd = "desc -fmt %[" + ATTR_BUILD_IN_PROGRESS + "]NSa " + this.GetFQName();
-		String result = Cleartool.run( cmd );
+		//String cmd = "desc -fmt %[" + ATTR_BUILD_IN_PROGRESS + "]NSa " + this.GetFQName();
+		//String result = Cleartool.run( cmd );
 		
-		return ( result.matches( BUILD_IN_PROGRESS_ENUM_TRUE ) ) ? true : false;
+		//return ( result.matches( BUILD_IN_PROGRESS_ENUM_TRUE ) ) ? true : false;
+		
+		return CF.BuildInProgess( this.fqname );
 	}
 	
 	/**
