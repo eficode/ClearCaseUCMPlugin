@@ -14,7 +14,7 @@ public class ChangeLogEntryImpl extends Entry {
 	private String filepath;
 	private String comment;
 	protected static Debug logger = Debug.GetLogger();
-	private volatile List<String> affectedPaths; //TODO: Find out what this is
+	private volatile List<String> affectedPaths = new ArrayList<String>(); //TODO: Find out what this is
 	
 	public ChangeLogEntryImpl(){
 		logger.trace_function();
@@ -23,12 +23,18 @@ public class ChangeLogEntryImpl extends Entry {
 	@Override
 	public Collection<String> getAffectedPaths() {
 		logger.trace_function();
-		if(affectedPaths==null){
-			List<String> r = new ArrayList<String>();
-			r.add("En filepath");
-			affectedPaths = r;
+		if(affectedPaths.size()==0){
+			logger.log("affectedPaths er tom");
+			affectedPaths.add("Dummydata");
 		}
 		return affectedPaths;
+	}
+	
+	public void setNextFilepath(String filepath){
+		logger.trace_function();
+		if(filepath == null)
+			logger.log("Filepath er null"+filepath);
+		affectedPaths.add(filepath);
 	}
 
 	@Override

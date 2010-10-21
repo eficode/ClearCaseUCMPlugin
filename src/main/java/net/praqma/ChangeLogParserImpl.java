@@ -1,10 +1,9 @@
 package net.praqma;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.StringReader;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,19 +34,19 @@ public class ChangeLogParserImpl extends ChangeLogParser {
 		digester.push(entries);
 		digester.addObjectCreate("*/changeset", ChangeLogEntryImpl.class);
 		digester.addSetProperties("*/changeset");
-		digester.addBeanPropertySetter("*/changeset/comment");
-		digester.addBeanPropertySetter("*/changeset/filepath");
+		//digester.addBeanPropertySetter("*/changeset/comment");
+		digester.addBeanPropertySetter("*/changeset/filepath","nextFilepath");
 		digester.addSetNext("*/changeset","add");
 
-		StringReader reader = new StringReader("<changelog><changeset version=\"1212\">" +
-				"<filepath>this is the 1st filepath</filepath><comment>comment to 1st filepath</comment>" +
+		/*StringReader reader = new StringReader("<changelog><changeset version=\"1212\">" +
+				"<filepath>this is the 1st filepath</filepath>" +
 				"</changeset><changeset version=\"2424\">" +
-				"<filepath>this is the 2nd filepath</filepath><comment>comment to 2nd filepath</comment>" +
-				"</changeset></changelog>");
+				"<filepath>this is the 2nd filepath</filepath>" +
+				"</changeset></changelog>");*/
+		FileReader reader = new FileReader(changelogFile);
+		 
 		digester.parse(reader);
 		reader.close();
-		
-		System.out.println("LISTE: "+entries.size());
 		
 		return new ChangeLogSetImpl(build, entries);
 	}

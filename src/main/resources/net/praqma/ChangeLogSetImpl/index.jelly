@@ -15,13 +15,18 @@
         <td colspan="2" class="changeset">
           <a name="detail${loop.index}"></a>
           <div class="changeset-message">
+	   <j:forEach var="fp" items="${cs.affectedPaths}" varStatus="loop">
             <b>
-              Comment ${cs.comment}<br />
-              Filepath ${cs.filepath}<br />
-              Date ${cs.date}
-            </b><br/>
-            ${cs.msgAnnotated}<br/>
-	   
+             
+              Filepath ${fp}<br />
+              
+            </b>
+	   </j:forEach>
+
+<!--br/>
+${cs.msgAnnotated}<br/-->
+
+
           </div>
         </td>
       </tr>

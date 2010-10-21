@@ -64,27 +64,46 @@ public class CC4HClass extends SCM {
 		this.promoteToLevel = promoteToLevel;
 		this.tagPostBuild = tagPostBuild;
 	}
-
+	
+	/**
+	 * the repository is checked for new baselines, and if any, then the oldest will be built.
+	 * 
+	 */
 	@Override
 	public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspace,
 			BuildListener listener, File changelogFile) throws IOException,
 			InterruptedException {
 		logger.trace_function();
+		component = "component:EH@\\PDS_PVOB";
+		stream = "stream:EH@\\PDS_PVOB";
+		levelToPoll = "INITIAL";
 		//TODO perform actual checkout
 		//Write the changelog to changelogFile
 		//copypaste from bazaar:
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-		//List<String> changes = new Baseline("format",true,"viewroot");
-		List<String> changes = new ArrayList<String>();
-		changes.add("One");
-		changes.add("Two");
-		changes.add("Three");		
+		Component comp = new Component (component, true); // (true means that we know the component exists in PVOB)
+		//TODO: set tag build in progress in CT
+		//FOR USE WHEN FACTORY WORKS: 
+		
+		List<Baseline> baselines = comp.GetBlsWithPlevel(new Stream(stream, true), ClearBase.Plevel.valueOf(levelToPoll), false, false);
+		Baseline bl = baselines.get(0);
+		
+		//below baseline is for testpurposes - we will call the real one from Component and get a list and find the oldest from that list
+		//Baseline bl = new Baseline("baseline:Remote_15-10-2010_MPSX_Fixed_NFC_timer_subscription@\\PDS_PVOB", true);
+		
+		List<String> changes = bl.GetDiffs("list", true);
+		/*List<String> changes = new ArrayList<String>();
+		changes.add("Ah");
+		changes.add("Arggh");*/
+		//Here the .hudson/jobs/[project name]/changelog.xml is written
+		baos.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>".getBytes());
 		baos.write("<changelog>".getBytes());
 		String temp;
 		for(String s:changes){
-			temp = "<file>" + s + "</file>";
+			baos.write("<changeset>".getBytes());
+			temp = "<filepath>" + s + "</filepath>";
 			baos.write(temp.getBytes());
+			baos.write("</changeset>".getBytes());
 		}
 		baos.write("</changelog>".getBytes());
 		
