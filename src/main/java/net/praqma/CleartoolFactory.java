@@ -60,4 +60,16 @@ class CleartoolFactory extends AbstractCleartoolFactory
 		// TODO Auto-generated method stub
 		
 	}
+
+	public void SetPromotionLevel( String fqname, String plevel )
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	public String GetPromotionLevel( String fqname )
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

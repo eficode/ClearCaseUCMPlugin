@@ -74,7 +74,7 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 	 */
 	public String LoadBaseline( String fqname )
 	{
-		Element ble = GetElementBtFqname( baselines, fqname );
+		Element ble = GetElementWithFqname( baselines, fqname );
 		
 		/* ($shortname, $component, $stream, $plevel, $user) */
 		String baseline = GetElement( ble, "shortname" ).getTextContent() + "::" + 
@@ -95,7 +95,7 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 		
 		//String cmd = "diffbl -pre -act -ver " + nmerge + fqname;
 		
-		Element ble = GetElementBtFqname( baselines, fqname );
+		Element ble = GetElementWithFqname( baselines, fqname );
 		
 		return GetElement( ble, "diffbl" ).getTextContent();
 	}
@@ -108,11 +108,31 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 		logger.trace_function();
 		
 		logger.debug( fqname + " = " + attr );
-		Element bip = GetElement( GetElement( GetElementBtFqname( baselines, fqname ), "attributes" ), attr );
+		Element bip = GetElement( GetElement( GetElementWithFqname( baselines, fqname ), "attributes" ), attr );
 //		Element e1 = GetElementBtFqname( baselines, fqname );
 //		Element e2 = GetElement( e1, "attributes" );
 //		Element bip = GetElement( e2, attr );
 		bip.setTextContent( "true" );
+	}
+	
+	public void SetPromotionLevel( String fqname, String plevel )
+	{
+		logger.trace_function();
+		
+		logger.debug( "setting plevel " + plevel );
+		
+		Element pl = GetElement( GetElementWithFqname( baselines, fqname ), "plevel" );
+		pl.setTextContent( plevel );
+		//logger.debug( "---->" + pl.getTextContent() + " + " + plevel );
+	}
+	
+	public String GetPromotionLevel( String fqname )
+	{
+		logger.trace_function();
+		
+		String plevel = GetElement( GetElementWithFqname( baselines, fqname ), "plevel" ).getTextContent( );
+		logger.debug( "Getting plevel " + plevel );
+		return plevel;
 	}
 	
 	/**
@@ -120,7 +140,7 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 	 */
 	public void BaselineRemoveAttribute( String fqname, String attr )
 	{
-		Element bip = GetElement( GetElement( GetElementBtFqname( baselines, fqname ), "attributes" ), attr );
+		Element bip = GetElement( GetElement( GetElementWithFqname( baselines, fqname ), "attributes" ), attr );
 		bip.setTextContent( "false" );
 	}
 	
@@ -141,7 +161,7 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 	
 	/* AUXILIARY FUNCTIONS */
 	
-	private Element GetElementBtFqname( Element e, String fqname )
+	private Element GetElementWithFqname( Element e, String fqname )
 	{
 		logger.trace_function();
 		logger.debug( "Getting " + e.getNodeName() + " element with fqname: " + fqname );

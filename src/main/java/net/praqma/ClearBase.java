@@ -93,17 +93,17 @@ class ClearBase
 	{
 		logger.trace_function();
 		
-		int l = 0;
+		Plevel plevel;
 		try
 		{
-			l = Integer.parseInt( level );
+			plevel = Plevel.valueOf( level );
 		}
 		catch( NumberFormatException e )
 		{
-			return Plevel.INITIAL;
+			plevel = Plevel.INITIAL;
 		}
 		
-		return Plevel.values()[l];
+		return plevel;
 	}
 	
 	

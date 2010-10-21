@@ -336,7 +336,7 @@ class Baseline extends ClearBase
 	}
 	
 	/**
-	 * 
+	 * ASK Lars if there's any need for checking the plevel!
 	 * @param plevel
 	 * @return
 	 */
@@ -345,7 +345,10 @@ class Baseline extends ClearBase
 		logger.trace_function();
 		
 		//cleartool('chbl -level '.$plevel.' '.$self->get_fqname() )
-		String cms = "chbl -level " + plevel.GetName() + " " + this.GetFQName();
+		//String cmd = "chbl -level " + plevel.GetName() + " " + this.GetFQName();
+		//Cleartool.run( cmd );
+		CF.SetPromotionLevel( this.fqname, plevel.GetName() );
+		this.plevel = plevel;
 		
 		return 1;
 	}
@@ -359,8 +362,10 @@ class Baseline extends ClearBase
 		logger.trace_function();
 		
 		//cleartool('desc -fmt %[plevel]p '.$self->get_fqname()
-		String cmd = "desc -fmt %[plevel]p " + this.GetFQName();
-		String result = Cleartool.run( cmd );
+		//String cmd = "desc -fmt %[plevel]p " + this.GetFQName();
+		//String result = Cleartool.run( cmd );
+		String result = CF.GetPromotionLevel( this.fqname );
+		logger.debug( "RESULT=" + result );
 				
 		return GetPlevelFromString( result );
 	}
@@ -475,15 +480,14 @@ class Baseline extends ClearBase
 				tostr.append( "["+i+"] " + depends_on_closure.get( i ).toString() + linesep );
 			}
 		}
-		tostr.append( "plevel: " + this.plevel.GetName() + linesep );
+		tostr.append( "plevel: " + this.plevel.GetName() + "(" + plevel.ordinal() + ")" + linesep );
 		tostr.append( "shortname: " + this.shortname + linesep );
 		tostr.append( "stream: " + this.stream.toString() + linesep );
 		tostr.append( "pvob: " + this.pvob.toString() + linesep );
 		
 		tostr.append( "build_in_progess: " + this.build_in_progess + linesep );
-		tostr.append( "diffs: " + this.diffs.toString() + linesep );
-		
-		tostr.append( "Build in progress: " + this.build_in_progess + linesep );
+		//tostr.append( "diffs: " + this.diffs.toString() + linesep );
+
 
 		return tostr.toString();		
 	}

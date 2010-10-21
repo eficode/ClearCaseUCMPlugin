@@ -5,7 +5,7 @@
 	<baselines>
 		<baseline fqname="baseline:Remote_15-10-2010_MPSX_Fixed_NFC_timer_subscription@\PDS_PVOB">
 			<component>component:EH@\PDS_PVOB</component>
-			<plevel>1</plevel>
+			<plevel>INITIAL</plevel>
 			<pvob>\PDS_PVOB</pvob>
 			<shortname>Remote_15-10-2010_MPSX_Fixed_NFC_timer_subscription</shortname>
 			<stream>EH2</stream>

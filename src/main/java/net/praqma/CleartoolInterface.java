@@ -9,6 +9,8 @@ interface CleartoolInterface
 	public String LoadBaseline( String fqname );
 	public void BaselineMakeAttribute( String fqname, String attr );
 	public void BaselineRemoveAttribute( String fqname, String attr );
+	public void SetPromotionLevel( String fqname, String plevel );
+	public String GetPromotionLevel( String fqname );
 	
 	/* Diffs */
 	public String diffbl( String nmerge, String fqname );
