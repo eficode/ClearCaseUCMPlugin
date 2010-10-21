@@ -20,14 +20,6 @@
       <url>http://maven.glassfish.org/content/groups/public/</url>
     </repository>
   </repositories>
-  
-  <!--<build>
-	<resources>
-  	<resource>
-    	<directory>data1/</directory>
-    </resource>
-  </resources>
-  </build>-->
 
   <pluginRepositories>
     <pluginRepository>
