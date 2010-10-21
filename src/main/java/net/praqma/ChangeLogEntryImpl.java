@@ -10,14 +10,14 @@ import hudson.scm.ChangeLogSet.Entry;
 
 public class ChangeLogEntryImpl extends Entry {
 	
-	private String dummydata;
+	private ChangeLogSetImpl parent; //Try to delete this and save to super.parent.
 	private String filepath;
+	private String comment;
 	protected static Debug logger = Debug.GetLogger();
-	private volatile List<String> affectedPaths;
+	private volatile List<String> affectedPaths; //TODO: Find out what this is
 	
-	public ChangeLogEntryImpl(String filepath){
+	public ChangeLogEntryImpl(){
 		logger.trace_function();
-		this.filepath = filepath;
 	}
 
 	@Override
@@ -46,23 +46,25 @@ public class ChangeLogEntryImpl extends Entry {
 		return filepath;
 	}
 	
-	public void setParent(ChangeLogSet parent){
+	public void setParent(ChangeLogSetImpl parent){
 		logger.trace_function();
-		super.setParent(parent);
+		this.parent = parent;
 	}
 
 	@Override
 	public String getMsg() {
-		return "The answer is 42";
+		return comment;
 	}
 	
-	public void setDummydata(String dummydata){
-		this.dummydata = dummydata;
-	}
-	
-	public String getDummydata(){
-		
-		return dummydata;
+	public void setComment(String comment) {
+		this.comment = comment;
 	}
 
+	public String getComment() {
+		return comment;
+	}
+	
+	public void setFilepath(String filepath) {
+		this.filepath = filepath;
+	}
 }

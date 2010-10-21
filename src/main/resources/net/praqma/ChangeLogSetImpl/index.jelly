@@ -1,21 +1,24 @@
 <!--
   Displays CC4H change log. Data in this file is set in the ChangeLogSetImpl
+  This page is shown in http://localhost:8080/job/[jobname]/[buildnumber]/changes
 -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
   <h2>Summary</h2>
   <ol>
-    <j:forEach var="cs" items="${it.history}">
+    <j:forEach var="cs" items="${it.logs}">
       <li><st:out value="${cs.msg}"/></li>
     </j:forEach>
   </ol>
   <table class="pane" style="border:none">
-    <j:forEach var="cs" items="${it.history}" varStatus="loop">
+    <j:forEach var="cs" items="${it.logs}" varStatus="loop">
       <tr class="pane">
         <td colspan="2" class="changeset">
           <a name="detail${loop.index}"></a>
           <div class="changeset-message">
             <b>
-              Dummydata ${cs.dummydata} 
+              Comment ${cs.comment}<br />
+              Filepath ${cs.filepath}<br />
+              Date ${cs.date}
             </b><br/>
             ${cs.msgAnnotated}<br/>
 	   

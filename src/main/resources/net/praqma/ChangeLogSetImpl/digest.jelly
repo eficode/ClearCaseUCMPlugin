@@ -10,12 +10,9 @@
       <b>Summary of changes</b>
       <br/>
       <table>
-        <j:forEach var="cs" items="${it.logs}" varStatus="loop">
+        <j:forEach var="cs" items="${it.items}" varStatus="loop">
           <tr>
-            <td>${loop.index + 1}.</td>
-            <td><a href="${rootURL}/${cs.author.url}/">${cs.author}</a></td>
-            <td>${cs.filepath}</td>
-            <td><i>(<a href="changes#detail${loop.index}">detail</a>)</i></td>            
+          	<td>OUTPUT: ${cs.msgAnnotated} : </td>
           </tr>
         </j:forEach>
       </table>

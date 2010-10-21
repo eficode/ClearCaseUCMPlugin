@@ -3,6 +3,7 @@ package net.praqma;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.StringReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,28 +24,30 @@ public class ChangeLogParserImpl extends ChangeLogParser {
 	@Override
 	public ChangeLogSet<? extends Entry> parse(AbstractBuild build, File changelogFile)
 			throws IOException, SAXException {
-		// TODO Auto-generated method stub
 		logger.trace_function();
 		logger.log("build: "+build.toString()+" changelogFile: "+changelogFile.toString());
+		
 		List<ChangeLogEntryImpl> entries = new ArrayList<ChangeLogEntryImpl>();
 		
-        BufferedReader in = new BufferedReader(new FileReader(changelogFile));
-        //StringBuilder message = new StringBuilder();
-        String s;
-
-        ChangeLogEntryImpl entry = null;
-        while((s = in.readLine()) != null) {
-        	entry = new ChangeLogEntryImpl(s);
-        	entries.add(entry);
-        }
+		//Source: http://wiki.hudson-ci.org/display/HUDSON/Change+log
         
-		//Digester digester = new Digester2();
-		//digester.push(entries);
-		//digester.addObjectCreate("*/file", ChangeLogEntryImpl.class);
-		//digester.addSetNext("*/file","add");
-		//FileReader reader = new FileReader(changelogFile);
-		//digester.parse(reader);
-		//reader.close();
+		Digester digester = new Digester2();
+		digester.push(entries);
+		digester.addObjectCreate("*/changeset", ChangeLogEntryImpl.class);
+		digester.addSetProperties("*/changeset");
+		digester.addBeanPropertySetter("*/changeset/comment");
+		digester.addBeanPropertySetter("*/changeset/filepath");
+		digester.addSetNext("*/changeset","add");
+
+		StringReader reader = new StringReader("<changelog><changeset version=\"1212\">" +
+				"<filepath>this is the 1st filepath</filepath><comment>comment to 1st filepath</comment>" +
+				"</changeset><changeset version=\"2424\">" +
+				"<filepath>this is the 2nd filepath</filepath><comment>comment to 2nd filepath</comment>" +
+				"</changeset></changelog>");
+		digester.parse(reader);
+		reader.close();
+		
+		System.out.println("LISTE: "+entries.size());
 		
 		return new ChangeLogSetImpl(build, entries);
 	}
