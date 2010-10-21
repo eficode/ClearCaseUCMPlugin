@@ -23,7 +23,8 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 	public static AbstractCleartoolFactory cfInstance = null;
 	
 	private static Document testBase = null;
-	private static final File testBaseFile = new File( "testbase.xml" );
+	//private static final File testBaseFile = new File( "testbase.xml" );
+	private static final File testBaseFile = new File( "c:\\temp\\testbase.xml" );
 	
 	private static Element root      = null;
 	private static Element baselines = null;
@@ -36,7 +37,7 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 		/* The search result */
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		factory.setNamespaceAware( true );
-
+		
 		DocumentBuilder builder;
 		try
 		{
