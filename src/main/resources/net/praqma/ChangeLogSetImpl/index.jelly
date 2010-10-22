@@ -5,13 +5,6 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
   <h2>Summary</h2>
 
-<!--
-  <ol>
-    <j:forEach var="cs" items="${it.logs}">
-      <li><st:out value="${cs.msg}"/></li>
-    </j:forEach>
-  </ol>
--->
 
   <table class="pane" style="border:none">
     <j:forEach var="cs" items="${it.logs}" varStatus="loop">
@@ -19,16 +12,10 @@
         <td colspan="2" class="changeset">
           <a name="detail${loop.index}"></a>
           <div class="changeset-message">
-	   <j:forEach var="fp" items="${cs.affectedPaths}" varStatus="loop">
+	   
             <b>
-               Filepath ${fp}<br />
+               Filepath ${cs.affectedPaths}<br />
             </b>
-	   </j:forEach>
-
-
-<!--br/>
-${cs.msgAnnotated}<br/-->
-
 
           </div>
         </td>
