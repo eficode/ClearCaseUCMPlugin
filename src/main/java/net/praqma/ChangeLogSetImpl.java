@@ -25,7 +25,6 @@ public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl> {
             log.setParent(this);
         }
 	}
-
 	
 	public Iterator<ChangeLogEntryImpl> iterator() {
 		logger.trace_function();
@@ -42,7 +41,4 @@ public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl> {
 		logger.trace_function();
 		return history;
 	}
-
-
-	
 }

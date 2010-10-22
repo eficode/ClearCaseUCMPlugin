@@ -7,15 +7,11 @@
       No changes from last build.
     </j:when>
     <j:otherwise>
-      <b>Summary of changes</b>
+      <b>Summary of changes:</b>
       <br/>
-      <table>
-        <j:forEach var="cs" items="${it.items}" varStatus="loop">
-          <tr>
-          	<td>OUTPUT: ${cs.msgAnnotated} : </td>
-          </tr>
-        </j:forEach>
-      </table>
+
+      ${it.items.size()} files changed
+
     </j:otherwise>
   </j:choose>
 </j:jelly>

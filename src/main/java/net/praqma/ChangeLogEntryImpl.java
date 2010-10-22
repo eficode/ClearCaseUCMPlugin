@@ -25,7 +25,7 @@ public class ChangeLogEntryImpl extends Entry {
 		logger.trace_function();
 		if(affectedPaths.size()==0){
 			logger.log("affectedPaths er tom");
-			affectedPaths.add("Dummydata");
+			affectedPaths.add("Dummydata");//DELETE AFTER DEBUG
 		}
 		return affectedPaths;
 	}
@@ -42,7 +42,7 @@ public class ChangeLogEntryImpl extends Entry {
 		// TODO Auto-generated method stub
 		logger.trace_function();
 		User u = User.getUnknown();
-		logger.log(" Unknown user: "+u.toString());
+		//logger.log(" Unknown user: "+u.toString());
 		return u;
 	}
 

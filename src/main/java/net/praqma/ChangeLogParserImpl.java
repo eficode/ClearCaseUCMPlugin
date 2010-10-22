@@ -34,7 +34,6 @@ public class ChangeLogParserImpl extends ChangeLogParser {
 		digester.push(entries);
 		digester.addObjectCreate("*/changeset", ChangeLogEntryImpl.class);
 		digester.addSetProperties("*/changeset");
-		//digester.addBeanPropertySetter("*/changeset/comment");
 		digester.addBeanPropertySetter("*/changeset/filepath","nextFilepath");
 		digester.addSetNext("*/changeset","add");
 
@@ -44,7 +43,6 @@ public class ChangeLogParserImpl extends ChangeLogParser {
 				"<filepath>this is the 2nd filepath</filepath>" +
 				"</changeset></changelog>");*/
 		FileReader reader = new FileReader(changelogFile);
-		 
 		digester.parse(reader);
 		reader.close();
 		

@@ -84,7 +84,6 @@ public class CC4HClass extends SCM {
 		Component comp = new Component (component, true); // (true means that we know the component exists in PVOB)
 		//TODO: set tag build in progress in CT
 		//FOR USE WHEN FACTORY WORKS: 
-		
 		List<Baseline> baselines = comp.GetBlsWithPlevel(new Stream(stream, true), ClearBase.Plevel.valueOf(levelToPoll), false, false);
 		Baseline bl = baselines.get(0);
 		
@@ -92,21 +91,19 @@ public class CC4HClass extends SCM {
 		//Baseline bl = new Baseline("baseline:Remote_15-10-2010_MPSX_Fixed_NFC_timer_subscription@\\PDS_PVOB", true);
 		
 		List<String> changes = bl.GetDiffs("list", true);
-		/*List<String> changes = new ArrayList<String>();
-		changes.add("Ah");
-		changes.add("Arggh");*/
+
 		//Here the .hudson/jobs/[project name]/changelog.xml is written
 		baos.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>".getBytes());
 		baos.write("<changelog>".getBytes());
 		String temp;
-		for(String s:changes){
+		for(String s: changes)
+		{
 			baos.write("<changeset>".getBytes());
 			temp = "<filepath>" + s + "</filepath>";
 			baos.write(temp.getBytes());
 			baos.write("</changeset>".getBytes());
 		}
 		baos.write("</changelog>".getBytes());
-		
 		FileOutputStream fos = new FileOutputStream(changelogFile);
 	    fos.write(baos.toByteArray());
 	    fos.close();
