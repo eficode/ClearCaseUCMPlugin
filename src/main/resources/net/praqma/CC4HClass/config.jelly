@@ -29,19 +29,15 @@
      </select>
     </f:entry>
 
-    <f:entry title="${%Promote to}" help="/plugin/CC4H/help-promoteToLevel.html">
-      <select class="setting-input" name="promoteToLevel">
+<f:entry title="Promote:" help="/plugin/CC4H/help-promoteToLevel.html">
+    <f:checkbox name="promote" checked="${h.defaultToTrue(scm.promote)}" />
+    If checked, your baseline will be promoted to next level if built succesfully, otherwise it will be promoted to rejected.
+  </f:entry>
 
-    <j:set var="plevels" value="${descriptor.getLevels()}"/>       
-       <j:forEach var="pl" items="${plevels}">
-        <f:option selected="${scm.promoteToLevel==pl}" value="${pl}">${pl}</f:option>
-       </j:forEach>
-      </select>
-    </f:entry>
-   
+<f:entry title="Tag post-build:" help="/plugin/CC4H/help-tagPostBuild.html">
+    <f:checkbox name="tagPostBuild" checked="${h.defaultToFalse(scm.tagPostBuild)}" />
+    If checked, your baseline will get an attached string of meta-info in ClearCase.
+  </f:entry>
 
-    <f:entry title="${%Tag post-build}" help="/plugin/CC4H/help-tagPostBuild.html">
-      <f:textbox name="tagPostBuild" value="${scm.tagPostBuild}"/>
-    </f:entry> 
    
 </j:jelly>

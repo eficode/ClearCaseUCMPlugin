@@ -44,8 +44,8 @@ public class CC4HClass extends SCM {
 	private String loadModule;
 	private String component;
 	private String stream;
-	private String promoteToLevel;
-	private String tagPostBuild;
+	private boolean promote;
+	private boolean tagPostBuild;
 	
 	private List<String> levels = null;
 	private List<String> loadModules = null;
@@ -54,15 +54,16 @@ public class CC4HClass extends SCM {
 
 	@DataBoundConstructor
 	public CC4HClass(String component, String levelToPoll, String loadModule,
-			String stream, String promoteToLevel, String tagPostBuild) {
+			String stream, boolean promote, boolean tagPostBuild) {
 		
 		logger.trace_function();
 		this.component = component;
 		this.levelToPoll = levelToPoll;
 		this.loadModule = loadModule;
 		this.stream = stream;
-		this.promoteToLevel = promoteToLevel;
-		this.tagPostBuild = tagPostBuild;
+		this.setPromote(promote);
+		this.setTagPostBuild(tagPostBuild);
+		logger.log("promote: "+promote + " tagPostBuild "+tagPostBuild);
 	}
 	
 	/**
@@ -151,19 +152,26 @@ public class CC4HClass extends SCM {
 		return stream;
 	}
 
-	public String getPromoteToLevel() {
-		logger.trace_function();
-		return promoteToLevel;
-	}
-
-	public String getTagPostBuild() {
-		logger.trace_function();
-		return tagPostBuild;
-	}
-
 	public String getLoadModule() {
 		logger.trace_function();
 		return loadModule;
+	}
+
+	public void setPromote(boolean promote) {
+		this.promote = promote;
+	}
+
+	public boolean isPromote() {
+		return promote;
+	}
+
+
+	public void setTagPostBuild(boolean tagPostBuild) {
+		this.tagPostBuild = tagPostBuild;
+	}
+
+	public boolean isTagPostBuild() {
+		return tagPostBuild;
 	}
 
 
@@ -176,6 +184,7 @@ public class CC4HClass extends SCM {
 		public CC4HClassDescriptor() {
 			super(CC4HClass.class, null);
 			logger.trace_function();
+			
 			levels = getLevels();
 			loadModules = getLoadModules();
 			load();
