@@ -17,8 +17,10 @@ class ClearBase
 	protected String fqname = null;
 	
 	private static final boolean isTest = true;
-	private static boolean hudson = true;
+	private static boolean hudson = false;
 	protected static AbstractCleartoolFactory CF = null;
+	
+	protected boolean isLoaded = false;
 	
 	/**
 	 * CHW: This is not the same as the Perl Plevel!!!
@@ -112,5 +114,11 @@ class ClearBase
 	{
 		logger.trace_function();
 		return this.fqname;
+	}
+	
+	public boolean IsLoaded()
+	{
+		logger.trace_function();
+		return this.isLoaded;
 	}
 }

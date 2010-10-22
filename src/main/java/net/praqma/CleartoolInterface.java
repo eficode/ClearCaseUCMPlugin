@@ -18,6 +18,7 @@ interface CleartoolInterface
 	
 	/* Streams */
 	public String GetRecommendedBaseline( String stream );
+	public void RecommendBaseline( String stream, String baseline ) throws CleartoolException;
 	
 	/* Diffs */
 	public String diffbl( String nmerge, String fqname );

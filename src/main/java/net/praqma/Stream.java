@@ -83,12 +83,20 @@ class Stream extends ClearBase
 	{
 		comment = comment != null ? " -c \"" + comment + "\"" : " -nc";
 		// cleartool chstream " . $comment . " -recommend " . $baseline->get_fqname() . ' ' . $self->get_fqname() . ' 2>&1';
-		String cmd = "chstream " + comment + " -recommend " + baseline.GetFQName() + " " + this.GetFQName();
-		String result = Cleartool.run( cmd );
+		//String cmd = "chstream " + comment + " -recommend " + baseline.GetFQName() + " " + this.GetFQName();
 		
-		/* If not, return 0 */
-		
-		return 1;
+		try
+		{
+			//Cleartool.run( cmd );
+			CF.RecommendBaseline( this.fqname, baseline.GetFQName() );
+			return 1;
+		}
+		catch( CleartoolException e )
+		{
+			logger.error( "Stream " + this.shortname + " could not recommend baseline " + baseline.GetShortname() );
+			System.out.println( "Stream " + this.shortname + " could not recommend baseline " + baseline.GetShortname() );
+			return 0;
+		}	
 	}
 	
 	/**

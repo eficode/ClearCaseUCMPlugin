@@ -311,6 +311,12 @@ class Baseline extends ClearBase
 	
 	/* CHW: NOTICE! Inner for loop does not comply with baseline.pm 
 	 * The return type is NOT determined yet!!!
+	 * ASK Lars about inner for loop:
+	 * foreach my $dep_baseln (@bls, $baseln->get_dependencies()){
+	 * 		$exp_bls{$dep_baseln->get_componentname()} = $dep_baseln;
+	 * }
+	 * 
+	 * Is it to make the returning list unique? On components?
 	 * */
 	public static ArrayList<Baseline> StaticExpandBls( ArrayList<Baseline> bls )
 	{
@@ -321,19 +327,22 @@ class Baseline extends ClearBase
 		for( int i = 0 ; i < bls.size() ; i++ )
 		{
 			System.out.println( "Baseline:\t" + bls.get( i ) );
-			
+		
 			exp_bls.put( bls.get( i ).GetComponentName(), bls.get( i ) );
 			
-			for( int j = 0 ; j < exp_bls.size() ; j++ )
+			/* Inserting the dependent baselines as well?! */
+			ArrayList<Baseline> deps = bls.get( i ).GetDependencies();
+			for( int j = 0 ; j < deps.size() ; j++ )
 			{
-				exp_bls.put( exp_bls.get( j ).GetComponentName(), exp_bls.get( j ) );
+				exp_bls.put( deps.get( j ).GetComponentName(), deps.get( j ) );
 			}
 		}
 		
 		SortedSet<String> sortedset = new TreeSet<String>( exp_bls.keySet() );
 		Iterator<String> it = sortedset.iterator();
 		
-		/* May change */
+		/* UNTESTED sorting. Should sort on values(baselines) */
+		logger.log( "UNTESTED sorting. Should sort on values(baselines)", "experimental" );
 		ArrayList<Baseline> rbls = new ArrayList<Baseline>();
 	    while ( it.hasNext() )
 	    {
@@ -474,6 +483,11 @@ class Baseline extends ClearBase
 	public String toString()
 	{
 		logger.trace_function();
+		
+		if( this.shortname == null )
+		{
+			this.Load();
+		}
 		
 		StringBuffer tostr = new StringBuffer();
 		tostr.append( "fqobj: " + this.fqobj + linesep );

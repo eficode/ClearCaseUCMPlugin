@@ -1,5 +1,19 @@
 package net.praqma;
 
+class CleartoolException extends RuntimeException
+{
+	CleartoolException()
+	{
+		super(); 
+	}
+	
+	CleartoolException( String s )
+	{
+		super( s ); 
+	}
+
+}
+
 abstract class AbstractCleartoolFactory implements CleartoolInterface
 {
 	public static AbstractCleartoolFactory cfInstance = null;

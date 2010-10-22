@@ -12,6 +12,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Attr;
+import org.w3c.dom.DOMError;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -23,12 +25,15 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 	public static AbstractCleartoolFactory cfInstance = null;
 	
 	private static Document testBase = null;
-	private static final File testBaseFile = new File( "testbase.xml" );
+	//private static final File testBaseFile = new File( "testbase.xml" );
+	private static final String testBaseFile = "testbase.xml";
 	//private static final File testBaseFile = new File( "c:\\temp\\testbase.xml" );
 	
 	private static Element root      = null;
 	private static Element baselines = null;
 	private static Element streams   = null;
+	
+	protected static final String filesep = System.getProperty( "file.separator" );
 	
 	private CleartoolTestFactory( boolean hudson )
 	{
@@ -45,12 +50,12 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 			if( hudson )
 			{
 				logger.log( "Getting XML as stream" );
-				testBase = builder.parse( this.getClass().getClassLoader().getResourceAsStream( testBaseFile.getName() ) );
+				testBase = builder.parse( this.getClass().getClassLoader().getResourceAsStream( testBaseFile ) );
 			}
 			else
 			{
 				logger.log( "Getting XML as file" );
-				testBase = builder.parse( testBaseFile );
+				testBase = builder.parse( "src" + filesep + "main" + filesep + "resources" + filesep + testBaseFile );
 			}
 		}
 		catch ( Exception e )
@@ -92,12 +97,39 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 	 *  
 	 */
 	
-	public String GetRecommendedBaseline( String stream )
+	public String GetRecommendedBaseline( String stream ) throws CleartoolException
 	{
 		logger.trace_function();
-		logger.debug( "TestFactory: GetRecommendedBaseline" );
+		logger.debug( "TestFactory: GetRecommendedBaseline "+ stream );
 		
-		return GetElement( GetElementWithFqname( streams, stream ), "recommended_baseline" ).getTextContent();
+		Element e = GetElement( GetElementWithFqname( streams, stream ), "recommended_baseline" );
+		
+		if( e != null )
+		{
+			return e.getTextContent();
+		}
+		else
+		{
+			throw new CleartoolException( "Recommended baseline not found." );
+		}
+	}
+	
+	/**
+	 * 
+	 */
+	public void RecommendBaseline( String stream, String baseline ) throws CleartoolException
+	{
+		logger.trace_function();
+		logger.debug( "TestFactory: RecommendBaseline" );
+		
+		Element e = GetElement( GetElementWithFqname( streams, stream ), "recommended_baseline" );
+		
+		if( e == null )
+		{
+			throw new CleartoolException( "Could not set recommended baseline" );
+		}
+		
+		e.setTextContent( baseline );
 	}
 	
 	/*
@@ -108,19 +140,33 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 	/**
 	 * Loads a baseline from XML Document
 	 */
-	public String LoadBaseline( String fqname )
+	public String LoadBaseline( String fqname ) throws CleartoolException
 	{
 		logger.trace_function();
 		logger.debug( "TestFactory: LoadBaseline" );
 		
 		Element ble = GetElementWithFqname( baselines, fqname );
 		
-		/* ($shortname, $component, $stream, $plevel, $user) */
-		String baseline = GetElement( ble, "shortname" ).getTextContent() + "::" + 
-		 				  GetElement( ble, "component" ).getTextContent() + "::" +
-		 				  GetElement( ble, "stream" ).getTextContent() + "::" +
-		 				  GetElement( ble, "plevel" ).getTextContent() + "::" +
-		 				  GetElement( ble, "user" ).getTextContent() + "::";
+		if( ble == null )
+		{
+			throw new CleartoolException( "No baselines with name " + fqname );
+		}
+		
+		String baseline = "";
+		
+		try
+		{
+			/* ($shortname, $component, $stream, $plevel, $user) */
+			baseline = GetElement( ble, "shortname" ).getTextContent() + "::" + 
+	 				   GetElement( ble, "component" ).getTextContent() + "::" +
+	 				   GetElement( ble, "stream" ).getTextContent() + "::" +
+	 				   GetElement( ble, "plevel" ).getTextContent() + "::" +
+	 				   GetElement( ble, "user" ).getTextContent() + "::";
+		}
+		catch( DOMException e )
+		{
+			throw new CleartoolException( "For baseline " + fqname + ": " + e.getMessage() );
+		}
 		
 		return baseline;
 	}
@@ -250,13 +296,17 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 		logger.debug( "Getting " + e.getNodeName() + " element with fqname: " + fqname );
 		
 		NodeList list = e.getChildNodes( );
+		//NodeList list = e.getElementsByTagName( "stream" );
+		
+		logger.debug( "MY SIZE="+list.getLength( ) );
 		
 		for( int i = 0 ; i < list.getLength( ) ; i++ )
 		{
 	    	Node node = list.item( i );
 	    	
-    		if( node.getNodeType( ) == Node.ELEMENT_NODE )
+	    	if( node.getNodeType( ) == Node.ELEMENT_NODE )
     		{
+    			
     			HashMap<String, String> attrs = GetAttributes( (Element)node );
     			
     			if( attrs.get( "fqname" ).equals( fqname ) )
@@ -269,7 +319,7 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 		return null;
 	}
 	
-	private Element GetElement( Element e, String tag )
+	private Element GetElement( Element e, String tag ) throws DOMException
 	{
 		logger.trace_function();
 		logger.debug( "Getting "+e.getNodeName()+" element: " + tag );
@@ -289,7 +339,7 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
     		}
 		}
 		
-		return null;
+		throw new DOMException( DOMError.SEVERITY_WARNING, "Could not GetElement " + tag );
 	}
 
 

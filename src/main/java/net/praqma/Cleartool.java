@@ -3,19 +3,7 @@ package net.praqma;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
-class CleartoolException extends RuntimeException
-{
-	CleartoolException()
-	{
-		super(); 
-	}
-	
-	CleartoolException( String s )
-	{
-		super( s ); 
-	}
 
-}
 
 /**
  * The Cleartool proxy class

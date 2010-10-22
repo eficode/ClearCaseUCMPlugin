@@ -64,7 +64,7 @@ class Component extends ClearBase
 	
 	/**
 	 * EXPERIMENTAL
-	 * CHW: WORK IN PROGRESS. Needs Stream class implemented.
+	 * 
 	 * @param stream
 	 * @param plevel
 	 * @param include_builds_in_progress
@@ -104,7 +104,7 @@ class Component extends ClearBase
 		//String[] result = Cleartool.run_a( cmd );
 		String[] result = CF.ListBaselines( this.fqname, stream.GetFQName(), plevel.GetName() );
 		Utilities.PrintArray( result );
-		logger.debug( "List Baselines="+result.length );
+		logger.debug( "List Baselines = " + result.length );
 		
 		boolean match = false;
 		int counter = result.length;
@@ -133,8 +133,6 @@ class Component extends ClearBase
 		}
 		
 		logger.debug( "BLS SIZE=" + bls.size() );
-		
-		logger.debug( "Returning" );
 		
 		return bls;
 	}

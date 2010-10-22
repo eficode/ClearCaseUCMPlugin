@@ -91,4 +91,11 @@ class CleartoolFactory extends AbstractCleartoolFactory
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	public void RecommendBaseline( String stream, String baseline )
+			throws CleartoolException
+	{
+		// TODO Auto-generated method stub
+		
+	}
 }
