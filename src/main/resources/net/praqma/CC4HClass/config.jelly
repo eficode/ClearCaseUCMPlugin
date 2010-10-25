@@ -31,12 +31,12 @@
 
 <f:entry title="Promote:" help="/plugin/CC4H/help-promoteToLevel.html">
     <f:checkbox name="promote" checked="${h.defaultToTrue(scm.promote)}" />
-    If checked, your baseline will be promoted to next level if built succesfully, otherwise it will be promoted to rejected.
+   
   </f:entry>
 
 <f:entry title="Tag post-build:" help="/plugin/CC4H/help-tagPostBuild.html">
-    <f:checkbox name="tagPostBuild" checked="${h.defaultToFalse(scm.tagPostBuild)}" />
-    If checked, your baseline will get an attached string of meta-info in ClearCase.
+    <f:checkbox name="tagPostBuild" checked="${scm.tagPostBuild}" />
+   
   </f:entry>
 
    

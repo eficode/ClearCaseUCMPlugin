@@ -11,13 +11,9 @@
       <tr class="pane">
         <td colspan="2" class="changeset">
           <a name="detail${loop.index}"></a>
-          <div class="changeset-message">
-	   
-            <b>
-               Filepath ${cs.affectedPaths}<br />
-            </b>
 
-          </div>
+               ${cs.affectedPaths}<br />
+
         </td>
       </tr>
     </j:forEach>
