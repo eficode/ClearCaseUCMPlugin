@@ -11,9 +11,7 @@
       <tr class="pane">
         <td colspan="2" class="changeset">
           <a name="detail${loop.index}"></a>
-
                ${cs.affectedPaths}<br />
-
         </td>
       </tr>
     </j:forEach>
