@@ -46,6 +46,7 @@ public class CC4HClass extends SCM {
 	private String stream;
 	private boolean promote;
 	private boolean tagPostBuild;
+	private boolean recommended;
 	
 	private List<String> levels = null;
 	private List<String> loadModules = null;
@@ -54,15 +55,16 @@ public class CC4HClass extends SCM {
 
 	@DataBoundConstructor
 	public CC4HClass(String component, String levelToPoll, String loadModule,
-			String stream, boolean promote, boolean tagPostBuild) {
+			String stream, boolean promote, boolean tagPostBuild, boolean recommended) {
 		
 		logger.trace_function();
 		this.component = component;
 		this.levelToPoll = levelToPoll;
 		this.loadModule = loadModule;
 		this.stream = stream;
-		this.setPromote(promote);
-		this.setTagPostBuild(tagPostBuild);
+		this.promote = promote;
+		this.tagPostBuild = tagPostBuild;
+		this.recommended = recommended;
 		logger.log("promote: "+promote + " tagPostBuild "+tagPostBuild);
 	}
 	
@@ -75,9 +77,9 @@ public class CC4HClass extends SCM {
 			BuildListener listener, File changelogFile) throws IOException,
 			InterruptedException {
 		logger.trace_function();
-		component = "component:EH@\\PDS_PVOB";
-		stream = "stream:EH@\\PDS_PVOB";
-		levelToPoll = "INITIAL";
+		//component = "component:EH@\\PDS_PVOB";
+		//stream = "stream:EH@\\PDS_PVOB";
+		//levelToPoll = "INITIAL";
 		//TODO perform actual checkout
 		//Write the changelog to changelogFile
 		//copypaste from bazaar:
@@ -172,6 +174,15 @@ public class CC4HClass extends SCM {
 
 	public boolean isTagPostBuild() {
 		return tagPostBuild;
+	}
+
+
+	public void setRecommended(boolean recommended) {
+		this.recommended = recommended;
+	}
+
+	public boolean isRecommended() {
+		return recommended;
 	}
 
 

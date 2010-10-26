@@ -17,7 +17,7 @@
        </f:entry>
 
     <f:entry title="${%View}" help="/plugin/CC4H/help-view.html">
-	At the moment snapshot view is not supported.
+	At the moment only snapshot view is supported.
     </f:entry>
 
     <f:entry title="${%Load my modules}"> 
@@ -29,15 +29,19 @@
      </select>
     </f:entry>
 
-<f:entry title="Promote:" help="/plugin/CC4H/help-promoteToLevel.html">
+<f:entry title="Promote?:" help="/plugin/CC4H/help-promoteToLevel.html">
     <f:checkbox name="promote" checked="${h.defaultToTrue(scm.promote)}" />
    
   </f:entry>
 
-<f:entry title="Tag post-build:" help="/plugin/CC4H/help-tagPostBuild.html">
+<f:entry title="Tag post-build?:" help="/plugin/CC4H/help-tagPostBuild.html">
     <f:checkbox name="tagPostBuild" checked="${scm.tagPostBuild}" />
    
   </f:entry>
 
+<f:entry title="Recommend baseline?:">
+    <f:checkbox name="recommended" checked="${scm.recommended}" />
+   
+  </f:entry>
    
 </j:jelly>
