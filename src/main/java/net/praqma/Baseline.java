@@ -11,7 +11,7 @@ import java.util.TreeSet;
  * @author wolfgang
  *
  */
-class Baseline extends ClearBase
+public class Baseline extends ClearBase
 {
 	private String fqobj                  = null;
 	private String user                   = null;

@@ -16,7 +16,7 @@ import java.util.Date;
  * @author wolfgang
  *
  */
-class Debug
+public class Debug
 {
 	private static Debug logger               = null;
 	private static FileWriter fw              = null;

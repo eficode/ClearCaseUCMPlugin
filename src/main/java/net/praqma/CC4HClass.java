@@ -48,6 +48,7 @@ public class CC4HClass extends SCM {
 	private boolean tagPostBuild;
 	private boolean recommended;
 	
+	private Baseline baseline;
 	private List<String> levels = null;
 	private List<String> loadModules = null;
 	
@@ -85,12 +86,12 @@ public class CC4HClass extends SCM {
 		Component comp = new Component (component, true); // (true means that we know the component exists in PVOB)
 		//FOR USE WHEN FACTORY WORKS: 
 		List<Baseline> baselines = comp.GetBlsWithPlevel(new Stream(stream, true), ClearBase.Plevel.valueOf(levelToPoll), false, false);
-		Baseline bl = baselines.get(0); //get newest
+		baseline = baselines.get(0); //get newest
 		
 		//below baseline is for testpurposes - we will call the real one from Component and get a list and find the oldest from that list
 		//Baseline bl = new Baseline("baseline:Remote_15-10-2010_MPSX_Fixed_NFC_timer_subscription@\\PDS_PVOB", true);
 		
-		List<String> changes = bl.GetDiffs("list", true);
+		List<String> changes = baseline.GetDiffs("list", true);
 
 		return writeChangelog(changelogFile,changes);
 	}
@@ -161,30 +162,21 @@ public class CC4HClass extends SCM {
 		return loadModule;
 	}
 
-	public void setPromote(boolean promote) {
-		this.promote = promote;
-	}
-
 	public boolean isPromote() {
 		return promote;
 	}
 
 
-	public void setTagPostBuild(boolean tagPostBuild) {
-		this.tagPostBuild = tagPostBuild;
-	}
-
 	public boolean isTagPostBuild() {
 		return tagPostBuild;
 	}
 
-
-	public void setRecommended(boolean recommended) {
-		this.recommended = recommended;
-	}
-
 	public boolean isRecommended() {
 		return recommended;
+	}
+	
+	public Baseline getBaseline(){
+		return baseline;
 	}
 
 
