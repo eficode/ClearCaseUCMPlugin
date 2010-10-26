@@ -1,11 +1,14 @@
 package net.praqma;
 
+import java.util.HashMap;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.praqma.Debug;
 
-class ClearBase
+
+abstract class ClearBase
 {
 	
 	protected static final String delim    = "::";
@@ -20,7 +23,13 @@ class ClearBase
 	private static boolean hudson = true;
 	protected static AbstractCleartoolFactory CF = null;
 	
-	protected boolean isLoaded = false;
+	protected boolean loaded = false;
+	
+	
+	/* For factory'ing the Clearcase objects */
+	protected static HashMap<String, ClearBase> objects = new HashMap<String, ClearBase>();
+	//protected abstract static ClearBase GetObject( String fqname, boolean trusted );
+	
 	
 	/**
 	 * CHW: This is not the same as the Perl Plevel!!!
@@ -28,7 +37,7 @@ class ClearBase
 	 * @author wolfgang
 	 *
 	 */
-	protected static enum Plevel
+	protected enum Plevel
 	{
 		REJECTED,
 		INITIAL,
@@ -92,6 +101,9 @@ class ClearBase
 		return null;
 	}
 	
+	/* This method needs to be implemented in all of the object classes!!!! */
+	//protected abstract ClearBase CreateObject( String fqname, boolean trusted );
+	
 	protected Plevel GetPlevelFromString( String level )
 	{
 		logger.trace_function();
@@ -109,6 +121,14 @@ class ClearBase
 		return plevel;
 	}
 	
+	protected String Stringify()
+	{
+		logger.trace_function();
+		
+		logger.debug( "Stringify of object " + this.fqname + ". This method should be overridden!!!" );
+		return "Stringify of object " + this.fqname + ". This method should be overridden!!!";
+	}
+	
 	
 	protected String GetFQName()
 	{
@@ -119,6 +139,6 @@ class ClearBase
 	public boolean IsLoaded()
 	{
 		logger.trace_function();
-		return this.isLoaded;
+		return this.loaded;
 	}
 }

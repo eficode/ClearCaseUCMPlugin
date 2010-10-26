@@ -11,20 +11,20 @@ import java.util.TreeSet;
  * @author wolfgang
  *
  */
-class Activity extends ClearBase
+public class Activity extends ClearBase
 {
-	private String fqactivity           = null;
-	private String shortname            = null;
-	private ArrayList<String> changeset = null;
-	private Stream stream               = null;
-	private String pvob                 = null;
+	private String fqactivity              = null;
+	private String shortname               = null;
+	private ArrayList<Changeset> changeset = null;
+	private Stream stream                  = null;
+	private String pvob                    = null;
 	
 	/**
 	 * Constructor
 	 * @param fqactivity
 	 * @param trusted
 	 */
-	public Activity( String fqactivity, boolean trusted )
+	private Activity( String fqactivity, boolean trusted )
 	{
 		logger.trace_function();
 		
@@ -50,6 +50,32 @@ class Activity extends ClearBase
 		}
 	}
 	
+	/* The overridden "factory" method for creating Clearcase objects */
+	public static Activity GetObject( String fqname, boolean trusted )
+	{
+		logger.trace_function();
+		
+		logger.log( "Retrieving Activity " + fqname );
+		
+		if( objects.containsKey( fqname ) )
+		{
+			return (Activity)objects.get( fqname );
+		}
+		
+		logger.log( "Creating the Activity " + fqname );
+		Activity obj = new Activity( fqname, trusted );
+		objects.put( fqname, obj );
+		
+		return obj;
+	}
+	
+	public void Load()
+	{
+		String result = CF.diffbl( null, this.fqname ).trim();
+		
+		this.loaded = true;
+	}
+	
 	/**
 	 * Create an Activity
 	 * @param id
@@ -68,13 +94,15 @@ class Activity extends ClearBase
 		
 		String commentswitch = comment != null ? " -comment " + comment : "";
 		
-		Snapview view = new Snapview( null );
+		//Snapview view = new Snapview( null, true );
+		Snapview view = Snapview.GetObject( null, true );
 		
 		// my $cmd = 'cleartool mkact '.$commentswitch.' '.$options{'id'}.' 2>&1';
 		String cmd = "mkact " + commentswitch + " " + id;
 		String result = Cleartool.run( cmd );
 		
-		return new Activity( id + "@" + view.GetPvob(), true );
+		//return new Activity( id + "@" + view.GetPvob(), true );
+		return Activity.GetObject( id + "@" + view.GetPvob(), true );
 	}
 	
 	public String toString()
@@ -99,7 +127,7 @@ class Activity extends ClearBase
 		return tostr.toString();
 	}
 	
-	public ArrayList<String> GetChangeSet()
+	public ArrayList<Changeset> GetChangeSet()
 	{
 		logger.trace_function();
 		
@@ -109,13 +137,16 @@ class Activity extends ClearBase
 		}
 		
 		// cleartool desc -fmt %[versions]Cp activity:'.$self->{'fqactivity'}.' 2>&1';
-		String cmd = "desc -fmt %[versions]Cp activity:" + this.fqactivity;
-		String result = Cleartool.run( cmd );
-		ArrayList<String> cset = new ArrayList<String>();
+		//String cmd = "desc -fmt %[versions]Cp activity:" + this.fqactivity;
+		//String result = Cleartool.run( cmd );
+		String result = CF.GetChangeset( this.fqname );
+		
+		
+		ArrayList<Changeset> cset = new ArrayList<Changeset>();
 		String[] rs = result.split( ", " );
 		for( int i = 0 ; i < rs.length ; i++ )
 		{
-			cset.add( rs[i] );
+			//cset.add( rs[i] );
 		}
 		
 		logger.debug( "Applying cset to " );
@@ -142,7 +173,9 @@ class Activity extends ClearBase
 		for( int i = 0 ; i < this.changeset.size() ; i++ )
 		{
 			// split /\@\@/, $cs;
-			String[] csa = this.changeset.get( i ).split( "\\@\\@@" );
+			/* FIXME */
+			//String[] csa = this.changeset.get( i ).split( "\\@\\@@" );
+			String[] csa = null;
 			cs.put( csa[0], "" );
 		}
 		

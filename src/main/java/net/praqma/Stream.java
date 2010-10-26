@@ -9,7 +9,7 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class Stream extends ClearBase
+public class Stream extends ClearBase
 {
 	private String fqstream                = null;
 	private ArrayList<Baseline> found_bls  = null;
@@ -22,17 +22,16 @@ class Stream extends ClearBase
 	private String shortname               = null;
 	private String pvob                    = null;	
 	
-	public Stream( String fqstream, boolean trusted )
+	private Stream( String fqstream, boolean trusted )
 	{
 		logger.trace_function();
 		
 		String[] res  = TestComponent( fqstream );
 		
-		/* Delete the object prefix, if it exists: */
-		if( fqstream.startsWith( "stream:" ) )
+		/* Append the object prefix, if it does not exist: */
+		if( !fqstream.startsWith( "stream:" ) )
 		{
-			logger.debug( "Removing \"stream:\" from name" );
-			fqstream.substring( 0, 7 );
+			fqstream = "stream:" + fqstream;
 		}
 		
 		this.fqstream = fqstream;
@@ -47,9 +46,27 @@ class Stream extends ClearBase
 			String cmd = "desc stream:" + fqstream;
 			Cleartool.run( cmd );
 		}
-		
-		
 	}
+	
+	/* The overridden "factory" method for creating Clearcase objects */
+	public static Stream GetObject( String fqname, boolean trusted )
+	{
+		logger.trace_function();
+		
+		logger.log( "Retrieving Baseline " + fqname );
+		
+		if( objects.containsKey( fqname ) )
+		{
+			return (Stream)objects.get( fqname );
+		}
+		
+		logger.log( "Creating the Baseline " + fqname );
+		Stream obj = new Stream( fqname, trusted );
+		objects.put( fqname, obj );
+		
+		return obj;
+	}
+	
 	
 	public static Stream Create( String stream_fqname, Stream parent_stream, String comment, Baseline baseline, boolean readonly )
 	{
@@ -75,7 +92,8 @@ class Stream extends ClearBase
 		String cmd = "mkstream " + args_cm + " " + args_bl + " " + args_ro + " -in stream:" + parent_stream.GetFQName() + " " + stream_fqname;
 		Cleartool.run( cmd );
 		
-		return new Stream( stream_fqname, false );
+		//return new Stream( stream_fqname, false );
+		return Stream.GetObject( stream_fqname, false );
 	}
 	
 	
@@ -174,7 +192,8 @@ class Stream extends ClearBase
 		String[] bls = Cleartool.run_a( cmd );
 		String latest = bls[bls.length-1].trim();
 		
-		return new Baseline( latest + "@" + this.GetPvob(), false );
+		//return new Baseline( latest + "@" + this.GetPvob(), false );
+		return Baseline.GetObject( latest + "@" + this.GetPvob(), false );
 	}
 	
 	public ArrayList<Baseline> GetRecBls( boolean expanded )
@@ -200,7 +219,8 @@ class Stream extends ClearBase
 				/* There is something in the element. */
 				if( rs[i].matches( "\\S+" ) )
 				{
-					bls.add( new Baseline( rs[i] + "@" + this.pvob, true ) );
+					//bls.add( new Baseline( rs[i] + "@" + this.pvob, true ) );
+					bls.add( Baseline.GetObject( rs[i] + "@" + this.pvob, true ) );
 				}
 			}
 			
@@ -243,7 +263,8 @@ class Stream extends ClearBase
 			{
 				if( rs[i].matches( "\\S+" ) )
 				{
-					bls.add( new Baseline( rs[i].trim(), true ) );
+					//bls.add( new Baseline( rs[i].trim(), true ) );
+					bls.add( Baseline.GetObject( rs[i].trim(), true ) );
 				}				
 			}
 		}
@@ -277,7 +298,8 @@ class Stream extends ClearBase
 			{
 				if( rs[i].matches( "\\S+" ) )
 				{
-					bls.add( new Baseline( rs[i].trim(), true ) );
+					//bls.add( new Baseline( rs[i].trim(), true ) );
+					bls.add( Baseline.GetObject( rs[i].trim(), true ) );
 				}
 			}
 			
@@ -348,7 +370,8 @@ class Stream extends ClearBase
 		String[] rs = result.split( " " );
 		for( int i = 0 ; i < rs.length ; i++ )
 		{
-			this.activities.add( new Activity( rs[i] + "@" + this.pvob, true ) );
+			//this.activities.add( new Activity( rs[i] + "@" + this.pvob, true ) );
+			this.activities.add( Activity.GetObject( rs[i] + "@" + this.pvob, true ) );
 		}
 		
 		return this.activities;
@@ -494,7 +517,9 @@ class Stream extends ClearBase
 			return false;
 		}
 	}
-	
+
+
+
 
 	
 

@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 import net.praqma.View.ViewType;
 
 
-class Snapview extends View
+public class Snapview extends View
 {
 	
 	private String viewtag    = null;
@@ -34,7 +34,7 @@ class Snapview extends View
 	protected static final String rx_components = "all|mod";
 	protected static final String rx_log        = "/(^\\s*log has been written to)\\s*\"(.*?)\"";
 	
-	public Snapview( String viewroot )
+	private Snapview( String viewroot, boolean trusted )
 	{
 		logger.trace_function();
 		
@@ -62,8 +62,28 @@ class Snapview extends View
 		
 		this.viewtag  = viewtag;
 		this.viewroot = viewroot;
-		this.stream   = new Stream( fqstreamstr, false );
+		//this.stream   = new Stream( fqstreamstr, false );
+		this.stream   = Stream.GetObject( fqstreamstr, false );
 		this.pvob     = this.stream.GetPvob();
+	}
+	
+	/* The overridden "factory" method for creating Clearcase objects */
+	public static Snapview GetObject( String fqname, boolean trusted )
+	{
+		logger.trace_function();
+		
+		logger.log( "Retrieving Baseline " + fqname );
+		
+		if( objects.containsKey( fqname ) )
+		{
+			return (Snapview)objects.get( fqname );
+		}
+		
+		logger.log( "Creating the Baseline " + fqname );
+		Snapview obj = new Snapview( fqname, trusted );
+		objects.put( fqname, obj );
+		
+		return obj;
 	}
 	
 	
@@ -82,7 +102,7 @@ class Snapview extends View
 		cmd = "mkview -snap -tag " + tag + " -stream " + stream.GetFQName() + " " + viewroot;
 		Cleartool.run( cmd );
 		
-		return new Snapview( viewroot );
+		return new Snapview( viewroot, true );
 	}
 	
 	/**
@@ -135,7 +155,8 @@ class Snapview extends View
 				String[] rs = result.split( "\\s+" );
 				for( int i = 0 ; i < rs.length ; i++ )
 				{
-					Component component = new Component( rs[i] + "@" + this.GetPvob(), true );
+					//Component component = new Component( rs[i] + "@" + this.GetPvob(), true );
+					Component component = Component.GetObject( rs[i] + "@" + this.GetPvob(), true );
 					
 					String rule = component.GetRootDir();
 					rule = rule.replaceAll( "^\\", " " );
@@ -324,7 +345,8 @@ class Snapview extends View
 		if( result.length() > 0 )
 		{
 			result = result.trim();
-			Activity act = new Activity( result + "@" + this.pvob, false );
+			//Activity act = new Activity( result + "@" + this.pvob, false );
+			Activity act = Activity.GetObject( result + "@" + this.pvob, false );
 			this.cact = act;
 		}
 		

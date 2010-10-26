@@ -25,15 +25,15 @@ public class Baseline extends ClearBase
 	private boolean build_in_progess      = false;
 	private String diffs                  = "";
 	
-	
 	/**
 	 * 
 	 * @param fqobj
 	 * @param trusted
 	 */
-	public Baseline( String fqobj, boolean trusted )
+	private Baseline( String fqobj, boolean trusted )
 	{
 		logger.trace_function();
+		logger.debug( "BASELINE2" );
 		
 		
 		String[] res = TestComponent( fqobj );
@@ -58,12 +58,33 @@ public class Baseline extends ClearBase
 		}
 	}
 	
+	/* The overridden "factory" method for creating Clearcase objects */
+	public static Baseline GetObject( String fqname, boolean trusted )
+	{
+		logger.trace_function();
+		
+		logger.log( "Retrieving Baseline " + fqname );
+		
+		if( objects.containsKey( fqname ) )
+		{
+			return (Baseline)objects.get( fqname );
+		}
+		
+		logger.log( "Creating the Baseline " + fqname );
+		Baseline obj = new Baseline( fqname, trusted );
+		objects.put( fqname, obj );
+		
+		return obj;
+	}
+	
 	/**
 	 * Loads the member variables from clear case
 	 */
 	public void Load()
 	{
 		logger.trace_function();
+		
+		logger.log( "Loading baseline " + this.fqname );
 		
 		//String cmd = "desc -fmt %n" + delim + "%[component]p" + delim + "%[bl_stream]p" + delim + "%[plevel]p" + delim + "%u " + fqobj;
 		//String result = Cleartool.run( cmd );
@@ -79,10 +100,15 @@ public class Baseline extends ClearBase
 		logger.debug( "s="+s + "("+rs[2]+")" );
 		
 		this.shortname = rs[0];
-		this.component = new Component( c, true );
-		this.stream    = new Stream( s, true );
+		//this.component = new Component( c, true );
+		//this.stream    = new Stream( s, true );
+		/* Now with factory creation! */
+		this.component = Component.GetObject( c, true );
+		this.stream    = Stream.GetObject( s, true );
 		this.plevel    = GetPlevelFromString( rs[3] );
 		this.user      = rs[4];
+		
+		this.loaded = true;
 		
 	}
 	
@@ -175,7 +201,8 @@ public class Baseline extends ClearBase
 			}
 			
 			String baseln = rs[i].trim();
-			Baseline baseline = new Baseline( baseln, true );
+			//Baseline baseline = new Baseline( baseln, true );
+			Baseline baseline = Baseline.GetObject( baseln, true );
 			
 			this.depends_on_closure.add( baseline );
 		}
@@ -233,13 +260,11 @@ public class Baseline extends ClearBase
 	 * 
 	 * @return
 	 */
-	public String GetPlevel()
+	public Plevel GetPlevel()
 	{
 		logger.trace_function();
 
-		// cleartool('desc -fmt %[plevel]p '.$self->get_fqname())
-		String cmd = "desc -fmt %[plevel]p " + this.GetFQName();
-		return Cleartool.run( cmd );
+		return this.plevel;
 	}
 	
 
@@ -407,6 +432,68 @@ public class Baseline extends ClearBase
 		return _GetDiffs( format, nmerge, null );
 	}
 	
+	private ArrayList<String> _GetDiffs( String format, boolean nmerge, String viewroot )
+	{
+		logger.trace_function();
+		
+		/* Argument correcting */
+		format   = format.equals( "list" ) || format.equals( "scalar" ) ? format : "list";
+		
+		String sw_nmerge = ( nmerge ? " -nmerge " : "" );
+		
+		// cleartool('diffbl -pre -act -ver '.$sw_nmerge.$self->get_fqname );
+		//String cmd = "diffbl -pre -act -ver " + sw_nmerge + this.GetFQName();
+		//this.diffs = Cleartool.run( cmd );
+		this.diffs = CF.diffbl( sw_nmerge, this.GetFQName() ).trim();
+		
+		//logger.debug( "DIFFS=\"" + this.diffs + "\"" );
+		
+		String msg = this.diffs;
+		
+		if( viewroot != null )
+		{
+			msg = msg.replaceAll( java.util.regex.Pattern.quote( viewroot ), "" );
+		}
+		
+		ArrayList<String> list = new ArrayList<String>();
+		
+		logger.log( "Format = " + format );
+		
+		if( format.equals( "list" ) )
+		{
+			msg = msg.replaceAll( "(?m)^>>.*$", "" );
+			msg = msg.replaceAll( "(?m)\\@\\@.*$", "" );
+			msg = msg.replaceAll( "(?m)^\\s+", "" );
+
+			String[] groslist = msg.split( "\n" );
+			
+			/* Also removes duplicate files. */
+			HashMap<String, String> hash = new HashMap<String, String>();
+			for( int i = 0 ; i < groslist.length ; i++ )
+			{
+				hash.put( groslist[i], "" );
+			}
+
+			/* CHW: Experimental sorting. TESTED! */
+			logger.log( "Experimental sorting. TESTED!", "experimental" );
+			SortedSet<String> sortedset = new TreeSet<String>( hash.keySet() );
+			Iterator<String> it = sortedset.iterator();
+			
+		    while ( it.hasNext() )
+		    {
+		       list.add( it.next() );
+		    }
+		}
+		
+		if( format.equals( "scalar" ) )
+		{
+			list.add( msg );
+		}
+		
+		return list;
+		//return null;
+	}
+	
 	/**
 	 * 
 	 * @param format
@@ -414,7 +501,7 @@ public class Baseline extends ClearBase
 	 * @param viewroot
 	 * @return
 	 */
-	private ArrayList<String> _GetDiffs( String format, boolean nmerge, String viewroot )
+	private ArrayList<String> _GetDiffsOLD( String format, boolean nmerge, String viewroot )
 	{
 		logger.trace_function();
 		
@@ -480,7 +567,7 @@ public class Baseline extends ClearBase
 	/**
 	 * Pretty printing of the Baseline object.
 	 */
-	public String toString()
+	public String Stringify()
 	{
 		logger.trace_function();
 		

@@ -20,6 +20,15 @@ interface CleartoolInterface
 	public String GetRecommendedBaseline( String stream );
 	public void RecommendBaseline( String stream, String baseline ) throws CleartoolException;
 	
+	/* Versions */
+	public String LoadVersion( String version );
+	
+	/* Changesets */
+	public String LoadChangeset( String changeset );
+	
+	/* Activities */
+	public String GetChangeset( String activity );
+	
 	/* Diffs */
 	public String diffbl( String nmerge, String fqname );
 	

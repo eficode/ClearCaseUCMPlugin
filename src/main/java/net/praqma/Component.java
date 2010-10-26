@@ -3,7 +3,7 @@ package net.praqma;
 import java.util.ArrayList;
 import java.util.Stack;
 
-class Component extends ClearBase
+public class Component extends ClearBase
 {
 	private String fqobj     = null;
 	private String shortname = null;
@@ -11,7 +11,7 @@ class Component extends ClearBase
 	private String rootdir   = null;
 	
 	
-	public Component( String fqobj, boolean trusted )
+	private Component( String fqobj, boolean trusted )
 	{
 		logger.trace_function();
 		
@@ -35,6 +35,25 @@ class Component extends ClearBase
 		}
 	}
 	
+	/* The overridden "factory" method for creating Clearcase objects */
+	public static Component GetObject( String fqname, boolean trusted )
+	{
+		logger.trace_function();
+		
+		logger.log( "Retrieving Baseline " + fqname );
+		
+		if( objects.containsKey( fqname ) )
+		{
+			return (Component)objects.get( fqname );
+		}
+		
+		logger.log( "Creating the Baseline " + fqname );
+		Component obj = new Component( fqname, trusted );
+		objects.put( fqname, obj );
+		
+		return obj;
+	}
+	
 	public ArrayList<Baseline> GetBlsQueuedFor( Stream stream, String qlevel, int queue_level )
 	{
 		logger.trace_function();
@@ -49,7 +68,8 @@ class Component extends ClearBase
 		for( int i = 0 ; i < result.length ; i++ )
 		{
 			logger.debug( "CHW: Too many backslashes???" );
-			Baseline bl = new Baseline( result[i].trim() + "\\@\\PDS_PVOB", false );
+			//Baseline bl = new Baseline( result[i].trim() + "\\@\\PDS_PVOB", false );
+			Baseline bl = Baseline.GetObject( result[i].trim() + "\\@\\PDS_PVOB", false );
 			
 			/* CHW: NOTICE, the following function is NOT implemented(in the Baseline class)! */
 			if( bl.QueuedForTest( queue_level ) )
@@ -125,7 +145,8 @@ class Component extends ClearBase
 		
 		for( int i = 0 ; i < counter ; i++ )
 		{
-			Baseline blobj = new Baseline( result[i].trim(), true );
+			//Baseline blobj = new Baseline( result[i].trim(), true );
+			Baseline blobj = Baseline.GetObject( result[i].trim(), true );
 			if( include_builds_in_progress || !blobj.BuildInProgess() )
 			{
 				bls.add( blobj );

@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -29,9 +31,12 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 	private static final String testBaseFile = "testbase.xml";
 	//private static final File testBaseFile = new File( "c:\\temp\\testbase.xml" );
 	
-	private static Element root      = null;
-	private static Element baselines = null;
-	private static Element streams   = null;
+	private static Element root       = null;
+	private static Element baselines  = null;
+	private static Element streams    = null;
+	private static Element versions   = null;
+	private static Element changesets = null;
+	private static Element activities = null;
 	
 	protected static final String filesep = System.getProperty( "file.separator" );
 	
@@ -64,13 +69,18 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 			e.printStackTrace();
 		}
 		
-		root      = testBase.getDocumentElement();
-		baselines = this.GetFirstElement( root, "baselines" );
-		streams   = this.GetFirstElement( root, "streams" );
+		root       = testBase.getDocumentElement();
+		baselines  = this.GetFirstElement( root, "baselines" );
+		streams    = this.GetFirstElement( root, "streams" );
+		versions   = this.GetFirstElement( root, "versions" );
+		changesets = this.GetFirstElement( root, "changesets" );
+		activities = this.GetFirstElement( root, "activities" );
 		
 		logger.debug( "root=" + root.getTagName() );
 		logger.debug( "baselines=" + baselines.getTagName() );
 		logger.debug( "streams=" + streams.getTagName() );
+		logger.debug( "changesets=" + changesets.getTagName() );
+		logger.debug( "activities=" + activities.getTagName() );
 	}
 	
 	public static AbstractCleartoolFactory CFGet( boolean hudson )
@@ -90,6 +100,88 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 	{
 		// TODO Auto-generated method stub
 		
+	}
+	
+	/*
+	 * 
+	 * Version functionality
+	 * 
+	 */
+	
+	public String LoadVersion( String version )
+	{
+		logger.trace_function();
+		logger.debug( version );
+		
+		Element ve = GetElementWithFqname( versions, version );
+		String res = GetElement( ve, "date" ).getTextContent() + "::" + 
+		             GetElement( ve, "user" ).getTextContent() + "::" +
+		             GetElement( ve, "machine" ).getTextContent() + "::" +
+		             GetElement( ve, "comment" ).getTextContent() + "::" +
+		             GetElement( ve, "checkedout" ).getTextContent() + "::" +
+		             GetElement( ve, "kind" ).getTextContent() + "::" +
+		             GetElement( ve, "branch" ).getTextContent() + "::"
+		             ;
+		
+		return res;
+	}
+	
+	/*
+	 * 
+	 * Changeset functionality
+	 * 
+	 */
+	
+	public String LoadChangeset( String changeset )
+	{
+		logger.trace_function();
+		logger.debug( changeset );
+		
+		Element ce = GetElementWithFqname( changesets, changeset );
+		
+		NodeList list = ce.getElementsByTagName( "version" );
+		StringBuffer sb = new StringBuffer();
+		
+		for( int i = 0 ; i < list.getLength( ) ; i++ )
+		{
+	    	Node node = list.item( i );
+	    	
+    		if( node.getNodeType( ) == Node.ELEMENT_NODE )
+    		{
+    			sb.append( node.getTextContent() + "\n" );
+    		}
+		}
+		
+		return sb.toString();
+	}
+	
+	/*
+	 * 
+	 * ACTIVITY FUNCTIONALITY
+	 * 
+	 */
+	
+	public String GetChangeset( String activity )
+	{
+		logger.trace_function();
+		logger.debug( activity );
+		
+		Element ae = GetElementWithFqname( activities, activity );
+		
+		NodeList list = ae.getElementsByTagName( "changeset" );
+		StringBuffer sb = new StringBuffer();
+		
+		for( int i = 0 ; i < list.getLength( ) ; i++ )
+		{
+	    	Node node = list.item( i );
+	    	
+    		if( node.getNodeType( ) == Node.ELEMENT_NODE )
+    		{
+    			sb.append( node.getTextContent() + ", " );
+    		}
+		}
+		
+		return sb.toString();
 	}
 	
 	/*
@@ -306,10 +398,15 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 	    	
 	    	if( node.getNodeType( ) == Node.ELEMENT_NODE )
     		{
-    			
     			HashMap<String, String> attrs = GetAttributes( (Element)node );
     			
-    			if( attrs.get( "fqname" ).equals( fqname ) )
+//    			for( Map.Entry<String, String> pairs : attrs.entrySet() )
+//    			{
+//    		        System.out.println(pairs.getKey() + " = " + pairs.getValue());
+//
+//    			}
+    			
+    			if( attrs.get( "fqname" ) != null && attrs.get( "fqname" ).equals( fqname ) )
     			{
     				return (Element)node;
     			}
@@ -407,6 +504,7 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 		{
 			Attr at = (Attr)nnm.item( i );
 			list.put( at.getName( ), at.getValue( ) );
+			logger.debug( "ATTR="+at.getNodeName() );
 		}
 		
 		return list;
@@ -417,7 +515,8 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 	{
 		logger.trace_function();
 		
-		NodeList sections = root.getElementsByTagName( element );
+		//NodeList sections = root.getElementsByTagName( element );
+		NodeList sections = root.getChildNodes();
 		
 	    int numSections = sections.getLength();
 
@@ -425,7 +524,7 @@ class CleartoolTestFactory extends AbstractCleartoolFactory
 	    {
 	    	Node node = sections.item( i );
 	    	
-    		if( node.getNodeType( ) == Node.ELEMENT_NODE )
+    		if( node.getNodeType( ) == Node.ELEMENT_NODE && node.getNodeName().equals( element ) )
     		{
     			return (Element)node;
     		}

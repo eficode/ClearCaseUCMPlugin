@@ -98,4 +98,22 @@ class CleartoolFactory extends AbstractCleartoolFactory
 		// TODO Auto-generated method stub
 		
 	}
+
+	public String LoadVersion( String version )
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public String LoadChangeset( String changeset )
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public String GetChangeset( String activity )
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

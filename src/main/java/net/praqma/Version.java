@@ -2,7 +2,7 @@ package net.praqma;
 
 import java.io.File;
 
-class Version extends ClearBase
+public class Version extends ClearBase
 {
 	private String kind        = null;
 	private String date        = null;
@@ -13,7 +13,7 @@ class Version extends ClearBase
 	private String branch      = null;
 	
 	
-	public Version( String pathName, boolean trusted )
+	private Version( String pathName, boolean trusted )
 	{
 		logger.trace_function();
 		
@@ -21,10 +21,11 @@ class Version extends ClearBase
 		File path = new File( pathName );
 		if( !path.equals( path ) )
 		{
+			/* TODO should this generate an error? */
 			return;
 		}
 		
-		String fqname = pathName.matches( "^\\S\\\\.*" ) ? pathName : System.getProperty( "user.dir" ) + filesep + pathName;
+		String fqname = pathName.matches( "^\\S:\\\\.*" ) ? pathName : System.getProperty( "user.dir" ) + filesep + pathName;
 		
 		this.fqname = fqname;
 		
@@ -34,14 +35,34 @@ class Version extends ClearBase
 		}
 	}
 	
+	/* The overridden "factory" method for creating Clearcase objects */
+	public static Version GetObject( String fqname, boolean trusted )
+	{
+		logger.trace_function();
+		
+		logger.log( "Retrieving Version " + fqname );
+		
+		if( objects.containsKey( fqname ) )
+		{
+			return (Version)objects.get( fqname );
+		}
+		
+		logger.log( "The Version " + fqname + " doesn't exist. Creating it." );
+		Version obj = new Version( fqname, trusted );
+		objects.put( fqname, obj );
+		
+		return obj;
+	}
+	
 	public void Load()
 	{
 		logger.trace_function();
 		
 		/* TODO comment can be multiline!!!! */
 		// my $cmd = 'desc -fmt date                user                machine             comment             checkedout          kind                 branch               xname
-		String cmd = "desc -fmt %d" + this.delim + "%u" + this.delim + "%h" + this.delim + "%c" + this.delim + "%Rf" + this.delim + "%m" + this.delim + "%Vn" + this.delim + "%Xn " + this.fqname;
-		String result = Cleartool.run( cmd );
+		//String cmd = "desc -fmt %d" + this.delim + "%u" + this.delim + "%h" + this.delim + "%c" + this.delim + "%Rf" + this.delim + "%m" + this.delim + "%Vn" + this.delim + "%Xn " + this.fqname;
+		//String result = Cleartool.run( cmd );
+		String result = CF.LoadVersion( this.fqname );
 		String[] rs = result.split( delim );
 		
 		/* date(0) - user(1) - machine(2) - comment(3) - checkedout(4) - kind(5) - branch(6) - xname(7) */
@@ -53,7 +74,7 @@ class Version extends ClearBase
 		this.kind       = rs[5];
 		this.branch     = rs[6];
 		
-		this.isLoaded = true;
+		this.loaded = true;
 		
 	}
 	
@@ -65,21 +86,21 @@ class Version extends ClearBase
 	public boolean IsCheckedOut()
 	{
 		logger.trace_function();
-		if( !this.isLoaded ) Load();
+		if( !this.loaded ) Load();
 		return this.checkedout;
 	}
 	
 	public String GetDate()
 	{
 		logger.trace_function();
-		if( !this.isLoaded ) Load();
+		if( !this.loaded ) Load();
 		return this.date;
 	}
 	
 	public String GetUser()
 	{
 		logger.trace_function();
-		if( !this.isLoaded ) Load();
+		if( !this.loaded ) Load();
 		return this.user;
 	}
 	
@@ -89,27 +110,27 @@ class Version extends ClearBase
 	public String Blame()
 	{
 		logger.trace_function();
-		if( !this.isLoaded ) Load();
+		if( !this.loaded ) Load();
 		return Blame( null );
 	}
 	public String Blame( String[] dontblame )
 	{
 		logger.trace_function();
-		if( !this.isLoaded ) Load();
+		if( !this.loaded ) Load();
 		return this.user;		
 	}
 	
 	public String GetMachine()
 	{
 		logger.trace_function();
-		if( !this.isLoaded ) Load();
+		if( !this.loaded ) Load();
 		return this.machine;
 	}
 	
 	public String GetBranch()
 	{
 		logger.trace_function();
-		if( !this.isLoaded ) Load();
+		if( !this.loaded ) Load();
 		return this.branch;
 	}
 	

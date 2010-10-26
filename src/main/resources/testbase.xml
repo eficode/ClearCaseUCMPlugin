@@ -79,6 +79,7 @@
 				<BuildInProgress>false</BuildInProgress>
 			</attributes>
 			<diffbl>
+>> rebase.mpsx_Remote_sprint1.20101015.142723@\PDS_PVOB "rebase mpsx_Remote_sprint1 on 15-10-2010 14:27:23."
   C:\cv\lsku_NewBuild_dev2\265_Rc\Rc_Hal\TargetEmbedded\Src\Impl\Scu\Rc_Hal_Scu.cpp@@\main\MS_E_mainline_int\Stable_int\mpsx_Remote_sprint1\2
   C:\cv\lsku_NewBuild_dev2\265_Rc\Rc_Lib\UnitTest\Rc_Lib_ErrorHandling\StubFiles\Stub.cpp@@\main\MS_E_mainline_int\Stable_int\Remote_int\mpsx_Remote_sprint1\2
   C:\cv\lsku_NewBuild_dev2\265_Rc\Rc_SubSys\TargetUnitTest\RcLib.vcproj@@\main\MS_E_mainline_int\Stable_int\Remote_int\mpsx_Remote_sprint1\4
@@ -89,6 +90,59 @@
 		</baseline>
 		
 	</baselines>
+	
+	<!-- ACTIVITIES -->
+	<activities>
+		<activity fqname="activity:ACTIVITY_TEST1@\PDS_PVOB">
+			<changesets>
+				<changeset>changeset:CHANGESET_TEST1@\PDS_PVOB</changeset>
+			</changesets>
+			<user>User 1</user>
+		</activity>
+	</activities>
+	
+	<!-- CHANGESETS -->
+	<changesets>
+		<changeset fqname="changeset:CHANGESET_TEST1@\PDS_PVOB">
+			<versions>
+				<version>c:\VERSION_TEST\main.cpp@\main\1</version>
+				<version>c:\VERSION_TEST\main.cpp@\main\2</version>
+				<version>c:\VERSION_TEST\main.cpp@\main\3</version>
+			</versions>
+		</changeset>
+	</changesets>
+	
+	<!-- VERSIONS -->
+	<versions>
+		<version fqname="c:\VERSION_TEST\main.cpp@\main\1">
+			<user>User 1</user>
+			<date>2010-10-26</date>
+			<comment>Comment for main 1</comment>
+			<machine>Machine 1</machine>
+			<kind>Kind 1</kind>
+			<branch>dev</branch>
+			<checkedout></checkedout>
+		</version>
+		<version fqname="c:\VERSION_TEST\main.cpp@\main\2">
+			<user>User 1</user>
+			<date>2010-10-26</date>
+			<comment>Comment for main 2</comment>
+			<machine>Machine 1</machine>
+			<kind>Kind 1</kind>
+			<branch>dev</branch>
+			<checkedout></checkedout>
+		</version>
+		<version fqname="c:\VERSION_TEST\main.cpp@\main\3">
+			<user>User 1</user>
+			<date>2010-10-26</date>
+			<comment>Comment for main 3</comment>
+			<machine>Machine 1</machine>
+			<kind>Kind 1</kind>
+			<branch>dev</branch>
+			<checkedout></checkedout>
+		</version>
+	</versions>
+		
 	
 	<!-- STREAMS -->
 	<streams>

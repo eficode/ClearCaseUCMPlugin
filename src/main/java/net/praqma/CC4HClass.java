@@ -82,11 +82,16 @@ public class CC4HClass extends SCM {
 		//stream = "stream:EH@\\PDS_PVOB";
 		//levelToPoll = "INITIAL";
 		//TODO perform actual checkout
+
+		//Write the changelog to changelogFile
+		//copypaste from bazaar:
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		//Component comp = new Component (component, true); // (true means that we know the component exists in PVOB)
+		Component comp = Component.GetObject( component, true); // (true means that we know the component exists in PVOB)
 		//TODO: set tag build in progress in CT
-		Component comp = new Component (component, true); // (true means that we know the component exists in PVOB)
-		//FOR USE WHEN FACTORY WORKS: 
-		List<Baseline> baselines = comp.GetBlsWithPlevel(new Stream(stream, true), ClearBase.Plevel.valueOf(levelToPoll), false, false);
-		baseline = baselines.get(0); //get newest
+		//List<Baseline> baselines = comp.GetBlsWithPlevel(new Stream(stream, true), ClearBase.Plevel.valueOf(levelToPoll), false, false);
+		List<Baseline> baselines = comp.GetBlsWithPlevel(Stream.GetObject( stream, true), ClearBase.Plevel.valueOf(levelToPoll), false, false);
+		Baseline bl = baselines.get(0);
 		
 		//below baseline is for testpurposes - we will call the real one from Component and get a list and find the oldest from that list
 		//Baseline bl = new Baseline("baseline:Remote_15-10-2010_MPSX_Fixed_NFC_timer_subscription@\\PDS_PVOB", true);
