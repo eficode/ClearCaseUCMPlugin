@@ -1,4 +1,6 @@
-package net.praqma;
+package net.praqma.clearcase.cleartool;
+
+import net.praqma.debug.Debug;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -13,7 +15,7 @@ import java.io.InputStreamReader;
  * @author wolfgang
  *
  */
-class Cleartool
+public class Cleartool
 {
 	protected static Debug logger = Debug.GetLogger();
 	

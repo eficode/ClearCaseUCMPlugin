@@ -1,4 +1,7 @@
-package net.praqma;
+package net.praqma.clearcase.objects;
+
+import net.praqma.debug.Debug;
+import net.praqma.clearcase.cleartool.*;
 
 import java.io.File;
 

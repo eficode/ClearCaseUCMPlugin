@@ -1,20 +1,10 @@
-package net.praqma;
+package net.praqma.clearcase.cleartool;
 
-class CleartoolException extends RuntimeException
-{
-	CleartoolException()
-	{
-		super(); 
-	}
-	
-	CleartoolException( String s )
-	{
-		super( s ); 
-	}
+import net.praqma.debug.Debug;
 
-}
 
-abstract class AbstractCleartoolFactory implements CleartoolInterface
+
+public abstract class AbstractCleartoolFactory implements CleartoolInterface
 {
 	public static AbstractCleartoolFactory cfInstance = null;
 	

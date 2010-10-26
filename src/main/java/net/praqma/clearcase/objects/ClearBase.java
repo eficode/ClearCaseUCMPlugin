@@ -1,14 +1,15 @@
-package net.praqma;
+package net.praqma.clearcase.objects;
+
+import net.praqma.debug.Debug;
+import net.praqma.clearcase.cleartool.*;
 
 import java.util.HashMap;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.praqma.Debug;
 
-
-abstract class ClearBase
+public abstract class ClearBase
 {
 	
 	protected static final String delim    = "::";

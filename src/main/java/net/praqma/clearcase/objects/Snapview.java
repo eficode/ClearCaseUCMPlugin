@@ -1,4 +1,9 @@
-package net.praqma;
+package net.praqma.clearcase.objects;
+
+import net.praqma.debug.Debug;
+import net.praqma.clearcase.cleartool.Cleartool;
+import net.praqma.clearcase.Cmd;
+import net.praqma.clearcase.Utilities;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -14,8 +19,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import net.praqma.View.ViewType;
 
 
 public class Snapview extends View

@@ -1,6 +1,8 @@
-package net.praqma;
+package net.praqma.clearcase.cleartool;
 
-interface CleartoolInterface
+import net.praqma.debug.Debug;
+
+public interface CleartoolInterface
 {
 	//public AbstractCleartoolFactory CFGet();
 	public void Update();

@@ -1,16 +1,16 @@
-package net.praqma;
+package net.praqma.clearcase;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
-import net.praqma.Debug;
+import net.praqma.debug.Debug;
 
 /**
  * UNTESTED cmd class
  * @author wolfgang
  *
  */
-class Cmd
+public class Cmd
 {
 	protected static Debug logger = Debug.GetLogger();
 	

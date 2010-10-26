@@ -1,4 +1,6 @@
-package net.praqma;
+package net.praqma.clearcase.cleartool;
+
+import net.praqma.debug.Debug;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -22,7 +24,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-class CleartoolTestFactory extends AbstractCleartoolFactory
+public class CleartoolTestFactory extends AbstractCleartoolFactory
 {
 	public static AbstractCleartoolFactory cfInstance = null;
 	

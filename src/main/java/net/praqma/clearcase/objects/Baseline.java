@@ -1,4 +1,7 @@
-package net.praqma;
+package net.praqma.clearcase.objects;
+
+import net.praqma.clearcase.cleartool.Cleartool;
+import net.praqma.debug.Debug;
 
 import java.util.ArrayList;
 import java.util.HashMap;

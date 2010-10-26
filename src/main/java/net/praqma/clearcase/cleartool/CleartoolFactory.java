@@ -1,6 +1,8 @@
-package net.praqma;
+package net.praqma.clearcase.cleartool;
 
-class CleartoolFactory extends AbstractCleartoolFactory
+import net.praqma.debug.Debug;
+
+public class CleartoolFactory extends AbstractCleartoolFactory
 {
 	
 	private CleartoolFactory()

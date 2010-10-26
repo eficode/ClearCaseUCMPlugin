@@ -1,4 +1,9 @@
-package net.praqma;
+package net.praqma.clearcase.objects;
+
+import net.praqma.clearcase.Utilities;
+import net.praqma.clearcase.cleartool.Cleartool;
+import net.praqma.clearcase.cleartool.CleartoolException;
+import net.praqma.debug.Debug;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
