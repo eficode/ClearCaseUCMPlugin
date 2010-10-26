@@ -1,6 +1,7 @@
-package net.praqma;
+package net.praqma.scm;
 
 import hudson.scm.SCMRevisionState;
+import net.praqma.debug.Debug;
 
 public class SCMRevisionStateImpl extends SCMRevisionState {
 	

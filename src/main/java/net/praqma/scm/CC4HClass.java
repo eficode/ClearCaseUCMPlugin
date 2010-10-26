@@ -1,4 +1,4 @@
-package net.praqma;
+package net.praqma.scm;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -37,6 +37,13 @@ import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+
+import net.praqma.clearcase.objects.Baseline;
+import net.praqma.clearcase.objects.Component;
+import net.praqma.clearcase.objects.Stream;
+import net.praqma.debug.Debug;
+import net.praqma.clearcase.objects.ClearBase;
+import net.praqma.scm.SCMRevisionStateImpl;
 
 public class CC4HClass extends SCM {
 	
@@ -82,20 +89,16 @@ public class CC4HClass extends SCM {
 		//stream = "stream:EH@\\PDS_PVOB";
 		//levelToPoll = "INITIAL";
 		//TODO perform actual checkout
-
-		//Write the changelog to changelogFile
-		//copypaste from bazaar:
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		//Component comp = new Component (component, true); // (true means that we know the component exists in PVOB)
-		Component comp = Component.GetObject( component, true); // (true means that we know the component exists in PVOB)
 		//TODO: set tag build in progress in CT
-		//List<Baseline> baselines = comp.GetBlsWithPlevel(new Stream(stream, true), ClearBase.Plevel.valueOf(levelToPoll), false, false);
-		List<Baseline> baselines = comp.GetBlsWithPlevel(Stream.GetObject( stream, true), ClearBase.Plevel.valueOf(levelToPoll), false, false);
-		Baseline bl = baselines.get(0);
+		Component comp = Component.GetObject(component, true); // (true means that we know the component exists in PVOB)
+		//FOR USE WHEN FACTORY WORKS: 
+		Stream s = Stream.GetObject(stream, true);
+		List<Baseline> baselines = comp.GetBlsWithPlevel(s, ClearBase.Plevel.valueOf(levelToPoll), false, false);
+		baseline = baselines.get(0); //get newest
 		
 		//below baseline is for testpurposes - we will call the real one from Component and get a list and find the oldest from that list
 		//Baseline bl = new Baseline("baseline:Remote_15-10-2010_MPSX_Fixed_NFC_timer_subscription@\\PDS_PVOB", true);
-		
+		baseline.MarkBuildInProgess();
 		List<String> changes = baseline.GetDiffs("list", true);
 
 		return writeChangelog(changelogFile,changes);

@@ -1,4 +1,4 @@
-package net.praqma;
+package net.praqma.scm;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -10,6 +10,8 @@ import java.util.List;
 
 import hudson.model.AbstractBuild;
 import hudson.scm.ChangeLogSet;
+
+import net.praqma.debug.Debug;
 
 public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl> {
 	

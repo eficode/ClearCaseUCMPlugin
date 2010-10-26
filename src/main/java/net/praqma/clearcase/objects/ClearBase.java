@@ -38,7 +38,7 @@ public abstract class ClearBase
 	 * @author wolfgang
 	 *
 	 */
-	protected enum Plevel
+	public enum Plevel
 	{
 		REJECTED,
 		INITIAL,

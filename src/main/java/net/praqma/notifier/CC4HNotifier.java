@@ -3,9 +3,8 @@ package net.praqma.notifier;
 import java.io.IOException;
 
 import org.kohsuke.stapler.StaplerRequest;
-
-import net.praqma.Baseline;
-import net.praqma.Debug;
+import net.praqma.clearcase.objects.Baseline;
+import net.praqma.debug.Debug;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.BuildListener;
@@ -18,7 +17,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
-import net.praqma.CC4HClass;
+import net.praqma.scm.CC4HClass;
 import net.sf.json.JSONObject;
 
 public class CC4HNotifier extends Notifier {
@@ -26,7 +25,7 @@ public class CC4HNotifier extends Notifier {
 	private boolean promote;
 	private boolean tagPostBuild;
 	private boolean recommended;
-	private Baseline baselineHer;
+	private Baseline baseline;
 	
 	protected static Debug logger = Debug.GetLogger();
 	
@@ -54,30 +53,33 @@ public class CC4HNotifier extends Notifier {
 	@Override
 	public boolean perform (AbstractBuild build, Launcher launcer, BuildListener listener)throws InterruptedException, IOException {
 		logger.trace_function();
+		boolean res;
 		SCM scmTemp = build.getProject().getScm();
 		if (!(scmTemp instanceof CC4HClass)){
 			listener.fatalError("Not a CC4H scm");
-			return false;
+			res = false;
 		}
 		CC4HClass scm = (CC4HClass) scmTemp;
-		baselineHer = scm.getBaseline();
+		baseline = scm.getBaseline();
+		
 		Result result = build.getResult();
 		if (result.equals(Result.SUCCESS)){
 			//TODO: Tag baseline (ask expert if before or after succes is determined
-			//baselineHer.promote(); - waiting for implementation
+			//baseline.promote(); - waiting for implementation
 			logger.log("baseline promoted to something");
 			
-			return true;
+			res = true;
 		}
 		else if (result.equals(Result.FAILURE)){
 			//baselineHer.demote();- waiting for implementation
 			logger.log("baseline demoted to something");
-			return true;
+			res = true;
 		}
 		else {
 			logger.log("wut?!");
-			return false;
+			res = false;
 		}
+		return res;
 	}
 	
 	public boolean isPromote(){

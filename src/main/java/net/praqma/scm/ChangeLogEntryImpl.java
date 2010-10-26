@@ -1,4 +1,4 @@
-package net.praqma;
+package net.praqma.scm;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -7,6 +7,8 @@ import java.util.List;
 import hudson.model.User;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.ChangeLogSet.Entry;
+
+import net.praqma.debug.Debug;
 
 public class ChangeLogEntryImpl extends Entry {
 	

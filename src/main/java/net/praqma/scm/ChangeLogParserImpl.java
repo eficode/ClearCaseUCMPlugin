@@ -1,4 +1,4 @@
-package net.praqma;
+package net.praqma.scm;
 
 import java.io.File;
 import java.io.FileReader;
@@ -15,6 +15,8 @@ import hudson.scm.ChangeLogParser;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.ChangeLogSet.Entry;
 import hudson.util.Digester2;
+
+import net.praqma.debug.Debug;
 
 public class ChangeLogParserImpl extends ChangeLogParser {
 	
