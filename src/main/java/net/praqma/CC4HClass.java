@@ -81,20 +81,22 @@ public class CC4HClass extends SCM {
 		//stream = "stream:EH@\\PDS_PVOB";
 		//levelToPoll = "INITIAL";
 		//TODO perform actual checkout
-		//Write the changelog to changelogFile
-		//copypaste from bazaar:
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		Component comp = new Component (component, true); // (true means that we know the component exists in PVOB)
 		//TODO: set tag build in progress in CT
+		Component comp = new Component (component, true); // (true means that we know the component exists in PVOB)
 		//FOR USE WHEN FACTORY WORKS: 
 		List<Baseline> baselines = comp.GetBlsWithPlevel(new Stream(stream, true), ClearBase.Plevel.valueOf(levelToPoll), false, false);
-		Baseline bl = baselines.get(0);
+		Baseline bl = baselines.get(0); //get newest
 		
 		//below baseline is for testpurposes - we will call the real one from Component and get a list and find the oldest from that list
 		//Baseline bl = new Baseline("baseline:Remote_15-10-2010_MPSX_Fixed_NFC_timer_subscription@\\PDS_PVOB", true);
 		
 		List<String> changes = bl.GetDiffs("list", true);
 
+		return writeChangelog(changelogFile,changes);
+	}
+	
+	private boolean writeChangelog(File changelogFile, List<String> changes) throws IOException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		//Here the .hudson/jobs/[project name]/changelog.xml is written
 		baos.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>".getBytes());
 		baos.write("<changelog>".getBytes());
@@ -110,7 +112,7 @@ public class CC4HClass extends SCM {
 		FileOutputStream fos = new FileOutputStream(changelogFile);
 	    fos.write(baos.toByteArray());
 	    fos.close();
-		return true;
+	    return true;
 	}
 
 	@Override

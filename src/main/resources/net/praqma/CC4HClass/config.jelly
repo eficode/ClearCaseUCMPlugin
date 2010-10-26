@@ -20,7 +20,7 @@
 	At the moment only snapshot view is supported.
     </f:entry>
 
-    <f:entry title="${%Load my modules}"> 
+    <f:entry title="${%Load modules}"> 
      <select class="setting-input" name="loadModule">
       <j:set var="modules" value="${descriptor.getLoadModules()}"/>
        <j:forEach var="lm" items="${modules}">
@@ -29,17 +29,17 @@
      </select>
     </f:entry>
 
-<f:entry title="Promote?:" help="/plugin/CC4H/help-promoteToLevel.html">
+<f:entry title="Promote?" help="/plugin/CC4H/help-promoteToLevel.html">
     <f:checkbox name="promote" checked="${h.defaultToTrue(scm.promote)}" />
    
   </f:entry>
 
-<f:entry title="Tag post-build?:" help="/plugin/CC4H/help-tagPostBuild.html">
+<f:entry title="Tag post-build?" help="/plugin/CC4H/help-tagPostBuild.html">
     <f:checkbox name="tagPostBuild" checked="${scm.tagPostBuild}" />
    
   </f:entry>
 
-<f:entry title="Recommend baseline?:">
+<f:entry title="Recommend baseline?">
     <f:checkbox name="recommended" checked="${scm.recommended}" />
    
   </f:entry>
