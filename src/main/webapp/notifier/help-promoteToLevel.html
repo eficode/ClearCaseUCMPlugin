@@ -1,0 +1,13 @@
+<div>
+If checked, your baseline will be promoted to next logical level.<br />
+If the built was unsuccessful, the baseline will be demoted to REJECTED.<br />
+Otherwise it will be promoted as followed:
+<ul>
+	<li>Poll level --> Promoted to</li>
+	<li>INITIAL    --> BUILT</li>
+	<li>BUILT      --> TESTED</li>
+	<li>TESTED     --> RELEASED</li>
+	<li>RELEASED   --> RELEASED</li>
+	<li>REJECTED   --> RELEASED</li>
+</ul>
+</div>

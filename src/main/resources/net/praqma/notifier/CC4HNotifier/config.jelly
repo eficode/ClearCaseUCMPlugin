@@ -4,15 +4,10 @@ This should be the file that makes it possible to select our notifier in the "po
 
 -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-
-<f:entry title="Promote?" help="/plugin/CC4H/help-promoteToLevel.html">
-    <f:checkbox name="CC4H.promote" checked="${h.defaultToTrue(instance.promote)}" />
-   
-  </f:entry>
-
-<f:entry title="Recommend baseline?">
-    <f:checkbox name="CC4H.recommended" checked="${instance.recommended}" />
-   
-  </f:entry>
-	
+	<f:entry title="Promote?" help="/plugin/CC4H/notifier/help-promoteToLevel.html">
+	    <f:checkbox name="CC4H.promote" checked="${h.defaultToTrue(instance.promote)}" />
+	</f:entry>
+	<f:entry title="Recommend baseline?" help="/plugin/CC4H/notifier/help-recommendBaseline.html">
+	    <f:checkbox name="CC4H.recommended" checked="${instance.recommended}" />
+	</f:entry>
 </j:jelly>

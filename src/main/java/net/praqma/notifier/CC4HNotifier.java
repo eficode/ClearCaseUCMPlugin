@@ -20,14 +20,26 @@ import hudson.tasks.Publisher;
 import net.praqma.scm.CC4HClass;
 import net.sf.json.JSONObject;
 
+/**
+ * CC4HNotifier has the resposibility of 'cleaning up' in ClearCase after a build.
+ * 
+ * @author Troels Selch Sørensen
+ * @author Margit
+ *
+ */
 public class CC4HNotifier extends Notifier {
-	
 	private boolean promote;
 	private boolean recommended;
 	private Baseline baseline;
 	
 	protected static Debug logger = Debug.GetLogger();
 	
+	/**
+	 * This constructor is used in the inner class <code>DescriptorImpl</code>.
+	 * 
+	 * @param promote if <code>promote</code> is <code>true</code>, the baseline will be promoted after the build.
+	 * @param recommended if <code>recommended</code> is <code>true</code>, the baseline will be marked 'recommended' in ClearCase.
+	 */
 	public CC4HNotifier(boolean promote, boolean recommended){
 		this.promote = promote;
 		this.recommended = recommended;
@@ -35,47 +47,53 @@ public class CC4HNotifier extends Notifier {
 		logger.trace_function();
 	}
 	
+	/**
+	 * This message returns <code>true</code> to make sure that Hudson runs {@link <public boolean perform(AbstractBuild build, Launcher launcer, BuildListener listener)throws InterruptedException, IOException> [perform()]} after a build.
+	 */
 	@Override
 	public boolean needsToRunAfterFinalized(){
 		logger.trace_function();
-		//TODO: set Tag on Baseline
 		return true;
 	}
 
 	@Override
 	public BuildStepMonitor getRequiredMonitorService() {
 		logger.trace_function();
+		//TODO Check to see when BUILD should be returned and when not.
 		return BuildStepMonitor.BUILD;//we use BUILD because cleacase-plugin does(clearcase/ucm/UcmMakeBaseline
 	}
 	
+	/**
+	 * This message is called from Hudson when a build is done, but only if {@link <public boolean needsToRunAfterFinalized()> [needsToRunAfterFinalized()]} returns <code>true</code>.
+	 */
 	//@SuppressWarnings("unchecked")
 	@Override
-	public boolean perform (AbstractBuild build, Launcher launcer, BuildListener listener)throws InterruptedException, IOException {
+	public boolean perform(AbstractBuild build, Launcher launcer, BuildListener listener)throws InterruptedException, IOException {
 		logger.trace_function();
 		boolean res;
 		SCM scmTemp = build.getProject().getScm();
 		if (!(scmTemp instanceof CC4HClass)){
-			listener.fatalError("Not a CC4H scm");
+			listener.fatalError("Not a CC4H scm. This Extension can only be used when polling from ClearCase with CC4H plugin.");
 			res = false;
 		}
-		CC4HClass scm = (CC4HClass) scmTemp;
+		CC4HClass scm = (CC4HClass)scmTemp;
 		baseline = scm.getBaseline();
 		
 		Result result = build.getResult();
 		if (result.equals(Result.SUCCESS)){
-			//TODO: Tag baseline (ask expert if before or after succes is determined
+			//TODO: set Tag on Baseline
+			//TODO: Should Tag also keep track of build-status?
 			//baseline.promote(); - waiting for implementation
-			logger.log("baseline promoted to something");
-			
+			logger.log("Baseline promoted to next level.");			
 			res = true;
 		}
 		else if (result.equals(Result.FAILURE)){
 			//baselineHer.demote();- waiting for implementation
-			logger.log("baseline demoted to something");
+			logger.log("Baseline demoted to rejected.");
 			res = true;
 		}
 		else {
-			logger.log("wut?!");
+			logger.log("Result was " + result + ". Not handled by plugin.");
 			res = false;
 		}
 		return res;
@@ -89,6 +107,13 @@ public class CC4HNotifier extends Notifier {
 		return recommended;
 	}
 	
+	/**
+	 * This class is used by Hudson to define the plugin. 
+	 * 
+	 * @author Troels Selch Sørensen
+	 * @author Margit
+	 *
+	 */
 	@Extension
 	public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 		public DescriptorImpl(){
@@ -97,11 +122,14 @@ public class CC4HNotifier extends Notifier {
 		
 		@Override
 		public String getDisplayName() {
-			return "ClearCase 4 Hudson";
-			
+			return "ClearCase 4 Hudson";			
 		}
-		
 
+		/**
+		 * Hudson uses this method to create a new instance of <code>CC4HNotifier</code>.
+		 * The method gets information from Hudson config page.
+		 * This information is about the configuration, which Hudson saves.
+		 */
         @Override
         public Notifier newInstance(StaplerRequest req, JSONObject formData) throws FormException {
         	boolean promote = req.getParameter("CC4H.promote")!=null;
@@ -115,10 +143,9 @@ public class CC4HNotifier extends Notifier {
 			return true;
 		}
 		
-		/*@Override
+		@Override
 		public String getHelpFile() {
-			return "/plugin/cc4h/notifier/help.html";
-		}*/
+			return "/plugin/CC4H/notifier/help.html";
+		}
 	}
-
 }
