@@ -29,5 +29,12 @@
      </select>
     </f:entry>
 
+	<f:entry title="Newest" help="/plugin/CC4H/help-newest.html">
+	    <f:checkbox name="CC4H.newest" checked="${instance.newest}" />
+	</f:entry>
+	
+	<f:entry title="Newer than recommended" help="/plugin/CC4H/help-newerThanRecommend.html">
+	    <f:checkbox name="CC4H.newerThanRecommended" checked="${instance.newerThanRecommended}" />
+	</f:entry>
    
 </j:jelly>
