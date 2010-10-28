@@ -23,16 +23,14 @@ import net.sf.json.JSONObject;
 public class CC4HNotifier extends Notifier {
 	
 	private boolean promote;
-	private boolean tagPostBuild;
 	private boolean recommended;
 	private Baseline baseline;
 	
 	protected static Debug logger = Debug.GetLogger();
 	
-	public CC4HNotifier(/*boolean promote, boolean tagPostBuild, boolean recommended*/){
-		/*this.promote = promote;
-		this.tagPostBuild = tagPostBuild;
-		this.recommended = recommended;*/
+	public CC4HNotifier(boolean promote, boolean recommended){
+		this.promote = promote;
+		this.recommended = recommended;
 		
 		logger.trace_function();
 	}
@@ -40,6 +38,7 @@ public class CC4HNotifier extends Notifier {
 	@Override
 	public boolean needsToRunAfterFinalized(){
 		logger.trace_function();
+		//TODO: set Tag on Baseline
 		return true;
 	}
 
@@ -86,11 +85,6 @@ public class CC4HNotifier extends Notifier {
 		return promote;
 	}
 	
-	
-	public boolean isTagPostBuild(){
-		return tagPostBuild;
-	}	
-	
 	public boolean isRecommended(){
 		return recommended;
 	}
@@ -110,8 +104,10 @@ public class CC4HNotifier extends Notifier {
 
         @Override
         public Notifier newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-            Notifier n = new CC4HNotifier();
-            return n;
+        	boolean promote = req.getParameter("CC4H.promote")!=null;
+        	boolean recommended = req.getParameter("CC4H.recommended")!=null;
+        	logger.log("booleans: promote="+promote+" | recommended="+recommended);
+            return new CC4HNotifier(promote,recommended);
         }
 
 		@Override

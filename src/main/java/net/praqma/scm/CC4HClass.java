@@ -51,9 +51,6 @@ public class CC4HClass extends SCM {
 	private String loadModule;
 	private String component;
 	private String stream;
-	private boolean promote;
-	private boolean tagPostBuild;
-	private boolean recommended;
 	
 	private Baseline baseline;
 	private List<String> levels = null;
@@ -63,17 +60,14 @@ public class CC4HClass extends SCM {
 
 	@DataBoundConstructor
 	public CC4HClass(String component, String levelToPoll, String loadModule,
-			String stream, boolean promote, boolean tagPostBuild, boolean recommended) {
+			String stream) {
 		
 		logger.trace_function();
 		this.component = component;
 		this.levelToPoll = levelToPoll;
 		this.loadModule = loadModule;
 		this.stream = stream;
-		this.promote = promote;
-		this.tagPostBuild = tagPostBuild;
-		this.recommended = recommended;
-		logger.log("promote: "+promote + " tagPostBuild "+tagPostBuild);
+
 	}
 	
 	/**
@@ -98,7 +92,7 @@ public class CC4HClass extends SCM {
 		
 		//below baseline is for testpurposes - we will call the real one from Component and get a list and find the oldest from that list
 		//Baseline bl = new Baseline("baseline:Remote_15-10-2010_MPSX_Fixed_NFC_timer_subscription@\\PDS_PVOB", true);
-		baseline.MarkBuildInProgess();
+		baseline.MarkBuildInProgess(); //TODO: Here we need Tag instead, including Hudson job info
 		List<String> changes = baseline.GetDiffs("list", true);
 
 		return writeChangelog(changelogFile,changes);
@@ -170,19 +164,6 @@ public class CC4HClass extends SCM {
 		return loadModule;
 	}
 
-	public boolean isPromote() {
-		return promote;
-	}
-
-
-	public boolean isTagPostBuild() {
-		return tagPostBuild;
-	}
-
-	public boolean isRecommended() {
-		return recommended;
-	}
-	
 	public Baseline getBaseline(){
 		return baseline;
 	}
