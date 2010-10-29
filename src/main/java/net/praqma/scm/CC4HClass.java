@@ -101,21 +101,40 @@ public class CC4HClass extends SCM {
 			BuildListener listener, File changelogFile) throws IOException,
 			InterruptedException {
 		logger.trace_function();
-		//component = "component:EH@\\PDS_PVOB";
-		//stream = "stream:EH@\\PDS_PVOB";
-		//levelToPoll = "INITIAL";
+		/* Examples to use from testbase.xml:
+		 *   a)
+		 *   stream = "stream:EH@\PDS_PVOB"
+		 *   component = "component:EH@\PDS_PVOB"
+		 *   Level to poll = "INITIAL
+		 *   (2 files changed)
+		 *   b)
+		 *   stream = "stream:STREAM_TEST1@\PDS_PVOB"
+		 *   component = "component:COMPONENT_TEST1@\PDS_PVOB"
+		 *   Level to poll = "INITIAL
+		 *   (14 files changed)
+		 */
+		logger.log("Writing infomation from CC4HClass.checkout: " + stream + " & " + component + " & " + levelToPoll);
 		//TODO perform actual checkout (In clearcase context this means create the workspace(=set the filepath for hudson to use))
 		Component comp = Component.GetObject(component, true); // (true means that we know the component exists in PVOB)
-		//FOR USE WHEN FACTORY WORKS: 
 		Stream s = Stream.GetObject(stream, true);
-		List<Baseline> baselines = comp.GetBlsWithPlevel(s, ClearBase.Plevel.valueOf(levelToPoll), false, false);
-		baseline = baselines.get(0); //Getting the newest baseline
+		//INFO: Added newerThanRecommended boolean.
+		//TODO is this implemented?
+		List<Baseline> baselines = comp.GetBlsWithPlevel(s, ClearBase.Plevel.valueOf(levelToPoll), false, false/*newerThanRecommended*/);
 		
-		//TODO: The two comments below seems outdated. Should they be deleted?
-		//below baseline is for testpurposes - we will call the real one from Component and get a list and find the oldest from that list
-		//Baseline bl = new Baseline("baseline:Remote_15-10-2010_MPSX_Fixed_NFC_timer_subscription@\\PDS_PVOB", true);
+		//Here is logic for getting baseline depending on boolean 'newest'
+		if(baselines.size()>0){
+			if(newest){//TODO maybe if/else needs to be switched?
+				baseline = baselines.get(0);
+			} else {
+				baseline = baselines.get(baselines.size()-1);
+			}
+		} else {
+			//Nothing to do
+			return false;
+		}
+		
 		baseline.MarkBuildInProgess(); //TODO: Here we need Tag instead, including Hudson job info
-		List<String> changes = baseline.GetDiffs("list", true);
+		List<String> changes = baseline.GetDiffs("list", true); //TODO: should we use list or ...?
 
 		return writeChangelog(changelogFile,changes);
 	}

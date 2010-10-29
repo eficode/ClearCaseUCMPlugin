@@ -70,14 +70,18 @@ public class CC4HNotifier extends Notifier {
 	@Override
 	public boolean perform(AbstractBuild build, Launcher launcer, BuildListener listener)throws InterruptedException, IOException {
 		logger.trace_function();
-		boolean res;
+		boolean res = false;
+
 		SCM scmTemp = build.getProject().getScm();
 		if (!(scmTemp instanceof CC4HClass)){
 			listener.fatalError("Not a CC4H scm. This Extension can only be used when polling from ClearCase with CC4H plugin.");
-			res = false;
+			//Needs to return false right away to avoid errors
+			return false;
 		}
+
 		CC4HClass scm = (CC4HClass)scmTemp;
 		baseline = scm.getBaseline();
+		baseline.UnMarkBuildInProgess(); //Unmark as buildInProgress (not relevant when working with Tag).
 		
 		Result result = build.getResult();
 		if (result.equals(Result.SUCCESS)){
@@ -86,13 +90,11 @@ public class CC4HNotifier extends Notifier {
 			//baseline.promote(); - waiting for implementation
 			logger.log("Baseline promoted to next level.");			
 			res = true;
-		}
-		else if (result.equals(Result.FAILURE)){
+		} else if (result.equals(Result.FAILURE)){
 			//baselineHer.demote();- waiting for implementation
 			logger.log("Baseline demoted to rejected.");
 			res = true;
-		}
-		else {
+		} else {
 			logger.log("Result was " + result + ". Not handled by plugin.");
 			res = false;
 		}
