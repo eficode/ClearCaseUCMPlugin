@@ -3,17 +3,9 @@ package net.praqma.scm;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.digester.Digester;
-import org.apache.commons.lang.StringUtils;
-
-import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -21,23 +13,15 @@ import hudson.model.BuildListener;
 import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.Descriptor.FormException;
-
 import hudson.scm.ChangeLogParser;
 import hudson.scm.SCM;
 import hudson.scm.SCMDescriptor;
 import hudson.scm.PollingResult;
 import hudson.scm.SCMRevisionState;
-
-import hudson.util.Digester2;
 import hudson.util.FormValidation;
 import org.kohsuke.stapler.DataBoundConstructor;
-
 import net.sf.json.JSONObject;
-
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
-
 import net.praqma.clearcase.objects.Baseline;
 import net.praqma.clearcase.objects.Component;
 import net.praqma.clearcase.objects.Stream;
@@ -50,7 +34,7 @@ import net.praqma.scm.SCMRevisionStateImpl;
  * This class defines all the files required by the user. The information can be entered on the config page.
  * 
  * @author Troels Selch Sørensen
- * @author Margit
+ * @author Margit Bennetzen
  *
  */
 public class CC4HClass extends SCM {
@@ -115,11 +99,10 @@ public class CC4HClass extends SCM {
 		 */
 		logger.log("Writing infomation from CC4HClass.checkout: " + stream + " & " + component + " & " + levelToPoll);
 		//TODO perform actual checkout (In clearcase context this means create the workspace(=set the filepath for hudson to use))
-		Component comp = Component.GetObject(component, true); // (true means that we know the component exists in PVOB)
-		Stream s = Stream.GetObject(stream, true);
-		//INFO: Added newerThanRecommended boolean.
-		//TODO is this implemented?
-		List<Baseline> baselines = comp.GetBlsWithPlevel(s, ClearBase.Plevel.valueOf(levelToPoll), false, false/*newerThanRecommended*/);
+		Component comp = Component.GetObject(component, true); // (TODO:true means that we know the component exists in PVOB)
+		Stream s = Stream.GetObject(stream, true); //TODO: Should be false??
+		
+		List<Baseline> baselines = comp.GetBlsWithPlevel(s, ClearBase.Plevel.valueOf(levelToPoll), false, false/*TODO:newerThanRecommended*/);
 		
 		//Here is logic for getting baseline depending on boolean 'newest'
 		if(baselines.size()>0){
@@ -134,7 +117,7 @@ public class CC4HClass extends SCM {
 		}
 		
 		baseline.MarkBuildInProgess(); //TODO: Here we need Tag instead, including Hudson job info
-		List<String> changes = baseline.GetDiffs("list", true); //TODO: should we use list or ...?
+		List<String> changes = baseline.GetDiffs("list", true);//true means -nmerge
 
 		return writeChangelog(changelogFile,changes);
 	}
@@ -152,6 +135,7 @@ public class CC4HClass extends SCM {
 	private boolean writeChangelog(File changelogFile, List<String> changes) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		//Here the .hudson/jobs/[project name]/changelog.xml is written
+		//TODO: Skal der flere levels i et changeset? Afklar med Lars og Christian hvordan strukturen ser ud..
 		baos.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>".getBytes());
 		baos.write("<changelog>".getBytes());
 		String temp;
@@ -166,6 +150,7 @@ public class CC4HClass extends SCM {
 		FileOutputStream fos = new FileOutputStream(changelogFile);
 	    fos.write(baos.toByteArray());
 	    fos.close();
+	    //If no exception has been thrown at this point, the changelog has been written and true can be returned
 	    return true;
 	}
 
@@ -184,7 +169,8 @@ public class CC4HClass extends SCM {
 			FilePath workspace, TaskListener listener, SCMRevisionState baseline)
 			throws IOException, InterruptedException {
 		logger.trace_function();
-		return PollingResult.BUILD_NOW;
+		//This method doesn't do anything - checkout() does the work for now
+		return PollingResult.BUILD_NOW; 
 	}
 
 	@Override
@@ -209,7 +195,7 @@ public class CC4HClass extends SCM {
 
 	/**
 	 * This method is used by Hudson to load persisted data when users enter the job config page. 
-	 * @return
+	 * @return component
 	 */
 	public String getComponent() {
 		logger.trace_function();
@@ -218,7 +204,7 @@ public class CC4HClass extends SCM {
 
 	/**
 	 * This method is used by Hudson to load persisted data when users enter the job config page. 
-	 * @return
+	 * @return stream
 	 */
 	public String getStream() {
 		logger.trace_function();
@@ -227,28 +213,49 @@ public class CC4HClass extends SCM {
 
 	/**
 	 * This method is used by Hudson to load persisted data when users enter the job config page. 
-	 * @return
+	 * @return loadModule - which can be "all" or "modifiable"
 	 */
 	public String getLoadModule() {
 		logger.trace_function();
 		return loadModule;
 	}
 
+	/**
+	 * This method is used by CC4HNotifier.perform for tagging the baseline after build
+	 * @return baseline
+	 */
 	public Baseline getBaseline(){
+		logger.trace_function();
 		return baseline;
 	}
 
+	/**
+	 * This method is used by Hudson to load persisted data when users enter the job config page. 
+	 * @return newest - whether the user wants the newest or the latest baseline 
+	 */
 	public boolean isNewest() {
+		logger.trace_function();
 		return newest;
 	}
 
+	/**
+	 * This method is used by Hudson to load persisted data when users enter the job config page. 
+	 * @return newerThanRecommended - whether the user only wants baselines newer than recommended
+	 */
 	public boolean isNewerThanRecommended() {
+		logger.trace_function();
 		return newerThanRecommended;
 	}
 
-
+	/**
+	 * This class is used to describe the plugin to Hudson
+	 * @author Troels Selch Sørensen
+	 * @author Margit Bennetzen
+	 *
+	 */
 	@Extension
 	public static class CC4HClassDescriptor extends SCMDescriptor<CC4HClass> {
+
 		private String cleartool;
 		private List<String> levels;
 		private List<String> loadModules;
@@ -258,11 +265,12 @@ public class CC4HClass extends SCM {
 			logger.trace_function();
 			levels = getLevels();
 			loadModules = getLoadModules();
-			load();
+			load(); //load() MUST be called to get persisted data (check out save() as well)
 		}
 
 		/**
 		 * This method is called, when the user saves the global Hudson configuration.
+		 * 
 		 */
 		@Override
 		public boolean configure(org.kohsuke.stapler.StaplerRequest req,
@@ -270,9 +278,13 @@ public class CC4HClass extends SCM {
 			logger.trace_function();
 			cleartool = req.getParameter("cc4h.cleartool").trim();
 			save();
+			//If no exception has been thrown at this point, then it's safe to return true
 			return true;
 		}
 
+		/**
+		 * This is called by Hudson to discover the plugin name
+		 */
 		@Override
 		public String getDisplayName() {
 			logger.trace_function();
@@ -280,7 +292,7 @@ public class CC4HClass extends SCM {
 		}
 
 		/**
-		 * This method is called by the scm/CC4HClass/global.jelly to validate-without-reload.
+		 * This method is called by the scm/CC4HClass/global.jelly to validate the input without reloading the global configuration page
 		 * 
 		 * @param value
 		 * @return
@@ -290,13 +302,20 @@ public class CC4HClass extends SCM {
 			return FormValidation.validateExecutable(value);
 		}
 
+		/**
+		 * Called by Hudson. If the user does not input a command for Hudson to use when polling, default value is returned 
+		 * @return
+		 */
 		public String getCleartool() {
 			logger.trace_function();
-			if (cleartool == null)
-				return "ct";
+			if (cleartool == null || cleartool.equals(""))
+				return "cleartool";
 			return cleartool;
 		}
-		
+		/**
+		 * Used by Hudson to display a list of valid promotionlevels to build from
+		 * @return
+		 */
 		public List<String> getLevels(){
 			logger.trace_function();
 			levels = new ArrayList<String>();
@@ -308,6 +327,10 @@ public class CC4HClass extends SCM {
 			return levels;
 		}
 	
+		/**
+		 * Used by Hudson to display a list of loadModules (whether to poll all or only modifiable elements
+		 * @return
+		 */
 		public List<String> getLoadModules() {
 			logger.trace_function();
 			loadModules = new ArrayList<String>();

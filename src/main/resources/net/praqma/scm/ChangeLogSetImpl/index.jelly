@@ -7,7 +7,7 @@
 
 
   <table class="pane" style="border:none">
-    <j:forEach var="cs" items="${it.logs}" varStatus="loop">
+    <j:forEach var="cs" items="${it.entries}" varStatus="loop">
       <tr class="pane">
         <td colspan="2" class="changeset">
           <a name="detail${loop.index}"></a>

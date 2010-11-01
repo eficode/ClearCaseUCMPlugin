@@ -3,76 +3,81 @@ package net.praqma.scm;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import hudson.model.User;
-import hudson.scm.ChangeLogSet;
 import hudson.scm.ChangeLogSet.Entry;
 
 import net.praqma.debug.Debug;
 
+/**
+ * This class represents an entry in a changeset (TODO is class-description correct?)
+ * A changeset is a collection of changed entries. This classe represents one entry, which is a user, a comment and a list of versions
+ * @author Troels Selch Sørensen
+ * @author Margit Bennetzen
+ *
+ */
 public class ChangeLogEntryImpl extends Entry {
 	
-	private ChangeLogSetImpl parent; //Try to delete this and save to super.parent.
-	private String filepath;
-	private String comment;
+	private ChangeLogSetImpl parent; 
+	private String msg;
+	//TODO implement user 
 	protected static Debug logger = Debug.GetLogger();
-	private volatile List<String> affectedPaths = new ArrayList<String>(); //TODO: Find out what this is
+	private volatile List<String> affectedPaths = new ArrayList<String>(); //list of changed files
 	
 	public ChangeLogEntryImpl(){
 		logger.trace_function();
 	}
 
+	/**
+	 * Hudson calls this to show changes on the changes-page	
+	 */
 	@Override
 	public Collection<String> getAffectedPaths() {
 		logger.trace_function();
-		if(affectedPaths.size()==0){
-			logger.log("affectedPaths er tom");
-			affectedPaths.add("Dummydata");//DELETE AFTER DEBUG
-		}
+		//a baseline can be set without any files changed - but then we wont build
 		return affectedPaths;
 	}
 	
+	/**
+	 *This method us used by ChangeLogParserImpl.parse to write the changelog
+	 * @param filepath
+	 */
 	public void setNextFilepath(String filepath){
 		logger.trace_function();
 		if(filepath == null)
-			logger.log("Filepath er null"+filepath);
+			logger.log("Filepath er null");
 		affectedPaths.add(filepath);
 	}
-
+	
+	/**
+	 * Called by Hudson. This delivers the user that made the changesetentry
+	 */
 	@Override
 	public User getAuthor() {
-		// TODO Auto-generated method stub
+		// TODO Implement the right user when its ready in CC-code
 		logger.trace_function();
-		User u = User.getUnknown();
-		//logger.log(" Unknown user: "+u.toString());
-		return u;
+		return User.getUnknown();
 	}
 
-	public String getFilepath() {
-		// TODO Auto-generated method stub
-		logger.trace_function();
-		return filepath;
-	}
-	
+	/**
+	 * This is to tell the Entry which Changeset it belongs to 
+	 * @param parent
+	 */
 	public void setParent(ChangeLogSetImpl parent){
 		logger.trace_function();
 		this.parent = parent;
 	}
 
+	/**
+	 * Used in digest.jelly to get the message attached to the entry 
+	 */
 	@Override
 	public String getMsg() {
-		return comment;
+		return msg;
 	}
 	
-	public void setComment(String comment) {
-		this.comment = comment;
-	}
-
-	public String getComment() {
-		return comment;
-	}
-	
-	public void setFilepath(String filepath) {
-		this.filepath = filepath;
-	}
+	/*
+	 * TODO The Digester in ChangeLogParserImpl.parse() will use this when comment gets implemented 
+	 * public void setMsg(String msg) {
+		this.msg = msg;
+	}*/
 }
