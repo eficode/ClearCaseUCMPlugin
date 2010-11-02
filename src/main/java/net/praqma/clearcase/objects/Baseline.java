@@ -30,6 +30,8 @@ public class Baseline extends ClearBase
 	private boolean build_in_progess      = false;
 	private String diffs                  = "";
 	
+	private HashMap<String, Tag> tags = null;
+	
 	/**
 	 * 
 	 * @param fqobj
@@ -104,6 +106,8 @@ public class Baseline extends ClearBase
 		logger.debug( "c="+c + "("+rs[1]+")" );
 		logger.debug( "s="+s + "("+rs[2]+")" );
 		
+		this.tags = new HashMap<String, Tag>();
+		
 		this.shortname = rs[0];
 		//this.component = new Component( c, true );
 		//this.stream    = new Stream( s, true );
@@ -116,6 +120,12 @@ public class Baseline extends ClearBase
 		this.loaded = true;
 		
 	}
+	
+	public String GetHlinkString()
+	{
+		return "";
+	}
+
 	
 	/**
 	 * CHW: This function is not implemented in the Perl code!!!
@@ -425,6 +435,8 @@ public class Baseline extends ClearBase
 		default:
 			this.plevel = Plevel.BUILT;
 		}
+		
+		CTF.SetPromotionLevel( this.fqname, this.plevel.GetName() );
 		
 		return this.plevel;
 	}
