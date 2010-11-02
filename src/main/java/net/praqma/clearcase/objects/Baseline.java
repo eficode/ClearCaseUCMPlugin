@@ -445,6 +445,8 @@ public class Baseline extends ClearBase
 	 */
 	public Plevel Promote( )
 	{
+		if( !loaded ) this.Load();
+		
 		switch( this.plevel )
 		{
 		case INITIAL:
