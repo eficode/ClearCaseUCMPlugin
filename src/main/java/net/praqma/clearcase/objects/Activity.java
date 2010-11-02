@@ -1,6 +1,7 @@
 package net.praqma.clearcase.objects;
 
 import net.praqma.clearcase.cleartool.Cleartool;
+import net.praqma.clearcase.cleartool.CleartoolException;
 import net.praqma.debug.Debug;
 
 import java.util.ArrayList;
@@ -16,11 +17,12 @@ import java.util.TreeSet;
  */
 public class Activity extends ClearBase
 {
-	private String fqactivity              = null;
-	private String shortname               = null;
-	private ArrayList<Changeset> changeset = null;
-	private Stream stream                  = null;
-	private String pvob                    = null;
+	private String fqactivity    = null;
+	private String shortname     = null;
+	private Changeset changeset  = null;
+	private String changesetname = null;
+	private Stream stream        = null;
+	private String pvob          = null;
 	
 	/**
 	 * Constructor
@@ -48,8 +50,17 @@ public class Activity extends ClearBase
 		{
 			// cleartool desc activity:$fqactivity 
 			String cmd = "desc activity:" + fqactivity;
-			Cleartool.run( cmd );
+			try
+			{
+				Cleartool.run( cmd );
+			}
+			catch( CleartoolException e )
+			{
+				//System.err.println( "Unable to validate Activity, " + fqactivity );
+				logger.warning( "Unable to validate Activity, " + fqactivity );
+			}
 			
+			Load();
 		}
 	}
 	
@@ -72,15 +83,16 @@ public class Activity extends ClearBase
 		return obj;
 	}
 	
+	/* !!! */
 	public void Load()
 	{
-		String result = CF.diffbl( null, this.fqname ).trim();
+		
 		
 		this.loaded = true;
 	}
 	
 	/**
-	 * Create an Activity
+	 * Create an actual Activity object in clearcase
 	 * @param id
 	 * @param comment
 	 */
@@ -115,14 +127,8 @@ public class Activity extends ClearBase
 		StringBuffer tostr = new StringBuffer();
 		tostr.append( "fqactivity: " + this.fqactivity );
 		tostr.append( "shortname: " + this.shortname );
-		tostr.append( "changeset: " + ( changeset != null ? changeset.size() : "None" ) );
-		if( changeset != null )
-		{
-			for( int i = 0 ; i < changeset.size() ; i++ )
-			{
-				tostr.append( "["+i+"] " + changeset.get( i ).toString() );
-			}
-		}
+		tostr.append( "changeset: " + this.changeset.toString() );
+
 		
 		tostr.append( "stream: " + this.stream );
 		tostr.append( "pvob: " + this.pvob );
@@ -130,7 +136,7 @@ public class Activity extends ClearBase
 		return tostr.toString();
 	}
 	
-	public ArrayList<Changeset> GetChangeSet()
+	public Changeset GetChangeSet()
 	{
 		logger.trace_function();
 		
@@ -139,21 +145,15 @@ public class Activity extends ClearBase
 			return this.changeset;
 		}
 		
+		/* TODO This should not be done in this function! */
 		// cleartool desc -fmt %[versions]Cp activity:'.$self->{'fqactivity'}.' 2>&1';
 		//String cmd = "desc -fmt %[versions]Cp activity:" + this.fqactivity;
 		//String result = Cleartool.run( cmd );
-		String result = CF.GetChangeset( this.fqname );
+		//String result = CTF.GetChangeset( this.fqname );
 		
-		
-		ArrayList<Changeset> cset = new ArrayList<Changeset>();
-		String[] rs = result.split( ", " );
-		for( int i = 0 ; i < rs.length ; i++ )
-		{
-			//cset.add( rs[i] );
-		}
-		
-		logger.debug( "Applying cset to " );
-		this.changeset = cset;
+		this.changeset = Changeset.GetObject( "changeset:" + this.fqname, true );
+		this.changeset.SetActivity( this );
+		this.changeset.Load();
 		
 		return this.changeset;
 	}
@@ -173,10 +173,10 @@ public class Activity extends ClearBase
 		
 		logger.debug( "Splitting changelog at \\@\\@" );
 		HashMap<String, String> cs = new HashMap<String, String>();
-		for( int i = 0 ; i < this.changeset.size() ; i++ )
+		for( int i = 0 ; i < this.changeset.versions.size() ; i++ )
 		{
 			// split /\@\@/, $cs;
-			/* FIXME */
+			/* FIXME This functionality is not compliant with the new <Version> structure! */
 			//String[] csa = this.changeset.get( i ).split( "\\@\\@@" );
 			String[] csa = null;
 			cs.put( csa[0], "" );

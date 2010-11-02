@@ -25,6 +25,8 @@ public class Baseline extends ClearBase
 	private Stream stream                 = null;
 	private String pvob                   = null;
 	
+	private ArrayList<Activity> activities = null;
+	
 	private boolean build_in_progess      = false;
 	private String diffs                  = "";
 	
@@ -91,7 +93,7 @@ public class Baseline extends ClearBase
 		
 		//String cmd = "desc -fmt %n" + delim + "%[component]p" + delim + "%[bl_stream]p" + delim + "%[plevel]p" + delim + "%u " + fqobj;
 		//String result = Cleartool.run( cmd );
-		String result = CF.LoadBaseline( this.fqname );
+		String result = CTF.LoadBaseline( this.fqname );
 		
 		//my ($shortname, $component, $stream, $plevel, $user) = split /$delim/, $retval;
 		String[] rs = result.split( delim );
@@ -286,7 +288,7 @@ public class Baseline extends ClearBase
 		
 		//return ( result.matches( BUILD_IN_PROGRESS_ENUM_TRUE ) ) ? true : false;
 		
-		return CF.BuildInProgess( this.fqname );
+		return CTF.BuildInProgess( this.fqname );
 	}
 	
 	/**
@@ -302,7 +304,7 @@ public class Baseline extends ClearBase
 			// cleartool('mkattr -default '.ATTR_BUILD_IN_PROGRESS.' '.$self->get_fqname());
 			//String cmd = "mkattr -default " + ATTR_BUILD_IN_PROGRESS + " " + this.GetFQName();
 			//Cleartool.run( cmd );
-			CF.BaselineMakeAttribute( this.fqname, ATTR_BUILD_IN_PROGRESS );
+			CTF.BaselineMakeAttribute( this.fqname, ATTR_BUILD_IN_PROGRESS );
 			/* ASK This is not in the Perl code */
 			this.build_in_progess = true;
 		}
@@ -329,7 +331,7 @@ public class Baseline extends ClearBase
 			// cleartool('mkattr -default '.ATTR_BUILD_IN_PROGRESS.' '.$self->get_fqname());
 			//String cmd = "rmattr -default " + ATTR_BUILD_IN_PROGRESS + " " + this.GetFQName();
 			//Cleartool.run( cmd );
-			CF.BaselineRemoveAttribute( this.fqname, ATTR_BUILD_IN_PROGRESS );
+			CTF.BaselineRemoveAttribute( this.fqname, ATTR_BUILD_IN_PROGRESS );
 			/* ASK This is not in the Perl code */
 			this.build_in_progess = false;
 		}
@@ -392,10 +394,44 @@ public class Baseline extends ClearBase
 		//cleartool('chbl -level '.$plevel.' '.$self->get_fqname() )
 		//String cmd = "chbl -level " + plevel.GetName() + " " + this.GetFQName();
 		//Cleartool.run( cmd );
-		CF.SetPromotionLevel( this.fqname, plevel.GetName() );
+		CTF.SetPromotionLevel( this.fqname, plevel.GetName() );
 		this.plevel = plevel;
 		
 		return 1;
+	}
+	
+	/**
+	 * This method promotes a baseline.
+	 * If a baseline was rejected, it SHOULD be promoted to BUILT.
+	 * TODO Ask Lars if itsn't wrong to promote from rejected to released!?
+	 * @return
+	 */
+	public Plevel Promote( )
+	{
+		switch( this.plevel )
+		{
+		case INITIAL:
+			this.plevel = Plevel.BUILT;
+			break;
+		case BUILT:
+			this.plevel = Plevel.TESTED;
+			break;
+		case TESTED:
+			this.plevel = Plevel.RELEASED;
+			break;
+		case RELEASED:
+			this.plevel = Plevel.RELEASED;
+			break;
+		default:
+			this.plevel = Plevel.BUILT;
+		}
+		
+		return this.plevel;
+	}
+	
+	public void Demote()
+	{
+		this.plevel = Plevel.REJECTED;
 	}
 	
 	/**
@@ -409,89 +445,95 @@ public class Baseline extends ClearBase
 		//cleartool('desc -fmt %[plevel]p '.$self->get_fqname()
 		//String cmd = "desc -fmt %[plevel]p " + this.GetFQName();
 		//String result = Cleartool.run( cmd );
-		String result = CF.GetPromotionLevel( this.fqname );
+		String result = CTF.GetPromotionLevel( this.fqname );
 		logger.debug( "RESULT=" + result );
 				
 		return GetPlevelFromString( result );
 	}
 	
-	/* Waiting for Lars. */
-	public void GetActivities()
+	
+	/**
+	 * Get the baselines activities
+	 * @return An ArrayList of Activity
+	 */
+	public ArrayList<Activity> GetActivities()
 	{
 		logger.trace_function();
+		
+		if( this.activities != null )
+		{
+			return this.activities;
+		}
+		
+		this.activities = new ArrayList<Activity>();
+		
+		ArrayList<String> acts = CTF.GetBaselineActivities( this.fqname );
+		
+		for( String s : acts )
+		{
+			this.activities.add( Activity.GetObject( s, true ) );
+		}
+		
+		return this.activities;
 	}
 	
 	/* Public GettDiffs overloads */
 	
-	public ArrayList<String> GetDiffs( String format, boolean nmerge, String viewroot )
+	public ArrayList<Version> GetDiffs( String format, boolean nmerge, String viewroot )
 	{
 		/* Argument correcting */
 		viewroot = viewroot.length() == 0 ? null : viewroot;
 		return _GetDiffs( format, nmerge, viewroot );
 	}
 	
-	public ArrayList<String> GetDiffs( String format, boolean nmerge )
+	public ArrayList<Version> GetDiffs( String format, boolean nmerge )
 	{
 		return _GetDiffs( format, nmerge, null );
 	}
 	
-	private ArrayList<String> _GetDiffs( String format, boolean nmerge, String viewroot )
+	private ArrayList<Version> _GetDiffs( String format, boolean nmerge, String viewroot )
 	{
 		logger.trace_function();
 		
 		/* Argument correcting */
 		format   = format.equals( "list" ) || format.equals( "scalar" ) ? format : "list";
+		if( format.equalsIgnoreCase( "scalar" ) )
+		{
+			logger.warning( "Scalar not supported yet!" );
+			return null;
+		}
 		
 		String sw_nmerge = ( nmerge ? " -nmerge " : "" );
 		
 		// cleartool('diffbl -pre -act -ver '.$sw_nmerge.$self->get_fqname );
 		//String cmd = "diffbl -pre -act -ver " + sw_nmerge + this.GetFQName();
 		//this.diffs = Cleartool.run( cmd );
-		this.diffs = CF.diffbl( sw_nmerge, this.GetFQName() ).trim();
+		//this.diffs = CTF.diffbl( sw_nmerge, this.GetFQName() ).trim();
+		ArrayList<String> diffs = CTF.GetBaselineDiffsNmergePrevious( this.fqname );
 		
 		//logger.debug( "DIFFS=\"" + this.diffs + "\"" );
 		
 		String msg = this.diffs;
 		
+		/* Remove the viewroot from the path */
 		if( viewroot != null )
 		{
-			msg = msg.replaceAll( java.util.regex.Pattern.quote( viewroot ), "" );
-		}
-		
-		ArrayList<String> list = new ArrayList<String>();
-		
-		logger.log( "Format = " + format );
-		
-		if( format.equals( "list" ) )
-		{
-			msg = msg.replaceAll( "(?m)^>>.*$", "" );
-			msg = msg.replaceAll( "(?m)\\@\\@.*$", "" );
-			msg = msg.replaceAll( "(?m)^\\s+", "" );
-
-			String[] groslist = msg.split( "\n" );
-			
-			/* Also removes duplicate files. */
-			HashMap<String, String> hash = new HashMap<String, String>();
-			for( int i = 0 ; i < groslist.length ; i++ )
+			for( int i = 0 ; i < diffs.size() ; i++ )
 			{
-				hash.put( groslist[i], "" );
+				diffs.set( i, diffs.get( i ).replaceFirst( java.util.regex.Pattern.quote( viewroot ), "" ) );
 			}
-
-			/* CHW: Experimental sorting. TESTED! */
-			logger.log( "Experimental sorting. TESTED!", "experimental" );
-			SortedSet<String> sortedset = new TreeSet<String>( hash.keySet() );
-			Iterator<String> it = sortedset.iterator();
-			
-		    while ( it.hasNext() )
-		    {
-		       list.add( it.next() );
-		    }
 		}
 		
-		if( format.equals( "scalar" ) )
+		ArrayList<Version> list = new ArrayList<Version>();
+		
+		/* Make versions */
+		for( String s : diffs )
 		{
-			list.add( msg );
+			list.add( Version.GetObject( s, true ) );
 		}
+		list = Version.GetUnique( list );
+
+
 		
 		return list;
 		//return null;
@@ -516,7 +558,7 @@ public class Baseline extends ClearBase
 		// cleartool('diffbl -pre -act -ver '.$sw_nmerge.$self->get_fqname );
 		//String cmd = "diffbl -pre -act -ver " + sw_nmerge + this.GetFQName();
 		//this.diffs = Cleartool.run( cmd );
-		this.diffs = CF.diffbl( sw_nmerge, this.GetFQName() ).trim();
+		this.diffs = CTF.diffbl( sw_nmerge, this.GetFQName() ).trim();
 		
 		//logger.debug( "DIFFS=\"" + this.diffs + "\"" );
 		
@@ -602,6 +644,11 @@ public class Baseline extends ClearBase
 
 
 		return tostr.toString();		
+	}
+	
+	public String toString()
+	{
+		return this.fqname;
 	}
 	
 }

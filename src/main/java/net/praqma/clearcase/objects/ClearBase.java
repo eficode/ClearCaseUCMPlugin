@@ -21,8 +21,8 @@ public abstract class ClearBase
 	protected String fqname = null;
 	
 	private static final boolean isTest = true;
-	private static boolean hudson = true;
-	protected static AbstractCleartoolFactory CF = null;
+	private static boolean hudson = false;
+	protected static AbstractCleartoolFactory CTF = null;
 	
 	protected boolean loaded = false;
 	
@@ -31,20 +31,14 @@ public abstract class ClearBase
 	protected static HashMap<String, ClearBase> objects = new HashMap<String, ClearBase>();
 	//protected abstract static ClearBase GetObject( String fqname, boolean trusted );
 	
-	
-	/**
-	 * CHW: This is not the same as the Perl Plevel!!!
-	 * Rejected is "0", not "4", because of a simpler implementation issue.
-	 * @author wolfgang
-	 *
-	 */
+
 	public enum Plevel
 	{
 		REJECTED,
 		INITIAL,
 		BUILT,
 		TESTED,
-		PLEVEL_RELEASED;
+		RELEASED;
 		
 		String GetName()
 		{
@@ -56,11 +50,11 @@ public abstract class ClearBase
 	{
 		if( isTest )
 		{
-			CF = CleartoolTestFactory.CFGet( hudson );
+			CTF = CleartoolTestFactory.CFGet( hudson );
 		}
 		else
 		{
-			CF = CleartoolFactory.CFGet();
+			CTF = CleartoolFactory.CFGet();
 		}
 	}
 	

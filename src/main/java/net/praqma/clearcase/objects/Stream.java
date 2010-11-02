@@ -111,7 +111,7 @@ public class Stream extends ClearBase
 		try
 		{
 			//Cleartool.run( cmd );
-			CF.RecommendBaseline( this.fqname, baseline.GetFQName() );
+			CTF.RecommendBaseline( this.fqname, baseline.GetFQName() );
 			return 1;
 		}
 		catch( CleartoolException e )
@@ -204,6 +204,7 @@ public class Stream extends ClearBase
 	public ArrayList<Baseline> GetRecBls( boolean expanded )
 	{
 		logger.trace_function();
+		logger.debug( "Getting recommended baseline" );
 		
 		ArrayList<Baseline> bls = new ArrayList<Baseline>();
 		
@@ -216,7 +217,7 @@ public class Stream extends ClearBase
 			// cleartool( 'desc -fmt %[rec_bls]p stream:' . $self->{'fqstream'} );
 			//String cmd = "desc -fmt %[rec_bls]p stream:" + this.GetFQName();
 			//String result = Cleartool.run( cmd );
-			String result = CF.GetRecommendedBaseline( this.fqname );
+			String result = CTF.GetRecommendedBaseline( this.fqname );
 			String[] rs = result.split( " " );
 			
 			for( int i = 0 ; i < rs.length ; i++ )

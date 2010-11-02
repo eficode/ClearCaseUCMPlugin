@@ -37,7 +37,6 @@ public class CleartoolTestFactory extends AbstractCleartoolFactory
 	private static Element baselines  = null;
 	private static Element streams    = null;
 	private static Element versions   = null;
-	private static Element changesets = null;
 	private static Element activities = null;
 	
 	protected static final String filesep = System.getProperty( "file.separator" );
@@ -75,13 +74,11 @@ public class CleartoolTestFactory extends AbstractCleartoolFactory
 		baselines  = this.GetFirstElement( root, "baselines" );
 		streams    = this.GetFirstElement( root, "streams" );
 		versions   = this.GetFirstElement( root, "versions" );
-		changesets = this.GetFirstElement( root, "changesets" );
 		activities = this.GetFirstElement( root, "activities" );
 		
 		logger.debug( "root=" + root.getTagName() );
 		logger.debug( "baselines=" + baselines.getTagName() );
 		logger.debug( "streams=" + streams.getTagName() );
-		logger.debug( "changesets=" + changesets.getTagName() );
 		logger.debug( "activities=" + activities.getTagName() );
 	}
 	
@@ -110,7 +107,28 @@ public class CleartoolTestFactory extends AbstractCleartoolFactory
 	 * 
 	 */
 	
-	public String LoadVersion( String version )
+	public HashMap<String, String> LoadVersion( String version )
+	{
+		logger.trace_function();
+		logger.debug( version );
+		
+		Element ve = GetElementWithFqname( versions, version );
+		
+		HashMap<String, String> result = new HashMap<String, String>();
+		result.put( "date", GetElement( ve, "date" ).getTextContent() );
+		result.put( "user", GetElement( ve, "user" ).getTextContent() );
+		result.put( "machine", GetElement( ve, "machine" ).getTextContent() );
+		result.put( "comment", GetElement( ve, "comment" ).getTextContent() );
+		result.put( "checkedout", GetElement( ve, "checkedout" ).getTextContent() );
+		result.put( "kind", GetElement( ve, "kind" ).getTextContent() );
+		result.put( "branch", GetElement( ve, "branch" ).getTextContent() );
+
+		return result;
+	}
+	
+	
+	
+	public String LoadVersion_old( String version )
 	{
 		logger.trace_function();
 		logger.debug( version );
@@ -134,32 +152,11 @@ public class CleartoolTestFactory extends AbstractCleartoolFactory
 	 * 
 	 */
 	
-	public String LoadChangeset( String changeset )
-	{
-		logger.trace_function();
-		logger.debug( changeset );
-		
-		Element ce = GetElementWithFqname( changesets, changeset );
-		
-		NodeList list = ce.getElementsByTagName( "version" );
-		StringBuffer sb = new StringBuffer();
-		
-		for( int i = 0 ; i < list.getLength( ) ; i++ )
-		{
-	    	Node node = list.item( i );
-	    	
-    		if( node.getNodeType( ) == Node.ELEMENT_NODE )
-    		{
-    			sb.append( node.getTextContent() + "\n" );
-    		}
-		}
-		
-		return sb.toString();
-	}
+
 	
 	/*
 	 * 
-	 * ACTIVITY FUNCTIONALITY
+	 * ACTIVITY/CHANGESET FUNCTIONALITY
 	 * 
 	 */
 	
@@ -168,9 +165,12 @@ public class CleartoolTestFactory extends AbstractCleartoolFactory
 		logger.trace_function();
 		logger.debug( activity );
 		
+		/* Get the Changeset from the activity */
 		Element ae = GetElementWithFqname( activities, activity );
 		
-		NodeList list = ae.getElementsByTagName( "changeset" );
+		Element ce = GetElement( ae, "changeset" );
+		
+		NodeList list = ce.getElementsByTagName( "version" );
 		StringBuffer sb = new StringBuffer();
 		
 		for( int i = 0 ; i < list.getLength( ) ; i++ )
@@ -231,6 +231,67 @@ public class CleartoolTestFactory extends AbstractCleartoolFactory
 	 *  
 	 */
 	
+	public ArrayList<String> GetBaselineActivities( String baseline )
+	{
+		logger.trace_function();
+		logger.debug( baseline );
+		
+		Element ble = GetElementWithFqname( baselines, baseline );
+		Element act = GetElement( ble, "activities" );
+		
+		NodeList list = act.getChildNodes( );
+		ArrayList<String> result = new ArrayList<String>();
+		
+		for( int i = 0 ; i < list.getLength( ) ; i++ )
+		{
+	    	Node node = list.item( i );
+	    	
+    		if( node.getNodeType( ) == Node.ELEMENT_NODE )
+    		{
+    			if( node.getNodeName().equalsIgnoreCase( "activity" ) )
+    			{
+    				result.add( node.getTextContent() );
+    			}
+    		}
+		}
+		
+		return result;
+	}
+	
+	public ArrayList<String> GetBaselineDiffsNmergePrevious( String baseline )
+	{
+		logger.trace_function();
+		logger.debug( baseline );
+		
+		ArrayList<String> acts = GetBaselineActivities( baseline );
+		
+		ArrayList<String> result = new ArrayList<String>();
+		
+		for( String act : acts )
+		{
+			logger.debug( "GETTING ACTIVITY = " + act );
+			/* Get the changeset from an activity */
+			Element ce = GetElement( GetElementWithFqname( activities, act ), "changeset" );
+			
+			NodeList list = ce.getChildNodes( );
+			
+			for( int i = 0 ; i < list.getLength( ) ; i++ )
+			{
+		    	Node node = list.item( i );
+		    	
+	    		if( node.getNodeType( ) == Node.ELEMENT_NODE )
+	    		{
+	    			if( node.getNodeName().equalsIgnoreCase( "version" ) )
+	    			{
+	    				result.add( node.getTextContent() );
+	    			}
+	    		}
+			}
+		}
+		
+		return result;
+	}
+	
 	/**
 	 * Loads a baseline from XML Document
 	 */
@@ -265,13 +326,13 @@ public class CleartoolTestFactory extends AbstractCleartoolFactory
 		return baseline;
 	}
 	
-	public String[] ListBaselines( String component, String stream, String plevel )
+	public ArrayList<String> ListBaselines( String component, String stream, String plevel, boolean shortnames )
 	{
 		logger.trace_function();
 		logger.debug( "TestFactory: ListBaselines: " + component + ", " + stream + ", " + plevel );
 		
 		NodeList list = baselines.getChildNodes( );
-		StringBuffer sb = new StringBuffer();
+		ArrayList<String> result = new ArrayList<String>();
 		
 		for( int i = 0 ; i < list.getLength( ) ; i++ )
 		{
@@ -286,12 +347,20 @@ public class CleartoolTestFactory extends AbstractCleartoolFactory
     			String p = GetElement( (Element)node, "plevel" ).getTextContent();
     			if( c.equals( component ) && s.equals( stream ) && p.equals( plevel ) )
     			{
-    				sb.append( attrs.get( "fqname" ) );
+    				//sb.append( attrs.get( "fqname" ) );
+    				if( shortnames )
+    				{
+    					result.add( GetElement( (Element)node, "shortname" ).getTextContent() );
+    				}
+    				else
+    				{
+    					result.add( attrs.get( "fqname" ) );
+    				}
     			}
     		}
 		}
 		
-		return sb.toString().split( "\n" );
+		return result;
 	}
 	
 	/**
@@ -308,6 +377,8 @@ public class CleartoolTestFactory extends AbstractCleartoolFactory
 		
 		return GetElement( ble, "diffbl" ).getTextContent();
 	}
+	
+
 	
 	/**
 	 * Maybe this should dynamically create the element buildinprogress?!?

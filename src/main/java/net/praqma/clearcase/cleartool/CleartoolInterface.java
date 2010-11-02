@@ -1,5 +1,8 @@
 package net.praqma.clearcase.cleartool;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import net.praqma.debug.Debug;
 
 public interface CleartoolInterface
@@ -9,6 +12,8 @@ public interface CleartoolInterface
 	
 	/* Baselines */
 	public String LoadBaseline( String fqname );
+	public ArrayList<String> GetBaselineActivities( String baseline );
+	public ArrayList<String> GetBaselineDiffsNmergePrevious( String baseline );
 	public void BaselineMakeAttribute( String fqname, String attr );
 	public void BaselineRemoveAttribute( String fqname, String attr );
 	public void SetPromotionLevel( String fqname, String plevel );
@@ -16,17 +21,14 @@ public interface CleartoolInterface
 	public boolean BuildInProgess( String fqname );
 	
 	/* Components */
-	public String[] ListBaselines( String component, String stream, String plevel );
+	public ArrayList<String> ListBaselines( String component, String stream, String plevel, boolean shortnames );
 	
 	/* Streams */
 	public String GetRecommendedBaseline( String stream );
 	public void RecommendBaseline( String stream, String baseline ) throws CleartoolException;
 	
 	/* Versions */
-	public String LoadVersion( String version );
-	
-	/* Changesets */
-	public String LoadChangeset( String changeset );
+	public HashMap<String, String> LoadVersion( String version );
 	
 	/* Activities */
 	public String GetChangeset( String activity );

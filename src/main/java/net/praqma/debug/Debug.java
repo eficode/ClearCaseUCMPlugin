@@ -204,11 +204,15 @@ public class Debug
 	
 	public void warning( String msg )
 	{
+		/* Testing! */
+		System.err.println( msg );
 		_log( msg, "warning" );
 	}
 	
 	public void error( String msg )
 	{
+		/* Testing */
+		System.err.println( msg );
 		_log( msg, "error" );
 	}
 	

@@ -48,9 +48,12 @@ public class Changeset extends ClearBase
 	{
 		logger.trace_function();
 		
-		/* TODO How is this done with cleartool? */
-		String result = CF.LoadChangeset( this.fqname );
-		String[] rs = result.split( "\n" );
+		// cleartool desc -fmt %[versions]Cp activity:'.$self->{'fqactivity'}.' 2>&1';
+		//String cmd = "desc -fmt %[versions]Cp activity:" + this.fqactivity;
+		//String result = Cleartool.run( cmd );
+		String result = CTF.GetChangeset( this.activity.GetFQName() );
+		
+		String[] rs = result.split( ", " );
 		
 		for( int i = 0 ; i < rs.length ; i++ )
 		{
@@ -58,6 +61,11 @@ public class Changeset extends ClearBase
 		}
 		
 		this.loaded = true;
+	}
+	
+	public void SetActivity( Activity activity )
+	{
+		this.activity = activity;
 	}
 	
 	public String GetUser()

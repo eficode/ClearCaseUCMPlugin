@@ -46,6 +46,7 @@
   C:\cv\lsku_NewBuild_dev2\265_Rc\Rc_Tp\Src\Impl\Nfc\Rc_Tp_Nfc.cpp@@\main\MS_E_mainline_int\Stable_int\mpsx_Remote_sprint1\2
 			</diffbl>
 		</baseline>
+
 		
 		<baseline fqname="baseline:BASELINE_TEST1@\PDS_PVOB">
 			<component>component:COMPONENT_TEST1@\PDS_PVOB</component>
@@ -59,71 +60,101 @@
 			<attributes>
 				<BuildInProgress>false</BuildInProgress>
 			</attributes>
-			<diffbl>
->> rebase.mpsx_Remote_sprint1.20101015.142723@\PDS_PVOB "rebase mpsx_Remote_sprint1 on 15-10-2010 14:27:23."
-  C:\cv\lsku_NewBuild_dev2\265_Rc\Rc_Ui\UnitTest\Rc_Ui\StubFiles\Stub.cpp@@\main\MS_E_mainline_int\Stable_int\Remote_int\mpsx_Remote_sprint1\3
-  C:\cv\lsku_NewBuild_dev2\265_Rc\Rc_Tp\Src\Impl\Nfc\Rc_Tp_Nfc.cpp@@\main\MS_E_mainline_int\Stable_int\mpsx_Remote_sprint1\3
-			</diffbl>
+			<activities>
+				<activity>activity:ACTIVITY_TEST1@\PDS_PVOB</activity>
+			</activities>
+			<previous>baseline:BASELINE_TEST0@\PDS_PVOB</previous>
 		</baseline>
 		
 		<baseline fqname="baseline:BASELINE_TEST2@\PDS_PVOB">
-			<component>component:COMPONENT_TEST2@\PDS_PVOB</component>
+			<component>component:COMPONENT_TEST1@\PDS_PVOB</component>
 			<plevel>INITIAL</plevel>
 			<pvob>\PDS_PVOB</pvob>
 			<shortname>BASELINE_TEST2</shortname>
-			<stream>stream:STREAM_TEST2@\PDS_PVOB</stream>
+			<stream>stream:STREAM_TEST1@\PDS_PVOB</stream>
 			<user>User 1</user>
 			<!-- White space separated Baseline list -->
 			<depends_on_closure></depends_on_closure>
 			<attributes>
 				<BuildInProgress>false</BuildInProgress>
 			</attributes>
-			<diffbl>
->> rebase.mpsx_Remote_sprint1.20101015.142723@\PDS_PVOB "rebase mpsx_Remote_sprint1 on 15-10-2010 14:27:23."
-  C:\cv\lsku_NewBuild_dev2\265_Rc\Rc_Hal\TargetEmbedded\Src\Impl\Scu\Rc_Hal_Scu.cpp@@\main\MS_E_mainline_int\Stable_int\mpsx_Remote_sprint1\2
-  C:\cv\lsku_NewBuild_dev2\265_Rc\Rc_Lib\UnitTest\Rc_Lib_ErrorHandling\StubFiles\Stub.cpp@@\main\MS_E_mainline_int\Stable_int\Remote_int\mpsx_Remote_sprint1\2
-  C:\cv\lsku_NewBuild_dev2\265_Rc\Rc_SubSys\TargetUnitTest\RcLib.vcproj@@\main\MS_E_mainline_int\Stable_int\Remote_int\mpsx_Remote_sprint1\4
->> rebase.mpsx_Remote_sprint1.20101014.173156@\PDS_PVOB "rebase mpsx_Remote_sprint1 on 14-10-2010 17:31:56."
-  C:\cv\lsku_NewBuild_dev2\265_Rc\Rc_Ui\UnitTest\Rc_Ui\StubFiles\Stub.cpp@@\main\MS_E_mainline_int\Stable_int\Remote_int\mpsx_Remote_sprint1\2
-  C:\cv\lsku_NewBuild_dev2\265_Rc\Rc_Safety\UnitTest\Rc_Safety\StubFiles\Stub.cpp@@\main\MS_E_mainline_int\Stable_int\Remote_int\mpsx_Remote_sprint1\2
-			</diffbl>
+			<activities>
+				<activity>activity:ACTIVITY_TEST2@\PDS_PVOB</activity>
+			</activities>
+			<previous>baseline:BASELINE_TEST1@\PDS_PVOB</previous>
 		</baseline>
+		
+		
+		<baseline fqname="baseline:BASELINE_TEST3@\PDS_PVOB">
+			<component>component:COMPONENT_TEST1@\PDS_PVOB</component>
+			<plevel>INITIAL</plevel>
+			<pvob>\PDS_PVOB</pvob>
+			<shortname>BASELINE_TEST3</shortname>
+			<stream>stream:STREAM_TEST1@\PDS_PVOB</stream>
+			<user>User 1</user>
+			<!-- White space separated Baseline list -->
+			<depends_on_closure></depends_on_closure>
+			<attributes>
+				<BuildInProgress>false</BuildInProgress>
+			</attributes>
+			<activities>
+				<activity>activity:ACTIVITY_TEST3@\PDS_PVOB</activity>
+			</activities>
+			<previous>baseline:BASELINE_TEST2@\PDS_PVOB</previous>
+		</baseline>		
+
 		
 	</baselines>
 	
 	<!-- ACTIVITIES -->
 	<activities>
+		
 		<activity fqname="activity:ACTIVITY_TEST1@\PDS_PVOB">
-			<changesets>
-				<changeset>changeset:CHANGESET_TEST1@\PDS_PVOB</changeset>
-			</changesets>
+			<changeset>
+				<version>c:\VERSION_TEST\main.cpp@@\main\1</version>
+				<version>c:\VERSION_TEST\main.cpp@@\main\2</version>
+				<version>c:\VERSION_TEST\main.cpp@@\main\3</version>
+				<version>c:\VERSION_TEST\ultra.cpp@@\main\1</version>
+				<version>c:\VERSION_TEST\mega.cpp@@\main\1</version>
+			</changeset>
 			<user>User 1</user>
 		</activity>
+		
+		<activity fqname="activity:ACTIVITY_TEST2@\PDS_PVOB">
+			<changeset>
+				<version>c:\VERSION_TEST\common.h@@\main\1</version>
+				<version>c:\VERSION_TEST\types.h@@\main\213</version>
+				<version>c:\VERSION_TEST\matrix.h@@\main\32</version>
+			</changeset>
+			<user>User 2</user>
+		</activity>
+		
+		<activity fqname="activity:ACTIVITY_TEST3@\PDS_PVOB">
+			<changeset>
+				<version>c:\VERSION_TEST\index.php@@\main\1</version>
+				<version>c:\VERSION_TEST\debug.php@@\main\2</version>
+				<version>c:\VERSION_TEST\tables.sql@@\main\1</version>
+			</changeset>
+			<user>User 3</user>
+		</activity>
+		
 	</activities>
 	
-	<!-- CHANGESETS -->
-	<changesets>
-		<changeset fqname="changeset:CHANGESET_TEST1@\PDS_PVOB">
-			<versions>
-				<version>c:\VERSION_TEST\main.cpp@\main\1</version>
-				<version>c:\VERSION_TEST\main.cpp@\main\2</version>
-				<version>c:\VERSION_TEST\main.cpp@\main\3</version>
-			</versions>
-		</changeset>
-	</changesets>
 	
 	<!-- VERSIONS -->
 	<versions>
-		<version fqname="c:\VERSION_TEST\main.cpp@\main\1">
+		
+		<version fqname="c:\VERSION_TEST\main.cpp@@\main\1">
 			<user>User 1</user>
-			<date>2010-10-26</date>
+			<date>2010-01-02</date>
 			<comment>Comment for main 1</comment>
 			<machine>Machine 1</machine>
 			<kind>Kind 1</kind>
 			<branch>dev</branch>
 			<checkedout></checkedout>
 		</version>
-		<version fqname="c:\VERSION_TEST\main.cpp@\main\2">
+		
+		<version fqname="c:\VERSION_TEST\main.cpp@@\main\2">
 			<user>User 1</user>
 			<date>2010-10-26</date>
 			<comment>Comment for main 2</comment>
@@ -132,7 +163,8 @@
 			<branch>dev</branch>
 			<checkedout></checkedout>
 		</version>
-		<version fqname="c:\VERSION_TEST\main.cpp@\main\3">
+		
+		<version fqname="c:\VERSION_TEST\main.cpp@@\main\3">
 			<user>User 1</user>
 			<date>2010-10-26</date>
 			<comment>Comment for main 3</comment>
@@ -141,22 +173,99 @@
 			<branch>dev</branch>
 			<checkedout></checkedout>
 		</version>
+		
+		<version fqname="c:\VERSION_TEST\ultra.cpp@@\main\1">
+			<user>User 2</user>
+			<date>2010-11-01</date>
+			<comment>Comment for main 3</comment>
+			<machine>Machine 2</machine>
+			<kind>Kind 1</kind>
+			<branch>dev</branch>
+			<checkedout></checkedout>
+		</version>
+		
+		<version fqname="c:\VERSION_TEST\mega.cpp@@\main\1">
+			<user>User 2</user>
+			<date>2010-11-01</date>
+			<comment>Comment for main 3</comment>
+			<machine>Machine 2</machine>
+			<kind>Kind 1</kind>
+			<branch>dev</branch>
+			<checkedout></checkedout>
+		</version>
+		
+		<version fqname="c:\VERSION_TEST\common.h@@\main\1">
+			<user>User 2</user>
+			<date>2010-11-01</date>
+			<comment>Comment for main 3</comment>
+			<machine>Machine 2</machine>
+			<kind>Kind 1</kind>
+			<branch>dev</branch>
+			<checkedout></checkedout>
+		</version>
+		
+		<version fqname="c:\VERSION_TEST\types.h@@\main\213">
+			<user>User 2</user>
+			<date>2010-11-01</date>
+			<comment>Comment for main 3</comment>
+			<machine>Machine 2</machine>
+			<kind>Kind 1</kind>
+			<branch>dev</branch>
+			<checkedout></checkedout>
+		</version>
+		
+		<version fqname="c:\VERSION_TEST\matrix.h@@\main\32">
+			<user>User 2</user>
+			<date>2010-11-01</date>
+			<comment>Comment for main 3</comment>
+			<machine>Machine 2</machine>
+			<kind>Kind 1</kind>
+			<branch>dev</branch>
+			<checkedout></checkedout>
+		</version>
+		
+		<version fqname="c:\VERSION_TEST\index.php@@\main\1">
+			<user>User 2</user>
+			<date>2010-11-01</date>
+			<comment>Comment for main 3</comment>
+			<machine>Machine 2</machine>
+			<kind>Kind 1</kind>
+			<branch>dev</branch>
+			<checkedout></checkedout>
+		</version>
+		
+		<version fqname="c:\VERSION_TEST\debug.php@@\main\2">
+			<user>User 2</user>
+			<date>2010-11-01</date>
+			<comment>Comment for main 3</comment>
+			<machine>Machine 2</machine>
+			<kind>Kind 1</kind>
+			<branch>dev</branch>
+			<checkedout></checkedout>
+		</version>
+		
+		<version fqname="c:\VERSION_TEST\tables.sql@@\main\1">
+			<user>User 2</user>
+			<date>2010-11-01</date>
+			<comment>Comment for main 3</comment>
+			<machine>Machine 2</machine>
+			<kind>Kind 1</kind>
+			<branch>dev</branch>
+			<checkedout></checkedout>
+		</version>
+		
 	</versions>
 		
 	
 	<!-- STREAMS -->
 	<streams>
 		
-		<stream fqname="stream:EH@\PDS_PVOB">
-			<recommended_baseline>baseline:Remote_15-10-2010_MPSX_Fixed_NFC_timer_subscription</recommended_baseline>
-		</stream>
-		
 		<stream fqname="stream:STREAM_TEST1@\PDS_PVOB">
-			<recommended_baseline>baseline:BASELINE_TEST1</recommended_baseline>
+			<recommended_baseline>baseline:BASELINE_TEST2</recommended_baseline>
 		</stream>
 		
 		<stream fqname="stream:STREAM_TEST2@\PDS_PVOB">
-			<recommended_baseline>baseline:BASELINE_TEST2</recommended_baseline>
+			<recommended_baseline>baseline:BASELINE_TEST22</recommended_baseline>
 		</stream>
 		
 	</streams>
@@ -164,11 +273,6 @@
 	<!-- COMPONENTS -->
 	<components>
 
-		<component fqname="component:EH@\PDS_PVOB">
-			<pvob>\PDS_PVOB</pvob>
-			<shortname>EH</shortname>
-			<rootdir>c:\</rootdir>
-		</component>
 		
 		<component fqname="component:COMPONENT_TEST1@\PDS_PVOB">
 			<pvob>\PDS_PVOB</pvob>

@@ -1,5 +1,8 @@
 package net.praqma.clearcase.cleartool;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import net.praqma.debug.Debug;
 
 public class CleartoolFactory extends AbstractCleartoolFactory
@@ -81,8 +84,8 @@ public class CleartoolFactory extends AbstractCleartoolFactory
 		return false;
 	}
 
-	public String[] ListBaselines( String component, String stream,
-			String plevel )
+	public ArrayList<String> ListBaselines( String component, String stream,
+			String plevel, boolean shortname )
 	{
 		// TODO Auto-generated method stub
 		return null;
@@ -101,7 +104,7 @@ public class CleartoolFactory extends AbstractCleartoolFactory
 		
 	}
 
-	public String LoadVersion( String version )
+	public HashMap<String, String> LoadVersion( String version )
 	{
 		// TODO Auto-generated method stub
 		return null;
@@ -114,6 +117,18 @@ public class CleartoolFactory extends AbstractCleartoolFactory
 	}
 
 	public String GetChangeset( String activity )
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public ArrayList<String> GetBaselineActivities( String baseline )
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public ArrayList<String> GetBaselineDiffsNmergePrevious( String baseline )
 	{
 		// TODO Auto-generated method stub
 		return null;

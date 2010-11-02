@@ -65,7 +65,7 @@ public class Component extends ClearBase
 		// cleartool_qx('lsbl -s -component '.$self->get_fqname().' -stream '.$stream->get_fqname());
 		//String cmd = "lsbl -s -component "  + this.GetFQName() + " -stream " + stream.GetFQName();
 		//String[] result = Cleartool.run_a( cmd );
-		String[] result = CF.lsbl_s_comp_stream( this.GetFQName(), stream.GetFQName() );
+		String[] result = CTF.lsbl_s_comp_stream( this.GetFQName(), stream.GetFQName() );
 		
 		ArrayList<Baseline> qbls = new ArrayList<Baseline>();
 		
@@ -98,11 +98,8 @@ public class Component extends ClearBase
 	{
 		logger.trace_function();
 		
-		logger.debug( "Getting recommended baseline" );
-		
 		ArrayList<Baseline> grb = stream.GetRecBls( false );
 		
-		logger.debug( "Got it" );
 		if( grb.size() != 1 )
 		{
 			logger.error( "ERROR: Componet::get_bls_with_plevel( ). Didn't expect more than a single baseline as Recommended baseline on " + stream.GetFQName() );
@@ -126,12 +123,12 @@ public class Component extends ClearBase
 		// my @retval = cleartool_qx(' lsbl -s -component '.$self->get_fqname().' -stream '.$stream->get_fqname().' -level '.$params{'plevel'});
 		//String cmd = "lsbl -s -component "  + this.fqname + " -stream " + stream.GetFQName() + " -level " + plevel.GetName();
 		//String[] result = Cleartool.run_a( cmd );
-		String[] result = CF.ListBaselines( this.fqname, stream.GetFQName(), plevel.GetName() );
-		Utilities.PrintArray( result );
-		logger.debug( "List Baselines = " + result.length );
+		ArrayList<String> result = CTF.ListBaselines( this.fqname, stream.GetFQName(), plevel.GetName(), true );
+
+		logger.debug( "List Baselines = " + result.size() );
 		
 		boolean match = false;
-		int counter = result.length;
+		int counter = result.size();
 		/* ASK shouldn't it be NOT newer? */
 		if( newer_than_recommended )
 		{
@@ -139,18 +136,17 @@ public class Component extends ClearBase
 			while( counter > 0 && !match )
 			{
 				counter--;
-				match = result[counter].trim().equals( recbl.GetShortname() );
+				match = result.get( counter ).trim().equals( recbl.GetShortname() );
+				logger.debug( "Matching: " + result.get( counter ) + " == " + recbl.GetShortname() );
 			}
 		}
 		
 		logger.debug( "Got newer" + counter );
 		
-		Utilities.PrintArray( result );
-		
 		for( int i = 0 ; i < counter ; i++ )
 		{
 			//Baseline blobj = new Baseline( result[i].trim(), true );
-			Baseline blobj = Baseline.GetObject( result[i].trim(), true );
+			Baseline blobj = Baseline.GetObject( result.get( i ).trim() + "@" + this.pvob, true );
 			if( include_builds_in_progress || !blobj.BuildInProgess() )
 			{
 				bls.add( blobj );

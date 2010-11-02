@@ -56,7 +56,7 @@ public class CC4HNotifier extends Notifier {
 		return true;
 	}
 
-	@Override
+	//@Override
 	public BuildStepMonitor getRequiredMonitorService() {
 		logger.trace_function();
 		//TODO Check to see when BUILD should be returned and when not.
