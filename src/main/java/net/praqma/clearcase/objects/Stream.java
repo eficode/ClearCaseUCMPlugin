@@ -101,8 +101,12 @@ public class Stream extends ClearBase
 		return Stream.GetObject( stream_fqname, false );
 	}
 	
+	public boolean Recommend( Baseline baseline )
+	{
+		return Recommend( baseline, null );
+	}
 	
-	public int Recommend( Baseline baseline, String comment )
+	public boolean Recommend( Baseline baseline, String comment )
 	{
 		comment = comment != null ? " -c \"" + comment + "\"" : " -nc";
 		// cleartool chstream " . $comment . " -recommend " . $baseline->get_fqname() . ' ' . $self->get_fqname() . ' 2>&1';
@@ -112,13 +116,13 @@ public class Stream extends ClearBase
 		{
 			//Cleartool.run( cmd );
 			CTF.RecommendBaseline( this.fqname, baseline.GetFQName() );
-			return 1;
+			return true;
 		}
 		catch( CleartoolException e )
 		{
 			logger.error( "Stream " + this.shortname + " could not recommend baseline " + baseline.GetShortname() );
 			System.out.println( "Stream " + this.shortname + " could not recommend baseline " + baseline.GetShortname() );
-			return 0;
+			return false;
 		}	
 	}
 	
@@ -524,10 +528,6 @@ public class Stream extends ClearBase
 		}
 	}
 
-
-
-
-	
 
 
 	

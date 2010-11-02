@@ -116,12 +116,17 @@ public abstract class ClearBase
 		return plevel;
 	}
 	
-	protected String Stringify()
+	public String Stringify()
 	{
 		logger.trace_function();
 		
 		logger.debug( "Stringify of object " + this.fqname + ". This method should be overridden!!!" );
 		return "Stringify of object " + this.fqname + ". This method should be overridden!!!";
+	}
+	
+	public String toString()
+	{
+		return this.fqname;
 	}
 	
 	

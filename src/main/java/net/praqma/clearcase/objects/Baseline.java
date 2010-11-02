@@ -6,6 +6,9 @@ import net.praqma.debug.Debug;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -123,7 +126,31 @@ public class Baseline extends ClearBase
 	
 	public String GetHlinkString()
 	{
-		return "";
+		if( !this.loaded )
+		{
+			this.Load();
+		}
+		
+		StringBuffer sb = new StringBuffer();
+		
+		Iterator<Entry<String, Tag>> it = this.tags.entrySet().iterator();
+	    while( it.hasNext() )
+	    {
+	    	Map.Entry<String, Tag> pair = (Map.Entry<String, Tag>)it.next();
+	    	sb.append( pair.getKey() + "=" + pair.getValue().GetValue() + "&" );
+	    }
+		
+		return sb.toString();
+	}
+	
+	public void SetTag( Tag tag )
+	{
+		tags.put( tag.GetKey(), tag );
+	}
+	
+	public boolean Recommend()
+	{
+		return this.stream.Recommend( this );
 	}
 
 	
@@ -501,6 +528,11 @@ public class Baseline extends ClearBase
 	public ArrayList<Version> GetDiffs( String format, boolean nmerge )
 	{
 		return _GetDiffs( format, nmerge, null );
+	}
+	
+	public ArrayList<Version> GetDiffs( )
+	{
+		return _GetDiffs( "list", true, null );
 	}
 	
 	private ArrayList<Version> _GetDiffs( String format, boolean nmerge, String viewroot )

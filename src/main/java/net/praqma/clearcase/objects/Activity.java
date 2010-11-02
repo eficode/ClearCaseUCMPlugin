@@ -120,7 +120,7 @@ public class Activity extends ClearBase
 		return Activity.GetObject( id + "@" + view.GetPvob(), true );
 	}
 	
-	public String toString()
+	public String Stringify()
 	{
 		logger.trace_function();
 		
@@ -134,6 +134,13 @@ public class Activity extends ClearBase
 		tostr.append( "pvob: " + this.pvob );
 		
 		return tostr.toString();
+	}
+	
+	public String toString()
+	{
+		logger.trace_function();
+		
+		return this.fqname + "";
 	}
 	
 	public Changeset GetChangeSet()
