@@ -25,6 +25,7 @@ import org.kohsuke.stapler.QueryParameter;
 import net.praqma.clearcase.objects.Baseline;
 import net.praqma.clearcase.objects.Component;
 import net.praqma.clearcase.objects.Stream;
+import net.praqma.clearcase.objects.Version;
 import net.praqma.debug.Debug;
 import net.praqma.clearcase.objects.ClearBase;
 import net.praqma.scm.SCMRevisionStateImpl;
@@ -100,8 +101,8 @@ public class CC4HClass extends SCM {
 		 */
 		logger.log("Writing infomation from CC4HClass.checkout: " + stream + " & " + component + " & " + levelToPoll);
 		//TODO perform actual checkout (In clearcase context this means create the workspace(=set the filepath for hudson to use))
-		Component comp = Component.GetObject(component, true); // (TODO:true means that we know the component exists in PVOB)
-		Stream s = Stream.GetObject(stream, true); //TODO: Should be false??
+		Component comp = Component.GetObject(component, false); // (TODO:true means that we know the component exists in PVOB)
+		Stream s = Stream.GetObject(stream, false); //TODO: Should be false??
 		
 		List<Baseline> baselines = comp.GetBlsWithPlevel(s, ClearBase.Plevel.valueOf(levelToPoll), false, false/*TODO:newerThanRecommended*/);
 		
@@ -118,7 +119,7 @@ public class CC4HClass extends SCM {
 		}
 		
 		baseline.MarkBuildInProgess(); //TODO: Here we need Tag instead, including Hudson job info
-		List<String> changes = baseline.GetDiffs("list", true);//true means -nmerge TODO Should we move it to compareRemoteRevisionsWith()?
+		List<Version> changes = baseline.GetDiffs("list", true);//true means -nmerge TODO Should we move it to compareRemoteRevisionsWith()?
 
 		return writeChangelog(changelogFile,changes);
 	}
@@ -133,17 +134,17 @@ public class CC4HClass extends SCM {
 	 * @return true if the changelog was persisted, false if not.
 	 * @throws IOException
 	 */
-	private boolean writeChangelog(File changelogFile, List<String> changes) throws IOException {
+	private boolean writeChangelog(File changelogFile, List<Version> changes) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		//Here the .hudson/jobs/[project name]/changelog.xml is written
 		//TODO: Skal der flere levels i et changeset? Afklar med Lars og Christian hvordan strukturen ser ud..
 		baos.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>".getBytes());
 		baos.write("<changelog>".getBytes());
 		String temp;
-		for(String s: changes)
+		for(Version v: changes)
 		{
 			baos.write("<changeset>".getBytes());
-			temp = "<filepath>" + s + "</filepath>";
+			temp = "<filepath>" + "Branch: "+v.GetBranch()+" Date "+v.GetDate()+" filename: "+v.GetFilename()+" machine: "+v.GetMachine()+" revision: "+v.GetRevision()+" user: "+v.GetUser() + "</filepath>";
 			baos.write(temp.getBytes());
 			baos.write("</changeset>".getBytes());
 		}

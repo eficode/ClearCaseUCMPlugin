@@ -85,19 +85,21 @@ public class CC4HNotifier extends Notifier {
 		
 		Result result = build.getResult();
 		if (result.equals(Result.SUCCESS)){
-			//TODO: set Tag on Baseline
+			
 			//TODO: Should Tag also keep track of build-status?
-			//baseline.promote(); - waiting for implementation
+			baseline.Promote(); 
 			logger.log("Baseline promoted to next level.");			
 			res = true;
 		} else if (result.equals(Result.FAILURE)){
-			//baselineHer.demote();- waiting for implementation
+			baseline.Demote();
 			logger.log("Baseline demoted to rejected.");
 			res = true;
 		} else {
 			logger.log("Result was " + result + ". Not handled by plugin.");
 			res = false;
 		}
+		//TODO: set Tag on Baseline
+		logger.log("baseline plevel after build: "+baseline.GetPlevel());
 		return res;
 	}
 	

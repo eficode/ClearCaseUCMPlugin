@@ -21,7 +21,7 @@ public abstract class ClearBase
 	protected String fqname = null;
 	
 	private static final boolean isTest = true;
-	private static boolean hudson = false;
+	private static boolean hudson = true;
 	protected static AbstractCleartoolFactory CTF = null;
 	
 	protected boolean loaded = false;
