@@ -120,7 +120,10 @@ public class CC4HClass extends SCM {
 		
 		baseline.MarkBuildInProgess(); //TODO: Here we need Tag instead, including Hudson job info
 		List<Version> changes = baseline.GetDiffs("list", true);//true means -nmerge TODO Should we move it to compareRemoteRevisionsWith()?
-
+		
+		/*If there is a new baseline, but no new files - we DO NOT build*/
+		if (changes.size()==0)
+			return false;
 		return writeChangelog(changelogFile,changes);
 	}
 	
@@ -144,7 +147,7 @@ public class CC4HClass extends SCM {
 		for(Version v: changes)
 		{
 			baos.write("<changeset>".getBytes());
-			temp = "<filepath>" + "Branch: "+v.GetBranch()+" Date "+v.GetDate()+" filename: "+v.GetFilename()+" machine: "+v.GetMachine()+" revision: "+v.GetRevision()+" user: "+v.GetUser() + "</filepath>";
+			temp = "<filepath>" + "Branch: "+v.GetBranch()+" Date "+v.GetDate()+" filename: "+v.GetFilename()+" machine: "+v.GetMachine()+" revision: "+v.GetRevision()+" user: "+v.GetUser()+ "</filepath>";
 			baos.write(temp.getBytes());
 			baos.write("</changeset>".getBytes());
 		}
