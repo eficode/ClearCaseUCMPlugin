@@ -20,13 +20,13 @@ import net.praqma.debug.Debug;
 public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl> {
 	
 	protected static Debug logger = Debug.GetLogger();	
-	private List<ChangeLogEntryImpl> history = null;
+	private List<ChangeLogEntryImpl> entries = null;
 
 	protected ChangeLogSetImpl(AbstractBuild<?, ?> build, List<ChangeLogEntryImpl> entries) {
 		super(build);
 		logger.trace_function();
 		logger.print_trace();
-		this.history = Collections.unmodifiableList(entries);
+		this.entries = Collections.unmodifiableList(entries);
         for (ChangeLogEntryImpl entry : entries) {
             entry.setParent(this);
         }
@@ -34,17 +34,21 @@ public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl> {
 	
 	public Iterator<ChangeLogEntryImpl> iterator() {
 		logger.trace_function();
-		return history.iterator();
+		return entries.iterator();
 	}
 
 	@Override
 	public boolean isEmptySet() {
 		logger.trace_function();
-		return history.isEmpty();
+		return entries.isEmpty();
 	}
 	
+	/**
+	 * Used by index.jelly to display list of entries
+	 * @return
+	 */
 	public List<ChangeLogEntryImpl> getEntries(){
 		logger.trace_function();
-		return history;
+		return entries;
 	}
 }

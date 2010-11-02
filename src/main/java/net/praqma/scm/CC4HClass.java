@@ -85,6 +85,7 @@ public class CC4HClass extends SCM {
 			BuildListener listener, File changelogFile) throws IOException,
 			InterruptedException {
 		logger.trace_function();
+
 		/* Examples to use from testbase.xml:
 		 *   a)
 		 *   stream = "stream:EH@\PDS_PVOB"
@@ -117,7 +118,7 @@ public class CC4HClass extends SCM {
 		}
 		
 		baseline.MarkBuildInProgess(); //TODO: Here we need Tag instead, including Hudson job info
-		List<String> changes = baseline.GetDiffs("list", true);//true means -nmerge
+		List<String> changes = baseline.GetDiffs("list", true);//true means -nmerge TODO Should we move it to compareRemoteRevisionsWith()?
 
 		return writeChangelog(changelogFile,changes);
 	}
