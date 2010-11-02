@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import hudson.Extension;
@@ -61,8 +62,8 @@ public class CC4HClass extends SCM {
 	 * @param levelToPoll This string defines the level to poll ClearCase for.
 	 * @param loadModule This string tells if we should load all modules or only the ones that are modifiable.
 	 * @param stream This string defines the stream needed to find baselines.
-	 * @param newest This boolean tells if we should build only the newest baseline.
-	 * @param newerThanRecommended This boolean tells if we only should care about baselines that are newer than the recommended baseline. 
+	 * @param newest This boolean tells whether we should build only the newest baseline.
+	 * @param newerThanRecommended This boolean tells whether we should look at all baselines or only ones newer than the recommended baseline 
 	 */
 	@DataBoundConstructor
 	public CC4HClass(String component, String levelToPoll, String loadModule,
@@ -88,27 +89,23 @@ public class CC4HClass extends SCM {
 		logger.trace_function();
 
 		/* Examples to use from testbase.xml:
-		 *   a)
-		 *   stream = "stream:EH@\PDS_PVOB"
-		 *   component = "component:EH@\PDS_PVOB"
-		 *   Level to poll = "INITIAL
-		 *   (2 files changed)
-		 *   b)
 		 *   stream = "stream:STREAM_TEST1@\PDS_PVOB"
 		 *   component = "component:COMPONENT_TEST1@\PDS_PVOB"
 		 *   Level to poll = "INITIAL
-		 *   (14 files changed)
+		 *   (3 files changed)
 		 */
-		logger.log("Writing infomation from CC4HClass.checkout: " + stream + " & " + component + " & " + levelToPoll);
-		//TODO perform actual checkout (In clearcase context this means create the workspace(=set the filepath for hudson to use))
-		Component comp = Component.GetObject(component, false); // (TODO:true means that we know the component exists in PVOB)
-		Stream s = Stream.GetObject(stream, false); //TODO: Should be false??
+
+		//setting up workspace
+		Component comp = Component.GetObject(component, false); // (false means that we don't trust that the component exists in PVOB)
+		Stream s = Stream.GetObject(stream, false); 
 		
+		
+		/*TODO consider moving rest of method to calcRevisionsFromBuild - remember to make variables global*/
 		List<Baseline> baselines = comp.GetBlsWithPlevel(s, ClearBase.Plevel.valueOf(levelToPoll), false, false/*TODO:newerThanRecommended*/);
 		
 		//Here is logic for getting baseline depending on boolean 'newest'
 		if(baselines.size()>0){
-			if(newest){//TODO maybe if/else needs to be switched?
+			if(newest){
 				baseline = baselines.get(0);
 			} else {
 				baseline = baselines.get(baselines.size()-1);
@@ -119,7 +116,7 @@ public class CC4HClass extends SCM {
 		}
 		
 		baseline.MarkBuildInProgess(); //TODO: Here we need Tag instead, including Hudson job info
-		List<Version> changes = baseline.GetDiffs("list", true);//true means -nmerge TODO Should we move it to compareRemoteRevisionsWith()?
+		List<Version> changes = baseline.GetDiffs();//TODO Should we move it to compareRemoteRevisionsWith()?
 		
 		/*If there is a new baseline, but no new files - we DO NOT build*/
 		if (changes.size()==0)
@@ -174,6 +171,7 @@ public class CC4HClass extends SCM {
 			FilePath workspace, TaskListener listener, SCMRevisionState baseline)
 			throws IOException, InterruptedException {
 		logger.trace_function();
+		/*IF a baseline is made WITHOUT any changed files - we could return PollingResult.SIGNIFICANT and a changelog (with user and comment) but not build.*/
 		//This method doesn't do anything - checkout() does the work for now
 		return PollingResult.BUILD_NOW; 
 	}
@@ -183,7 +181,10 @@ public class CC4HClass extends SCM {
 			Launcher launcher, TaskListener listener) throws IOException,
 			InterruptedException {
 		logger.trace_function();
+		PrintStream output = listener.getLogger();
+		output.println("Getting new SCMRevisionStateImpl...");//TODO make sensible text here
 		SCMRevisionStateImpl scmRS = new SCMRevisionStateImpl();
+		
 		logger.log (" scmRS: "+scmRS.toString());
 		//TODO: DET  ER HER, DER SNER - her skal returneres null (ingen nye baselines) eller en liste af baselines eller noget boolean-noget
 		return scmRS;
