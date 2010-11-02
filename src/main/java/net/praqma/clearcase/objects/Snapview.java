@@ -37,6 +37,8 @@ public class Snapview extends View
 	protected static final String rx_components = "all|mod";
 	protected static final String rx_log        = "/(^\\s*log has been written to)\\s*\"(.*?)\"";
 	
+
+	
 	private Snapview( String viewroot, boolean trusted )
 	{
 		logger.trace_function();
@@ -89,6 +91,10 @@ public class Snapview extends View
 		return obj;
 	}
 	
+	private void Load()
+	{
+		this.loaded = true;
+	}	
 	
 	public Snapview Create( String tag, String viewroot, Stream stream )
 	{
@@ -544,5 +550,22 @@ public class Snapview extends View
 		}
 		
 		return uuid;
+	}
+	
+	
+	public String Stringify()
+	{
+		logger.trace_function();
+		
+		if( !this.loaded ) this.Load();
+		
+		String r = "Fully qualified name = " + this.fqname + "(" + viewType + ")" + linesep;
+		r += "viewtag = " + viewtag + linesep;
+		r += "PVOB = " + pvob + linesep;
+		r += "viewroot = " + viewroot + linesep;
+		r += "Stream = " + stream.GetFQName() + linesep;
+		r += "Activity = " + cact.GetFQName() + linesep;
+		
+		return r;
 	}
 }

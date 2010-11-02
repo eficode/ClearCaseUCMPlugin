@@ -79,6 +79,8 @@ public class Changeset extends ClearBase
 	{
 		logger.trace_function();
 		
+		if( !this.loaded ) this.Load();
+		
 		String s = "Outputting Changeset " + this.fqname + linesep;
 		
 		for( Version v: this.versions )

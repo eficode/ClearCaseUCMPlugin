@@ -124,6 +124,8 @@ public class Activity extends ClearBase
 	{
 		logger.trace_function();
 		
+		if( !this.loaded ) this.Load();
+		
 		StringBuffer tostr = new StringBuffer();
 		tostr.append( "fqactivity: " + this.fqactivity );
 		tostr.append( "shortname: " + this.shortname );

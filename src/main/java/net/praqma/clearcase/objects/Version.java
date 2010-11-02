@@ -236,7 +236,25 @@ public class Version extends ClearBase
 		if( !this.loaded ) Load();
 		return this.branch;
 	}
+
 	
+	public String Stringify()
+	{
+		logger.trace_function();
+		
+		if( !this.loaded ) this.Load();
+		
+		String r = "File = " + file + "\\" + revision + linesep;
+		r += "Date = " + date + linesep;
+		r += "User = " + user + linesep;
+		r += "machine = " + machine + linesep;
+		r += "Comment = " + comment + linesep;
+		r += "Branch = " + branch + linesep;
+		r += "Checkout = " + ( checkedout == true ? "yes" : "no" ) + ". VAL=" + checkedout;
+		
+		return r;
+	}
+
 }
 
 

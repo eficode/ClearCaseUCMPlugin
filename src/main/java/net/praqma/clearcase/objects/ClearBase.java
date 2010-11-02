@@ -4,7 +4,10 @@ import net.praqma.debug.Debug;
 import net.praqma.clearcase.cleartool.*;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,6 +66,16 @@ public abstract class ClearBase
 	
 	protected static final String filesep                     = System.getProperty( "file.separator" );
 	protected static final String linesep                     = System.getProperty( "line.separator" );
+	
+	public static void Print()
+	{
+		Iterator<Entry<String, ClearBase>> it = objects.entrySet().iterator();
+	    while( it.hasNext() )
+	    {
+	    	Map.Entry<String, ClearBase> pair = (Map.Entry<String, ClearBase>)it.next();
+	    	System.out.println( pair.getValue().getClass().getSimpleName() + ": " + pair.getKey() );
+	    }
+	}
 	
 	/**
 	 * Test if a component is a fully qualified component in the format: baseline\@\\PVOB (not: $fqobj)

@@ -25,8 +25,9 @@ public class Stream extends ClearBase
 	private String viewroot                = null;
 	private ArrayList<Activity> activities = null;
 	private String shortname               = null;
-	private String pvob                    = null;	
+	private String pvob                    = null;
 	
+
 	private Stream( String fqstream, boolean trusted )
 	{
 		logger.trace_function();
@@ -100,6 +101,11 @@ public class Stream extends ClearBase
 		//return new Stream( stream_fqname, false );
 		return Stream.GetObject( stream_fqname, false );
 	}
+	
+	private void Load()
+	{
+		this.loaded = true;
+	}	
 	
 	public boolean Recommend( Baseline baseline )
 	{
@@ -529,6 +535,43 @@ public class Stream extends ClearBase
 	}
 
 
+	
+	public String Stringify()
+	{
+		logger.trace_function();
+		
+		if( !this.loaded ) this.Load();
+		
+		String r = "Fully qualified name = " + this.fqname + linesep;
+		r += "shortname = " + shortname + linesep;
+		r += "PVOB = " + pvob + linesep;
+		r += "viewroot = " + viewroot + linesep;
+		
+		if( rec_bls != null )
+		{
+			r += "Recommended Baselines(" + rec_bls.size() + "): " + linesep;
+			int c = 0;
+			for( Baseline b : rec_bls )
+			{
+				r += "["+c+"]" + b.GetFQName() + linesep;
+				c++;
+			}
+		}
+		
+		if( activities != null )
+		{
+			r += "Activities(" + activities.size() + "): " + linesep;
+			int c = 0;
+			for( Activity a : activities )
+			{
+				r += "["+c+"]" + a.GetFQName() + linesep;
+				c++;
+			}
+		}
+		
+		return r;
+	}
+	
 
 	
 }

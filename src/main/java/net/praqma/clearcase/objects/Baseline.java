@@ -172,10 +172,7 @@ public class Baseline extends ClearBase
 	{
 		logger.trace_function();
 		
-		if( user == null )
-		{
-			Load();
-		}
+		if( !this.loaded ) this.Load();
 		
 		return user;
 	}
@@ -188,10 +185,7 @@ public class Baseline extends ClearBase
 	{
 		logger.trace_function();
 		
-		if( component == null )
-		{
-			Load();
-		}
+		if( !this.loaded ) this.Load();
 		
 		return component;
 	}
@@ -204,10 +198,7 @@ public class Baseline extends ClearBase
 	{
 		logger.trace_function();
 		
-		if( stream == null )
-		{
-			Load();
-		}
+		if( !this.loaded ) this.Load();
 		
 		return stream;
 	}
@@ -290,10 +281,7 @@ public class Baseline extends ClearBase
 	{
 		logger.trace_function();
 		
-		if( shortname == null )
-		{
-			Load();
-		}
+		if( !this.loaded ) this.Load();
 		
 		return shortname;
 	}
@@ -662,10 +650,7 @@ public class Baseline extends ClearBase
 	{
 		logger.trace_function();
 		
-		if( this.shortname == null )
-		{
-			this.Load();
-		}
+		if( !this.loaded ) this.Load();
 		
 		StringBuffer tostr = new StringBuffer();
 		tostr.append( "fqobj: " + this.fqobj + linesep );

@@ -14,6 +14,7 @@ public class Component extends ClearBase
 	private String pvob      = null;
 	private String rootdir   = null;
 	
+
 	
 	private Component( String fqobj, boolean trusted )
 	{
@@ -56,6 +57,11 @@ public class Component extends ClearBase
 		objects.put( fqname, obj );
 		
 		return obj;
+	}
+	
+	private void Load()
+	{
+		this.loaded = true;
 	}
 	
 	public ArrayList<Baseline> GetBlsQueuedFor( Stream stream, String qlevel, int queue_level )
@@ -224,6 +230,20 @@ public class Component extends ClearBase
 		//cleartool("mkattr ".$replace." ".$params{attr}.' '.$params{value}." ".$self->get_fqname());
 		String cmd = "mkattr " + replace + " " + attr + " " + value + " " + this.GetFQName();
 		return Cleartool.run( cmd );
+	}
+	
+	public String Stringify()
+	{
+		logger.trace_function();
+		
+		if( !this.loaded ) this.Load();
+		
+		String r = "Fully qualified name = " + this.fqname + linesep;
+		r += "Shortname = " + shortname + linesep;
+		r += "PVOB = " + pvob + linesep;
+		r += "rootdir = " + rootdir + linesep;
+		
+		return r;
 	}
 
 }
