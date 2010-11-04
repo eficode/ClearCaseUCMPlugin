@@ -1,9 +1,12 @@
 package net.praqma.notifier;
 
 import java.io.IOException;
+import java.io.PrintStream;
+import java.util.List;
 
 import org.kohsuke.stapler.StaplerRequest;
 import net.praqma.clearcase.objects.Baseline;
+import net.praqma.clearcase.objects.Tag;
 import net.praqma.debug.Debug;
 import hudson.Extension;
 import hudson.Launcher;
@@ -31,6 +34,7 @@ public class CC4HNotifier extends Notifier {
 	private boolean promote;
 	private boolean recommended;
 	private Baseline baseline;
+	private PrintStream hudsonOut;
 	
 	protected static Debug logger = Debug.GetLogger();
 	
@@ -71,16 +75,22 @@ public class CC4HNotifier extends Notifier {
 	public boolean perform(AbstractBuild build, Launcher launcer, BuildListener listener)throws InterruptedException, IOException {
 		logger.trace_function();
 		boolean res = false;
+		hudsonOut = listener.getLogger();
 
 		SCM scmTemp = build.getProject().getScm();
 		if (!(scmTemp instanceof CC4HClass)){
-			listener.fatalError("Not a CC4H scm. This Extension can only be used when polling from ClearCase with CC4H plugin.");
+			listener.fatalError("Not a ClearCase 4 Hudson scm. This Extension can only be used when polling from ClearCase with CC4H plugin.");
 			//Needs to return false right away to avoid errors
 			return false;
 		}
 
 		CC4HClass scm = (CC4HClass)scmTemp;
 		baseline = scm.getBaseline();
+		if (baseline == null){//If baseline is null, the user has already been notified in Console output from CC4HClass.checkout()
+			return false;
+		}
+			
+		//Rewriting tag to remove buildInProgress
 		baseline.UnMarkBuildInProgess(); //Unmark as buildInProgress (not relevant when working with Tag).
 		
 		Result result = build.getResult();
@@ -88,18 +98,22 @@ public class CC4HNotifier extends Notifier {
 			
 			//TODO: Should Tag also keep track of build-status?
 			baseline.Promote(); 
-			logger.log("Baseline promoted to next level.");			
+			hudsonOut.println("Baseline promoted to "+baseline.GetPlevel());						
 			res = true;
 		} else if (result.equals(Result.FAILURE)){
 			baseline.Demote();
-			logger.log("Baseline demoted to rejected.");
+			hudsonOut.println("Build failed - baseline is " + baseline.GetPlevel());
 			res = true;
 		} else {
+			hudsonOut.println("Baseline not changed "+result);
 			logger.log("Result was " + result + ". Not handled by plugin.");
 			res = false;
 		}
 		//TODO: set Tag on Baseline
-		logger.log("baseline plevel after build: "+baseline.GetPlevel());
+		//tag = baseline.getTag();//with build.getParent().getDisplayName()+build.getNumber()
+		//tag.setKey();
+		//tag.persist();
+		hudsonOut.println("Baseline now marked with "); //TODO print tag
 		return res;
 	}
 	
