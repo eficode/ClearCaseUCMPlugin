@@ -1,4 +1,4 @@
-package net.praqma.scm;
+package net.praqma.hudson.scm;
 
 import java.util.ArrayList;
 import java.util.Collection;

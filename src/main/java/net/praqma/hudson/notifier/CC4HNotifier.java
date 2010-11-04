@@ -1,4 +1,4 @@
-package net.praqma.notifier;
+package net.praqma.hudson.notifier;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -8,6 +8,7 @@ import org.kohsuke.stapler.StaplerRequest;
 import net.praqma.clearcase.objects.Baseline;
 import net.praqma.clearcase.objects.Tag;
 import net.praqma.debug.Debug;
+import net.praqma.hudson.scm.CC4HClass;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.BuildListener;
@@ -20,14 +21,13 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
-import net.praqma.scm.CC4HClass;
 import net.sf.json.JSONObject;
 
 /**
  * CC4HNotifier has the resposibility of 'cleaning up' in ClearCase after a build.
  * 
  * @author Troels Selch Sørensen
- * @author Margit
+ * @author Margit Bennetzen
  *
  */
 public class CC4HNotifier extends Notifier {

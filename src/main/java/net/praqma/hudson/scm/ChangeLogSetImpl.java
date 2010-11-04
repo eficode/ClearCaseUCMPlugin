@@ -1,4 +1,4 @@
-package net.praqma.scm;
+package net.praqma.hudson.scm;
 
 import java.util.Collections;
 import java.util.Iterator;

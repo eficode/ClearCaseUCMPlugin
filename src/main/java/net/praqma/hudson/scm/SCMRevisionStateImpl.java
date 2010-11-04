@@ -1,8 +1,14 @@
-package net.praqma.scm;
+package net.praqma.hudson.scm;
 
 import hudson.scm.SCMRevisionState;
 import net.praqma.debug.Debug;
 
+/**
+ * 
+ * @author Troels Selch Sørensen
+ * @author Margit Bennetzen
+ *
+ */
 public class SCMRevisionStateImpl extends SCMRevisionState {
 	
 	protected static Debug logger = Debug.GetLogger();

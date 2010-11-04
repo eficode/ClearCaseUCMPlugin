@@ -1,4 +1,4 @@
-package net.praqma.scm;
+package net.praqma.hudson.scm;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -29,7 +29,6 @@ import net.praqma.clearcase.objects.Stream;
 import net.praqma.clearcase.objects.Version;
 import net.praqma.debug.Debug;
 import net.praqma.clearcase.objects.ClearBase;
-import net.praqma.scm.SCMRevisionStateImpl;
 
 /**
  * CC4HClass is responsible for everything regarding Hudsons connection to ClearCase pre-build.
