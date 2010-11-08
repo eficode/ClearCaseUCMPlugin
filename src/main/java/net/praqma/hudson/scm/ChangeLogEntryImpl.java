@@ -19,10 +19,11 @@ public class ChangeLogEntryImpl extends Entry {
 	
 	private ChangeLogSetImpl parent; 
 	private String msg;
-	//TODO implement user 
+	private String author;
+	private String date;
 	protected static Debug logger = Debug.GetLogger();
 	private volatile List<String> affectedPaths = new ArrayList<String>(); //list of changed files
-	
+	//we need a list of files here
 	public ChangeLogEntryImpl(){
 		logger.trace_function();
 	}
@@ -57,6 +58,10 @@ public class ChangeLogEntryImpl extends Entry {
 		logger.trace_function();
 		return User.getUnknown();
 	}
+	
+	public void setAuthor(String author){
+		this.author = author;
+	}
 
 	/**
 	 * This is to tell the Entry which Changeset it belongs to 
@@ -75,9 +80,15 @@ public class ChangeLogEntryImpl extends Entry {
 		return msg;
 	}
 	
-	/*
-	 * TODO The Digester in ChangeLogParserImpl.parse() will use this when comment gets implemented 
-	 * public void setMsg(String msg) {
+	public void setMsg(String msg) {
 		this.msg = msg;
-	}*/
+	}
+
+	public void setDate(String date) {
+		this.date = date;
+	}
+
+	public String getDate() {
+		return date;
+	}
 }

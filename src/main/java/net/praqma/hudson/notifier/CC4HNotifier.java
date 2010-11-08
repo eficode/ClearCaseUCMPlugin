@@ -114,6 +114,7 @@ public class CC4HNotifier extends Notifier {
 		//tag.setKey();
 		//tag.persist();
 		hudsonOut.println("Baseline now marked with "); //TODO print tag
+		logger.print_trace();
 		return res;
 	}
 	

@@ -25,7 +25,7 @@ public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl> {
 	protected ChangeLogSetImpl(AbstractBuild<?, ?> build, List<ChangeLogEntryImpl> entries) {
 		super(build);
 		logger.trace_function();
-		logger.print_trace();
+
 		this.entries = Collections.unmodifiableList(entries);
         for (ChangeLogEntryImpl entry : entries) {
             entry.setParent(this);

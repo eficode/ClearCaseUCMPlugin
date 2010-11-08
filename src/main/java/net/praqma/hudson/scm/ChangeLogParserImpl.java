@@ -32,7 +32,7 @@ public class ChangeLogParserImpl extends ChangeLogParser {
 	public ChangeLogSet<? extends Entry> parse(AbstractBuild build, File changelogFile)
 			throws IOException, SAXException {
 		logger.trace_function();
-		logger.log("build: "+build.toString()+" changelogFile: "+changelogFile.toString());
+		
 		
 		List<ChangeLogEntryImpl> entries = new ArrayList<ChangeLogEntryImpl>();
 		
@@ -40,10 +40,10 @@ public class ChangeLogParserImpl extends ChangeLogParser {
         
 		Digester digester = new Digester2();
 		digester.push(entries);
-		digester.addObjectCreate("*/changeset", ChangeLogEntryImpl.class);
-		digester.addSetProperties("*/changeset");
-		digester.addBeanPropertySetter("*/changeset/filepath","nextFilepath");
-		digester.addSetNext("*/changeset","add");
+		digester.addObjectCreate("*/entry", ChangeLogEntryImpl.class);
+		digester.addSetProperties("*/entry/file");
+		digester.addBeanPropertySetter("*/entry/file","nextFilepath");
+		digester.addSetNext("*/entry","add");
 
 		/*StringReader reader = new StringReader("<changelog><changeset version=\"1212\">" +
 				"<filepath>this is the 1st filepath</filepath>" +
@@ -53,7 +53,6 @@ public class ChangeLogParserImpl extends ChangeLogParser {
 		FileReader reader = new FileReader(changelogFile);
 		digester.parse(reader);
 		reader.close();
-		
 		return new ChangeLogSetImpl(build, entries);
 	}
 

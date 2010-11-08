@@ -96,6 +96,10 @@ public class CC4HClass extends SCM {
 		 *   Level to poll = "INITIAL
 		 *   (3 files changed)
 		 */
+	
+	
+		//and also here we make a view with loadModules etc
+		
 		
 		//setting up workspace
 		Component comp = null;
@@ -119,7 +123,7 @@ public class CC4HClass extends SCM {
 				+ "for "+component+" and "+stream+ " on promotionlevel "+levelToPoll);
 		
 		/*TODO consider moving rest of method to calcRevisionsFromBuild - remember to make variables global*/
-		List<Baseline> baselines = comp.GetBlsWithPlevel(s, ClearBase.Plevel.valueOf(levelToPoll), false, false/*TODO:newerThanRecommended*/);
+		List<Baseline> baselines = comp.GetBlsWithPlevel(s, ClearBase.Plevel.valueOf(levelToPoll), false, false/*TODO:newerThanRecommended*/);//check if include_builds_in_progress should be false 
 		
 		//Here is logic for getting baseline depending on boolean 'newest'
 		if(baselines.size()>0){
@@ -146,6 +150,18 @@ public class CC4HClass extends SCM {
 		hudsonOut.println("build.getParent().getDisplayName(): "+build.getParent().getDisplayName());
 		
 		baseline.MarkBuildInProgess(); //TODO: Here we need Tag instead, including Hudson job info
+		//SetTtag
+		//Tag.persist
+		hudsonOut.println("Settting Tag on Baseline");
+		try{
+			
+			//mk workspace - that is - Ask 'backend' to do so with workspace (Filepath from constructor), baseline, loadrules
+		}catch(Exception e){
+			hudsonOut.println("Could not make workspace - Tag is removed from baseline");
+			// remove Tag 
+			// persist remove
+		}
+		
 	
 		//List<Tag> tags = baseline.getTags() //with build.getParent().getDisplayName()
 		//go through list and check for buildInProgress
@@ -179,6 +195,8 @@ public class CC4HClass extends SCM {
 	 * @throws IOException
 	 */
 	private boolean writeChangelog(File changelogFile, List<Version> changes) throws IOException {
+		String ls = System.getProperty("line.seperator");
+
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		//Here the .hudson/jobs/[project name]/changelog.xml is written
 		//TODO: Skal der flere levels i et changeset? Afklar med Lars og Christian hvordan strukturen ser ud..
@@ -186,14 +204,21 @@ public class CC4HClass extends SCM {
 		try{
 			baos.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>".getBytes());
 			baos.write("<changelog>".getBytes());
+
+			baos.write("<changeset>".getBytes());
+			//loop
 			String temp;
+			baos.write("<entry>".getBytes());
 			for(Version v: changes)
 			{
-				baos.write("<changeset>".getBytes());
-				temp = "<filepath>" + "Branch: "+v.GetBranch()+" Date "+v.GetDate()+" filename: "+v.GetFilename()+" machine: "+v.GetMachine()+" revision: "+v.GetRevision()+" user: "+v.GetUser()+ "</filepath>";
+				//temp = "<filepath>" + "Branch: "+v.GetBranch()+" Date "+v.GetDate()+" filename: "+v.GetFilename()+" machine: "+v.GetMachine()+" revision: "+v.GetRevision()+" user: "+v.GetUser()+ "</filepath>";
+				temp = "<file>" + v.GetFilename() + " " + v.GetUser()/*getv.getBlame*/+" " + v.GetDate()+" " + /*v.getMessage()*/"</file>";
 				baos.write(temp.getBytes());
-				baos.write("</changeset>".getBytes());
 			}
+			baos.write("</entry>".getBytes());
+			//end loop
+			baos.write("</changeset>".getBytes());
+			
 			baos.write("</changelog>".getBytes());
 			FileOutputStream fos = new FileOutputStream(changelogFile);
 			//FileOutputStream fos = new FileOutputStream(new File("F:\temp")); //use this line to test changelog write failure
