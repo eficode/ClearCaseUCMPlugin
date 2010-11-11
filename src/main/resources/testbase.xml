@@ -19,6 +19,7 @@
 			</attributes>
 			<activities>
 				<activity>activity:ACTIVITY_TEST1@\PDS_PVOB</activity>
+				<activity>activity:ACTIVITY_TEST2@\PDS_PVOB</activity>
 			</activities>
 			<previous>baseline:BASELINE_TEST0@\PDS_PVOB</previous>
 		</baseline>
@@ -36,6 +37,7 @@
 				<BuildInProgress>false</BuildInProgress>
 			</attributes>
 			<activities>
+				<activity>activity:ACTIVITY_TEST2@\PDS_PVOB</activity>
 				<activity>activity:ACTIVITY_TEST2@\PDS_PVOB</activity>
 			</activities>
 			<previous>baseline:BASELINE_TEST1@\PDS_PVOB</previous>
@@ -56,6 +58,7 @@
 			</attributes>
 			<activities>
 				<activity>activity:ACTIVITY_TEST3@\PDS_PVOB</activity>
+				<activity>activity:ACTIVITY_TEST2@\PDS_PVOB</activity>
 			</activities>
 			<previous>baseline:BASELINE_TEST2@\PDS_PVOB</previous>
 		</baseline>		

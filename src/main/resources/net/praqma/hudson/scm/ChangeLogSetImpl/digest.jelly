@@ -10,7 +10,7 @@
       <b>Summary of changes:</b>
       <br/>
 
-      ${it.items.size()} files changed
+      ${it.items.size()} activities.
 
     </j:otherwise>
   </j:choose>

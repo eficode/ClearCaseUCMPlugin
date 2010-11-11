@@ -31,6 +31,7 @@ import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Component.BaselineList;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
+import net.praqma.clearcase.ucm.entities.UCMEntityException;
 import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.utils.TagQuery;
 import net.praqma.debug.Debug;
@@ -181,8 +182,11 @@ public class CC4HClass extends SCM {
 			//loop
 			String temp;
 			baos.write("<entry>".getBytes());
+			baos.write(("<blName>"+bl.GetShortname()+"</blName>").getBytes());
 			for(Activity act:changes){
 				baos.write("<activity>".getBytes());
+				baos.write(("<actName>"+act.GetShortname()+"</actName>").getBytes());
+				baos.write(("<author>Hudson:"+act.GetUser()+"</author>").getBytes());
 				List<Version> versions = act.changeset.versions;
 				for(Version v: versions)
 				{
@@ -255,9 +259,15 @@ public class CC4HClass extends SCM {
 	}
 	
 	private boolean checkForBaselines(PrintStream hudsonOut){
-		hudsonOut.println("component: "+component+" stream: "+ stream);
-		Component co = UCMEntity.GetComponent(component);
-		Stream st = UCMEntity.GetStream(stream);
+		Component co = null;
+		Stream st = null;
+		try{
+			co = UCMEntity.GetComponent("component:"+component);
+			st = UCMEntity.GetStream("stream:"+stream);
+		}catch (UCMEntityException ucmEe){
+			hudsonOut.println(ucmEe.toString());
+			return false;
+		}
 
 		//listener.fatalError("Stream "+stream+" does not exist");
 

@@ -18,6 +18,7 @@ import net.praqma.debug.Debug;
 public class ChangeLogEntryImpl extends Entry {
 	
 	private ChangeLogSetImpl parent; 
+	private String actName;
 	private String msg;
 	private String author;
 	private String date;
@@ -77,7 +78,7 @@ public class ChangeLogEntryImpl extends Entry {
 	 */
 	@Override
 	public String getMsg() {
-		return msg;
+		return actName;
 	}
 	
 	public void setMsg(String msg) {
@@ -90,5 +91,13 @@ public class ChangeLogEntryImpl extends Entry {
 
 	public String getDate() {
 		return date;
+	}
+
+	public void setActName(String actName) {
+		this.actName = actName;
+	}
+
+	public String getActName() {
+		return actName;
 	}
 }

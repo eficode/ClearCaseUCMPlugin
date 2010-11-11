@@ -40,10 +40,12 @@ public class ChangeLogParserImpl extends ChangeLogParser {
         
 		Digester digester = new Digester2();
 		digester.push(entries);
-		digester.addObjectCreate("*/entry", ChangeLogEntryImpl.class);
-		digester.addSetProperties("*/entry/file");
-		digester.addBeanPropertySetter("*/entry/file","nextFilepath");
-		digester.addSetNext("*/entry","add");
+		digester.addObjectCreate("*/entry/activity", ChangeLogEntryImpl.class);
+		digester.addSetProperties("*/entry/activity");
+		digester.addBeanPropertySetter("*/entry/activity/file","nextFilepath");
+		digester.addBeanPropertySetter("*/entry/activity/actName");
+		digester.addBeanPropertySetter("*/entry/activity/author");
+		digester.addSetNext("*/entry/activity","add");
 
 		/*StringReader reader = new StringReader("<changelog><changeset version=\"1212\">" +
 				"<filepath>this is the 1st filepath</filepath>" +

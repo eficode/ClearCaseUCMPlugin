@@ -21,6 +21,7 @@ public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl> {
 	
 	protected static Debug logger = Debug.GetLogger();	
 	private List<ChangeLogEntryImpl> entries = null;
+	private String baselineName;
 
 	protected ChangeLogSetImpl(AbstractBuild<?, ?> build, List<ChangeLogEntryImpl> entries) {
 		super(build);
@@ -50,5 +51,13 @@ public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl> {
 	public List<ChangeLogEntryImpl> getEntries(){
 		logger.trace_function();
 		return entries;
+	}
+
+	public void setBaselineName(String baselineName) {
+		this.baselineName = baselineName;
+	}
+
+	public String getBaselineName() {
+		return baselineName;
 	}
 }
