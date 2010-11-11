@@ -60,6 +60,36 @@ public class Version extends UCMEntity
 		this.file  = tmp;
 	}
 	
+	/* Getters */
+	
+	public String GetUser()
+	{
+		if( !loaded ) Load();
+		
+		return this.user;
+	}
+	
+	public String GetFile()
+	{
+		if( !loaded ) Load();
+		
+		return this.file;
+	}
+	
+	public String GetDate()
+	{
+		if( !loaded ) Load();
+		
+		return this.date;
+	}
+	
+	public int GetRevision()
+	{
+		if( !loaded ) Load();
+		
+		return this.revision;
+	}
+	
 	public void Load()
 	{
 		logger.trace_function();
