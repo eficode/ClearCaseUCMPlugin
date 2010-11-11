@@ -1,12 +1,5 @@
 package net.praqma.hudson.scm;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -15,20 +8,36 @@ import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.scm.ChangeLogParser;
-import hudson.scm.SCM;
-import hudson.scm.SCMDescriptor;
 import hudson.scm.PollingResult;
+import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
+import hudson.scm.SCM;
 import hudson.util.FormValidation;
-import org.kohsuke.stapler.DataBoundConstructor;
-import net.sf.json.JSONObject;
-import org.kohsuke.stapler.QueryParameter;
-import net.praqma.clearcase.objects.Baseline;
-import net.praqma.clearcase.objects.Component;
-import net.praqma.clearcase.objects.Stream;
-import net.praqma.clearcase.objects.Version;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import net.praqma.clearcase.ucm.entities.Baseline;
+
+//import net.praqma.clearcase.ucm.entities.ClearBase;
+import net.praqma.clearcase.ucm.entities.Activity;
+import net.praqma.clearcase.ucm.entities.Baseline.BaselineDiff;
+import net.praqma.clearcase.ucm.entities.Component;
+import net.praqma.clearcase.ucm.entities.Component.BaselineList;
+import net.praqma.clearcase.ucm.entities.Stream;
+import net.praqma.clearcase.ucm.entities.UCMEntity;
+import net.praqma.clearcase.ucm.entities.Version;
+import net.praqma.clearcase.ucm.utils.TagQuery;
 import net.praqma.debug.Debug;
-import net.praqma.clearcase.objects.ClearBase;
+import net.sf.json.JSONObject;
+
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 
 /**
  * CC4HClass is responsible for everything regarding Hudsons connection to ClearCase pre-build.
@@ -47,11 +56,12 @@ public class CC4HClass extends SCM {
 	private boolean newest;
 	private boolean newerThanRecommended;
 	
-	private Baseline baseline;
+	private Baseline bl;
 	private List<String> levels = null;
 	private List<String> loadModules = null;
-	
-	private PrintStream hudsonOut;//hudsonOut.println("");
+	//private List<Baseline> baselines;
+	private BaselineList baselines;
+	private boolean compRevCalled;
 	
 	protected static Debug logger = Debug.GetLogger();
 
@@ -88,7 +98,7 @@ public class CC4HClass extends SCM {
 			BuildListener listener, File changelogFile) throws IOException,
 			InterruptedException {
 		logger.trace_function();
-		hudsonOut = listener.getLogger();
+		PrintStream hudsonOut = listener.getLogger();
 
 		/* Examples to use from testbase.xml:
 		 *   stream = "stream:STREAM_TEST1@\PDS_PVOB"
@@ -100,59 +110,18 @@ public class CC4HClass extends SCM {
 		//TODO set up workspace with snapshot and loadmodules
 		//TODO new getBaselines call with getBaselines (String stream, String component, String plevel, boolean newerThanRecommended)
 		//TODO sort received baselines with tag and next/newest
-		//TODO Flyt polling ned i compareRemoteRevisionWith eller noget..
-		Component comp = null;
-		try{
-			comp = Component.GetObject(component, false); // (false means that we don't trust that the component exists in PVOB)
-			hudsonOut.println("component: "+comp); //component does not necessarily exist because of lazy-load
-		}catch(NullPointerException n){
-			listener.fatalError("Component "+component+" does not exist");
-			return false;
+		if (!compRevCalled){
+			if(!checkForBaselines(hudsonOut))
+				return false;
 		}
 			
-		Stream s = null;
-		try{
-			s = Stream.GetObject(stream, false);
-			hudsonOut.println("stream: "+s);
-		}catch (NullPointerException n){
-			listener.fatalError("Stream "+stream+" does not exist");
-			return false;
-		}
-	
-		if (s == null || comp == null)			
-			return false;
-	
-		hudsonOut.println("Getting " + (newerThanRecommended?"baselines newer than the recomended baseline ":"all baselines ")
-				+ "for "+component+" and "+stream+ " on promotionlevel "+levelToPoll);
-		
-		/*TODO consider moving rest of method to calcRevisionsFromBuild - remember to make variables global*/
-		List<Baseline> baselines = comp.GetBlsWithPlevel(s, ClearBase.Plevel.valueOf(levelToPoll), false, false/*TODO:newerThanRecommended*/);//check if include_builds_in_progress should be false 
-		
-		//Here is logic for getting baseline depending on boolean 'newest'
-		if(baselines.size()>0){
-			hudsonOut.println("Retrieved baselines:");
-			for(Baseline b : baselines)
-				hudsonOut.println(b.GetShortname());
-			if(newest){
-				baseline = baselines.get(0);
-				hudsonOut.println("Building newest baseline: "+baseline);
-			} else {
-				baseline = baselines.get(baselines.size()-1);
-				hudsonOut.println("Building next baseline: "+baseline);
-			}
-		} else {
-			//Nothing to do
-			hudsonOut.println("No baselines on chosen parameters");
-			return false;
-		}
-		
 		//possible values for tag
 		hudsonOut.println("build.getNumber(): "+build.getNumber());
 		hudsonOut.println("build.getTimestampString(): "+build.getTimestampString());
 		hudsonOut.println("build.getTimestampString2(): "+build.getTimestampString2());
 		hudsonOut.println("build.getParent().getDisplayName(): "+build.getParent().getDisplayName());
 		
-		baseline.MarkBuildInProgess(); //TODO: Here we need Tag instead, including Hudson job info
+		//bl.MarkBuildInProgess(); //TODO: Here we need Tag instead, including Hudson job info
 		//SetTag
 		//Tag.persist
 		hudsonOut.println("Settting Tag on Baseline");
@@ -177,13 +146,14 @@ public class CC4HClass extends SCM {
 		*/
 		hudsonOut.println("baseline is marked with: ");//TODO insert tag toString()
 		
-		List<Version> changes = baseline.GetDiffs();//TODO Should we move it to compareRemoteRevisionsWith()?
+		BaselineDiff changes = bl.GetDiffs();//TODO Should we move it to compareRemoteRevisionsWith()?
 			
 		hudsonOut.println(changes.size()+ " elements changed");
 		/*If there is a new baseline, but no new files - we DO NOT build*/
 		/*if (changes.size()==0)
 			return false;*/
-		return writeChangelog(changelogFile,changes);
+		compRevCalled = false; //bl = null here so it is possible to build manually and not ask twice if there are new baselines
+		return writeChangelog(changelogFile,changes, hudsonOut);
 	}
 	
 	/**
@@ -196,11 +166,12 @@ public class CC4HClass extends SCM {
 	 * @return true if the changelog was persisted, false if not.
 	 * @throws IOException
 	 */
-	private boolean writeChangelog(File changelogFile, List<Version> changes) throws IOException {
+	private boolean writeChangelog(File changelogFile, BaselineDiff changes, PrintStream hudsonOut) throws IOException {
 		String ls = System.getProperty("line.seperator");
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		//Here the .hudson/jobs/[project name]/changelog.xml is written
+		
 		hudsonOut.print("Writing Hudson changelog...");
 		try{
 			baos.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>".getBytes());
@@ -210,10 +181,15 @@ public class CC4HClass extends SCM {
 			//loop
 			String temp;
 			baos.write("<entry>".getBytes());
-			for(Version v: changes)
-			{
-				temp = "<file>" + v.GetDate()+" " + v.GetFilename() + "." +v.GetRevision()+ " " + v.GetUser()/*getv.getBlame*/+" " +  /*v.getMessage()*/"</file>";
-				baos.write(temp.getBytes());
+			for(Activity act:changes){
+				baos.write("<activity>".getBytes());
+				List<Version> versions = act.changeset.versions;
+				for(Version v: versions)
+				{
+					temp = "<file>" + v.toString()+"</file>";//v.GetDate()+" " + v.GetFilename() + "." +v.GetRevision()+ " " + v.GetUser()/*getv.getBlame*/+" " +  /*v.getMessage()*/"</file>";
+					baos.write(temp.getBytes());
+				}				
+				baos.write("</activity>".getBytes());
 			}
 			baos.write("</entry>".getBytes());
 			//end loop
@@ -249,10 +225,15 @@ public class CC4HClass extends SCM {
 			FilePath workspace, TaskListener listener, SCMRevisionState baseline)
 			throws IOException, InterruptedException {
 		logger.trace_function();
+		PrintStream hudsonOut = listener.getLogger();
 		hudsonOut.println("UDVIKLING: compareRemoteRevisionsWith"); //TODO remove/change output
 		
-		//This method doesn't do anything - checkout() does the work for now
-		return PollingResult.BUILD_NOW; 
+		if (checkForBaselines(hudsonOut)){
+			compRevCalled = true;
+			return PollingResult.BUILD_NOW;
+		}
+
+		return PollingResult.NO_CHANGES;
 	}
 
 	@Override
@@ -260,16 +241,56 @@ public class CC4HClass extends SCM {
 			Launcher launcher, TaskListener listener) throws IOException,
 			InterruptedException {
 		logger.trace_function();
-		
-		if (baseline == null){
+		PrintStream hudsonOut = listener.getLogger();
+		hudsonOut.println("UDVIKLING:  Getting new SCMRevisionStateImpl...");//TODO make sensible text here
+		if (bl == null){
 			return null;
 		}
-		hudsonOut.println("UDVIKLING:  Getting new SCMRevisionStateImpl...");//TODO make sensible text here
+		
 		SCMRevisionStateImpl scmRS = new SCMRevisionStateImpl();
 		
 		logger.log (" scmRS: "+scmRS.toString());
 		//TODO: DET  ER HER, DER SNER - her skal returneres null (ingen nye baselines) eller en liste af baselines eller noget boolean-noget
 		return scmRS;
+	}
+	
+	private boolean checkForBaselines(PrintStream hudsonOut){
+		hudsonOut.println("component: "+component+" stream: "+ stream);
+		Component co = UCMEntity.GetComponent(component);
+		Stream st = UCMEntity.GetStream(stream);
+
+		//listener.fatalError("Stream "+stream+" does not exist");
+
+		hudsonOut.println("Getting " + (newerThanRecommended?"baselines newer than the recomended baseline ":"all baselines ")
+				+ "for "+component+" and "+stream+ " on promotionlevel "+levelToPoll);
+		baselines = co.GetBaselines(st, UCMEntity.Plevel.valueOf(levelToPoll));
+		
+		//baselines = comp.GetBlsWithPlevel(s, ClearBase.Plevel.valueOf(levelToPoll), false, false/*TODO:newerThanRecommended*/);//check if include_builds_in_progress should be false 
+		
+		//Remove baselines that have buildInProgress - this is relevant if several builds are run at the same time on the same Hudson-job
+		
+		TagQuery tq = new TagQuery();
+		tq.AddCondition( "buildstatus", "^(?!inprogress$)" );
+		//String jobnumber = build.get
+		baselines = baselines.Filter( tq, "hudson", "007" );
+		
+		if(baselines.size()>0){
+			hudsonOut.println("Retrieved baselines:");
+			for(Baseline b : baselines)
+				hudsonOut.println(b.GetShortname());
+			if(newest){
+				bl = baselines.get(0);
+				hudsonOut.println("Building newest baseline: "+bl);
+			} else {
+				bl = baselines.get(baselines.size()-1);
+				hudsonOut.println("Building next baseline: "+bl);
+			}
+		} else {
+			//Nothing to do
+			hudsonOut.println("No baselines on chosen parameters");
+			return false;
+		}
+		return true;
 	}
 
 	/**
@@ -314,7 +335,7 @@ public class CC4HClass extends SCM {
 	 */
 	public Baseline getBaseline(){
 		logger.trace_function();
-		return baseline;
+		return bl;
 	}
 
 	/**

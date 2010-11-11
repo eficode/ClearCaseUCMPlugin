@@ -5,8 +5,8 @@ import java.io.PrintStream;
 import java.util.List;
 
 import org.kohsuke.stapler.StaplerRequest;
-import net.praqma.clearcase.objects.Baseline;
-import net.praqma.clearcase.objects.Tag;
+import net.praqma.clearcase.ucm.entities.Baseline;
+import net.praqma.clearcase.ucm.entities.Tag;
 import net.praqma.debug.Debug;
 import net.praqma.hudson.scm.CC4HClass;
 import hudson.Extension;
@@ -91,17 +91,17 @@ public class CC4HNotifier extends Notifier {
 		}
 			
 		//Rewriting tag to remove buildInProgress
-		baseline.UnMarkBuildInProgess(); //TODO Unmark as buildInProgress (not relevant when working with Tag).
+		//baseline.UnMarkBuildInProgess(); //TODO Unmark as buildInProgress (not relevant when working with Tag).
 		
 		Result result = build.getResult();
 		if (result.equals(Result.SUCCESS)){
 			baseline.Promote(); 
 			//TODO: Should Tag also keep track of baseline-status?
-			hudsonOut.println("Baseline promoted to "+baseline.GetPlevel());						
+			hudsonOut.println("Baseline promoted to "+baseline.GetPromotionLevel(true));//TODO check if true or false correct						
 			res = true;
 		} else if (result.equals(Result.FAILURE)){
 			baseline.Demote();
-			hudsonOut.println("Build failed - baseline is " + baseline.GetPlevel());
+			hudsonOut.println("Build failed - baseline is " + baseline.GetPromotionLevel(true));//TODO check if true or false correct
 			//TODO: Should Tag also keep track of baseline-status?
 			res = true;
 		} else {
