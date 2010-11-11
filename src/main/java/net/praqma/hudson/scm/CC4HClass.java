@@ -97,23 +97,26 @@ public class CC4HClass extends SCM {
 		 *   (3 files changed)
 		 */
 	
-	
-		//and also here we make a view with loadModules etc
-		
-		
-		//setting up workspace
+		//TODO set up workspace with snapshot and loadmodules
+		//TODO new getBaselines call with getBaselines (String stream, String component, String plevel, boolean newerThanRecommended)
+		//TODO sort received baselines with tag and next/newest
+		//TODO Flyt polling ned i compareRemoteRevisionWith eller noget..
 		Component comp = null;
 		try{
 			comp = Component.GetObject(component, false); // (false means that we don't trust that the component exists in PVOB)
+			hudsonOut.println("component: "+comp); //component does not necessarily exist because of lazy-load
 		}catch(NullPointerException n){
 			listener.fatalError("Component "+component+" does not exist");
+			return false;
 		}
 			
 		Stream s = null;
 		try{
 			s = Stream.GetObject(stream, false);
+			hudsonOut.println("stream: "+s);
 		}catch (NullPointerException n){
 			listener.fatalError("Stream "+stream+" does not exist");
+			return false;
 		}
 	
 		if (s == null || comp == null)			
@@ -150,7 +153,7 @@ public class CC4HClass extends SCM {
 		hudsonOut.println("build.getParent().getDisplayName(): "+build.getParent().getDisplayName());
 		
 		baseline.MarkBuildInProgess(); //TODO: Here we need Tag instead, including Hudson job info
-		//SetTtag
+		//SetTag
 		//Tag.persist
 		hudsonOut.println("Settting Tag on Baseline");
 		try{
@@ -162,7 +165,6 @@ public class CC4HClass extends SCM {
 			// persist remove
 		}
 		
-	
 		//List<Tag> tags = baseline.getTags() //with build.getParent().getDisplayName()
 		//go through list and check for buildInProgress
 		/*if (buildInprogress)
@@ -179,8 +181,8 @@ public class CC4HClass extends SCM {
 			
 		hudsonOut.println(changes.size()+ " elements changed");
 		/*If there is a new baseline, but no new files - we DO NOT build*/
-		if (changes.size()==0)
-			return false;
+		/*if (changes.size()==0)
+			return false;*/
 		return writeChangelog(changelogFile,changes);
 	}
 	
@@ -199,7 +201,6 @@ public class CC4HClass extends SCM {
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		//Here the .hudson/jobs/[project name]/changelog.xml is written
-		//TODO: Skal der flere levels i et changeset? Afklar med Lars og Christian hvordan strukturen ser ud..
 		hudsonOut.print("Writing Hudson changelog...");
 		try{
 			baos.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>".getBytes());
@@ -211,8 +212,7 @@ public class CC4HClass extends SCM {
 			baos.write("<entry>".getBytes());
 			for(Version v: changes)
 			{
-				//temp = "<filepath>" + "Branch: "+v.GetBranch()+" Date "+v.GetDate()+" filename: "+v.GetFilename()+" machine: "+v.GetMachine()+" revision: "+v.GetRevision()+" user: "+v.GetUser()+ "</filepath>";
-				temp = "<file>" + v.GetFilename() + " " + v.GetUser()/*getv.getBlame*/+" " + v.GetDate()+" " + /*v.getMessage()*/"</file>";
+				temp = "<file>" + v.GetDate()+" " + v.GetFilename() + "." +v.GetRevision()+ " " + v.GetUser()/*getv.getBlame*/+" " +  /*v.getMessage()*/"</file>";
 				baos.write(temp.getBytes());
 			}
 			baos.write("</entry>".getBytes());
@@ -249,8 +249,8 @@ public class CC4HClass extends SCM {
 			FilePath workspace, TaskListener listener, SCMRevisionState baseline)
 			throws IOException, InterruptedException {
 		logger.trace_function();
-		hudsonOut.println("UDVIKLING: compareRemoteRevisionsWith");
-		/*IF a baseline is made WITHOUT any changed files - we could return PollingResult.SIGNIFICANT and a changelog (with user and comment) but not build.*/
+		hudsonOut.println("UDVIKLING: compareRemoteRevisionsWith"); //TODO remove/change output
+		
 		//This method doesn't do anything - checkout() does the work for now
 		return PollingResult.BUILD_NOW; 
 	}

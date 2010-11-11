@@ -23,7 +23,7 @@ public class ChangeLogEntryImpl extends Entry {
 	private String date;
 	protected static Debug logger = Debug.GetLogger();
 	private volatile List<String> affectedPaths = new ArrayList<String>(); //list of changed files
-	//we need a list of files here
+	
 	public ChangeLogEntryImpl(){
 		logger.trace_function();
 	}
