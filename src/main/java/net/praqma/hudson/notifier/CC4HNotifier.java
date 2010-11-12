@@ -76,6 +76,7 @@ public class CC4HNotifier extends Notifier {
 		logger.trace_function();
 		boolean res = false;
 		hudsonOut = listener.getLogger();
+		hudsonOut.println("/n* * * Post build actions * * *");
 
 		SCM scmTemp = build.getProject().getScm();
 		if (!(scmTemp instanceof CC4HClass)){

@@ -60,9 +60,9 @@ public class CC4HClass extends SCM {
 	private Baseline bl;
 	private List<String> levels = null;
 	private List<String> loadModules = null;
-	//private List<Baseline> baselines;
 	private BaselineList baselines;
 	private boolean compRevCalled;
+	private String pollMsgs = "";
 	
 	protected static Debug logger = Debug.GetLogger();
 
@@ -108,55 +108,42 @@ public class CC4HClass extends SCM {
 		 *   (3 files changed)
 		 */
 	
-		//TODO set up workspace with snapshot and loadmodules
-		//TODO new getBaselines call with getBaselines (String stream, String component, String plevel, boolean newerThanRecommended)
-		//TODO sort received baselines with tag and next/newest
-		if (!compRevCalled){
-			if(!checkForBaselines(hudsonOut))
-				return false;
-		}
-			
-		//possible values for tag
-		hudsonOut.println("build.getNumber(): "+build.getNumber());
-		hudsonOut.println("build.getTimestampString(): "+build.getTimestampString());
-		hudsonOut.println("build.getTimestampString2(): "+build.getTimestampString2());
-		hudsonOut.println("build.getParent().getDisplayName(): "+build.getParent().getDisplayName());
 		
-		//bl.MarkBuildInProgess(); //TODO: Here we need Tag instead, including Hudson job info
+		if (!compRevCalled){
+			if(!checkForBaselines(build.getParent().getDisplayName())){
+				hudsonOut.println(pollMsgs);
+				pollMsgs = "";
+				return false;
+			}
+		}
+		
+		hudsonOut.println(pollMsgs);
+		pollMsgs = "";
+		
+		//TODO: Here we need Tag instead, including Hudson job info
 		//SetTag
 		//Tag.persist
 		hudsonOut.println("Settting Tag on Baseline");
 		try{
-			
+			//TODO set up workspace with snapshot and loadmodules
 			//mk workspace - that is - Ask 'backend' to do so with workspace (Filepath from constructor), baseline, loadrules
 		}catch(Exception e){
 			hudsonOut.println("Could not make workspace - Tag is removed from baseline");
 			// remove Tag 
 			// persist remove
+			return false;
 		}
 		
-		//List<Tag> tags = baseline.getTags() //with build.getParent().getDisplayName()
-		//go through list and check for buildInProgress
-		/*if (buildInprogress)
-			hudsonOut.println("baseline is marked with build in progress");
-			return false
-		else
-			så sætter vi tag
-			tag.setValue() 
-			tag.persist();
-		*/
 		hudsonOut.println("baseline is marked with: ");//TODO insert tag toString()
 		
 		BaselineDiff changes = bl.GetDiffs();//TODO Should we move it to compareRemoteRevisionsWith()?
 			
 		hudsonOut.println(changes.size()+ " elements changed");
-		/*If there is a new baseline, but no new files - we DO NOT build*/
-		/*if (changes.size()==0)
-			return false;*/
+
 		compRevCalled = false; //bl = null here so it is possible to build manually and not ask twice if there are new baselines
 		return writeChangelog(changelogFile,changes, hudsonOut);
 	}
-	
+		
 	/**
 	 * This method is used by {@link <public boolean checkout(AbstractBuild build, Launcher launcher, FilePath workspace,
 			BuildListener listener, File changelogFile) throws IOException,
@@ -179,7 +166,6 @@ public class CC4HClass extends SCM {
 			baos.write("<changelog>".getBytes());
 
 			baos.write("<changeset>".getBytes());
-			//loop
 			String temp;
 			baos.write("<entry>".getBytes());
 			baos.write(("<blName>"+bl.GetShortname()+"</blName>").getBytes());
@@ -196,13 +182,11 @@ public class CC4HClass extends SCM {
 				baos.write("</activity>".getBytes());
 			}
 			baos.write("</entry>".getBytes());
-			//end loop
 			baos.write("</changeset>".getBytes());
 			
 			baos.write("</changelog>".getBytes());
 			FileOutputStream fos = new FileOutputStream(changelogFile);
-			//FileOutputStream fos = new FileOutputStream(new File("F:\temp")); //use this line to test changelog write failure
-		    fos.write(baos.toByteArray());
+			fos.write(baos.toByteArray());
 		    fos.close();
 			hudsonOut.println(" DONE");
 			return true;
@@ -229,14 +213,13 @@ public class CC4HClass extends SCM {
 			FilePath workspace, TaskListener listener, SCMRevisionState baseline)
 			throws IOException, InterruptedException {
 		logger.trace_function();
+		SCMRevisionStateImpl scmState = (SCMRevisionStateImpl)baseline;
 		PrintStream hudsonOut = listener.getLogger();
-		hudsonOut.println("UDVIKLING: compareRemoteRevisionsWith"); //TODO remove/change output
 		
-		if (checkForBaselines(hudsonOut)){
+		if (checkForBaselines(baseline.getDisplayName())){
 			compRevCalled = true;
 			return PollingResult.BUILD_NOW;
 		}
-
 		return PollingResult.NO_CHANGES;
 	}
 
@@ -246,58 +229,49 @@ public class CC4HClass extends SCM {
 			InterruptedException {
 		logger.trace_function();
 		PrintStream hudsonOut = listener.getLogger();
-		hudsonOut.println("UDVIKLING:  Getting new SCMRevisionStateImpl...");//TODO make sensible text here
+		
 		if (bl == null){
 			return null;
 		}
 		
-		SCMRevisionStateImpl scmRS = new SCMRevisionStateImpl();
-		
-		logger.log (" scmRS: "+scmRS.toString());
-		//TODO: DET  ER HER, DER SNER - her skal returneres null (ingen nye baselines) eller en liste af baselines eller noget boolean-noget
+		SCMRevisionStateImpl scmRS = new SCMRevisionStateImpl(build.getParent().getDisplayName());
 		return scmRS;
 	}
 	
-	private boolean checkForBaselines(PrintStream hudsonOut){
+	private boolean checkForBaselines(String jobname){
 		Component co = null;
 		Stream st = null;
 		try{
 			co = UCMEntity.GetComponent("component:"+component);
 			st = UCMEntity.GetStream("stream:"+stream);
 		}catch (UCMEntityException ucmEe){
-			hudsonOut.println(ucmEe.toString());
+			pollMsgs += ucmEe.toString() +"\n";
 			return false;
 		}
 
-		//listener.fatalError("Stream "+stream+" does not exist");
-
-		hudsonOut.println("Getting " + (newerThanRecommended?"baselines newer than the recomended baseline ":"all baselines ")
-				+ "for "+component+" and "+stream+ " on promotionlevel "+levelToPoll);
+		pollMsgs += "Getting " + (newerThanRecommended?"baselines newer than the recomended baseline ":"all baselines ")
+				+ "for "+component+" and "+stream+ " on promotionlevel "+levelToPoll+"\n";
 		baselines = co.GetBaselines(st, UCMEntity.Plevel.valueOf(levelToPoll));
 		
-		//baselines = comp.GetBlsWithPlevel(s, ClearBase.Plevel.valueOf(levelToPoll), false, false/*TODO:newerThanRecommended*/);//check if include_builds_in_progress should be false 
-		
 		//Remove baselines that have buildInProgress - this is relevant if several builds are run at the same time on the same Hudson-job
-		
 		TagQuery tq = new TagQuery();
 		tq.AddCondition( "buildstatus", "^(?!inprogress$)" );
-		//String jobnumber = build.get
-		baselines = baselines.Filter( tq, "hudson", "007" );
+		
+		baselines = baselines.Filter( tq, "hudson", jobname );
 		
 		if(baselines.size()>0){
-			hudsonOut.println("Retrieved baselines:");
+			pollMsgs += "Retrieved baselines:\n";
 			for(Baseline b : baselines)
-				hudsonOut.println(b.GetShortname());
+				pollMsgs += b.GetShortname()+"\n";
 			if(newest){
 				bl = baselines.get(0);
-				hudsonOut.println("Building newest baseline: "+bl);
+				pollMsgs += "Building newest baseline: "+bl+"\n";
 			} else {
 				bl = baselines.get(baselines.size()-1);
-				hudsonOut.println("Building next baseline: "+bl);
+				pollMsgs += "Building next baseline: "+bl+"\n";
 			}
 		} else {
-			//Nothing to do
-			hudsonOut.println("No baselines on chosen parameters");
+			pollMsgs += "No baselines on chosen parameters.\n";
 			return false;
 		}
 		return true;

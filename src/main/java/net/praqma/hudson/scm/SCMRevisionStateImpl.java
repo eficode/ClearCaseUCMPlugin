@@ -13,17 +13,18 @@ public class SCMRevisionStateImpl extends SCMRevisionState {
 	
 	protected static Debug logger = Debug.GetLogger();
 	
-	private String baseline;
+	private String jobname;
+
 	
-	public SCMRevisionStateImpl(){
+	public SCMRevisionStateImpl(String jobname){
 		super();
 		logger.trace_function();
-		String baseline = "Vores_baseline"; 
+		this.jobname = jobname;
 	}
 
-	public String getBaseline() {
+	public String getJobname() {
 		logger.trace_function();
-		return baseline;
+		return jobname;
 	}
 
 }
