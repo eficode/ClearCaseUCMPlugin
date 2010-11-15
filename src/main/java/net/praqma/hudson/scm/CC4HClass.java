@@ -124,8 +124,7 @@ public class CC4HClass extends SCM {
 		hudsonOut.println("Creating tag. Jobname: "+jobname+". Buildnumber: "+buildno+". Status: In progress");
 		Tag tag = bl.CreateTag("hudson", jobname, build.getTimestampString2(), "inprogress");//TODO Sort out jobID - jobname not enough, but jobname is used in search in calcRevisiosb...
 		tag.SetEntry("buildno", buildno);
-		hudsonOut.println(tag.Stringify());
-		tag.Persist();
+		tag = tag.Persist();
 		
 		try{
 			//TODO set up workspace with snapshot and loadmodules
@@ -133,13 +132,11 @@ public class CC4HClass extends SCM {
 		}catch(Exception e){
 			hudsonOut.println("Could not make workspace - Tag is removed from baseline");
 			tag.SetEntry("buildstatus", "couldNotCreateSnapshot");
-			hudsonOut.println("persisting");
-			tag.Persist();
-			hudsonOut.println("done persisting");
+			tag = tag.Persist();
 			hudsonOut.println(tag.Stringify());
 			return false;
 		}
-		
+
 		hudsonOut.println("baseline is marked with: "+tag.toString());
 		
 		BaselineDiff changes = bl.GetDiffs();//TODO Should we move it to compareRemoteRevisionsWith()?

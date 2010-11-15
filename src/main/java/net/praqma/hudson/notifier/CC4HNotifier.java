@@ -76,7 +76,7 @@ public class CC4HNotifier extends Notifier {
 		logger.trace_function();
 		boolean res = false;
 		hudsonOut = listener.getLogger();
-		hudsonOut.println("/n* * * Post build actions * * *");
+		hudsonOut.println("\n* * * Post build actions * * *");
 
 		SCM scmTemp = build.getProject().getScm();
 		if (!(scmTemp instanceof CC4HClass)){
@@ -87,38 +87,45 @@ public class CC4HNotifier extends Notifier {
 
 		CC4HClass scm = (CC4HClass)scmTemp;
 		baseline = scm.getBaseline();
-		if (baseline == null){//If baseline is null, the user has already been notified in Console output from CC4HClass.checkout()
+		if (baseline == null){
+			//If baseline is null, the user has already been notified in Console output from CC4HClass.checkout()
 			return false;
 		}
 			
-		//Rewriting tag to remove buildInProgress
-		//baseline.UnMarkBuildInProgess(); //TODO Unmark as buildInProgress (not relevant when working with Tag).
+		//Getting tag to change buildstatus
 		Tag tag = baseline.GetTag("hudson", build.getParent().getDisplayName());
-		tag.SetEntry("buildstatus","DONE");
-		hudsonOut.println(tag.Stringify());
-		tag.Persist();
 		
 		Result result = build.getResult();
+		
 		if (result.equals(Result.SUCCESS)){
-			baseline.Promote(); 
-			//TODO: Should Tag also keep track of baseline-status?
-			hudsonOut.println("Baseline promoted to "+baseline.GetPromotionLevel(true));//TODO check if true or false correct						
-			res = true;
+			try{
+				baseline.Promote();
+				tag.SetEntry("buildstatus","SUCCESS");
+				hudsonOut.println("Baseline promoted to "+baseline.GetPromotionLevel(true));//TODO check if true or false correct						
+				res = true;
+			} catch(Exception e) {
+				hudsonOut.println("Build success, but new plevel could not be set.");
+			}
 		} else if (result.equals(Result.FAILURE)){
-			baseline.Demote();
-			hudsonOut.println("Build failed - baseline is " + baseline.GetPromotionLevel(true));//TODO check if true or false correct
-			//TODO: Should Tag also keep track of baseline-status?
-			res = true;
+			try {
+				baseline.Demote();
+				tag.SetEntry("buildstatus","FAILURE");
+				hudsonOut.println("Build failed - baseline is " + baseline.GetPromotionLevel(true));//TODO check if true or false correct
+				res = true;
+			}catch(Exception e){
+				hudsonOut.println("Build failure, but new plevel could not be set.");
+			}
 		} else {
-			hudsonOut.println("Baseline not changed "+result);
-			logger.log("Result was " + result + ". Not handled by plugin.");
+			hudsonOut.println("Baseline not changed. Buildstatus: "+result);
+			logger.log("Buildstatus (Result) was " + result + ". Not handled by plugin.");
 			res = false;
 		}
-		//TODO: set Tag on Baseline
-		//tag = baseline.getTag();//with build.getParent().getDisplayName()+build.getNumber()
-		//tag.setKey();
-		//tag.persist();
-		hudsonOut.println("Baseline now marked with tag:"+tag.Stringify()); //TODO print tag
+		try{
+			tag = tag.Persist();
+			hudsonOut.println("Baseline now marked with tag:"+tag.Stringify());
+		} catch(Exception e) {
+			hudsonOut.println("Could not change tag in ClearCase. Contact ClearCase administrator to do this manually.");
+		}
 		logger.print_trace();
 		return res;
 	}
