@@ -109,6 +109,7 @@ public class CC4HClass extends SCM {
 		 */
 	
 		String jobname = build.getParent().getDisplayName();
+		String buildno = String.valueOf(build.getNumber());
 		if (!compRevCalled){
 			if(!checkForBaselines(jobname)){
 				hudsonOut.println(pollMsgs);
@@ -120,15 +121,22 @@ public class CC4HClass extends SCM {
 		hudsonOut.println(pollMsgs);
 		pollMsgs = "";
 		
+		hudsonOut.println("Creating tag. Jobname: "+jobname+". Buildnumber: "+buildno+". Status: In progress");
 		Tag tag = bl.CreateTag("hudson", jobname, build.getTimestampString2(), "inprogress");//TODO Sort out jobID - jobname not enough, but jobname is used in search in calcRevisiosb...
-		hudsonOut.println("Settting Tag on Baseline");
+		tag.SetEntry("buildno", buildno);
+		hudsonOut.println(tag.Stringify());
+		tag.Persist();
+		
 		try{
 			//TODO set up workspace with snapshot and loadmodules
 			//mk workspace - that is - Ask 'backend' to do so with workspace (Filepath from constructor), baseline, loadrules
 		}catch(Exception e){
 			hudsonOut.println("Could not make workspace - Tag is removed from baseline");
 			tag.SetEntry("buildstatus", "couldNotCreateSnapshot");
+			hudsonOut.println("persisting");
 			tag.Persist();
+			hudsonOut.println("done persisting");
+			hudsonOut.println(tag.Stringify());
 			return false;
 		}
 		
@@ -214,7 +222,7 @@ public class CC4HClass extends SCM {
 		SCMRevisionStateImpl scmState = (SCMRevisionStateImpl)baseline;
 		PrintStream hudsonOut = listener.getLogger();
 		
-		if (checkForBaselines(baseline.getDisplayName())){
+		if (checkForBaselines(scmState.getJobname())){
 			compRevCalled = true;
 			return PollingResult.BUILD_NOW;
 		}
@@ -232,7 +240,7 @@ public class CC4HClass extends SCM {
 			return null;
 		}
 		
-		SCMRevisionStateImpl scmRS = new SCMRevisionStateImpl(build.getParent().getDisplayName());
+		SCMRevisionStateImpl scmRS = new SCMRevisionStateImpl(build.getParent().getDisplayName(), String.valueOf(build.getNumber()) );
 		return scmRS;
 	}
 	
@@ -256,12 +264,13 @@ public class CC4HClass extends SCM {
 			pollMsgs += "Could not retrieve baselines from repository\n";
 			return false;
 		}
-				
+		
 		//Remove baselines that have buildInProgress - this is relevant if several builds are run at the same time on the same Hudson-job
 		TagQuery tq = new TagQuery();
 		tq.AddCondition( "buildstatus", "^(?!inprogress$)" );
 		
-		baselines = baselines.Filter( tq, "hudson", jobname );
+		//Filter so only baselines from this job is in the list 
+		baselines = baselines.Filter( tq, "hudson" , jobname );
 		
 		if(baselines.size()>0){
 			pollMsgs += "Retrieved baselines:\n";

@@ -14,12 +14,13 @@ public class SCMRevisionStateImpl extends SCMRevisionState {
 	protected static Debug logger = Debug.GetLogger();
 	
 	private String jobname;
-
+	private String buildno;
 	
-	public SCMRevisionStateImpl(String jobname){
+	public SCMRevisionStateImpl(String jobname, String buildno){
 		super();
 		logger.trace_function();
 		this.jobname = jobname;
+		this.buildno = buildno;
 	}
 
 	public String getJobname() {
@@ -27,4 +28,7 @@ public class SCMRevisionStateImpl extends SCMRevisionState {
 		return jobname;
 	}
 
+	public String getJobno() {
+		return buildno;
+	}
 }

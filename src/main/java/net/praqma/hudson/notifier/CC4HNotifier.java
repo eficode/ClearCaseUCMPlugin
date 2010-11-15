@@ -93,6 +93,10 @@ public class CC4HNotifier extends Notifier {
 			
 		//Rewriting tag to remove buildInProgress
 		//baseline.UnMarkBuildInProgess(); //TODO Unmark as buildInProgress (not relevant when working with Tag).
+		Tag tag = baseline.GetTag("hudson", build.getParent().getDisplayName());
+		tag.SetEntry("buildstatus","DONE");
+		hudsonOut.println(tag.Stringify());
+		tag.Persist();
 		
 		Result result = build.getResult();
 		if (result.equals(Result.SUCCESS)){
@@ -114,7 +118,7 @@ public class CC4HNotifier extends Notifier {
 		//tag = baseline.getTag();//with build.getParent().getDisplayName()+build.getNumber()
 		//tag.setKey();
 		//tag.persist();
-		hudsonOut.println("Baseline now marked with "); //TODO print tag
+		hudsonOut.println("Baseline now marked with tag:"+tag.Stringify()); //TODO print tag
 		logger.print_trace();
 		return res;
 	}
