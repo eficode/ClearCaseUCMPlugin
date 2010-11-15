@@ -23,8 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.praqma.clearcase.ucm.entities.Baseline;
-
-//import net.praqma.clearcase.ucm.entities.ClearBase;
+import net.praqma.clearcase.ucm.entities.Tag;
 import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Baseline.BaselineDiff;
 import net.praqma.clearcase.ucm.entities.Component;
@@ -35,6 +34,7 @@ import net.praqma.clearcase.ucm.entities.UCMEntityException;
 import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.utils.TagQuery;
 import net.praqma.debug.Debug;
+
 import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -108,9 +108,9 @@ public class CC4HClass extends SCM {
 		 *   (3 files changed)
 		 */
 	
-		
+		String jobname = build.getParent().getDisplayName();
 		if (!compRevCalled){
-			if(!checkForBaselines(build.getParent().getDisplayName())){
+			if(!checkForBaselines(jobname)){
 				hudsonOut.println(pollMsgs);
 				pollMsgs = "";
 				return false;
@@ -120,21 +120,19 @@ public class CC4HClass extends SCM {
 		hudsonOut.println(pollMsgs);
 		pollMsgs = "";
 		
-		//TODO: Here we need Tag instead, including Hudson job info
-		//SetTag
-		//Tag.persist
+		Tag tag = bl.CreateTag("hudson", jobname, build.getTimestampString2(), "inprogress");//TODO Sort out jobID - jobname not enough, but jobname is used in search in calcRevisiosb...
 		hudsonOut.println("Settting Tag on Baseline");
 		try{
 			//TODO set up workspace with snapshot and loadmodules
 			//mk workspace - that is - Ask 'backend' to do so with workspace (Filepath from constructor), baseline, loadrules
 		}catch(Exception e){
 			hudsonOut.println("Could not make workspace - Tag is removed from baseline");
-			// remove Tag 
-			// persist remove
+			tag.SetEntry("buildstatus", "couldNotCreateSnapshot");
+			tag.Persist();
 			return false;
 		}
 		
-		hudsonOut.println("baseline is marked with: ");//TODO insert tag toString()
+		hudsonOut.println("baseline is marked with: "+tag.toString());
 		
 		BaselineDiff changes = bl.GetDiffs();//TODO Should we move it to compareRemoteRevisionsWith()?
 			
@@ -251,8 +249,14 @@ public class CC4HClass extends SCM {
 
 		pollMsgs += "Getting " + (newerThanRecommended?"baselines newer than the recomended baseline ":"all baselines ")
 				+ "for "+component+" and "+stream+ " on promotionlevel "+levelToPoll+"\n";
-		baselines = co.GetBaselines(st, UCMEntity.Plevel.valueOf(levelToPoll));
 		
+		try{
+			baselines = co.GetBaselines(st, UCMEntity.Plevel.valueOf(levelToPoll));
+		}catch (Exception e){
+			pollMsgs += "Could not retrieve baselines from repository\n";
+			return false;
+		}
+				
 		//Remove baselines that have buildInProgress - this is relevant if several builds are run at the same time on the same Hudson-job
 		TagQuery tq = new TagQuery();
 		tq.AddCondition( "buildstatus", "^(?!inprogress$)" );
