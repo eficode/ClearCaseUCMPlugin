@@ -8,9 +8,9 @@
   </parent>
 
   <groupId>net.praqma</groupId>
-  <artifactId>CC4H</artifactId>
+  <artifactId>PUCM</artifactId>
   <version>1.1-SNAPSHOT</version>
-  <name>CC4H</name>
+  <name>PUCM</name>
   <packaging>hpi</packaging>
 
   <!-- get every artifact through maven.glassfish.org, which proxies all the artifacts that we need -->
@@ -20,11 +20,19 @@
       <url>http://maven.glassfish.org/content/groups/public/</url>
     </repository>
   </repositories>
-
+  
   <pluginRepositories>
     <pluginRepository>
       <id>m.g.o-public</id>
       <url>http://maven.glassfish.org/content/groups/public/</url>
     </pluginRepository>
   </pluginRepositories>
+
+  <dependencies>
+    <dependency>
+      <groupId>net.praqma</groupId>
+      <artifactId>COOL</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
 </project>

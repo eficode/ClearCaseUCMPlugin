@@ -8,7 +8,7 @@ import org.kohsuke.stapler.StaplerRequest;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Tag;
 import net.praqma.debug.Debug;
-import net.praqma.hudson.scm.CC4HClass;
+import net.praqma.hudson.scm.PucmScm;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.BuildListener;
@@ -24,13 +24,13 @@ import hudson.tasks.Publisher;
 import net.sf.json.JSONObject;
 
 /**
- * CC4HNotifier has the resposibility of 'cleaning up' in ClearCase after a build.
+ * PucmNotifier has the resposibility of 'cleaning up' in ClearCase after a build.
  * 
  * @author Troels Selch Sørensen
  * @author Margit Bennetzen
  *
  */
-public class CC4HNotifier extends Notifier {
+public class PucmNotifier extends Notifier {
 	private boolean promote;
 	private boolean recommended;
 	private Baseline baseline;
@@ -44,7 +44,7 @@ public class CC4HNotifier extends Notifier {
 	 * @param promote if <code>promote</code> is <code>true</code>, the baseline will be promoted after the build.
 	 * @param recommended if <code>recommended</code> is <code>true</code>, the baseline will be marked 'recommended' in ClearCase.
 	 */
-	public CC4HNotifier(boolean promote, boolean recommended){
+	public PucmNotifier(boolean promote, boolean recommended){
 		this.promote = promote;
 		this.recommended = recommended;
 		
@@ -79,16 +79,16 @@ public class CC4HNotifier extends Notifier {
 		hudsonOut.println("\n* * * Post build actions * * *");
 
 		SCM scmTemp = build.getProject().getScm();
-		if (!(scmTemp instanceof CC4HClass)){
-			listener.fatalError("Not a ClearCase 4 Hudson scm. This Extension can only be used when polling from ClearCase with CC4H plugin.");
+		if (!(scmTemp instanceof PucmScm)){
+			listener.fatalError("Not a ClearCase 4 Hudson scm. This Extension can only be used when polling from ClearCase with PUCM plugin.");
 			//Needs to return false right away to avoid errors
 			return false;
 		}
 
-		CC4HClass scm = (CC4HClass)scmTemp;
+		PucmScm scm = (PucmScm)scmTemp;
 		baseline = scm.getBaseline();
 		if (baseline == null){
-			//If baseline is null, the user has already been notified in Console output from CC4HClass.checkout()
+			//If baseline is null, the user has already been notified in Console output from PucmScm.checkout()
 			return false;
 		}
 			
@@ -148,25 +148,25 @@ public class CC4HNotifier extends Notifier {
 	@Extension
 	public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 		public DescriptorImpl(){
-			super(CC4HNotifier.class);
+			super(PucmNotifier.class);
 		}
 		
 		@Override
 		public String getDisplayName() {
-			return "ClearCase 4 Hudson";			
+			return "Praqmatic UCM";			
 		}
 
 		/**
-		 * Hudson uses this method to create a new instance of <code>CC4HNotifier</code>.
+		 * Hudson uses this method to create a new instance of <code>PucmNotifier</code>.
 		 * The method gets information from Hudson config page.
 		 * This information is about the configuration, which Hudson saves.
 		 */
         @Override
         public Notifier newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-        	boolean promote = req.getParameter("CC4H.promote")!=null;
-        	boolean recommended = req.getParameter("CC4H.recommended")!=null;
+        	boolean promote = req.getParameter("Pucm.promote")!=null;
+        	boolean recommended = req.getParameter("Pucm.recommended")!=null;
         	logger.log("booleans: promote="+promote+" | recommended="+recommended);
-            return new CC4HNotifier(promote,recommended);
+            return new PucmNotifier(promote,recommended);
         }
 
 		@Override
@@ -176,7 +176,7 @@ public class CC4HNotifier extends Notifier {
 		
 		@Override
 		public String getHelpFile() {
-			return "/plugin/CC4H/notifier/help.html";
+			return "/plugin/PucmScm/notifier/help.html";
 		}
 	}
 }

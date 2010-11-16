@@ -48,7 +48,7 @@ import org.kohsuke.stapler.QueryParameter;
  * @author Margit Bennetzen
  *
  */
-public class CC4HClass extends SCM {
+public class PucmScm extends SCM {
 	
 	private String levelToPoll;
 	private String loadModule;
@@ -78,7 +78,7 @@ public class CC4HClass extends SCM {
 	 * @param newerThanRecommended This boolean tells whether we should look at all baselines or only ones newer than the recommended baseline 
 	 */
 	@DataBoundConstructor
-	public CC4HClass(String component, String levelToPoll, String loadModule,
+	public PucmScm(String component, String levelToPoll, String loadModule,
 			String stream, boolean newest, boolean newerThanRecommended) {
 		
 		logger.trace_function();
@@ -100,7 +100,7 @@ public class CC4HClass extends SCM {
 			InterruptedException {
 		logger.trace_function();
 		PrintStream hudsonOut = listener.getLogger();
-
+		
 		/* Examples to use from testbase.xml:
 		 *   stream = "stream:STREAM_TEST1@\PDS_PVOB"
 		 *   component = "component:COMPONENT_TEST1@\PDS_PVOB"
@@ -109,20 +109,19 @@ public class CC4HClass extends SCM {
 		 */
 	
 		String jobname = build.getParent().getDisplayName();
-		String buildno = String.valueOf(build.getNumber());
 		if (!compRevCalled){
-			if(!checkForBaselines(jobname)){
+			if(!baselinesToBuild(jobname)){
 				hudsonOut.println(pollMsgs);
 				pollMsgs = "";
 				return false;
 			}
 		}
-		
 		hudsonOut.println(pollMsgs);
 		pollMsgs = "";
-		
+
+		String buildno = String.valueOf(build.getNumber());
 		hudsonOut.println("Creating tag. Jobname: "+jobname+". Buildnumber: "+buildno+". Status: In progress");
-		Tag tag = bl.CreateTag("hudson", jobname, build.getTimestampString2(), "inprogress");//TODO Sort out jobID - jobname not enough, but jobname is used in search in calcRevisiosb...
+		Tag tag = bl.CreateTag("hudson", jobname, build.getTimestampString2(), "inprogress");
 		tag.SetEntry("buildno", buildno);
 		tag = tag.Persist();
 		
@@ -130,20 +129,18 @@ public class CC4HClass extends SCM {
 			//TODO set up workspace with snapshot and loadmodules
 			//mk workspace - that is - Ask 'backend' to do so with workspace (Filepath from constructor), baseline, loadrules
 		}catch(Exception e){
-			hudsonOut.println("Could not make workspace - Tag is removed from baseline");
+			hudsonOut.println("Could not make workspace. Marking baseline with:");
 			tag.SetEntry("buildstatus", "couldNotCreateSnapshot");
 			tag = tag.Persist();
 			hudsonOut.println(tag.Stringify());
 			return false;
 		}
-
-		hudsonOut.println("baseline is marked with: "+tag.toString());
+		hudsonOut.println("Marking baseline with: \n"+tag.Stringify());
 		
-		BaselineDiff changes = bl.GetDiffs();//TODO Should we move it to compareRemoteRevisionsWith()?
-			
+		BaselineDiff changes = bl.GetDiffs();	
 		hudsonOut.println(changes.size()+ " elements changed");
 
-		compRevCalled = false; //bl = null here so it is possible to build manually and not ask twice if there are new baselines
+		compRevCalled = false; //~ is set to false here so it is possible to build manually next time and not ask twice if there are new baselines
 		return writeChangelog(changelogFile,changes, hudsonOut);
 	}
 		
@@ -219,7 +216,7 @@ public class CC4HClass extends SCM {
 		SCMRevisionStateImpl scmState = (SCMRevisionStateImpl)baseline;
 		PrintStream hudsonOut = listener.getLogger();
 		
-		if (checkForBaselines(scmState.getJobname())){
+		if (baselinesToBuild(scmState.getJobname())){
 			compRevCalled = true;
 			return PollingResult.BUILD_NOW;
 		}
@@ -241,7 +238,7 @@ public class CC4HClass extends SCM {
 		return scmRS;
 	}
 	
-	private boolean checkForBaselines(String jobname){
+	private boolean baselinesToBuild(String jobname){
 		Component co = null;
 		Stream st = null;
 		try{
@@ -357,14 +354,14 @@ public class CC4HClass extends SCM {
 	 *
 	 */
 	@Extension
-	public static class CC4HClassDescriptor extends SCMDescriptor<CC4HClass> {
+	public static class PucmScmDescriptor extends SCMDescriptor<PucmScm> {
 
 		private String cleartool;
 		private List<String> levels;
 		private List<String> loadModules;
 
-		public CC4HClassDescriptor() {
-			super(CC4HClass.class, null);
+		public PucmScmDescriptor() {
+			super(PucmScm.class, null);
 			logger.trace_function();
 			levels = getLevels();
 			loadModules = getLoadModules();
@@ -391,11 +388,11 @@ public class CC4HClass extends SCM {
 		@Override
 		public String getDisplayName() {
 			logger.trace_function();
-			return "Clearcase 4 Hudson";
+			return "Praqmatic UCM";
 		}
 
 		/**
-		 * This method is called by the scm/CC4HClass/global.jelly to validate the input without reloading the global configuration page
+		 * This method is called by the scm/Pucm/global.jelly to validate the input without reloading the global configuration page
 		 * 
 		 * @param value
 		 * @return
