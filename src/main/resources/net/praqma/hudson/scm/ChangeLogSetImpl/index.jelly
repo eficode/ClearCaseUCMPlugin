@@ -10,7 +10,7 @@
     <j:forEach var="cs" items="${it.entries}" varStatus="loop">
       <tr class="pane">
         <td colspan="2" class="changeset">
-	  <b>Activity: ${cs.actName}<br /></b>
+	  <b>Activity: ${cs.msg}</b> by ${cs.author}<br />
 	  <j:forEach var="file" items="${cs.affectedPaths}" varStatus="loop">
                ${file}<br />
 	  </j:forEach>
