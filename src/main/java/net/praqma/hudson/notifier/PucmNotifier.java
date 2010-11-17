@@ -189,8 +189,6 @@ public class PucmNotifier extends Notifier {
 			logger.trace_function();
 			boolean promote = req.getParameter("Pucm.promote") != null;
 			boolean recommended = req.getParameter("Pucm.recommended") != null;
-			logger.log("booleans: promote=" + promote + " | recommended="
-					+ recommended);
 			return new PucmNotifier(promote, recommended);
 		}
 
