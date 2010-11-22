@@ -1,7 +1,7 @@
 package net.praqma.hudson.scm;
 
 import hudson.scm.SCMRevisionState;
-import net.praqma.debug.Debug;
+import net.praqma.utils.Debug;
 
 /**
  * 

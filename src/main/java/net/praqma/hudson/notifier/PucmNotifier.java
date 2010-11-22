@@ -7,7 +7,7 @@ import java.util.List;
 import org.kohsuke.stapler.StaplerRequest;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Tag;
-import net.praqma.debug.Debug;
+import net.praqma.utils.Debug;
 import net.praqma.hudson.scm.PucmScm;
 import hudson.Extension;
 import hudson.Launcher;

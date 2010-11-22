@@ -16,7 +16,7 @@ import hudson.scm.ChangeLogSet;
 import hudson.scm.ChangeLogSet.Entry;
 import hudson.util.Digester2;
 
-import net.praqma.debug.Debug;
+import net.praqma.utils.Debug;
 
 /**
  * 

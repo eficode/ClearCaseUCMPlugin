@@ -7,7 +7,7 @@ import java.util.List;
 import hudson.model.AbstractBuild;
 import hudson.scm.ChangeLogSet;
 
-import net.praqma.debug.Debug;
+import net.praqma.utils.Debug;
 
 /**
  * This class represents a ChangeLogSet. This is the accumulation of all the

@@ -30,12 +30,12 @@ import net.praqma.clearcase.ucm.entities.Baseline.BaselineDiff;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Component.BaselineList;
 import net.praqma.clearcase.ucm.entities.Stream;
+import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.entities.UCMEntityException;
 import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.utils.TagQuery;
-import net.praqma.debug.Debug;
-
+import net.praqma.utils.Debug;
 import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -67,7 +67,7 @@ public class PucmScm extends SCM {
 	private String pollMsgs = "";
 	private Stream st;
 
-	protected static Debug logger = Debug.GetLogger();
+	protected static net.praqma.utils.Debug logger = net.praqma.utils.Debug.GetLogger();
 
 	/**
 	 * The constructor is used by Hudson to create the instance of the plugin
@@ -124,16 +124,21 @@ public class PucmScm extends SCM {
 		if (!compRevCalled) {
 			if (!baselinesToBuild(jobname)) {
 				hudsonOut.println(pollMsgs);
+				//TODO check if needed
 				pollMsgs = "";
 				return false;
 			}
 		}
+		
+		System.out.println( "BASLEIEN="+bl.toString() );
+		
 		hudsonOut.println(pollMsgs);
 		pollMsgs = "";
 
 		String buildno = String.valueOf(build.getNumber());
 		hudsonOut.println("Creating tag. Jobname: " + jobname
 				+ ". Buildnumber: " + buildno + ". Status: In progress");
+		//TODO CHW skal lave en Tag-constructor der kan tage en type + et hashmap, så vi kun skal gemme een gang
 		Tag tag = bl.CreateTag("hudson", jobname, build.getTimestampString2(),
 				"inprogress");
 		tag.SetEntry("buildno", buildno);
@@ -155,8 +160,13 @@ public class PucmScm extends SCM {
 		}
 		hudsonOut.println("Marking baseline with: \n" + tag.Stringify());
 
+		System.out.println( "BASLEIEN="+bl.Stringify() );
+		
 		BaselineDiff changes = bl.GetDiffs();
 		hudsonOut.println(changes.size() + " elements changed");
+		
+
+		
 
 		compRevCalled = false; // ~ is set to false here so it is possible to
 								// build manually next time and not ask twice if
@@ -278,8 +288,10 @@ public class PucmScm extends SCM {
 
 	private boolean baselinesToBuild(String jobname) {
 		logger.trace_function();
+		UCM.SetContext(UCM.ContextType.XML);
 		Component co = null;
 		st = null;
+		
 		try {
 			co = UCMEntity.GetComponent("component:" + component);
 			st = UCMEntity.GetStream("stream:" + stream);
@@ -287,15 +299,17 @@ public class PucmScm extends SCM {
 			pollMsgs += ucmEe.toString() + "\n";
 			return false;
 		}
-
+//TODO Stringbuffers
 		pollMsgs += "Getting "
 				+ (newerThanRecommended ? "baselines newer than the recomended baseline "
 						: "all baselines ") + "for " + component + " and "
 				+ stream + " on promotionlevel " + levelToPoll + "\n";
-
+		/* UCMEntity.Plevel.valueOf(levelToPoll) */
 		try {
-			baselines = co.GetBaselines(st,
-					UCMEntity.Plevel.valueOf(levelToPoll));
+			System.out.println( "Stream="+st.toString()+". Component="+co.toString() );
+			logger.warning("baselines");
+			System.out.println( "IGEN EN TEST ½ " );
+			baselines = co.GetBaselines(st, co.GetPlevelFromString(levelToPoll) );
 		} catch (Exception e) {
 			pollMsgs += "Could not retrieve baselines from repository\n";
 			return false;
@@ -308,6 +322,7 @@ public class PucmScm extends SCM {
 
 		// Filter so only baselines from this job is in the list
 		baselines = baselines.Filter(tq, "hudson", jobname);
+		//TODO: LARS SAYS: baselines could have push and pop instead
 
 		if (baselines.size() > 0) {
 			pollMsgs += "Retrieved baselines:\n";
@@ -437,6 +452,7 @@ public class PucmScm extends SCM {
 		public boolean configure(org.kohsuke.stapler.StaplerRequest req,
 				JSONObject json) throws FormException {
 			logger.trace_function();
+			//TODO: change CC4H
 			cleartool = req.getParameter("cc4h.cleartool").trim();
 			save();
 			// If no exception has been thrown at this point, then it's safe to
@@ -473,11 +489,15 @@ public class PucmScm extends SCM {
 		 */
 		public String getCleartool() {
 			logger.trace_function();
-			if (cleartool == null || cleartool.equals(""))
-				return "cleartool";
+			UCM.SetContext(UCM.ContextType.XML);
+			
+			if (cleartool == null || cleartool.equals("")){
+				return "cleartool";			
+			}
 			return cleartool;
 		}
 
+		//TODO: PVOB'en knows the promotionlevel - ask cool to ask pvob
 		/**
 		 * Used by Hudson to display a list of valid promotionlevels to build
 		 * from
