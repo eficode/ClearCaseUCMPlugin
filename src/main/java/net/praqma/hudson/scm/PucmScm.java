@@ -66,6 +66,7 @@ public class PucmScm extends SCM {
 	private boolean compRevCalled;
 	private String pollMsgs = "";
 	private Stream st;
+	private Component co;
 
 	protected static net.praqma.utils.Debug logger = net.praqma.utils.Debug.GetLogger();
 
@@ -130,8 +131,6 @@ public class PucmScm extends SCM {
 			}
 		}
 		
-		System.out.println( "BASLEIEN="+bl.toString() );
-		
 		hudsonOut.println(pollMsgs);
 		pollMsgs = "";
 
@@ -160,8 +159,6 @@ public class PucmScm extends SCM {
 		}
 		hudsonOut.println("Marking baseline with: \n" + tag.Stringify());
 
-		System.out.println( "BASLEIEN="+bl.Stringify() );
-		
 		BaselineDiff changes = bl.GetDiffs();
 		hudsonOut.println(changes.size() + " elements changed");
 		
@@ -289,12 +286,12 @@ public class PucmScm extends SCM {
 	private boolean baselinesToBuild(String jobname) {
 		logger.trace_function();
 		UCM.SetContext(UCM.ContextType.XML);
-		Component co = null;
+		co = null;
 		st = null;
 		
 		try {
-			co = UCMEntity.GetComponent("component:" + component);
-			st = UCMEntity.GetStream("stream:" + stream);
+			co = UCMEntity.GetComponent("component:" + component, false);
+			st = UCMEntity.GetStream("stream:" + stream, false);
 		} catch (UCMEntityException ucmEe) {
 			pollMsgs += ucmEe.toString() + "\n";
 			return false;
@@ -304,12 +301,10 @@ public class PucmScm extends SCM {
 				+ (newerThanRecommended ? "baselines newer than the recomended baseline "
 						: "all baselines ") + "for " + component + " and "
 				+ stream + " on promotionlevel " + levelToPoll + "\n";
-		/* UCMEntity.Plevel.valueOf(levelToPoll) */
+
 		try {
 			System.out.println( "Stream="+st.toString()+". Component="+co.toString() );
-			logger.warning("baselines");
-			System.out.println( "IGEN EN TEST ½ " );
-			baselines = co.GetBaselines(st, co.GetPlevelFromString(levelToPoll) );
+			baselines = co.GetBaselines(st, UCMEntity.Plevel.valueOf(levelToPoll) );
 		} catch (Exception e) {
 			pollMsgs += "Could not retrieve baselines from repository\n";
 			return false;
