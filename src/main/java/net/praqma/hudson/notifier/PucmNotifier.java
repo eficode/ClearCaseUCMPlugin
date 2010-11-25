@@ -15,7 +15,6 @@ import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-
 import hudson.scm.SCM;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
@@ -24,7 +23,7 @@ import hudson.tasks.Publisher;
 import net.sf.json.JSONObject;
 
 /**
- * PucmNotifier has the resposibility of 'cleaning up' in ClearCase after a
+ * PucmNotifier has the responsibility of 'cleaning up' in ClearCase after a
  * build.
  * 
  * @author Troels Selch Sørensen
@@ -89,7 +88,7 @@ public class PucmNotifier extends Notifier {
 
 		SCM scmTemp = build.getProject().getScm();
 		if (!(scmTemp instanceof PucmScm)) {
-			listener.fatalError("Not a ClearCase 4 Hudson scm. This Extension can only be used when polling from ClearCase with PUCM plugin.");
+			listener.fatalError("Not a PUCM scm. This Extension can only be used when polling from ClearCase with PUCM plugin.");
 			return false;
 		}
 

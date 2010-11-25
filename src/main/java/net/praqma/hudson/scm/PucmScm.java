@@ -67,8 +67,11 @@ public class PucmScm extends SCM {
 	private String pollMsgs = "";
 	private Stream st;
 	private Component co;
+	
 
-	protected static net.praqma.utils.Debug logger = net.praqma.utils.Debug.GetLogger();
+	
+
+	protected static Debug logger = Debug.GetLogger();
 
 	/**
 	 * The constructor is used by Hudson to create the instance of the plugin
@@ -94,7 +97,7 @@ public class PucmScm extends SCM {
 	 */
 	@DataBoundConstructor
 	public PucmScm(String component, String levelToPoll, String loadModule,
-			String stream, boolean newest, boolean newerThanRecommended) {
+			String stream, boolean newest, boolean newerThanRecommended, boolean testing) {
 		logger.trace_function();
 		this.component = component;
 		this.levelToPoll = levelToPoll;
@@ -102,6 +105,7 @@ public class PucmScm extends SCM {
 		this.stream = stream;
 		this.newest = newest;
 		this.newerThanRecommended = newerThanRecommended;
+		
 	}
 
 	/**
@@ -122,6 +126,7 @@ public class PucmScm extends SCM {
 		 */
 
 		String jobname = build.getParent().getDisplayName();
+		
 		if (!compRevCalled) {
 			if (!baselinesToBuild(jobname)) {
 				hudsonOut.println(pollMsgs);
@@ -162,9 +167,6 @@ public class PucmScm extends SCM {
 		BaselineDiff changes = bl.GetDiffs();
 		hudsonOut.println(changes.size() + " elements changed");
 		
-
-		
-
 		compRevCalled = false; // ~ is set to false here so it is possible to
 								// build manually next time and not ask twice if
 								// there are new baselines
@@ -190,7 +192,7 @@ public class PucmScm extends SCM {
 		String ls = System.getProperty("line.seperator");
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		// Here the .hudson/jobs/[project name]/changelog.xml is written
+		// Here the .hudson/jobs/[project name]/builds/[buildnumber]/changelog.xml is written
 
 		hudsonOut.print("Writing Hudson changelog...");
 		try {
@@ -210,15 +212,7 @@ public class PucmScm extends SCM {
 						.getBytes());
 				List<Version> versions = act.changeset.versions;
 				for (Version v : versions) {
-					temp = "<file>" + v.toString() + "</file>";// v.GetDate()+" "
-																// +
-																// v.GetFilename()
-																// + "."
-																// +v.GetRevision()+
-																// " " +
-																// v.GetUser()/*getv.getBlame*/+" "
-																// +
-																// /*v.getMessage()*/"</file>";
+					temp = "<file>" + v.toString() + "</file>";
 					baos.write(temp.getBytes());
 				}
 				baos.write("</activity>".getBytes());
@@ -234,7 +228,7 @@ public class PucmScm extends SCM {
 			return true;
 		} catch (Exception e) {
 			// If the changelog cannot be written, the baseline will not be
-			// build
+			// built
 			hudsonOut.println(" FAILED");
 			logger.log("Changelog failed with " + e.getMessage());
 			return false;
@@ -285,7 +279,7 @@ public class PucmScm extends SCM {
 
 	private boolean baselinesToBuild(String jobname) {
 		logger.trace_function();
-		UCM.SetContext(UCM.ContextType.XML);
+
 		co = null;
 		st = null;
 		
@@ -303,8 +297,11 @@ public class PucmScm extends SCM {
 				+ stream + " on promotionlevel " + levelToPoll + "\n";
 
 		try {
-			System.out.println( "Stream="+st.toString()+". Component="+co.toString() );
-			baselines = co.GetBaselines(st, UCMEntity.Plevel.valueOf(levelToPoll) );
+			if(newerThanRecommended){
+				baselines = co.GetBaselines(st, UCMEntity.Plevel.valueOf(levelToPoll)).NewerThanRecommended();
+			}else{
+				baselines = co.GetBaselines(st, UCMEntity.Plevel.valueOf(levelToPoll));
+			}
 		} catch (Exception e) {
 			pollMsgs += "Could not retrieve baselines from repository\n";
 			return false;
@@ -415,6 +412,7 @@ public class PucmScm extends SCM {
 		return newerThanRecommended;
 	}
 
+
 	/**
 	 * This class is used to describe the plugin to Hudson
 	 * 
@@ -428,6 +426,7 @@ public class PucmScm extends SCM {
 		private String cleartool;
 		private List<String> levels;
 		private List<String> loadModules;
+		private boolean useTestbase = true;
 
 		public PucmScmDescriptor() {
 			super(PucmScm.class, null);
@@ -436,12 +435,19 @@ public class PucmScm extends SCM {
 			loadModules = getLoadModules();
 			load(); // load() MUST be called to get persisted data (check out
 					// save() as well)
+			if (useTestbase==true){
+				UCM.SetContext(UCM.ContextType.XML);
+				System.out.println("PUCM is running on a testbase");
+			}else{
+				UCM.SetContext(UCM.ContextType.CLEARTOOL);
+				System.out.println("PUCM is running on real ClearCase ");
+			}
+			
 		}
 
 		/**
 		 * This method is called, when the user saves the global Hudson
 		 * configuration.
-		 * 
 		 */
 		@Override
 		public boolean configure(org.kohsuke.stapler.StaplerRequest req,
@@ -450,8 +456,6 @@ public class PucmScm extends SCM {
 			//TODO: change CC4H
 			cleartool = req.getParameter("cc4h.cleartool").trim();
 			save();
-			// If no exception has been thrown at this point, then it's safe to
-			// return true
 			return true;
 		}
 
@@ -484,8 +488,6 @@ public class PucmScm extends SCM {
 		 */
 		public String getCleartool() {
 			logger.trace_function();
-			UCM.SetContext(UCM.ContextType.XML);
-			
 			if (cleartool == null || cleartool.equals("")){
 				return "cleartool";			
 			}
