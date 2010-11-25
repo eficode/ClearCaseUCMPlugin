@@ -24,13 +24,14 @@ import net.praqma.utils.Debug;
  * @author Margit Bennetzen
  * 
  */
-public class ChangeLogParserImpl extends ChangeLogParser {
+public class ChangeLogParserImpl extends ChangeLogParser
+{
 
 	protected static Debug logger = Debug.GetLogger();
 
 	@Override
-	public ChangeLogSet<? extends Entry> parse(AbstractBuild build,
-			File changelogFile) throws IOException, SAXException {
+	public ChangeLogSet<? extends Entry> parse( AbstractBuild build, File changelogFile ) throws IOException, SAXException
+	{
 		logger.trace_function();
 
 		List<ChangeLogEntryImpl> entries = new ArrayList<ChangeLogEntryImpl>();
@@ -38,26 +39,17 @@ public class ChangeLogParserImpl extends ChangeLogParser {
 		// Source: http://wiki.hudson-ci.org/display/HUDSON/Change+log
 
 		Digester digester = new Digester2();
-		digester.push(entries);
-		digester.addObjectCreate("*/entry/activity", ChangeLogEntryImpl.class);
-		digester.addSetProperties("*/entry/activity");
-		digester.addBeanPropertySetter("*/entry/activity/file", "nextFilepath");
-		digester.addBeanPropertySetter("*/entry/activity/actName");
-		digester.addBeanPropertySetter("*/entry/activity/author","myAuthor");
-		digester.addSetNext("*/entry/activity", "add");
-
-		/*
-		 * StringReader reader = new
-		 * StringReader("<changelog><changeset version=\"1212\">" +
-		 * "<filepath>this is the 1st filepath</filepath>" +
-		 * "</changeset><changeset version=\"2424\">" +
-		 * "<filepath>this is the 2nd filepath</filepath>" +
-		 * "</changeset></changelog>");
-		 */
-		FileReader reader = new FileReader(changelogFile);
-		digester.parse(reader);
+		digester.push( entries );
+		digester.addObjectCreate( "*/entry/activity", ChangeLogEntryImpl.class );
+		digester.addSetProperties( "*/entry/activity" );
+		digester.addBeanPropertySetter( "*/entry/activity/file", "nextFilepath" );
+		digester.addBeanPropertySetter( "*/entry/activity/actName" );
+		digester.addBeanPropertySetter( "*/entry/activity/author", "myAuthor" );
+		digester.addSetNext( "*/entry/activity", "add" );
+		FileReader reader = new FileReader( changelogFile );
+		digester.parse( reader );
 		reader.close();
-		return new ChangeLogSetImpl(build, entries);
+		return new ChangeLogSetImpl( build, entries );
 	}
 
 }

@@ -1,14 +1,14 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-     <f:entry title="Stream" help="/plugin/PUCM/help-stream.html">
+     <f:entry title="Stream" help="/plugin/PUCM/scm/help-stream.html">
       <f:textbox name="stream" value="${scm.stream}"/>
     </f:entry>
-    <f:entry title="Component" help="/plugin/PUCM/help-component.html">
+    <f:entry title="Component" help="/plugin/PUCM/scm/help-component.html">
       <f:textbox name="component" value="${scm.component}"/>
     </f:entry>
 
     <j:set var="levels" value="${descriptor.getLevels()}"/>
-      <f:entry  title="Promotion level" help="/plugin/PUCM/help-pLevel.html">
+      <f:entry  title="Promotion level" help="/plugin/PUCM/scm/help-pLevel.html">
       <select class="setting-input" name="levelToPoll">
        <j:forEach var="l" items="${levels}">
         <f:option selected="${scm.levelToPoll==l}" value="${l}">${l}</f:option>
@@ -20,7 +20,7 @@
 	At the moment only snapshot view is supported.
     </f:entry>
 
-    <f:entry title="Load modules" help="/plugin/PUCM/help-loadModules.html"> 
+    <f:entry title="Load modules" help="/plugin/PUCM/scm/help-loadModules.html"> 
      <select class="setting-input" name="loadModule">
       <j:set var="modules" value="${descriptor.getLoadModules()}"/>
        <j:forEach var="lm" items="${modules}">
@@ -29,11 +29,11 @@
      </select>
     </f:entry>
 
-	<f:entry title="Newest" help="/plugin/PUCM/help-newest.html">
+	<f:entry title="Newest" help="/plugin/PUCM/scm/help-newest.html">
 	    <f:checkbox name="PUCM.newest" checked="${instance.newest}" />
 	</f:entry>
 	
-	<f:entry title="Newer than recommended" help="/plugin/PUCM/help-newerThanRecommend.html">
+	<f:entry title="Newer than recommended" help="/plugin/PUCM/scm/help-newerThanRecommend.html">
 	    <f:checkbox name="PUCM.newerThanRecommended" checked="${instance.newerThanRecommended}" />
 	</f:entry>
    

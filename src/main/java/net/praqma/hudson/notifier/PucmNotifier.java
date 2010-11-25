@@ -30,7 +30,8 @@ import net.sf.json.JSONObject;
  * @author Margit Bennetzen
  * 
  */
-public class PucmNotifier extends Notifier {
+public class PucmNotifier extends Notifier
+{
 	private boolean promote;
 	private boolean recommended;
 	private Baseline baseline;
@@ -48,7 +49,8 @@ public class PucmNotifier extends Notifier {
 	 *            if <code>recommended</code> is <code>true</code>, the baseline
 	 *            will be marked 'recommended' in ClearCase.
 	 */
-	public PucmNotifier(boolean promote, boolean recommended) {
+	public PucmNotifier( boolean promote, boolean recommended )
+	{
 		logger.trace_function();
 		this.promote = promote;
 		this.recommended = recommended;
@@ -61,16 +63,17 @@ public class PucmNotifier extends Notifier {
 	 * [perform()]} after a build.
 	 */
 	@Override
-	public boolean needsToRunAfterFinalized() {
+	public boolean needsToRunAfterFinalized()
+	{
 		logger.trace_function();
 		return true;
 	}
 
 	@Override
-	public BuildStepMonitor getRequiredMonitorService() {
+	public BuildStepMonitor getRequiredMonitorService()
+	{
 		logger.trace_function();
-		return BuildStepMonitor.NONE;// :
-										// http://hudson-ci.org/javadoc/hudson/tasks/BuildStep.html#getRequiredMonitorService%28%29
+		return BuildStepMonitor.NONE;// http://hudson-ci.org/javadoc/hudson/tasks/BuildStep.html#getRequiredMonitorService%28%29
 	}
 
 	/**
@@ -79,78 +82,90 @@ public class PucmNotifier extends Notifier {
 	 * [needsToRunAfterFinalized()]} returns <code>true</code>.
 	 */
 	@Override
-	public boolean perform(AbstractBuild build, Launcher launcer,
-			BuildListener listener) throws InterruptedException, IOException {
+	public boolean perform( AbstractBuild build, Launcher launcer, BuildListener listener ) throws InterruptedException, IOException
+	{
 		logger.trace_function();
 		boolean res = false;
 		hudsonOut = listener.getLogger();
-		hudsonOut.println("\n* * * Post build actions * * *");
+		hudsonOut.println( "\n* * * Post build actions * * *" );
 
 		SCM scmTemp = build.getProject().getScm();
-		if (!(scmTemp instanceof PucmScm)) {
-			listener.fatalError("Not a PUCM scm. This Extension can only be used when polling from ClearCase with PUCM plugin.");
+		if ( !( scmTemp instanceof PucmScm ) )
+		{
+			listener.fatalError( "Not a PUCM scm. This Extension can only be used when polling from ClearCase with PUCM plugin." );
 			return false;
 		}
 
 		PucmScm scm = (PucmScm) scmTemp;
 		baseline = scm.getBaseline();
-		if (baseline == null) {
+		if ( baseline == null )
+		{
 			// If baseline is null, the user has already been notified in
 			// Console output from PucmScm.checkout()
 			return false;
 		}
 
 		// Getting tag to change buildstatus
-		Tag tag = baseline.GetTag("hudson", build.getParent().getDisplayName());
+		Tag tag = baseline.GetTag( "hudson", build.getParent().getDisplayName() );
 
 		Result result = build.getResult();
 
-		if (result.equals(Result.SUCCESS)) {
-			try {
+		if ( result.equals( Result.SUCCESS ) )
+		{
+			try
+			{
 				baseline.Promote();
-				tag.SetEntry("buildstatus", "SUCCESS");
-				hudsonOut.println("Baseline promoted to "
-						+ baseline.GetPromotionLevel(true));
+				tag.SetEntry( "buildstatus", "SUCCESS" );
+				hudsonOut.println( "Baseline promoted to " + baseline.GetPromotionLevel( true ) );
 				res = true;
-			} catch (Exception e) {
-				hudsonOut
-						.println("Build success, but new plevel could not be set.");
 			}
-		} else if (result.equals(Result.FAILURE)) {
-			try {
-				baseline.Demote();
-				tag.SetEntry("buildstatus", "FAILURE");
-				hudsonOut.println("Build failed - baseline is "
-						+ baseline.GetPromotionLevel(true));
-				res = true;
-			} catch (Exception e) {
-				hudsonOut
-						.println("Build failure, but new plevel could not be set.");
+			catch ( Exception e )
+			{
+				hudsonOut.println( "Build success, but new plevel could not be set." );
 			}
-		} else {
-			hudsonOut.println("Baseline not changed. Buildstatus: " + result);
-			logger.log("Buildstatus (Result) was " + result
-					+ ". Not handled by plugin.");
-			res = false;
 		}
-		try {
+		else
+			if ( result.equals( Result.FAILURE ) )
+			{
+				try
+				{
+					baseline.Demote();
+					tag.SetEntry( "buildstatus", "FAILURE" );
+					hudsonOut.println( "Build failed - baseline is " + baseline.GetPromotionLevel( true ) );
+					res = true;
+				}
+				catch ( Exception e )
+				{
+					hudsonOut.println( "Build failure, but new plevel could not be set." );
+				}
+			}
+			else
+			{
+				hudsonOut.println( "Baseline not changed. Buildstatus: " + result );
+				logger.log( "Buildstatus (Result) was " + result + ". Not handled by plugin." );
+				res = false;
+			}
+		try
+		{
 			tag = tag.Persist();
-			hudsonOut
-					.println("Baseline now marked with tag:" + tag.Stringify());
-		} catch (Exception e) {
-			hudsonOut
-					.println("Could not change tag in ClearCase. Contact ClearCase administrator to do this manually.");
+			hudsonOut.println( "Baseline now marked with tag:" + tag.Stringify() );
+		}
+		catch ( Exception e )
+		{
+			hudsonOut.println( "Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
 		}
 		logger.print_trace();
 		return res;
 	}
 
-	public boolean isPromote() {
+	public boolean isPromote()
+	{
 		logger.trace_function();
 		return promote;
 	}
 
-	public boolean isRecommended() {
+	public boolean isRecommended()
+	{
 		logger.trace_function();
 		return recommended;
 	}
@@ -163,15 +178,17 @@ public class PucmNotifier extends Notifier {
 	 * 
 	 */
 	@Extension
-	public static final class DescriptorImpl extends
-			BuildStepDescriptor<Publisher> {
-		public DescriptorImpl() {
-			super(PucmNotifier.class);
+	public static final class DescriptorImpl extends BuildStepDescriptor<Publisher>
+	{
+		public DescriptorImpl()
+		{
+			super( PucmNotifier.class );
 			logger.trace_function();
 		}
 
 		@Override
-		public String getDisplayName() {
+		public String getDisplayName()
+		{
 			logger.trace_function();
 			return "Praqmatic UCM";
 		}
@@ -183,22 +200,24 @@ public class PucmNotifier extends Notifier {
 		 * Hudson saves.
 		 */
 		@Override
-		public Notifier newInstance(StaplerRequest req, JSONObject formData)
-				throws FormException {
+		public Notifier newInstance( StaplerRequest req, JSONObject formData ) throws FormException
+		{
 			logger.trace_function();
-			boolean promote = req.getParameter("Pucm.promote") != null;
-			boolean recommended = req.getParameter("Pucm.recommended") != null;
-			return new PucmNotifier(promote, recommended);
+			boolean promote = req.getParameter( "Pucm.promote" ) != null;
+			boolean recommended = req.getParameter( "Pucm.recommended" ) != null;
+			return new PucmNotifier( promote, recommended );
 		}
 
 		@Override
-		public boolean isApplicable(Class<? extends AbstractProject> arg0) {
+		public boolean isApplicable( Class<? extends AbstractProject> arg0 )
+		{
 			logger.trace_function();
 			return true;
 		}
 
 		@Override
-		public String getHelpFile() {
+		public String getHelpFile()
+		{
 			logger.trace_function();
 			return "/plugin/PucmScm/notifier/help.html";
 		}

@@ -18,30 +18,34 @@ import net.praqma.utils.Debug;
  * 
  */
 
-public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl> {
+public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl>
+{
 
 	protected static Debug logger = Debug.GetLogger();
 	private List<ChangeLogEntryImpl> entries = null;
 	private String baselineName;
 
-	protected ChangeLogSetImpl(AbstractBuild<?, ?> build,
-			List<ChangeLogEntryImpl> entries) {
-		super(build);
+	protected ChangeLogSetImpl( AbstractBuild<?, ?> build, List<ChangeLogEntryImpl> entries )
+	{
+		super( build );
 		logger.trace_function();
 
-		this.entries = Collections.unmodifiableList(entries);
-		for (ChangeLogEntryImpl entry : entries) {
-			entry.setParent(this);
+		this.entries = Collections.unmodifiableList( entries );
+		for ( ChangeLogEntryImpl entry : entries )
+		{
+			entry.setParent( this );
 		}
 	}
 
-	public Iterator<ChangeLogEntryImpl> iterator() {
+	public Iterator<ChangeLogEntryImpl> iterator()
+	{
 		logger.trace_function();
 		return entries.iterator();
 	}
 
 	@Override
-	public boolean isEmptySet() {
+	public boolean isEmptySet()
+	{
 		logger.trace_function();
 		return entries.isEmpty();
 	}
@@ -51,17 +55,20 @@ public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl> {
 	 * 
 	 * @return
 	 */
-	public List<ChangeLogEntryImpl> getEntries() {
+	public List<ChangeLogEntryImpl> getEntries()
+	{
 		logger.trace_function();
 		return entries;
 	}
 
-	public void setBaselineName(String baselineName) {
+	public void setBaselineName( String baselineName )
+	{
 		logger.trace_function();
 		this.baselineName = baselineName;
 	}
 
-	public String getBaselineName() {
+	public String getBaselineName()
+	{
 		logger.trace_function();
 		return baselineName;
 	}

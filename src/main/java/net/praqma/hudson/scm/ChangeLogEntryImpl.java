@@ -16,7 +16,8 @@ import net.praqma.utils.Debug;
  * @author Margit Bennetzen
  * 
  */
-public class ChangeLogEntryImpl extends Entry {
+public class ChangeLogEntryImpl extends Entry
+{
 
 	private ChangeLogSetImpl parent;
 	private String actName;
@@ -26,7 +27,8 @@ public class ChangeLogEntryImpl extends Entry {
 	protected static Debug logger = Debug.GetLogger();
 	private volatile List<String> affectedPaths = new ArrayList<String>();
 
-	public ChangeLogEntryImpl() {
+	public ChangeLogEntryImpl()
+	{
 		logger.trace_function();
 	}
 
@@ -34,7 +36,8 @@ public class ChangeLogEntryImpl extends Entry {
 	 * Hudson calls this to show changes on the changes-page
 	 */
 	@Override
-	public Collection<String> getAffectedPaths() {
+	public Collection<String> getAffectedPaths()
+	{
 		logger.trace_function();
 		// a baseline can be set without any files changed - but then we wont
 		// build
@@ -46,28 +49,33 @@ public class ChangeLogEntryImpl extends Entry {
 	 * 
 	 * @param filepath
 	 */
-	public void setNextFilepath(String filepath) {
+	public void setNextFilepath( String filepath )
+	{
 		logger.trace_function();
-		if (filepath == null)
-			logger.log("Filepath is null");
-		affectedPaths.add(filepath);
+		if ( filepath == null )
+			logger.log( "Filepath is null" );
+		affectedPaths.add( filepath );
 	}
 
 	/**
 	 * Called by Hudson. This delivers the user that made the changesetentry
 	 */
 	@Override
-	public User getAuthor() {
+	public User getAuthor()
+	{
 		// TODO Implement the right user when blame is ready in COOL-code
 		logger.trace_function();
-		if(author==null){
+		if ( author == null )
+		{
 			return User.getUnknown();
 		}
-		return User.get(author);
+		return User.get( author );
 	}
 
-	//Digester in ChangeLogParserImpl cannot call setAuthor successfully, but setMyAuthor works.
-	public void setMyAuthor(String author) {
+	// Digester in ChangeLogParserImpl cannot call setAuthor successfully, but
+	// setMyAuthor works.
+	public void setMyAuthor( String author )
+	{
 		logger.trace_function();
 		this.author = author;
 	}
@@ -77,7 +85,8 @@ public class ChangeLogEntryImpl extends Entry {
 	 * 
 	 * @param parent
 	 */
-	public void setParent(ChangeLogSetImpl parent) {
+	public void setParent( ChangeLogSetImpl parent )
+	{
 		logger.trace_function();
 		this.parent = parent;
 	}
@@ -86,12 +95,14 @@ public class ChangeLogEntryImpl extends Entry {
 	 * Used in digest.jelly to get the message attached to the entry
 	 */
 	@Override
-	public String getMsg() {
+	public String getMsg()
+	{
 		logger.trace_function();
 		return actName;
 	}
 
-	public void setActName(String actName) {
+	public void setActName( String actName )
+	{
 		logger.trace_function();
 		this.actName = actName;
 	}
