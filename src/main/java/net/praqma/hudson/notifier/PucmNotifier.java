@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.kohsuke.stapler.StaplerRequest;
 import net.praqma.clearcase.ucm.entities.Baseline;
+import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Tag;
 import net.praqma.utils.Debug;
 import net.praqma.hudson.scm.PucmScm;
@@ -15,6 +16,7 @@ import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+
 import hudson.scm.SCM;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
@@ -36,6 +38,7 @@ public class PucmNotifier extends Notifier
 	private boolean recommended;
 	private Baseline baseline;
 	private PrintStream hudsonOut;
+	private Stream st;
 
 	protected static Debug logger = Debug.GetLogger();
 
@@ -54,6 +57,7 @@ public class PucmNotifier extends Notifier
 		logger.trace_function();
 		this.promote = promote;
 		this.recommended = recommended;
+
 	}
 
 	/**
@@ -65,9 +69,11 @@ public class PucmNotifier extends Notifier
 	@Override
 	public boolean needsToRunAfterFinalized()
 	{
+		System.out.print( "IN NOTIFIER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
 		logger.trace_function();
 		return true;
 	}
+
 
 	@Override
 	public BuildStepMonitor getRequiredMonitorService()
@@ -98,61 +104,100 @@ public class PucmNotifier extends Notifier
 
 		PucmScm scm = (PucmScm) scmTemp;
 		baseline = scm.getBaseline();
+		st = scm.getStreamObject();
 		if ( baseline == null )
 		{
 			// If baseline is null, the user has already been notified in
 			// Console output from PucmScm.checkout()
-			return false;
-		}
-
-		// Getting tag to change buildstatus
-		Tag tag = baseline.GetTag( "hudson", build.getParent().getDisplayName() );
-
-		Result result = build.getResult();
-
-		if ( result.equals( Result.SUCCESS ) )
-		{
-			try
-			{
-				baseline.Promote();
-				tag.SetEntry( "buildstatus", "SUCCESS" );
-				hudsonOut.println( "Baseline promoted to " + baseline.GetPromotionLevel( true ) );
-				res = true;
-			}
-			catch ( Exception e )
-			{
-				hudsonOut.println( "Build success, but new plevel could not be set." );
-			}
+			res = false;
 		}
 		else
-			if ( result.equals( Result.FAILURE ) )
+		{
+
+			// Getting tag to change buildstatus
+			Tag tag = baseline.GetTag( "hudson", build.getParent().getDisplayName() );
+
+			Result result = build.getResult();
+
+			if ( result.equals( Result.SUCCESS ) )
 			{
+				hudsonOut.println( "Build successful" );
 				try
 				{
-					baseline.Demote();
-					tag.SetEntry( "buildstatus", "FAILURE" );
-					hudsonOut.println( "Build failed - baseline is " + baseline.GetPromotionLevel( true ) );
-					res = true;
+					tag.SetEntry( "buildstatus", "SUCCESS" );
+					if ( promote )
+					{
+						try
+						{
+							baseline.Promote();
+							hudsonOut.println( "Baseline promoted to " + baseline.GetPromotionLevel( true ) + "." );
+							res = true;
+						}
+						catch ( Exception e )
+						{
+							
+							hudsonOut.println( "Could not promote baseline. " + e.getMessage());
+						}
+					}
+					if ( recommended )
+					{
+						try
+						{
+							st.RecommendBaseline( baseline );
+							hudsonOut.println( "Baseline " + baseline.GetShortname() + "recommended ");
+						}
+						catch ( Exception e )
+						{
+							hudsonOut.println( "Could not recommend baseline. " + e.getMessage());
+						}
+					}
+
 				}
 				catch ( Exception e )
 				{
-					hudsonOut.println( "Build failure, but new plevel could not be set." );
+					hudsonOut.println( "New plevel could not be set." );
 				}
 			}
 			else
+				if ( result.equals( Result.FAILURE ) )
+				{
+					hudsonOut.println( "Build failed" );
+					try
+					{
+						tag.SetEntry( "buildstatus", "FAILURE" );
+						if ( promote )
+							try
+							{
+								baseline.Demote();
+								hudsonOut.println( "Baseline is " + baseline.GetPromotionLevel( true )+"." );
+								res = true;
+							}
+							catch ( Exception e )
+							{
+								hudsonOut.println( "Could not demote baseline. " + e.getMessage());
+							}
+					}
+					catch ( Exception e )
+					{
+						hudsonOut.println( "New plevel could not be set. " + e.getMessage());
+					}
+				}
+				else
+				{
+					hudsonOut.println( "Baseline not changed. Buildstatus: " + result );
+					logger.log( "Buildstatus (Result) was " + result + ". Not handled by plugin." );
+					res = false;
+				}
+			try
 			{
-				hudsonOut.println( "Baseline not changed. Buildstatus: " + result );
-				logger.log( "Buildstatus (Result) was " + result + ". Not handled by plugin." );
-				res = false;
+				tag = tag.Persist();
+				hudsonOut.println( "Baseline now marked with tag:" + tag.Stringify() );
 			}
-		try
-		{
-			tag = tag.Persist();
-			hudsonOut.println( "Baseline now marked with tag:" + tag.Stringify() );
-		}
-		catch ( Exception e )
-		{
-			hudsonOut.println( "Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
+			catch ( Exception e )
+			{
+				hudsonOut.println( "Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
+			}
+
 		}
 		logger.print_trace();
 		return res;
@@ -184,6 +229,7 @@ public class PucmNotifier extends Notifier
 		{
 			super( PucmNotifier.class );
 			logger.trace_function();
+			load();
 		}
 
 		@Override
@@ -205,8 +251,12 @@ public class PucmNotifier extends Notifier
 			logger.trace_function();
 			boolean promote = req.getParameter( "Pucm.promote" ) != null;
 			boolean recommended = req.getParameter( "Pucm.recommended" ) != null;
+			save();
 			return new PucmNotifier( promote, recommended );
 		}
+		
+
+
 
 		@Override
 		public boolean isApplicable( Class<? extends AbstractProject> arg0 )

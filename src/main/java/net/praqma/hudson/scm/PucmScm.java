@@ -383,6 +383,11 @@ public class PucmScm extends SCM
 		logger.trace_function();
 		return stream;
 	}
+	
+	public Stream getStreamObject(){
+		logger.trace_function();
+		return st;
+	}
 
 	/**
 	 * This method is used by Hudson to load persisted data when users enter the
