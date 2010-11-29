@@ -69,7 +69,6 @@ public class PucmNotifier extends Notifier
 	@Override
 	public boolean needsToRunAfterFinalized()
 	{
-		System.out.print( "IN NOTIFIER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
 		logger.trace_function();
 		return true;
 	}

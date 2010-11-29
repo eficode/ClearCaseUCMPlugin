@@ -34,6 +34,7 @@ import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.entities.UCMEntityException;
 import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.utils.TagQuery;
+import net.praqma.hudson.Config;
 import net.praqma.utils.Debug;
 import net.sf.json.JSONObject;
 
@@ -462,17 +463,7 @@ public class PucmScm extends SCM
 			loadModules = getLoadModules();
 			load(); // load() MUST be called to get persisted data (check out
 					// save() as well)
-			if ( useTestbase == true )
-			{
-				UCM.SetContext( UCM.ContextType.XML );
-				System.out.println( "PUCM is running on a testbase" );
-			}
-			else
-			{
-				UCM.SetContext( UCM.ContextType.CLEARTOOL );
-				System.out.println( "PUCM is running on real ClearCase " );
-			}
-
+			Config.setContext( useTestbase );
 		}
 
 		/**
@@ -528,23 +519,17 @@ public class PucmScm extends SCM
 			return cleartool;
 		}
 
-		// TODO: PVOB'en knows the promotionlevel - ask cool to ask pvob
 		/**
-		 * Used by Hudson to display a list of valid promotionlevels to build
-		 * from
+		 * Used by Hudson to display a list of valid promotion levels to build
+		 * from.
+		 * The list of promotion levels is hard coded in net.praqma.hudson.Config.java
 		 * 
 		 * @return
 		 */
 		public List<String> getLevels()
 		{
 			logger.trace_function();
-			levels = new ArrayList<String>();
-			levels.add( "INITIAL" );
-			levels.add( "BUILT" );
-			levels.add( "TESTED" );
-			levels.add( "RELEASED" );
-			levels.add( "REJECTED" );
-			return levels;
+			return Config.getLevels();
 		}
 
 		/**
