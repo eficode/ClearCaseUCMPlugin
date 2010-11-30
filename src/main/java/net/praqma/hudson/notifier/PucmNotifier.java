@@ -25,8 +25,7 @@ import hudson.tasks.Publisher;
 import net.sf.json.JSONObject;
 
 /**
- * PucmNotifier has the responsibility of 'cleaning up' in ClearCase after a
- * build.
+ * PucmNotifier perfoms the user-chosen PUCM post-build actions
  * 
  * @author Troels Selch Sørensen
  * @author Margit Bennetzen
@@ -45,27 +44,16 @@ public class PucmNotifier extends Notifier
 	/**
 	 * This constructor is used in the inner class <code>DescriptorImpl</code>.
 	 * 
-	 * @param promote
-	 *            if <code>promote</code> is <code>true</code>, the baseline
-	 *            will be promoted after the build.
-	 * @param recommended
-	 *            if <code>recommended</code> is <code>true</code>, the baseline
-	 *            will be marked 'recommended' in ClearCase.
+	 * @param promote  if <code>true</code>, the baseline will be promoted after the build.
+	 * @param recommended if <code>true</code>, the baseline will be marked 'recommended' in ClearCase.
 	 */
 	public PucmNotifier( boolean promote, boolean recommended )
 	{
 		logger.trace_function();
 		this.promote = promote;
 		this.recommended = recommended;
-
 	}
 
-	/**
-	 * This message returns <code>true</code> to make sure that Hudson runs
-	 * {@link <public boolean perform(AbstractBuild build, Launcher launcer,
-	 * BuildListener listener)throws InterruptedException, IOException>
-	 * [perform()]} after a build.
-	 */
 	@Override
 	public boolean needsToRunAfterFinalized()
 	{
@@ -73,133 +61,153 @@ public class PucmNotifier extends Notifier
 		return true;
 	}
 
-
 	@Override
 	public BuildStepMonitor getRequiredMonitorService()
 	{
 		logger.trace_function();
-		return BuildStepMonitor.NONE;// http://hudson-ci.org/javadoc/hudson/tasks/BuildStep.html#getRequiredMonitorService%28%29
+		return BuildStepMonitor.NONE;
 	}
 
-	/**
-	 * This message is called from Hudson when a build is done, but only if
-	 * {@link <public boolean needsToRunAfterFinalized()>
-	 * [needsToRunAfterFinalized()]} returns <code>true</code>.
-	 */
 	@Override
 	public boolean perform( AbstractBuild build, Launcher launcer, BuildListener listener ) throws InterruptedException, IOException
 	{
 		logger.trace_function();
-		boolean res = false;
+		boolean result = true;
 		hudsonOut = listener.getLogger();
-		hudsonOut.println( "\n* * * Post build actions * * *" );
-
-		SCM scmTemp = build.getProject().getScm();
-		if ( !( scmTemp instanceof PucmScm ) )
+				
+		SCM scmTemp = null;
+		if (result)
 		{
-			listener.fatalError( "Not a PUCM scm. This Extension can only be used when polling from ClearCase with PUCM plugin." );
-			return false;
-		}
-
-		PucmScm scm = (PucmScm) scmTemp;
-		baseline = scm.getBaseline();
-		st = scm.getStreamObject();
-		if ( baseline == null )
-		{
-			// If baseline is null, the user has already been notified in
-			// Console output from PucmScm.checkout()
-			res = false;
-		}
-		else
-		{
-
-			// Getting tag to change buildstatus
-			Tag tag = baseline.GetTag( "hudson", build.getParent().getDisplayName() );
-
-			Result result = build.getResult();
-
-			if ( result.equals( Result.SUCCESS ) )
+			scmTemp = build.getProject().getScm();
+			if ( !( scmTemp instanceof PucmScm ) )
 			{
-				hudsonOut.println( "Build successful" );
-				try
-				{
-					tag.SetEntry( "buildstatus", "SUCCESS" );
-					if ( promote )
-					{
-						try
-						{
-							baseline.Promote();
-							hudsonOut.println( "Baseline promoted to " + baseline.GetPromotionLevel( true ) + "." );
-							res = true;
-						}
-						catch ( Exception e )
-						{
-							
-							hudsonOut.println( "Could not promote baseline. " + e.getMessage());
-						}
-					}
-					if ( recommended )
-					{
-						try
-						{
-							st.RecommendBaseline( baseline );
-							hudsonOut.println( "Baseline " + baseline.GetShortname() + "recommended ");
-						}
-						catch ( Exception e )
-						{
-							hudsonOut.println( "Could not recommend baseline. " + e.getMessage());
-						}
-					}
-
-				}
-				catch ( Exception e )
-				{
-					hudsonOut.println( "New plevel could not be set." );
-				}
+				listener.fatalError( "Not a PUCM scm. This Post build action can only be used when polling from ClearCase with PUCM plugin." );
+				result = false;
 			}
-			else
-				if ( result.equals( Result.FAILURE ) )
+		}
+		
+		if( result )
+		{
+			PucmScm scm = (PucmScm) scmTemp;
+			baseline = scm.getBaseline();
+			st = scm.getStreamObject();
+			if ( baseline == null )
+			{
+				// If baseline is null, the user has already been notified in
+				// Console output from PucmScm.checkout()
+				result = false;
+			}
+		}
+
+		if( result )
+		{
+			hudsonOut.println( "\n* * * Post build actions * * *" );
+			processBuild(build);
+		}
+		
+		logger.print_trace();
+		return result;
+	}
+	
+	private boolean processBuild( AbstractBuild build )
+	{
+		boolean result = true;
+		String buildstatus = null;
+		// Getting tag to change buildstatus
+		Tag tag = baseline.GetTag( "hudson", build.getParent().getDisplayName() );
+
+		Result buildResult = build.getResult();
+
+		if ( buildResult.equals( Result.SUCCESS ) )
+		{
+			hudsonOut.println( "Build successful" );
+			try
+			{
+				tag.SetEntry( "buildstatus", "SUCCESS" );
+				if ( promote )
 				{
-					hudsonOut.println( "Build failed" );
 					try
 					{
-						tag.SetEntry( "buildstatus", "FAILURE" );
-						if ( promote )
-							try
-							{
-								baseline.Demote();
-								hudsonOut.println( "Baseline is " + baseline.GetPromotionLevel( true )+"." );
-								res = true;
-							}
-							catch ( Exception e )
-							{
-								hudsonOut.println( "Could not demote baseline. " + e.getMessage());
-							}
+						baseline.Promote();
+						hudsonOut.println( "Baseline promoted to " + baseline.GetPromotionLevel( true ) + "." );
 					}
 					catch ( Exception e )
 					{
-						hudsonOut.println( "New plevel could not be set. " + e.getMessage());
+						hudsonOut.println( "Could not promote baseline. " + e.getMessage());
+						result = false;
 					}
 				}
-				else
+				if ( recommended )
 				{
-					hudsonOut.println( "Baseline not changed. Buildstatus: " + result );
-					logger.log( "Buildstatus (Result) was " + result + ". Not handled by plugin." );
-					res = false;
+					try
+					{
+						st.RecommendBaseline( baseline );
+						hudsonOut.println( "Baseline " + baseline.GetShortname() + " is now recommended ");
+					}
+					catch ( Exception e )
+					{
+						hudsonOut.println( "Could not recommend baseline. " + e.getMessage());
+						result = false;
+					}
 				}
-			try
-			{
-				tag = tag.Persist();
-				hudsonOut.println( "Baseline now marked with tag:" + tag.Stringify() );
 			}
 			catch ( Exception e )
 			{
-				hudsonOut.println( "Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
+				hudsonOut.println( "New plevel could not be set." );
+				result = false;
 			}
-
 		}
-		logger.print_trace();
-		return res;
+		else if ( buildResult.equals( Result.FAILURE ) )
+		{
+			hudsonOut.println( "Build failed" );
+			try
+			{
+				tag.SetEntry( "buildstatus", "FAILURE" );
+				if ( promote )
+					try
+					{
+						baseline.Demote();
+						hudsonOut.println( "Baseline is " + baseline.GetPromotionLevel( true )+"." );
+					}
+					catch ( Exception e )
+					{
+						hudsonOut.println( "Could not demote baseline. " + e.getMessage());
+						result = false;
+					}
+			}
+			catch ( Exception e )
+			{
+				hudsonOut.println( "New plevel could not be set. " + e.getMessage());
+				result = false;
+			}
+		}
+		else
+		{
+			hudsonOut.println( "Baseline not changed. Buildstatus: " + buildResult );
+			logger.log( "Buildstatus (Result) was " + buildResult + ". Not handled by plugin." );
+			result = false;
+		}
+		if( result )
+		{
+			result = persistTag(tag);
+		}
+		return result;
+	}
+	
+	private boolean persistTag(Tag tag)
+	{
+		boolean result = true;
+		try
+		{
+			tag = tag.Persist();
+			hudsonOut.println( "Baseline now marked with tag: \n" + tag.Stringify() );
+		}
+		catch ( Exception e )
+		{
+			hudsonOut.println( "Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
+			result = false;
+		}
+		return result;
 	}
 
 	public boolean isPromote()

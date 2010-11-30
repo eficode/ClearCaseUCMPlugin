@@ -65,9 +65,10 @@ public class PucmScm extends SCM
 	private List<String> loadModules = null;
 	private BaselineList baselines;
 	private boolean compRevCalled;
-	private String pollMsgs = "";
+	private StringBuffer pollMsgs = new StringBuffer();
 	private Stream st;
 	private Component co;
+	private Tag tag;
 
 	protected static Debug logger = Debug.GetLogger();
 
@@ -78,20 +79,19 @@ public class PucmScm extends SCM
 	 * information retrieved from the configuration page in the WebUI.
 	 * 
 	 * @param component
-	 *            This string defines the component needed to find baselines.
+	 *            defines the component needed to find baselines.
 	 * @param levelToPoll
-	 *            This string defines the level to poll ClearCase for.
+	 *            defines the level to poll ClearCase for.
 	 * @param loadModule
-	 *            This string tells if we should load all modules or only the
-	 *            ones that are modifiable.
+	 *            tells if we should load all modules or only the ones that are
+	 *            modifiable.
 	 * @param stream
-	 *            This string defines the stream needed to find baselines.
+	 *            defines the stream needed to find baselines.
 	 * @param newest
-	 *            This boolean tells whether we should build only the newest
-	 *            baseline.
+	 *            tells whether we should build only the newest baseline.
 	 * @param newerThanRecommended
-	 *            This boolean tells whether we should look at all baselines or
-	 *            only ones newer than the recommended baseline
+	 *            tells whether we should look at all baselines or only ones
+	 *            newer than the recommended baseline
 	 */
 	@DataBoundConstructor
 	public PucmScm( String component, String levelToPoll, String loadModule, String stream, boolean newest, boolean newerThanRecommended, boolean testing )
@@ -103,49 +103,57 @@ public class PucmScm extends SCM
 		this.stream = stream;
 		this.newest = newest;
 		this.newerThanRecommended = newerThanRecommended;
-
 	}
 
-	/**
-	 * The repository is checked for new baselines, and if any, then the oldest
-	 * will be built.
-	 * 
-	 */
 	@Override
 	public boolean checkout( AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile ) throws IOException, InterruptedException
 	{
 		logger.trace_function();
-		PrintStream hudsonOut = listener.getLogger();
+		boolean result = true;
 
-		/*
-		 * Examples to use from testbase.xml: stream = "STREAM_TEST1@\PDS_PVOB"
-		 * component = "COMPONENT_TEST1@\PDS_PVOB" Level to poll = "INITIAL"
-		 */
+		// consoleOutput Printstream is from Hudson, so it can only be accessed
+		// here
+		PrintStream consoleOutput = listener.getLogger();
 
 		String jobname = build.getParent().getDisplayName();
 
+		// compRevCalled tells whether we have polled for baselines to build -
+		// so if we haven't polled, we do it now
 		if ( !compRevCalled )
 		{
-			if ( !baselinesToBuild( jobname ) )
-			{
-				hudsonOut.println( pollMsgs );
-				// TODO check if needed
-				pollMsgs = "";
-				return false;
-			}
+			result = baselinesToBuild( jobname );
 		}
 
-		hudsonOut.println( pollMsgs );
-		pollMsgs = "";
+		compRevCalled = false;
 
-		String buildno = String.valueOf( build.getNumber() );
-		hudsonOut.println( "Creating tag. Jobname: " + jobname + ". Buildnumber: " + buildno + ". Status: In progress" );
-		// TODO CHW skal lave en Tag-constructor der kan tage en type + et
-		// hashmap, så vi kun skal gemme een gang
-		Tag tag = bl.CreateTag( "hudson", jobname, build.getTimestampString2(), "inprogress" );
-		tag.SetEntry( "buildno", buildno );
-		tag = tag.Persist();
+		// pollMsgs are set in either compareRemoteRevisionWith() or
+		// baselinesToBuild()
+		consoleOutput.println( pollMsgs );
+		pollMsgs = new StringBuffer();
 
+		if ( result )
+		{
+			result = makeTag( consoleOutput, build, jobname );
+		}
+
+		if ( result )
+		{
+			result = makeWorkspace( consoleOutput );
+		}
+
+		if ( result )
+		{
+			BaselineDiff changes = bl.GetDiffs();
+			consoleOutput.println( changes.size() + " elements changed" );
+			result = writeChangelog( changelogFile, changes, consoleOutput );
+		}
+
+		return result;
+	}
+
+	private boolean makeWorkspace( PrintStream hudsonOut )
+	{
+		boolean result;
 		try
 		{
 			// Maybe this code: SnapshotView sv = SnapshotView.Create(st,
@@ -153,6 +161,8 @@ public class PucmScm extends SCM
 			// TODO Set up workspace with snapshot and loadmodules
 			// mk workspace - that is - Ask 'backend' to do so with workspace
 			// (Filepath from constructor), baseline, loadrules
+
+			result = true;
 		}
 		catch ( Exception e )
 		{
@@ -160,82 +170,83 @@ public class PucmScm extends SCM
 			tag.SetEntry( "buildstatus", "couldNotCreateSnapshot" );
 			tag = tag.Persist();
 			hudsonOut.println( tag.Stringify() );
-			return false;
+			result = false;
 		}
-		hudsonOut.println( "Marking baseline with: \n" + tag.Stringify() );
-
-		BaselineDiff changes = bl.GetDiffs();
-		hudsonOut.println( changes.size() + " elements changed" );
-
-		compRevCalled = false; // ~ is set to false here so it is possible to
-								// build manually next time and not ask twice if
-								// there are new baselines
-		return writeChangelog( changelogFile, changes, hudsonOut );
+		return result;
 	}
 
-	/**
-	 * This method is used by {@link <public boolean checkout(AbstractBuild
-	 * build, Launcher launcher, FilePath workspace, BuildListener listener,
-	 * File changelogFile) throws IOException, InterruptedException>
-	 * [checkout()]} to write the changelog used uses.
-	 * 
-	 * @param changelogFile
-	 *            The file given by Hudson.
-	 * @param changes
-	 *            The list of changes to be written as XML.
-	 * @return true if the changelog was persisted, false if not.
-	 * @throws IOException
-	 */
-	private boolean writeChangelog( File changelogFile, BaselineDiff changes, PrintStream hudsonOut ) throws IOException
+	private boolean makeTag( PrintStream hudsonOut, AbstractBuild build, String jobname )
 	{
-		logger.trace_function();
-		String ls = System.getProperty( "line.seperator" );
-
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		// Here the .hudson/jobs/[project
-		// name]/builds/[buildnumber]/changelog.xml is written
-
-		hudsonOut.print( "Writing Hudson changelog..." );
+		boolean result;
 		try
 		{
-			baos.write( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>".getBytes() );
-			baos.write( "<changelog>".getBytes() );
-
-			baos.write( "<changeset>".getBytes() );
-			String temp;
-			baos.write( "<entry>".getBytes() );
-			baos.write( ( "<blName>" + bl.GetShortname() + "</blName>" ).getBytes() );
-			for ( Activity act : changes )
-			{
-				baos.write( "<activity>".getBytes() );
-				baos.write( ( "<actName>" + act.GetShortname() + "</actName>" ).getBytes() );
-				baos.write( ( "<author>Hudson" + act.GetUser() + "</author>" ).getBytes() );
-				List<Version> versions = act.changeset.versions;
-				for ( Version v : versions )
-				{
-					temp = "<file>" + v.toString() + "</file>";
-					baos.write( temp.getBytes() );
-				}
-				baos.write( "</activity>".getBytes() );
-			}
-			baos.write( "</entry>".getBytes() );
-			baos.write( "</changeset>".getBytes() );
-
-			baos.write( "</changelog>".getBytes() );
-			FileOutputStream fos = new FileOutputStream( changelogFile );
-			fos.write( baos.toByteArray() );
-			fos.close();
-			hudsonOut.println( " DONE" );
-			return true;
+			String buildno = String.valueOf( build.getNumber() );
+			// TODO CHW skal lave en Tag-constructor der kan tage en type + et
+			// hashmap, så vi kun skal gemme een gang
+			tag = bl.CreateTag( "hudson", jobname, build.getTimestampString2(), "inprogress" );
+			tag.SetEntry( "buildno", buildno );
+			tag = tag.Persist();
+			hudsonOut.println( "Baseline now marked with: \n" + tag.Stringify() );
+			result = true;
 		}
 		catch ( Exception e )
 		{
-			// If the changelog cannot be written, the baseline will not be
-			// built
-			hudsonOut.println( " FAILED" );
-			logger.log( "Changelog failed with " + e.getMessage() );
-			return false;
+			hudsonOut.println( "Could not create tag " + e.getMessage() );
+			result = false;
 		}
+		return result;
+	}
+
+	private boolean writeChangelog( File changelogFile, BaselineDiff changes, PrintStream hudsonOut ) throws IOException
+	{
+
+		boolean result;
+
+		logger.trace_function();
+
+		StringBuffer buffer = new StringBuffer();
+
+		// Here the .hudson/jobs/[project
+		// name]/builds/[buildnumber]/changelog.xml is written
+		hudsonOut.print( "Writing Hudson changelog..." );
+		try
+		{
+			buffer.append( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
+			buffer.append( "<changelog>" );
+			buffer.append( "<changeset>" );
+			buffer.append( "<entry>" );
+			buffer.append( ( "<blName>" + bl.GetShortname() + "</blName>" ) );
+			for ( Activity act : changes )
+			{
+				buffer.append( "<activity>" );
+				buffer.append( ( "<actName>" + act.GetShortname() + "</actName>" ) );
+				buffer.append( ( "<author>Hudson" + act.GetUser() + "</author>" ) );
+				List<Version> versions = act.changeset.versions;
+				String temp;
+				for ( Version v : versions )
+				{
+					temp = "<file>" + v.toString() + " " + v.Blame() + "</file>";
+					buffer.append( temp );
+				}
+				buffer.append( "</activity>" );
+			}
+			buffer.append( "</entry>" );
+			buffer.append( "</changeset>" );
+
+			buffer.append( "</changelog>" );
+			FileOutputStream fos = new FileOutputStream( changelogFile );
+			fos.write( buffer.toString().getBytes() );
+			fos.close();
+			hudsonOut.println( " DONE" );
+			result = true;
+		}
+		catch ( Exception e )
+		{
+			hudsonOut.println( "FAILED" );
+			logger.log( "Changelog failed with " + e.getMessage() );
+			result = false;
+		}
+		return result;
 	}
 
 	@Override
@@ -245,23 +256,24 @@ public class PucmScm extends SCM
 		return new ChangeLogParserImpl();
 	}
 
-	/**
-	 * Currently this method returns BUILD_NOW, but later it should evaluate IF
-	 * Hudson should build.
-	 */
 	@Override
 	public PollingResult compareRemoteRevisionWith( AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState baseline ) throws IOException, InterruptedException
 	{
 		logger.trace_function();
 		SCMRevisionStateImpl scmState = (SCMRevisionStateImpl) baseline;
-		PrintStream hudsonOut = listener.getLogger();
+
+		PollingResult p;
 
 		if ( baselinesToBuild( scmState.getJobname() ) )
 		{
 			compRevCalled = true;
-			return PollingResult.BUILD_NOW;
+			p = PollingResult.BUILD_NOW;
 		}
-		return PollingResult.NO_CHANGES;
+		else
+		{
+			p = PollingResult.NO_CHANGES;
+		}
+		return p;
 	}
 
 	@Override
@@ -270,18 +282,20 @@ public class PucmScm extends SCM
 		logger.trace_function();
 		PrintStream hudsonOut = listener.getLogger();
 
-		if ( bl == null )
-		{
-			return null;
-		}
+		SCMRevisionStateImpl scmRS = null;
 
-		SCMRevisionStateImpl scmRS = new SCMRevisionStateImpl( build.getParent().getDisplayName(), String.valueOf( build.getNumber() ) );
+		if ( !( bl == null ) )
+		{
+			scmRS = new SCMRevisionStateImpl( build.getParent().getDisplayName(), String.valueOf( build.getNumber() ) );
+		}
 		return scmRS;
 	}
 
 	private boolean baselinesToBuild( String jobname )
 	{
 		logger.trace_function();
+
+		boolean result = true;
 
 		co = null;
 		st = null;
@@ -293,150 +307,140 @@ public class PucmScm extends SCM
 		}
 		catch ( UCMEntityException ucmEe )
 		{
-			pollMsgs += ucmEe.toString() + "\n";
-			return false;
+			pollMsgs.append( ucmEe.toString() + "\n" );
+			result = false;
 		}
-		// TODO Stringbuffers
-		pollMsgs += "Getting " + ( newerThanRecommended ? "baselines newer than the recomended baseline " : "all baselines " ) + "for " + component + " and " + stream + " on promotionlevel " + levelToPoll + "\n";
 
-		try
+		if ( result )
 		{
-			if ( newerThanRecommended )
+			try
 			{
-				baselines = co.GetBaselines( st, UCMEntity.Plevel.valueOf( levelToPoll ) ).NewerThanRecommended();
+				pollMsgs.append( "Getting " );
+				pollMsgs.append( ( newerThanRecommended ? "baselines newer than the recomended baseline " : "all baselines " ) );
+				pollMsgs.append( "for " );
+				pollMsgs.append( component );
+				pollMsgs.append( " and " );
+				pollMsgs.append( stream );
+				pollMsgs.append( " on promotionlevel " );
+				pollMsgs.append( levelToPoll );
+				pollMsgs.append( "\n" );
+
+				if ( newerThanRecommended )
+				{
+					baselines = co.GetBaselines( st, UCMEntity.Plevel.valueOf( levelToPoll ) ).NewerThanRecommended();
+				}
+				else
+				{
+					baselines = co.GetBaselines( st, UCMEntity.Plevel.valueOf( levelToPoll ) );
+				}
+			}
+			catch ( Exception e )
+			{
+				pollMsgs.append( "Could not retrieve baselines from repository\n" );
+				result = false;
+			}
+		}
+
+		if ( result )
+		{
+			// Remove baselines that have buildInProgress - this is relevant if
+			// several builds are run at the same time on the same Hudson-job
+			TagQuery tq = new TagQuery();
+			tq.AddCondition( "buildstatus", "^(?!inprogress$)" );
+
+			// Filter so only baselines from this job is in the list
+			baselines = baselines.Filter( tq, "hudson", jobname );
+			// TODO: LARS SAYS: baselines could have push and pop instead
+
+			if ( baselines.size() > 0 )
+			{
+				pollMsgs.append( "Retrieved baselines:\n" );
+				for ( Baseline b : baselines )
+				{
+					pollMsgs.append( b.GetShortname() );
+					pollMsgs.append( "\n" );
+				}
+
+				if ( newest )
+				{
+					bl = baselines.get( 0 );
+					pollMsgs.append( "Building newest baseline: " );
+					pollMsgs.append( bl );
+					pollMsgs.append( "\n" );
+				}
+				else
+				{
+					bl = baselines.get( baselines.size() - 1 );
+					pollMsgs.append( "Building next baseline: " );
+					pollMsgs.append( bl );
+					pollMsgs.append( "\n" );
+				}
 			}
 			else
 			{
-				baselines = co.GetBaselines( st, UCMEntity.Plevel.valueOf( levelToPoll ) );
+				pollMsgs.append( "No baselines on chosen parameters.\n" );
+				result = false;
 			}
 		}
-		catch ( Exception e )
-		{
-			pollMsgs += "Could not retrieve baselines from repository\n";
-			return false;
-		}
-
-		// Remove baselines that have buildInProgress - this is relevant if
-		// several builds are run at the same time on the same Hudson-job
-		TagQuery tq = new TagQuery();
-		tq.AddCondition( "buildstatus", "^(?!inprogress$)" );
-
-		// Filter so only baselines from this job is in the list
-		baselines = baselines.Filter( tq, "hudson", jobname );
-		// TODO: LARS SAYS: baselines could have push and pop instead
-
-		if ( baselines.size() > 0 )
-		{
-			pollMsgs += "Retrieved baselines:\n";
-			for ( Baseline b : baselines )
-				pollMsgs += b.GetShortname() + "\n";
-			if ( newest )
-			{
-				bl = baselines.get( 0 );
-				pollMsgs += "Building newest baseline: " + bl + "\n";
-			}
-			else
-			{
-				bl = baselines.get( baselines.size() - 1 );
-				pollMsgs += "Building next baseline: " + bl + "\n";
-			}
-		}
-		else
-		{
-			pollMsgs += "No baselines on chosen parameters.\n";
-			return false;
-		}
-		return true;
+		return result;
 	}
-
-	/**
-	 * This method is used by Hudson to load persisted data when users enter the
-	 * job config page.
-	 * 
-	 * @return
+	
+	/*
+	 * The following getters and booleans (six in all) are used to display saved userdata in Hudsons gui
 	 */
+
 	public String getLevelToPoll()
 	{
 		logger.trace_function();
 		return levelToPoll;
 	}
 
-	/**
-	 * This method is used by Hudson to load persisted data when users enter the
-	 * job config page.
-	 * 
-	 * @return component
-	 */
 	public String getComponent()
 	{
 		logger.trace_function();
 		return component;
 	}
 
-	/**
-	 * This method is used by Hudson to load persisted data when users enter the
-	 * job config page.
-	 * 
-	 * @return stream
-	 */
 	public String getStream()
 	{
 		logger.trace_function();
 		return stream;
 	}
-	
-	public Stream getStreamObject(){
-		logger.trace_function();
-		return st;
-	}
 
-	/**
-	 * This method is used by Hudson to load persisted data when users enter the
-	 * job config page.
-	 * 
-	 * @return loadModule - which can be "all" or "modifiable"
-	 */
+
 	public String getLoadModule()
 	{
 		logger.trace_function();
 		return loadModule;
 	}
 
-	/**
-	 * This method is used by CC4HNotifier.perform for tagging the baseline
-	 * after build
-	 * 
-	 * @return baseline
-	 */
-	public Baseline getBaseline()
-	{
-		logger.trace_function();
-		return bl;
-	}
 
-	/**
-	 * This method is used by Hudson to load persisted data when users enter the
-	 * job config page.
-	 * 
-	 * @return newest - whether the user wants the newest or the latest baseline
-	 */
 	public boolean isNewest()
 	{
 		logger.trace_function();
 		return newest;
 	}
 
-	/**
-	 * This method is used by Hudson to load persisted data when users enter the
-	 * job config page.
-	 * 
-	 * @return newerThanRecommended - whether the user only wants baselines
-	 *         newer than recommended
-	 */
 	public boolean isNewerThanRecommended()
 	{
 		logger.trace_function();
 		return newerThanRecommended;
+	}
+
+	/*
+	 * getStreamObject() and getBaseline() are used by PucmNotifier to get the Baseline and Stream in use
+	 */
+	
+	public Stream getStreamObject()
+	{
+		logger.trace_function();
+		return st;
+	}
+
+	public Baseline getBaseline()
+	{
+		logger.trace_function();
+		return bl;
 	}
 
 	/**
@@ -453,7 +457,6 @@ public class PucmScm extends SCM
 		private String cleartool;
 		private List<String> levels;
 		private List<String> loadModules;
-		private boolean useTestbase = true;
 
 		public PucmScmDescriptor()
 		{
@@ -461,9 +464,8 @@ public class PucmScm extends SCM
 			logger.trace_function();
 			levels = getLevels();
 			loadModules = getLoadModules();
-			load(); // load() MUST be called to get persisted data (check out
-					// save() as well)
-			Config.setContext( useTestbase );
+			load(); 
+			Config.setContext();
 		}
 
 		/**
@@ -474,8 +476,7 @@ public class PucmScm extends SCM
 		public boolean configure( org.kohsuke.stapler.StaplerRequest req, JSONObject json ) throws FormException
 		{
 			logger.trace_function();
-			// TODO: change CC4H
-			cleartool = req.getParameter( "cc4h.cleartool" ).trim();
+			cleartool = req.getParameter( "PUCM.cleartool" ).trim();
 			save();
 			return true;
 		}
@@ -521,8 +522,8 @@ public class PucmScm extends SCM
 
 		/**
 		 * Used by Hudson to display a list of valid promotion levels to build
-		 * from.
-		 * The list of promotion levels is hard coded in net.praqma.hudson.Config.java
+		 * from. The list of promotion levels is hard coded in
+		 * net.praqma.hudson.Config.java
 		 * 
 		 * @return
 		 */
