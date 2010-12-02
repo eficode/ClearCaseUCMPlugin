@@ -44,11 +44,7 @@ public class ChangeLogEntryImpl extends Entry
 		return affectedPaths;
 	}
 
-	/**
-	 * This method us used by ChangeLogParserImpl.parse to write the changelog
-	 * 
-	 * @param filepath
-	 */
+
 	public void setNextFilepath( String filepath )
 	{
 		logger.trace_function();
@@ -57,13 +53,9 @@ public class ChangeLogEntryImpl extends Entry
 		affectedPaths.add( filepath );
 	}
 
-	/**
-	 * Called by Hudson. This delivers the user that made the changesetentry
-	 */
 	@Override
 	public User getAuthor()
 	{
-		// TODO Implement the right user when blame is ready in COOL-code
 		logger.trace_function();
 		if ( author == null )
 		{

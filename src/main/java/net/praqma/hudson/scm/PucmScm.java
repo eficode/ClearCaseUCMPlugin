@@ -181,8 +181,7 @@ public class PucmScm extends SCM
 		try
 		{
 			String buildno = String.valueOf( build.getNumber() );
-			// TODO CHW skal lave en Tag-constructor der kan tage en type + et
-			// hashmap, så vi kun skal gemme een gang
+			// TODO CHW skal lave en Tag-constructor der kan tage en type + et hashmap, så vi kun skal gemme een gang
 			tag = bl.CreateTag( "hudson", jobname, build.getTimestampString2(), "inprogress" );
 			tag.SetEntry( "buildno", buildno );
 			tag = tag.Persist();
@@ -350,7 +349,7 @@ public class PucmScm extends SCM
 
 			// Filter so only baselines from this job is in the list
 			baselines = baselines.Filter( tq, "hudson", jobname );
-			// TODO: LARS SAYS: baselines could have push and pop instead
+			//TODO: LARS SAYS: baselines could have push and pop instead
 
 			if ( baselines.size() > 0 )
 			{
