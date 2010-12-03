@@ -290,6 +290,7 @@ public class PucmScm extends SCM
 		return scmRS;
 	}
 
+	//hello
 	private boolean baselinesToBuild( String jobname )
 	{
 		logger.trace_function();
