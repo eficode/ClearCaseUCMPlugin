@@ -19,9 +19,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
-
+import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Tag;
 import net.praqma.clearcase.ucm.entities.Activity;
@@ -33,7 +34,11 @@ import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.entities.UCMEntityException;
 import net.praqma.clearcase.ucm.entities.Version;
+import net.praqma.clearcase.ucm.persistence.UCMContext;
+import net.praqma.clearcase.ucm.persistence.UCMStrategyCleartool;
 import net.praqma.clearcase.ucm.utils.TagQuery;
+import net.praqma.clearcase.ucm.view.SnapshotView;
+import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.hudson.Config;
 import net.praqma.utils.Debug;
 import net.sf.json.JSONObject;
@@ -68,8 +73,8 @@ public class PucmScm extends SCM
 	private StringBuffer pollMsgs = new StringBuffer();
 	private Stream st;
 	private Component co;
-	private Tag tag;
-
+	private SnapshotView sv = null;
+	
 	protected static Debug logger = Debug.GetLogger();
 
 	/**
@@ -111,8 +116,7 @@ public class PucmScm extends SCM
 		logger.trace_function();
 		boolean result = true;
 
-		// consoleOutput Printstream is from Hudson, so it can only be accessed
-		// here
+		//consoleOutput Printstream is from Hudson, so it can only be accessed here
 		PrintStream consoleOutput = listener.getLogger();
 
 		String jobname = build.getParent().getDisplayName();
@@ -133,17 +137,16 @@ public class PucmScm extends SCM
 
 		if ( result )
 		{
-			result = makeTag( consoleOutput, build, jobname );
+			result = makeWorkspace( consoleOutput , workspace );
+			if( !result )
+			{
+				consoleOutput.println( "Could not make workspace. Marking baseline with:" );
+			}
 		}
 
 		if ( result )
 		{
-			result = makeWorkspace( consoleOutput );
-		}
-
-		if ( result )
-		{
-			BaselineDiff changes = bl.GetDiffs();
+			BaselineDiff changes = bl.GetDiffs(sv);
 			consoleOutput.println( changes.size() + " elements changed" );
 			result = writeChangelog( changelogFile, changes, consoleOutput );
 		}
@@ -151,62 +154,80 @@ public class PucmScm extends SCM
 		return result;
 	}
 
-	private boolean makeWorkspace( PrintStream hudsonOut )
+	private boolean makeWorkspace( PrintStream hudsonOut, FilePath workspace )
 	{
-		boolean result;
+		boolean result = true;
+		// We know we have a stream (st), because it is set in baselinesToBuild()
+
+		// TODO verify viewtag
+		String viewtag = "hudson_" + System.getenv( "COMPUTERNAME" );
+		
+		File viewroot = new File( workspace + "\\view" );
 		try
 		{
-			// Maybe this code: SnapshotView sv = SnapshotView.Create(st,
-			// "viewtag", workspace.);
-			// TODO Set up workspace with snapshot and loadmodules
-			// mk workspace - that is - Ask 'backend' to do so with workspace
-			// (Filepath from constructor), baseline, loadrules
-
-			result = true;
+			if ( viewroot.mkdir() )
+			{
+				hudsonOut.println( "Created viewroot " + viewroot.toString() );
+			}
+			else
+			{
+				hudsonOut.println( "Reusing viewroot " + viewroot.toString() );
+			}
 		}
 		catch ( Exception e )
 		{
-			hudsonOut.println( "Could not make workspace. Marking baseline with:" );
-			tag.SetEntry( "buildstatus", "couldNotCreateSnapshot" );
-			tag = tag.Persist();
-			hudsonOut.println( tag.Stringify() );
+			hudsonOut.println( "Could not make viewroot " + viewroot.toString() + ". Cause: " + e.getMessage() );
 			result = false;
 		}
-		return result;
-	}
-
-	private boolean makeTag( PrintStream hudsonOut, AbstractBuild build, String jobname )
-	{
-		boolean result;
-		try
+		
+		if( result )
 		{
-			String buildno = String.valueOf( build.getNumber() );
-			// TODO CHW skal lave en Tag-constructor der kan tage en type + et hashmap, så vi kun skal gemme een gang
-			tag = bl.CreateTag( "hudson", jobname, build.getTimestampString2(), "inprogress" );
-			tag.SetEntry( "buildno", buildno );
-			tag = tag.Persist();
-			hudsonOut.println( "Baseline now marked with: \n" + tag.Stringify() );
-			result = true;
-		}
-		catch ( Exception e )
-		{
-			hudsonOut.println( "Could not create tag " + e.getMessage() );
-			result = false;
+			
+			// Hvis der er et snaphotview med et givent viewtag i cleartool så:
+			if ( UCMView.ViewExists( viewtag ) )
+			{
+				sv = UCMView.GetSnapshotView( viewroot );
+				//TODO - find ud af om viewroot er valid (viewroot==viewcontext i chws hoved lige nu)
+				//if ( /*hvis viewroot ikke er valid*/ )
+				{
+					// så regenerere viewroot.
+					//sv.RegenerateViewDotDat( dir, viewtag );
+				}
+				// opdater snapshotview (med loadModules som parameter)
+				//sv.Update( swipe, generate, overwrite, force, excludeRoot, components, loadrules )
+			}
+			else
+			{
+				sv = SnapshotView.Create( st, viewroot, viewtag );
+				// lav snapshotview på ny (med loadModules)
+			}
+			if(sv==null)
+			{
+				result = false;
+			}
+			if( result )
+			{
+				// Så skal der rebases - hvis der er en rebase igang, så skal den gamle afsluttes og den nye sættes igang
+				if(st.IsRebaseInProgress())
+				{
+					st.CancelRebase();
+				}
+				//TODO: spørg LAK om hvad boolean complete gør.
+				st.Rebase( sv, bl, true );
+			}
 		}
 		return result;
 	}
 
 	private boolean writeChangelog( File changelogFile, BaselineDiff changes, PrintStream hudsonOut ) throws IOException
 	{
-
 		boolean result;
 
 		logger.trace_function();
 
 		StringBuffer buffer = new StringBuffer();
 
-		// Here the .hudson/jobs/[project
-		// name]/builds/[buildnumber]/changelog.xml is written
+		// Here the .hudson/jobs/[project name]/builds/[buildnumber]/changelog.xml is written
 		hudsonOut.print( "Writing Hudson changelog..." );
 		try
 		{
@@ -290,7 +311,6 @@ public class PucmScm extends SCM
 		return scmRS;
 	}
 
-	//hello
 	private boolean baselinesToBuild( String jobname )
 	{
 		logger.trace_function();
@@ -303,7 +323,15 @@ public class PucmScm extends SCM
 		try
 		{
 			co = UCMEntity.GetComponent( "component:" + component, false );
-			st = UCMEntity.GetStream( "stream:" + stream, false );
+			//TODO: Afklaring med lak mht om vi overhovedet skal create stream, hvis ja, med hvilke parametre?
+			if(Stream.StreamExists( stream ))
+			{
+				st = UCMEntity.GetStream( "stream:" + stream, false );
+			} else
+			{
+				
+				//TODO fiks: st = Stream.Create( pstream, nstream, readonly, null )
+			}
 		}
 		catch ( UCMEntityException ucmEe )
 		{
@@ -327,11 +355,11 @@ public class PucmScm extends SCM
 
 				if ( newerThanRecommended )
 				{
-					baselines = co.GetBaselines( st, UCMEntity.Plevel.valueOf( levelToPoll ) ).NewerThanRecommended();
+					baselines = co.GetBaselines( st, Project.Plevel.valueOf( levelToPoll ) ).NewerThanRecommended();
 				}
 				else
 				{
-					baselines = co.GetBaselines( st, UCMEntity.Plevel.valueOf( levelToPoll ) );
+					baselines = co.GetBaselines( st, Project.Plevel.valueOf( levelToPoll ) );
 				}
 			}
 			catch ( Exception e )
@@ -343,15 +371,6 @@ public class PucmScm extends SCM
 
 		if ( result )
 		{
-			// Remove baselines that have buildInProgress - this is relevant if
-			// several builds are run at the same time on the same Hudson-job
-			TagQuery tq = new TagQuery();
-			tq.AddCondition( "buildstatus", "^(?!inprogress$)" );
-
-			// Filter so only baselines from this job is in the list
-			baselines = baselines.Filter( tq, "hudson", jobname );
-			//TODO: LARS SAYS: baselines could have push and pop instead
-
 			if ( baselines.size() > 0 )
 			{
 				pollMsgs.append( "Retrieved baselines:\n" );
@@ -384,9 +403,10 @@ public class PucmScm extends SCM
 		}
 		return result;
 	}
-	
+
 	/*
-	 * The following getters and booleans (six in all) are used to display saved userdata in Hudsons gui
+	 * The following getters and booleans (six in all) are used to display saved
+	 * userdata in Hudsons gui
 	 */
 
 	public String getLevelToPoll()
@@ -407,13 +427,11 @@ public class PucmScm extends SCM
 		return stream;
 	}
 
-
 	public String getLoadModule()
 	{
 		logger.trace_function();
 		return loadModule;
 	}
-
 
 	public boolean isNewest()
 	{
@@ -428,9 +446,10 @@ public class PucmScm extends SCM
 	}
 
 	/*
-	 * getStreamObject() and getBaseline() are used by PucmNotifier to get the Baseline and Stream in use
+	 * getStreamObject() and getBaseline() are used by PucmNotifier to get the
+	 * Baseline and Stream in use
 	 */
-	
+
 	public Stream getStreamObject()
 	{
 		logger.trace_function();
@@ -464,7 +483,7 @@ public class PucmScm extends SCM
 			logger.trace_function();
 			levels = getLevels();
 			loadModules = getLoadModules();
-			load(); 
+			load();
 			Config.setContext();
 		}
 
