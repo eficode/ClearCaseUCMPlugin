@@ -397,14 +397,14 @@ public class PucmScm extends SCM
 
 				if ( newest )
 				{
-					bl = baselines.get( 0 );
+					bl = baselines.get( baselines.size() - 1 );
 					pollMsgs.append( "Building newest baseline: " );
 					pollMsgs.append( bl );
 					pollMsgs.append( "\n" );
 				}
 				else
 				{
-					bl = baselines.get( baselines.size() - 1 );
+					bl = baselines.get( 0 );
 					pollMsgs.append( "Building next baseline: " );
 					pollMsgs.append( bl );
 					pollMsgs.append( "\n" );
