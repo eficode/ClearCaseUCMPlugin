@@ -201,7 +201,7 @@ public class PucmScm extends SCM
 				}
 
 				//All below parameters according to LAK and CHW
-				sv.Update( true, true, true, true/*chw fjerne force*/, false, COMP.valueOf( loadModule.toUpperCase() ), null );//components eller loadrules = null, det er loadmodules vi skal bruge
+				//sv.Update( true, true, true, true/*chw fjerne force*/, false, COMP.valueOf( loadModule.toUpperCase() ), null );//components eller loadrules = null, det er loadmodules vi skal bruge
 			}
 			else
 			{
