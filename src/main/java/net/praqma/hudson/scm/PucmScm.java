@@ -166,7 +166,7 @@ public class PucmScm extends SCM
 		// TODO verify viewtag
 		String viewtag = "pucm_" + System.getenv( "COMPUTERNAME" );//TODO +hudsonjobname i stinavn
 		
-		File viewroot = new File( workspace + "\\view" );
+		File viewroot = new File( workspace + "\\view\\"+viewtag );
 		try
 		{
 			if ( viewroot.mkdir() )
