@@ -74,7 +74,7 @@ public class PucmScm extends SCM
 	private BaselineList baselines;
 	private boolean compRevCalled;
 	private StringBuffer pollMsgs = new StringBuffer();
-	private Stream st;
+	private Stream integrationstream;
 	private Component co;
 	private SnapshotView sv = null;
 	
@@ -214,13 +214,14 @@ public class PucmScm extends SCM
 			}
 			if( result )
 			{
+				Stream devstream = Config.devStream(); //view: Hudson_Server_dev_view
 				// Now we have to rebase - if a rebase is in progress, the old one must be stopped and the new started instead
-				if(st.IsRebaseInProgress())
+				if(devstream.IsRebaseInProgress())
 				{
-					st.CancelRebase();
+					devstream.CancelRebase();
 				}
 				//The last boolean, complete, must always be true from PUCM as we are always working on a read-only stream according to LAK
-				st.Rebase( sv, bl, true );
+				devstream.Rebase( sv, bl, true );
 			}
 		}
 		return result;
@@ -325,15 +326,16 @@ public class PucmScm extends SCM
 		boolean result = true;
 
 		co = null;
-		st = null;
+		integrationstream = null;
+		Stream devstream = null;
 
 		try
 		{
 			co = UCMEntity.GetComponent( "component:" + component, false );
 			
-			st = UCMEntity.GetStream( "stream:" + stream, false );
-			pollMsgs.append("Stream exists: "+st.toString());
-			
+			integrationstream = UCMEntity.GetStream( "stream:" + stream, false );
+			pollMsgs.append("Integrationstream exists: "+integrationstream.toString());
+						
 			//TODO: Afklaring med lak mht om vi overhovedet skal create stream, hvis ja, med hvilke parametre?
 			
 			/*if(Stream.StreamExists( stream ))
@@ -368,11 +370,11 @@ public class PucmScm extends SCM
 
 				if ( newerThanRecommended )
 				{
-					baselines = co.GetBaselines( st, Project.Plevel.valueOf( levelToPoll ) ).NewerThanRecommended();
+					baselines = co.GetBaselines( integrationstream, Project.Plevel.valueOf( levelToPoll ) ).NewerThanRecommended();
 				}
 				else
 				{
-					baselines = co.GetBaselines( st, Project.Plevel.valueOf( levelToPoll ) );
+					baselines = co.GetBaselines( integrationstream, Project.Plevel.valueOf( levelToPoll ) );
 				}
 			}
 			catch ( Exception e )
@@ -466,7 +468,7 @@ public class PucmScm extends SCM
 	public Stream getStreamObject()
 	{
 		logger.trace_function();
-		return st;
+		return integrationstream;
 	}
 
 	public Baseline getBaseline()

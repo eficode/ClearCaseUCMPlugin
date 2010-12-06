@@ -3,7 +3,9 @@ package net.praqma.hudson;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCM;
+import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.utils.Debug;
 
 public class Config
@@ -26,15 +28,15 @@ public class Config
 		return levels;
 	}
 
-
 	public static void setContext()
 	{
 		boolean useTestbase = false;
 		if ( useTestbase )
 		{
 			/*
-			 * Examples to use from testbase.xml: stream = "STREAM_TEST1@\PDS_PVOB"
-			 * component = "COMPONENT_TEST1@\PDS_PVOB" Level to poll = "INITIAL"
+			 * Examples to use from testbase.xml: stream =
+			 * "STREAM_TEST1@\PDS_PVOB" component = "COMPONENT_TEST1@\PDS_PVOB"
+			 * Level to poll = "INITIAL"
 			 */
 			UCM.SetContext( UCM.ContextType.XML );
 			System.out.println( "PUCM is running on a testbase" );
@@ -44,6 +46,11 @@ public class Config
 			UCM.SetContext( UCM.ContextType.CLEARTOOL );
 			System.out.println( "PUCM is running on real ClearCase " );
 		}
+	}
+
+	public static Stream devStream()
+	{
+		return UCMEntity.GetStream( "stream:Hudson_Server_dev", false );
 	}
 
 }
