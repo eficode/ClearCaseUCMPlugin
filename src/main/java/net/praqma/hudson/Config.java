@@ -50,7 +50,7 @@ public class Config
 
 	public static Stream devStream()
 	{
-		return UCMEntity.GetStream( "stream:Hudson_Server_dev", false );
+		return UCMEntity.GetStream( "stream:Hudson_Server_dev@\\Cool_PVOB", false );
 	}
 
 }
