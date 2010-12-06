@@ -330,18 +330,21 @@ public class PucmScm extends SCM
 		try
 		{
 			co = UCMEntity.GetComponent( "component:" + component, false );
+			
+			st = UCMEntity.GetStream( "stream:" + stream, false );
+			pollMsgs.append("Stream exists: "+st.toString());
+			
 			//TODO: Afklaring med lak mht om vi overhovedet skal create stream, hvis ja, med hvilke parametre?
 			
-			if(Stream.StreamExists( stream ))
+			/*if(Stream.StreamExists( stream ))
 			{
-				st = UCMEntity.GetStream( "stream:" + stream, false );
-				pollMsgs.append("Stream exists: "+st.toString());
+				
 			} else
 			{
 				//Version2: kunne angive Hudson-projekt. Skal hardcodes i config.java CHRISTIAN - FIKS!!!! :-)
 				//TODO fiks: st = Stream.Create( pstream, nstream, readonly, null )CHW kommr med ny metode - måske
 				//nstream = gui-angivet stream, pstream fra config.java, readonly=true
-			}
+			}*/
 		}
 		catch ( UCMEntityException ucmEe )
 		{
