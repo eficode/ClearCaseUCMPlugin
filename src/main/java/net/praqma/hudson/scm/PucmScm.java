@@ -164,7 +164,7 @@ public class PucmScm extends SCM
 		// We know we have a stream (st), because it is set in baselinesToBuild()
 
 		// TODO verify viewtag
-		String viewtag = "pucm_" + System.getenv( "COMPUTERNAME" );//TODO +hudsonjobname i stinavn
+		String viewtag = "Hudson_Server_dev_view";//"pucm_" + System.getenv( "COMPUTERNAME" );//TODO +hudsonjobname i stinavn
 		
 		File viewroot = new File( workspace + "\\view\\"+viewtag );
 		try
