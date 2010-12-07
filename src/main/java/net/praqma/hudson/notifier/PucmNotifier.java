@@ -114,7 +114,7 @@ public class PucmNotifier extends Notifier
 		boolean result = true;
 		String buildstatus = null;
 		// Getting tag to change buildstatus
-		Tag tag = baseline.GetTag( "hudson", build.getParent().getDisplayName() );
+		Tag tag = baseline.GetTag( build.getParent().getDisplayName(), Integer.toString(build.getNumber()) );
 
 		Result buildResult = build.getResult();
 
@@ -191,6 +191,9 @@ public class PucmNotifier extends Notifier
 		{
 			result = persistTag(tag);
 		}
+		//The below hudsonOut are for a little plugin that can display the information on hudsons build-history page.
+		hudsonOut.println( "DISPLAY_STATUS:<small>" + baseline.GetShortname() + "</small><BR/>" + buildResult.toString() + 
+				(recommended?"<BR/><B>Recommended</B>":"")+"<BR/><small>Level:[" + baseline.GetPromotionLevel( true ) + "]</small>");
 		return result;
 	}
 	

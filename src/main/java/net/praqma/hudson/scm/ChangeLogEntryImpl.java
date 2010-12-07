@@ -48,8 +48,6 @@ public class ChangeLogEntryImpl extends Entry
 	public void setNextFilepath( String filepath )
 	{
 		logger.trace_function();
-		if ( filepath == null )
-			logger.log( "Filepath is null" );
 		affectedPaths.add( filepath );
 	}
 

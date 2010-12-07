@@ -66,8 +66,7 @@ public class PucmScm extends SCM
 	private String component;
 	private String stream;
 	private boolean newest;
-	private boolean newerThanRecommended;
-
+	
 	private Baseline bl;
 	private List<String> levels = null;
 	private List<String> loadModules = null;
@@ -110,7 +109,6 @@ public class PucmScm extends SCM
 		this.loadModule = loadModule;
 		this.stream = stream;
 		this.newest = newest;
-		this.newerThanRecommended = newerThanRecommended;
 	}
 
 	@Override
@@ -196,7 +194,7 @@ public class PucmScm extends SCM
 					sv.ViewrootIsValid();//(returns uuid)
 				} catch (UCMException ucmE)
 				{
-					// then viewroot is regenerated
+					//then viewroot is regenerated
 					//TODO SnapshotView.RegenerateViewDotDat( viewroot, viewtag );//venter på at CHW laver den statisk :-) eller sletter viewroot/tag
 				}
 
@@ -248,12 +246,12 @@ public class PucmScm extends SCM
 			{
 				buffer.append( "<activity>" );
 				buffer.append( ( "<actName>" + act.GetShortname() + "</actName>" ) );
-				buffer.append( ( "<author>Hudson" + act.GetUser() + "</author>" ) );
+				buffer.append( ( "<author>" + act.GetUser() + "</author>" ) );
 				List<Version> versions = act.changeset.versions;
 				String temp;
 				for ( Version v : versions )
 				{
-					temp = "<file>" + v.toString() + " " + v.Blame() + "</file>";
+					temp = "<file>" + v.GetFile() + "[" + v.GetRevision() + "] user: " + v.Blame() + "</file>";
 					buffer.append( temp );
 				}
 				buffer.append( "</activity>" );
@@ -300,6 +298,7 @@ public class PucmScm extends SCM
 		else
 		{
 			p = PollingResult.NO_CHANGES;
+			pollMsgs = new StringBuffer();
 		}
 		return p;
 	}
@@ -314,7 +313,7 @@ public class PucmScm extends SCM
 
 		if ( !( bl == null ) )
 		{
-			scmRS = new SCMRevisionStateImpl( build.getParent().getDisplayName(), String.valueOf( build.getNumber() ) );
+			scmRS = new SCMRevisionStateImpl( build.getParent().getDisplayName() );
 		}
 		return scmRS;
 	}
@@ -334,7 +333,7 @@ public class PucmScm extends SCM
 			co = UCMEntity.GetComponent( "component:" + component, false );
 			
 			integrationstream = UCMEntity.GetStream( "stream:" + stream, false );
-			pollMsgs.append("Integrationstream exists: "+integrationstream.toString());
+			pollMsgs.append("Integrationstream exists: "+integrationstream.toString() + "\n");
 						
 			//TODO: Afklaring med lak mht om vi overhovedet skal create stream, hvis ja, med hvilke parametre?
 			
@@ -358,24 +357,15 @@ public class PucmScm extends SCM
 		{
 			try
 			{
-				pollMsgs.append( "Getting " );
-				pollMsgs.append( ( newerThanRecommended ? "baselines newer than the recomended baseline " : "all baselines " ) );
-				pollMsgs.append( "for stream " );
+				pollMsgs.append( "Getting alle baselines for :\n* Stream " );
 				pollMsgs.append( stream );
-				pollMsgs.append( " and component " );
+				pollMsgs.append( "\n* Component" );
 				pollMsgs.append( component );
-				pollMsgs.append( " on promotionlevel " );
+				pollMsgs.append( "\n* Promotionlevel " );
 				pollMsgs.append( levelToPoll );
 				pollMsgs.append( "\n" );
 
-				if ( newerThanRecommended )
-				{
-					baselines = co.GetBaselines( integrationstream, Project.Plevel.valueOf( levelToPoll ) ).NewerThanRecommended();
-				}
-				else
-				{
-					baselines = co.GetBaselines( integrationstream, Project.Plevel.valueOf( levelToPoll ) );
-				}
+				baselines = co.GetBaselines( integrationstream, Project.Plevel.valueOf( levelToPoll ) );
 			}
 			catch ( Exception e )
 			{
@@ -388,13 +378,10 @@ public class PucmScm extends SCM
 		{
 			if ( baselines.size() > 0 )
 			{
-				pollMsgs.append( "Retrieved baselines:\n" );
-				for ( Baseline b : baselines )
-				{
-					pollMsgs.append( b.GetShortname() );
-					pollMsgs.append( "\n" );
-				}
-
+				
+				
+				printBaselines(baselines);
+				
 				if ( newest )
 				{
 					bl = baselines.get( baselines.size() - 1 );
@@ -417,6 +404,29 @@ public class PucmScm extends SCM
 			}
 		}
 		return result;
+	}
+	
+	private void printBaselines(BaselineList baselines)
+	{
+		pollMsgs.append( "Retrieved baselines:\n" );
+		if(!(baselines.size() > 20))
+		{
+			for ( Baseline b : baselines )
+			{
+				pollMsgs.append( b.GetShortname() );
+				pollMsgs.append( "\n" );
+			}
+		}else
+		{
+			int i = baselines.size();
+			pollMsgs.append( baselines.get(0).GetShortname()+"\n");
+			pollMsgs.append( baselines.get(1).GetShortname()+"\n");
+			pollMsgs.append( baselines.get(2).GetShortname()+"\n");
+			pollMsgs.append( "...\n");
+			pollMsgs.append( baselines.get(i-3).GetShortname()+"\n");
+			pollMsgs.append( baselines.get(i-2).GetShortname()+"\n");
+			pollMsgs.append( baselines.get(i-1).GetShortname()+"\n");
+		}
 	}
 
 	/*
@@ -452,12 +462,6 @@ public class PucmScm extends SCM
 	{
 		logger.trace_function();
 		return newest;
-	}
-
-	public boolean isNewerThanRecommended()
-	{
-		logger.trace_function();
-		return newerThanRecommended;
 	}
 
 	/*

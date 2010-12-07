@@ -32,9 +32,5 @@
 	<f:entry title="Newest" help="/plugin/PUCM/scm/help-newest.html">
 	    <f:checkbox name="PUCM.newest" checked="${instance.newest}" />
 	</f:entry>
-	
-	<f:entry title="Newer than recommended" help="/plugin/PUCM/scm/help-newerThanRecommend.html">
-	    <f:checkbox name="PUCM.newerThanRecommended" checked="${instance.newerThanRecommended}" />
-	</f:entry>
    
 </j:jelly>
