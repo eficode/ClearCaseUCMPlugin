@@ -161,8 +161,7 @@ public class PucmScm extends SCM
 		boolean result = true;
 		// We know we have a stream (st), because it is set in baselinesToBuild()
 
-		// TODO verify viewtag
-		String viewtag = "pucm_" + System.getenv( "COMPUTERNAME" );//TODO +hudsonjobname i stinavn  //"Hudson_Server_dev_view";
+		String viewtag = "pucm_" + System.getenv( "COMPUTERNAME" ) + System.getenv( "JOB_NAME" ); //"Hudson_Server_dev_view";
 		
 		File viewroot = new File( workspace + "\\"+viewtag );
 		try
@@ -188,7 +187,7 @@ public class PucmScm extends SCM
 			// Hvis der er et snaphotview med et givent viewtag i cleartool så:
 			if ( UCMView.ViewExists( viewtag ) )
 			{
-				sv = UCMView.GetSnapshotView( viewroot );
+				
 				try
 				{
 					sv.ViewrootIsValid();
@@ -203,6 +202,7 @@ public class PucmScm extends SCM
 						result=false;
 					}
 				}
+				sv = UCMView.GetSnapshotView( viewroot );
 				//All below parameters according to LAK and CHW -components corresponds to pucms loadmodules, loadrules must always be null from pucm
 				sv.Update( true, true, true, false, COMP.valueOf( loadModule.toUpperCase() ), null);
 			}
@@ -418,7 +418,7 @@ public class PucmScm extends SCM
 	
 	private void printBaselines(BaselineList baselines)
 	{
-		pollMsgs.append( "Retrieved baselines:\n" );
+		pollMsgs.append( "--------------------\nRetrieved baselines:\n--------------------\n" );
 		if(!(baselines.size() > 20))
 		{
 			for ( Baseline b : baselines )
@@ -429,6 +429,7 @@ public class PucmScm extends SCM
 		}else
 		{
 			int i = baselines.size();
+			pollMsgs.append( "There are " + i + " baselines - only printing ");
 			pollMsgs.append( baselines.get(0).GetShortname()+"\n");
 			pollMsgs.append( baselines.get(1).GetShortname()+"\n");
 			pollMsgs.append( baselines.get(2).GetShortname()+"\n");
