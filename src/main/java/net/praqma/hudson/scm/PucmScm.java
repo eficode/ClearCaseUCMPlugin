@@ -184,13 +184,12 @@ public class PucmScm extends SCM
 		if( result )
 		{
 			Stream devstream = Config.devStream(); //view: Hudson_Server_dev_view
-			// Hvis der er et snaphotview med et givent viewtag i cleartool så:
 			if ( UCMView.ViewExists( viewtag ) )
 			{
 				hudsonOut.println( "View " + viewtag + " exists");
 				try
 				{
-					sv.ViewrootIsValid();
+					SnapshotView.ViewrootIsValid(viewroot);
 					hudsonOut.println( "Viewroot is valid in ClearCase" );
 				} catch (UCMException ucmE)
 				{
