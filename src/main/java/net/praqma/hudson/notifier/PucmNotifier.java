@@ -9,6 +9,7 @@ import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Tag;
 import net.praqma.utils.Debug;
+import net.praqma.hudson.exception.NotifierException;
 import net.praqma.hudson.scm.PucmScm;
 import hudson.Extension;
 import hudson.Launcher;
@@ -102,21 +103,26 @@ public class PucmNotifier extends Notifier
 		if( result )
 		{
 			hudsonOut.println( "\n* * * Post build actions * * *" );
+			try
+			{
 			processBuild(build);
+			}catch (NotifierException ne){
+				hudsonOut.println(ne.getMessage());
+			}
 		}
 		
 		logger.print_trace();
 		return result;
 	}
 	
-	private boolean processBuild( AbstractBuild build )
+	private void processBuild( AbstractBuild build )throws NotifierException
 	{
-		boolean result = true;
 		String buildstatus = null;
 		// Getting tag to change buildstatus
 		Tag tag = baseline.GetTag( build.getParent().getDisplayName(), Integer.toString(build.getNumber()) );
 
 		Result buildResult = build.getResult();
+		
 
 		if ( buildResult.equals( Result.SUCCESS ) )
 		{
@@ -133,8 +139,7 @@ public class PucmNotifier extends Notifier
 					}
 					catch ( Exception e )
 					{
-						hudsonOut.println( "Could not promote baseline. " + e.getMessage());
-						result = false;
+						throw new NotifierException("Could not promote baseline. " + e.getMessage());
 					}
 				}
 				if ( recommended )
@@ -146,15 +151,13 @@ public class PucmNotifier extends Notifier
 					}
 					catch ( Exception e )
 					{
-						hudsonOut.println( "Could not recommend baseline. " + e.getMessage());
-						result = false;
+						throw new NotifierException(  "Could not recommend baseline. " + e.getMessage() );
 					}
 				}
 			}
 			catch ( Exception e )
 			{
-				hudsonOut.println( "New plevel could not be set." );
-				result = false;
+				throw new NotifierException( "New plevel could not be set." );
 			}
 		}
 		else if ( buildResult.equals( Result.FAILURE ) )
@@ -171,35 +174,29 @@ public class PucmNotifier extends Notifier
 					}
 					catch ( Exception e )
 					{
-						hudsonOut.println( "Could not demote baseline. " + e.getMessage());
-						result = false;
+						
+						throw new NotifierException( "Could not demote baseline. " + e.getMessage());
 					}
 			}
 			catch ( Exception e )
 			{
-				hudsonOut.println( "New plevel could not be set. " + e.getMessage());
-				result = false;
+				throw new NotifierException(  "New plevel could not be set. " + e.getMessage());
 			}
 		}
 		else
 		{
-			hudsonOut.println( "Baseline not changed. Buildstatus: " + buildResult );
 			logger.log( "Buildstatus (Result) was " + buildResult + ". Not handled by plugin." );
-			result = false;
+			throw new NotifierException( "Baseline not changed. Buildstatus: " + buildResult );
 		}
-		if( result )
-		{
-			result = persistTag(tag);
-		}
+		persistTag(tag);
+		
 		//The below hudsonOut are for a little plugin that can display the information on hudsons build-history page.
 		hudsonOut.println( "DISPLAY_STATUS:<small>" + baseline.GetShortname() + "</small><BR/>" + buildResult.toString() + 
 				(recommended?"<BR/><B>Recommended</B>":"")+"<BR/><small>Level:[" + baseline.GetPromotionLevel( true ) + "]</small>");
-		return result;
 	}
 	
-	private boolean persistTag(Tag tag)
+	private void persistTag(Tag tag) throws NotifierException
 	{
-		boolean result = true;
 		try
 		{
 			tag = tag.Persist();
@@ -207,10 +204,8 @@ public class PucmNotifier extends Notifier
 		}
 		catch ( Exception e )
 		{
-			hudsonOut.println( "Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
-			result = false;
+			throw new NotifierException(  "Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
 		}
-		return result;
 	}
 
 	public boolean isPromote()
