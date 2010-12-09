@@ -205,9 +205,7 @@ public class PucmScm extends SCM
 				}
 				hudsonOut.println( "Getting snapshotview...");
 				sv = UCMView.GetSnapshotView( viewroot );
-				//All below parameters according to LAK and CHW -components corresponds to pucms loadmodules, loadrules must always be null from pucm
-				hudsonOut.println( "Updating view with " + loadModule );
-				sv.Update( true, true, true, false, COMP.valueOf( loadModule.toUpperCase() ), null);
+
 			}
 			else
 			{
@@ -218,6 +216,11 @@ public class PucmScm extends SCM
 			{
 				result = false;
 			}
+			
+			//All below parameters according to LAK and CHW -components corresponds to pucms loadmodules, loadrules must always be null from pucm
+			hudsonOut.println( "Updating view with " + loadModule );
+			sv.Update( true, true, true, false, COMP.valueOf( loadModule.toUpperCase() ), null);
+			
 			if( result )
 			{
 				// Now we have to rebase - if a rebase is in progress, the old one must be stopped and the new started instead
