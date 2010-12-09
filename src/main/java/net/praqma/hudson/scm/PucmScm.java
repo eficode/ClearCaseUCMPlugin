@@ -281,6 +281,7 @@ public class PucmScm extends SCM
 		catch ( Exception e )
 		{
 			hudsonOut.println( "FAILED" );
+			hudsonOut.println( "Changelog failed with " + e.getMessage() );
 			logger.log( "Changelog failed with " + e.getMessage() );
 			result = false;
 		}
