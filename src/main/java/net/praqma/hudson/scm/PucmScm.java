@@ -119,7 +119,7 @@ public class PucmScm extends SCM
 
 		//consoleOutput Printstream is from Hudson, so it can only be accessed here
 		PrintStream consoleOutput = listener.getLogger();
-		consoleOutput.println("Workspace: "+workspace);
+		consoleOutput.println("Workspace: " + workspace);
 
 		String jobname = build.getParent().getDisplayName();
 
@@ -161,23 +161,23 @@ public class PucmScm extends SCM
 		boolean result = true;
 		// We know we have a stream (st), because it is set in baselinesToBuild()
 
-		String viewtag = "pucm_" + System.getenv( "COMPUTERNAME" ) + System.getenv( "JOB_NAME" ); //"Hudson_Server_dev_view";
+		String viewtag = "pucm_" + System.getenv( "COMPUTERNAME" ) + System.getenv( "JOBNAME" ); //"Hudson_Server_dev_view";
 		
 		File viewroot = new File( workspace + "\\"+viewtag );
 		try
 		{
 			if ( viewroot.mkdir() )
 			{
-				hudsonOut.println( "Created viewroot " + viewroot.toString() );
+				hudsonOut.println( "Created folder for viewroot " + viewroot.toString() );
 			}
 			else
 			{
-				hudsonOut.println( "Reusing viewroot " + viewroot.toString() );
+				hudsonOut.println( "Reusing folder for viewroot " + viewroot.toString() );
 			}
 		}
 		catch ( Exception e )
 		{
-			hudsonOut.println( "Could not make viewroot " + viewroot.toString() + ". Cause: " + e.getMessage() );
+			hudsonOut.println( "Could not make folder for viewroot " + viewroot.toString() + ". Cause: " + e.getMessage() );
 			result = false;
 		}
 		
@@ -187,27 +187,32 @@ public class PucmScm extends SCM
 			// Hvis der er et snaphotview med et givent viewtag i cleartool så:
 			if ( UCMView.ViewExists( viewtag ) )
 			{
-				
+				hudsonOut.println( "View " + viewtag + " exists");
 				try
 				{
 					sv.ViewrootIsValid();
+					hudsonOut.println( "Viewroot is valid in ClearCase" );
 				} catch (UCMException ucmE)
 				{
 					try
 					{
-						SnapshotView.RegenerateViewDotDat( viewroot, viewtag );//venter på at CHW laver den statisk :-) eller sletter viewroot/tag
+						hudsonOut.println( "Viewroot not valid - now regenerating.... ");
+						SnapshotView.RegenerateViewDotDat( viewroot, viewtag );
 					}catch(IOException ioe)
 					{
 						hudsonOut.println("Could not regenerate view: " + ioe.getMessage());
 						result=false;
 					}
 				}
+				hudsonOut.println( "Getting snapshotview...");
 				sv = UCMView.GetSnapshotView( viewroot );
 				//All below parameters according to LAK and CHW -components corresponds to pucms loadmodules, loadrules must always be null from pucm
+				hudsonOut.println( "Updating view with " + loadModule );
 				sv.Update( true, true, true, false, COMP.valueOf( loadModule.toUpperCase() ), null);
 			}
 			else
 			{
+				hudsonOut.println( "View doesn't exist - now creating it in local workspace"); 
 				sv = SnapshotView.Create( devstream, viewroot, viewtag );
 			}
 			if(sv==null)
@@ -218,11 +223,14 @@ public class PucmScm extends SCM
 			{
 				
 				// Now we have to rebase - if a rebase is in progress, the old one must be stopped and the new started instead
+				
 				if(devstream.IsRebaseInProgress())
 				{
+					hudsonOut.println( "Cancelling previous rebase...");
 					devstream.CancelRebase();
 				}
 				//The last boolean, complete, must always be true from PUCM as we are always working on a read-only stream according to LAK
+				hudsonOut.println( "Rebasing development stream against parent stream");
 				devstream.Rebase( sv, bl, true );
 			}
 		}
@@ -338,18 +346,6 @@ public class PucmScm extends SCM
 			
 			integrationstream = UCMEntity.GetStream( "stream:" + stream, false );
 			pollMsgs.append("Integrationstream exists: "+integrationstream.toString() + "\n");
-						
-			//TODO: Afklaring med lak mht om vi overhovedet skal create stream, hvis ja, med hvilke parametre?
-			
-			/*if(Stream.StreamExists( stream ))
-			{
-				
-			} else
-			{
-				//Version2: kunne angive Hudson-projekt. Skal hardcodes i config.java CHRISTIAN - FIKS!!!! :-)
-				//TODO fiks: st = Stream.Create( pstream, nstream, readonly, null )CHW kommr med ny metode - måske
-				//nstream = gui-angivet stream, pstream fra config.java, readonly=true
-			}*/
 		}
 		catch ( UCMEntityException ucmEe )
 		{
@@ -382,8 +378,6 @@ public class PucmScm extends SCM
 		{
 			if ( baselines.size() > 0 )
 			{
-				
-				
 				printBaselines(baselines);
 				
 				pollMsgs.append("\nRecommended baseline(s): \n");
@@ -429,7 +423,7 @@ public class PucmScm extends SCM
 		}else
 		{
 			int i = baselines.size();
-			pollMsgs.append( "There are " + i + " baselines - only printing ");
+			pollMsgs.append( "There are " + i + " baselines - only printing first and last three\n");
 			pollMsgs.append( baselines.get(0).GetShortname()+"\n");
 			pollMsgs.append( baselines.get(1).GetShortname()+"\n");
 			pollMsgs.append( baselines.get(2).GetShortname()+"\n");
