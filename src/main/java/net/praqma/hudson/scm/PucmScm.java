@@ -162,7 +162,7 @@ public class PucmScm extends SCM
 		// We know we have a stream (st), because it is set in baselinesToBuild()
 
 		// TODO verify viewtag
-		String viewtag = "Hudson_Server_dev_view";//"pucm_" + System.getenv( "COMPUTERNAME" );//TODO +hudsonjobname i stinavn
+		String viewtag = "pucm_" + System.getenv( "COMPUTERNAME" );//TODO +hudsonjobname i stinavn  //"Hudson_Server_dev_view";
 		
 		File viewroot = new File( workspace + "\\"+viewtag );
 		try
@@ -184,27 +184,31 @@ public class PucmScm extends SCM
 		
 		if( result )
 		{
-			
+			Stream devstream = Config.devStream(); //view: Hudson_Server_dev_view
 			// Hvis der er et snaphotview med et givent viewtag i cleartool så:
 			if ( UCMView.ViewExists( viewtag ) )
 			{
 				sv = UCMView.GetSnapshotView( viewroot );
 				try
 				{
-					sv.ViewrootIsValid();//(returns uuid)
+					sv.ViewrootIsValid();
 				} catch (UCMException ucmE)
 				{
-					//then viewroot is regenerated
-					//TODO SnapshotView.RegenerateViewDotDat( viewroot, viewtag );//venter på at CHW laver den statisk :-) eller sletter viewroot/tag
+					try
+					{
+						SnapshotView.RegenerateViewDotDat( viewroot, viewtag );//venter på at CHW laver den statisk :-) eller sletter viewroot/tag
+					}catch(IOException ioe)
+					{
+						hudsonOut.println("Could not regenerate view: " + ioe.getMessage());
+						result=false;
+					}
 				}
-
-				//All below parameters according to LAK and CHW
-				//sv.Update( true, true, true, true/*chw fjerne force*/, false, COMP.valueOf( loadModule.toUpperCase() ), null );//components eller loadrules = null, det er loadmodules vi skal bruge
+				//All below parameters according to LAK and CHW -components corresponds to pucms loadmodules, loadrules must always be null from pucm
+				sv.Update( true, true, true, false, COMP.valueOf( loadModule.toUpperCase() ), null);
 			}
 			else
 			{
-				//TODO when CHW has made a function to make new snapshotview, it must be implemented
-				sv = UCMView.GetSnapshotView( viewroot );
+				sv = SnapshotView.Create( devstream, viewroot, viewtag );
 			}
 			if(sv==null)
 			{
@@ -212,7 +216,7 @@ public class PucmScm extends SCM
 			}
 			if( result )
 			{
-				Stream devstream = Config.devStream(); //view: Hudson_Server_dev_view
+				
 				// Now we have to rebase - if a rebase is in progress, the old one must be stopped and the new started instead
 				if(devstream.IsRebaseInProgress())
 				{
