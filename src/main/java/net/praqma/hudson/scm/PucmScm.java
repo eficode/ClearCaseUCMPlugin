@@ -127,7 +127,7 @@ public class PucmScm extends SCM
 		// so if we haven't polled, we do it now
 		if ( !compRevCalled )
 		{
-			result = baselinesToBuild( jobname );
+			result = baselinesToBuild();
 		}
 
 		compRevCalled = false;
@@ -220,9 +220,7 @@ public class PucmScm extends SCM
 			}
 			if( result )
 			{
-				
 				// Now we have to rebase - if a rebase is in progress, the old one must be stopped and the new started instead
-				
 				if(devstream.IsRebaseInProgress())
 				{
 					hudsonOut.println( "Cancelling previous rebase...");
@@ -301,7 +299,7 @@ public class PucmScm extends SCM
 
 		PollingResult p;
 
-		if ( baselinesToBuild( scmState.getJobname() ) )
+		if ( baselinesToBuild() )
 		{
 			compRevCalled = true;
 			p = PollingResult.BUILD_NOW;
@@ -319,17 +317,16 @@ public class PucmScm extends SCM
 	{
 		logger.trace_function();
 		PrintStream hudsonOut = listener.getLogger();
-
 		SCMRevisionStateImpl scmRS = null;
 
 		if ( !( bl == null ) )
 		{
-			scmRS = new SCMRevisionStateImpl( build.getParent().getDisplayName() );
+			scmRS = new SCMRevisionStateImpl();
 		}
 		return scmRS;
 	}
 
-	private boolean baselinesToBuild( String jobname )
+	private boolean baselinesToBuild()
 	{
 		logger.trace_function();
 

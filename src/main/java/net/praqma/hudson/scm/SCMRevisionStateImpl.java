@@ -14,18 +14,9 @@ public class SCMRevisionStateImpl extends SCMRevisionState
 
 	protected static Debug logger = Debug.GetLogger();
 
-	private String jobname;
-
-	public SCMRevisionStateImpl( String jobname )
+	public SCMRevisionStateImpl()
 	{
 		super();
 		logger.trace_function();
-		this.jobname = jobname;
-	}
-
-	public String getJobname()
-	{
-		logger.trace_function();
-		return jobname;
 	}
 }
