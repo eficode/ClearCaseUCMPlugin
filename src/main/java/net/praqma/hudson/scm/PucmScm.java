@@ -164,7 +164,7 @@ public class PucmScm extends SCM
 		// TODO verify viewtag
 		String viewtag = "Hudson_Server_dev_view";//"pucm_" + System.getenv( "COMPUTERNAME" );//TODO +hudsonjobname i stinavn
 		
-		File viewroot = new File( workspace + "\\view\\"+viewtag );
+		File viewroot = new File( workspace + "\\"+viewtag );
 		try
 		{
 			if ( viewroot.mkdir() )
@@ -251,7 +251,7 @@ public class PucmScm extends SCM
 				String temp;
 				for ( Version v : versions )
 				{
-					temp = "<file>" + v.GetFile() + "[" + v.GetRevision() + "] user: " + v.Blame() + "</file>";
+					temp = "<file>" + v.GetSFile() + "[" + v.GetRevision() + "] user: " + v.Blame() + "</file>";
 					buffer.append( temp );
 				}
 				buffer.append( "</activity>" );
@@ -382,24 +382,30 @@ public class PucmScm extends SCM
 				
 				printBaselines(baselines);
 				
+				pollMsgs.append("\nRecommended baseline(s): \n");
+				for(Baseline b : integrationstream.GetRecommendedBaselines())
+				{
+					pollMsgs.append(b.GetShortname()+"\n");
+				}
+				
 				if ( newest )
 				{
 					bl = baselines.get( baselines.size() - 1 );
-					pollMsgs.append( "Building newest baseline: " );
+					pollMsgs.append( "\nBuilding newest baseline: " );
 					pollMsgs.append( bl );
 					pollMsgs.append( "\n" );
 				}
 				else
 				{
 					bl = baselines.get( 0 );
-					pollMsgs.append( "Building next baseline: " );
+					pollMsgs.append( "\nBuilding next baseline: " );
 					pollMsgs.append( bl );
 					pollMsgs.append( "\n" );
 				}
 			}
 			else
 			{
-				pollMsgs.append( "No baselines on chosen parameters.\n" );
+				pollMsgs.append( "\nNo baselines on chosen parameters.\n" );
 				result = false;
 			}
 		}
