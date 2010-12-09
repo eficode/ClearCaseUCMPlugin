@@ -163,7 +163,7 @@ public class PucmScm extends SCM
 
 		String viewtag = "pucm_" + System.getenv( "COMPUTERNAME" ) + "_" + jobname; //"Hudson_Server_dev_view";
 		
-		File viewroot = new File( workspace + "\\"+viewtag );
+		File viewroot = new File( workspace + "\\view");//+viewtag );
 		try
 		{
 			if ( viewroot.mkdir() )
