@@ -139,7 +139,7 @@ public class PucmScm extends SCM
 
 		if ( result )
 		{
-			result = makeWorkspace( consoleOutput , workspace );
+			result = makeWorkspace( consoleOutput , workspace, jobname );
 			if( !result )
 			{
 				consoleOutput.println( "Could not make workspace. Marking baseline with:" );
@@ -156,12 +156,12 @@ public class PucmScm extends SCM
 		return result;
 	}
 
-	private boolean makeWorkspace( PrintStream hudsonOut, FilePath workspace )
+	private boolean makeWorkspace( PrintStream hudsonOut, FilePath workspace, String jobname )
 	{
 		boolean result = true;
 		// We know we have a stream (st), because it is set in baselinesToBuild()
 
-		String viewtag = "pucm_" + System.getenv( "COMPUTERNAME" ) + System.getenv( "JOBNAME" ); //"Hudson_Server_dev_view";
+		String viewtag = "pucm_" + System.getenv( "COMPUTERNAME" ) + "_" + jobname; //"Hudson_Server_dev_view";
 		
 		File viewroot = new File( workspace + "\\"+viewtag );
 		try
@@ -356,11 +356,11 @@ public class PucmScm extends SCM
 		{
 			try
 			{
-				pollMsgs.append( "Getting alle baselines for :\n* Stream " );
+				pollMsgs.append( "Getting alle baselines for :\n* Stream: " );
 				pollMsgs.append( stream );
-				pollMsgs.append( "\n* Component" );
+				pollMsgs.append( "\n* Component: " );
 				pollMsgs.append( component );
-				pollMsgs.append( "\n* Promotionlevel " );
+				pollMsgs.append( "\n* Promotionlevel: " );
 				pollMsgs.append( levelToPoll );
 				pollMsgs.append( "\n" );
 
