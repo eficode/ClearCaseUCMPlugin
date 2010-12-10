@@ -4,6 +4,7 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.BuildListener;
+import hudson.model.Result;
 import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
@@ -133,6 +134,7 @@ public class PucmScm extends SCM
 			result = makeWorkspace( consoleOutput , workspace, jobname );
 			if( !result )
 			{
+				build.setResult( Result.NOT_BUILT );
 				consoleOutput.println( "Could not make workspace." );
 				throw new IOException("Could not make workspace" );
 			}

@@ -122,7 +122,7 @@ public class PucmNotifier extends Notifier
 		Tag tag = baseline.GetTag( build.getParent().getDisplayName(), Integer.toString(build.getNumber()) );
 
 		Result buildResult = build.getResult();
-		
+		hudsonOut.println("Buildresult: " + buildResult);
 
 		if ( buildResult.equals( Result.SUCCESS ) )
 		{
