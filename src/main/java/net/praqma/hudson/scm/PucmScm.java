@@ -109,7 +109,7 @@ public class PucmScm extends SCM
 
 		//consoleOutput Printstream is from Hudson, so it can only be accessed here
 		PrintStream consoleOutput = listener.getLogger();
-		consoleOutput.println("------------------------------/nPraqmatic UCM - SCM section starting/n------------------------------/n");
+		consoleOutput.println("------------------------------------------------------------\nPraqmatic UCM - SCM section starting\n------------------------------------------------------------\n");
 
 		String jobname = build.getParent().getDisplayName();
 
@@ -142,7 +142,7 @@ public class PucmScm extends SCM
 			consoleOutput.println( changes.size() + " elements changed" );
 			result = writeChangelog( changelogFile, changes, consoleOutput );
 		}
-		consoleOutput.println("------------------------------/nPraqmatic UCM - SCM section finished/n------------------------------/n");
+		consoleOutput.println("------------------------------------------------------------\nPraqmatic UCM - SCM section finished\n------------------------------------------------------------\n");
 
 		return result;
 	}
@@ -335,6 +335,8 @@ public class PucmScm extends SCM
 		{
 			comp = UCMEntity.GetComponent( "component:" + component, false );
 			
+			
+			
 			integrationstream = UCMEntity.GetStream( "stream:" + stream, false );
 			
 			//integrationstream.Create( pstream, nstream, readonly, baseline )
@@ -351,9 +353,9 @@ public class PucmScm extends SCM
 		{
 			try
 			{
-				pollMsgs.append( "Getting alle baselines for :\n* Stream: " );
+				pollMsgs.append( "Getting alle baselines for :\n* Stream:         " );
 				pollMsgs.append( stream );
-				pollMsgs.append( "\n* Component: " );
+				pollMsgs.append( "\n* Component:      " );
 				pollMsgs.append( component );
 				pollMsgs.append( "\n* Promotionlevel: " );
 				pollMsgs.append( levelToPoll );
