@@ -34,6 +34,7 @@ import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.hudson.Config;
+import net.praqma.hudson.exception.ScmException;
 import net.praqma.utils.Debug;
 import net.sf.json.JSONObject;
 
@@ -174,58 +175,87 @@ public class PucmScm extends SCM
 		
 		if( result )
 		{
-			Stream devstream = Config.devStream(); //view: Hudson_Server_dev_view
-			if ( UCMView.ViewExists( viewtag ) )
-			{
-				hudsonOut.println( "Reusing viewtag: " + viewtag + "\n");
-				try
+			Stream devstream = null;
+			try{
+				devstream = getDeveloperStream(viewtag);
+				if ( UCMView.ViewExists( viewtag ) )
 				{
-					SnapshotView.ViewrootIsValid(viewroot);
-					hudsonOut.println( "Viewroot is valid in ClearCase" );
-				} catch (UCMException ucmE)
-				{
+					hudsonOut.println( "Reusing viewtag: " + viewtag + "\n");
 					try
 					{
-						hudsonOut.println( "Viewroot not valid - now regenerating.... ");
-						SnapshotView.RegenerateViewDotDat( viewroot, viewtag );
-					}catch(IOException ioe)
+						SnapshotView.ViewrootIsValid(viewroot);
+						hudsonOut.println( "Viewroot is valid in ClearCase" );
+					} catch (UCMException ucmE)
 					{
-						hudsonOut.println("Could not regenerate view: " + ioe.getMessage());
-						result=false;
+						try
+						{
+							hudsonOut.println( "Viewroot not valid - now regenerating.... ");
+							SnapshotView.RegenerateViewDotDat( viewroot, viewtag );
+						}catch(IOException ioe)
+						{
+							hudsonOut.println("Could not regenerate view: " + ioe.getMessage());
+							result=false;
+						}
 					}
+					hudsonOut.println( "Getting snapshotview...");
+					sv = UCMView.GetSnapshotView( viewroot );
 				}
-				hudsonOut.println( "Getting snapshotview...");
-				sv = UCMView.GetSnapshotView( viewroot );
-
-			}
-			else
-			{
-				hudsonOut.println( "View doesn't exist - now creating it in local workspace"); 
-				sv = SnapshotView.Create( devstream, viewroot, viewtag );
-			}
-			if(sv==null)
-			{
-				result = false;
-			}
-			
-			//All below parameters according to LAK and CHW -components corresponds to pucms loadmodules, loadrules must always be null from pucm
-			hudsonOut.println( "Updating view using " + loadModule.toLowerCase() + " modules");
-			sv.Update( true, true, true, false, COMP.valueOf( loadModule.toUpperCase() ), null);
-			
-			if( result )
-			{
-				// Now we have to rebase - if a rebase is in progress, the old one must be stopped and the new started instead
-				if(devstream.IsRebaseInProgress())
+				else
 				{
-					hudsonOut.println( "Cancelling previous rebase...");
-					devstream.CancelRebase();
+					hudsonOut.println( "View doesn't exist - now creating it in local workspace"); 
+					sv = SnapshotView.Create( devstream, viewroot, viewtag );
 				}
-				//The last boolean, complete, must always be true from PUCM as we are always working on a read-only stream according to LAK
-				hudsonOut.println( "Rebasing development stream (" + devstream.GetShortname()+ ") against parent stream ("+ integrationstream.GetShortname()+ ")");
-				devstream.Rebase( sv, bl, true );
+				if(sv==null)
+				{
+					result = false;
+				}
+				
+				//All below parameters according to LAK and CHW -components corresponds to pucms loadmodules, loadrules must always be null from pucm
+				hudsonOut.println( "Updating view using " + loadModule.toLowerCase() + " modules");
+				sv.Update( true, true, true, false, COMP.valueOf( loadModule.toUpperCase() ), null);
+				
+				if( result )
+				{
+					// Now we have to rebase - if a rebase is in progress, the old one must be stopped and the new started instead
+					if(devstream.IsRebaseInProgress())
+					{
+						hudsonOut.println( "Cancelling previous rebase...");
+						devstream.CancelRebase();
+					}
+					//The last boolean, complete, must always be true from PUCM as we are always working on a read-only stream according to LAK
+					hudsonOut.println( "Rebasing development stream (" + devstream.GetShortname()+ ") against parent stream ("+ integrationstream.GetShortname()+ ")");
+					devstream.Rebase( sv, bl, true );
+				}
+			}catch (ScmException se){
+				hudsonOut.println(se.getMessage());
 			}
+			
+
 		}
 		return result;
+	}
+	private Stream getDeveloperStream(String viewtag)throws ScmException
+	{
+		Stream devstream = null;
+		try
+		{
+			if(Stream.StreamExists( viewtag ))
+			{
+				devstream = Stream.GetStream( viewtag, false );
+			}
+			else 
+			{
+				devstream = Stream.Create( Config.getIntegrationStream(), viewtag, true, bl );
+			}
+		}catch (ScmException se)
+		{
+			throw se;
+		}
+		catch (Exception e)
+		{
+			throw new ScmException("Could not get stream: "+e.getMessage());
+		}
+		return devstream;
 	}
 
 	private boolean writeChangelog( File changelogFile, BaselineDiff changes, PrintStream hudsonOut ) throws IOException

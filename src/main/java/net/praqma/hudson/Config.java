@@ -3,9 +3,11 @@ package net.praqma.hudson;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
+import net.praqma.hudson.exception.ScmException;
 import net.praqma.utils.Debug;
 
 public class Config
@@ -51,6 +53,31 @@ public class Config
 	public static Stream devStream()
 	{
 		return UCMEntity.GetStream( "stream:Hudson_Server_dev@\\Cool_PVOB", false );
+	}
+
+	public static Stream getIntegrationStream() throws ScmException
+	{
+		Stream stream = null;
+		Project project = null;
+		try
+		{
+			project = UCMEntity.GetProject( "Hudson@\\Cool_PVOB", false );
+
+		}
+		catch ( Exception e )
+		{
+			throw new ScmException( "Could not find project: Hudson in PVOB - please check and retry" );
+		}
+		try
+		{
+			stream = project.GetStream();
+		}
+		catch ( Exception e )
+		{
+			throw new ScmException( "Could not get integration stream from " + project.GetShortname() );
+		}
+
+		return stream;
 	}
 
 }
