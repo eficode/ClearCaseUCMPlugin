@@ -75,7 +75,8 @@ public class PucmNotifier extends Notifier
 		logger.trace_function();
 		boolean result = true;
 		hudsonOut = listener.getLogger();
-		hudsonOut.println("------------------------------------------------------------\nPraqmatic UCM - Post build section started\n------------------------------------------------------------\n");		
+		hudsonOut.println("------------------------------------------------------------\nPraqmatic UCM - Post build section started\n------------------------------------------------------------\n");
+		
 		SCM scmTemp = null;
 		if (result)
 		{
@@ -90,12 +91,18 @@ public class PucmNotifier extends Notifier
 		if( result )
 		{
 			PucmScm scm = (PucmScm) scmTemp;
-			baseline = scm.getBaseline();
-			st = scm.getStreamObject();
-			if ( baseline == null )
+			if( scm.doPostbuild() )
 			{
-				// If baseline is null, the user has already been notified in
-				// Console output from PucmScm.checkout()
+				baseline = scm.getBaseline();
+				st = scm.getStreamObject();
+				if ( baseline == null )
+				{
+					// If baseline is null, the user has already been notified in
+					// Console output from PucmScm.checkout()
+					result = false;
+				}
+			} else
+			{
 				result = false;
 			}
 		}

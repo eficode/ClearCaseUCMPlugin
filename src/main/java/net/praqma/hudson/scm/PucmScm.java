@@ -68,6 +68,7 @@ public class PucmScm extends SCM
 	private Stream integrationstream;
 	private Component comp;
 	private SnapshotView sv = null;
+	private boolean doPostBuild = true;
 	
 	protected static Debug logger = Debug.GetLogger();
 
@@ -134,9 +135,8 @@ public class PucmScm extends SCM
 			result = makeWorkspace( consoleOutput , workspace, jobname );
 			if( !result )
 			{
-				build.setResult( Result.NOT_BUILT );
 				consoleOutput.println( "Could not make workspace." );
-				throw new IOException("Could not make workspace" );
+				doPostBuild = false;
 			}
 		}
 
@@ -512,6 +512,11 @@ public class PucmScm extends SCM
 	{
 		logger.trace_function();
 		return bl;
+	}
+	
+	public boolean doPostbuild(){
+		logger.trace_function();
+		return doPostBuild;
 	}
 
 	/**
