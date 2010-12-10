@@ -133,7 +133,8 @@ public class PucmScm extends SCM
 			result = makeWorkspace( consoleOutput , workspace, jobname );
 			if( !result )
 			{
-				consoleOutput.println( "Could not make workspace. Marking baseline with:" );
+				consoleOutput.println( "Could not make workspace." );
+				throw new IOException("Could not make workspace" );
 			}
 		}
 

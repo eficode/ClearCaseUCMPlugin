@@ -118,7 +118,7 @@ public class PucmNotifier extends Notifier
 	private void processBuild( AbstractBuild build )throws NotifierException
 	{
 		String buildstatus = null;
-		// Getting tag to change buildstatus
+		// Getting tag to set buildstatus
 		Tag tag = baseline.GetTag( build.getParent().getDisplayName(), Integer.toString(build.getNumber()) );
 
 		Result buildResult = build.getResult();
@@ -169,12 +169,12 @@ public class PucmNotifier extends Notifier
 				if ( promote )
 					try
 					{
+						
 						baseline.Demote();
 						hudsonOut.println( "Baseline is " + baseline.GetPromotionLevel( true )+"." );
 					}
 					catch ( Exception e )
 					{
-						
 						throw new NotifierException( "Could not demote baseline. " + e.getMessage());
 					}
 			}
