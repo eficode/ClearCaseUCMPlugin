@@ -64,7 +64,7 @@ public class PucmScm extends SCM
 	private boolean compRevCalled;
 	private StringBuffer pollMsgs = new StringBuffer();
 	private Stream integrationstream;
-	private Component co;
+	private Component comp;
 	private SnapshotView sv = null;
 	
 	protected static Debug logger = Debug.GetLogger();
@@ -109,7 +109,7 @@ public class PucmScm extends SCM
 
 		//consoleOutput Printstream is from Hudson, so it can only be accessed here
 		PrintStream consoleOutput = listener.getLogger();
-		consoleOutput.println("Workspace: " + workspace);
+		consoleOutput.println("------------------------------/nPraqmatic UCM - SCM section starting/n------------------------------/n");
 
 		String jobname = build.getParent().getDisplayName();
 
@@ -142,6 +142,7 @@ public class PucmScm extends SCM
 			consoleOutput.println( changes.size() + " elements changed" );
 			result = writeChangelog( changelogFile, changes, consoleOutput );
 		}
+		consoleOutput.println("------------------------------/nPraqmatic UCM - SCM section finished/n------------------------------/n");
 
 		return result;
 	}
@@ -208,7 +209,7 @@ public class PucmScm extends SCM
 			}
 			
 			//All below parameters according to LAK and CHW -components corresponds to pucms loadmodules, loadrules must always be null from pucm
-			hudsonOut.println( "Updating view with " + loadModule );
+			hudsonOut.println( "Updating view using " + loadModule.toLowerCase() + " modules");
 			sv.Update( true, true, true, false, COMP.valueOf( loadModule.toUpperCase() ), null);
 			
 			if( result )
@@ -326,16 +327,19 @@ public class PucmScm extends SCM
 
 		boolean result = true;
 
-		co = null;
+		comp = null;
 		integrationstream = null;
 		Stream devstream = null;
 
 		try
 		{
-			co = UCMEntity.GetComponent( "component:" + component, false );
+			comp = UCMEntity.GetComponent( "component:" + component, false );
 			
 			integrationstream = UCMEntity.GetStream( "stream:" + stream, false );
-			pollMsgs.append("Integrationstream exists: "+integrationstream.toString() + "\n");
+			
+			//integrationstream.Create( pstream, nstream, readonly, baseline )
+			//pstream = getProject(Hudson).getIntStream, viewtag, true, den_vi_har_fundet)
+			//hvis hudson ikke eksisterer - så skriv i fejlbesked at der skal være hudson-projekt - rtfm
 		}
 		catch ( UCMEntityException ucmEe )
 		{
@@ -355,7 +359,7 @@ public class PucmScm extends SCM
 				pollMsgs.append( levelToPoll );
 				pollMsgs.append( "\n" );
 
-				baselines = co.GetBaselines( integrationstream, Project.Plevel.valueOf( levelToPoll ) );
+				baselines = comp.GetBaselines( integrationstream, Project.Plevel.valueOf( levelToPoll ) );
 			}
 			catch ( Exception e )
 			{
