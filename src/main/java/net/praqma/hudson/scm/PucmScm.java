@@ -13,32 +13,23 @@ import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
 import hudson.scm.SCM;
 import hudson.util.FormValidation;
-
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
-
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Baseline;
-import net.praqma.clearcase.ucm.entities.Tag;
 import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Baseline.BaselineDiff;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.utils.BaselineList;
 import net.praqma.clearcase.ucm.entities.Stream;
-import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.entities.UCMEntityException;
 import net.praqma.clearcase.ucm.entities.Version;
-import net.praqma.clearcase.ucm.persistence.UCMContext;
-import net.praqma.clearcase.ucm.persistence.UCMStrategyCleartool;
-import net.praqma.clearcase.ucm.utils.TagQuery;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
 import net.praqma.clearcase.ucm.view.UCMView;
@@ -65,8 +56,7 @@ public class PucmScm extends SCM
 	private String loadModule;
 	private String component;
 	private String stream;
-	private boolean newest;
-	
+	private boolean newest;	
 	private Baseline bl;
 	private List<String> levels = null;
 	private List<String> loadModules = null;
@@ -168,11 +158,11 @@ public class PucmScm extends SCM
 		{
 			if ( viewroot.mkdir() )
 			{
-				hudsonOut.println( "Created folder for viewroot " + viewroot.toString() );
+				hudsonOut.println( "Created folder for viewroot:  " + viewroot.toString() );
 			}
 			else
 			{
-				hudsonOut.println( "Reusing folder for viewroot " + viewroot.toString() );
+				hudsonOut.println( "Reusing viewroot: " + viewroot.toString() );
 			}
 		}
 		catch ( Exception e )
@@ -186,7 +176,7 @@ public class PucmScm extends SCM
 			Stream devstream = Config.devStream(); //view: Hudson_Server_dev_view
 			if ( UCMView.ViewExists( viewtag ) )
 			{
-				hudsonOut.println( "View " + viewtag + " exists");
+				hudsonOut.println( "Reusing viewtag: " + viewtag + "\n");
 				try
 				{
 					SnapshotView.ViewrootIsValid(viewroot);
@@ -299,7 +289,7 @@ public class PucmScm extends SCM
 	public PollingResult compareRemoteRevisionWith( AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState baseline ) throws IOException, InterruptedException
 	{
 		logger.trace_function();
-		SCMRevisionStateImpl scmState = (SCMRevisionStateImpl) baseline;
+		//SCMRevisionStateImpl scmState = (SCMRevisionStateImpl) baseline;
 
 		PollingResult p;
 
@@ -320,7 +310,7 @@ public class PucmScm extends SCM
 	public SCMRevisionState calcRevisionsFromBuild( AbstractBuild<?, ?> build, Launcher launcher, TaskListener listener ) throws IOException, InterruptedException
 	{
 		logger.trace_function();
-		PrintStream hudsonOut = listener.getLogger();
+		//PrintStream hudsonOut = listener.getLogger();
 		SCMRevisionStateImpl scmRS = null;
 
 		if ( !( bl == null ) )
@@ -498,14 +488,14 @@ public class PucmScm extends SCM
 	{
 
 		private String cleartool;
-		private List<String> levels;
+		//private List<String> levels;
 		private List<String> loadModules;
 
 		public PucmScmDescriptor()
 		{
 			super( PucmScm.class, null );
 			logger.trace_function();
-			levels = getLevels();
+			//levels = getLevels();
 			loadModules = getLoadModules();
 			load();
 			Config.setContext();
