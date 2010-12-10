@@ -191,7 +191,7 @@ public class PucmNotifier extends Notifier
 		persistTag(tag);
 		
 		//The below hudsonOut are for a little plugin that can display the information on hudsons build-history page.
-		hudsonOut.println( "DISPLAY_STATUS:<small>" + baseline.GetShortname() + "</small><BR/>" + buildResult.toString() + 
+		hudsonOut.println( "\n\nDISPLAY_STATUS:<small>" + baseline.GetShortname() + "</small><BR/>" + buildResult.toString() + 
 				(recommended?"<BR/><B>Recommended</B>":"")+"<BR/><small>Level:[" + baseline.GetPromotionLevel( true ) + "]</small>");
 	}
 	

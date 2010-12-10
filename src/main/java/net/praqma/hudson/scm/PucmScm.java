@@ -220,7 +220,7 @@ public class PucmScm extends SCM
 					devstream.CancelRebase();
 				}
 				//The last boolean, complete, must always be true from PUCM as we are always working on a read-only stream according to LAK
-				hudsonOut.println( "Rebasing development stream against parent stream");
+				hudsonOut.println( "Rebasing development stream (" + devstream.GetShortname()+ ") against parent stream ("+ integrationstream.GetShortname()+ ")");
 				devstream.Rebase( sv, bl, true );
 			}
 		}
