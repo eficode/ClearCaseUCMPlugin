@@ -75,7 +75,7 @@ public class PucmNotifier extends Notifier
 		logger.trace_function();
 		boolean result = true;
 		hudsonOut = listener.getLogger();
-		hudsonOut.println("------------------------------------------------------------\nPraqmatic UCM - Post build section starting\n------------------------------------------------------------\n");		
+		hudsonOut.println("------------------------------------------------------------\nPraqmatic UCM - Post build section started\n------------------------------------------------------------\n");		
 		SCM scmTemp = null;
 		if (result)
 		{

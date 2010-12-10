@@ -61,12 +61,12 @@ public class Config
 		Project project = null;
 		try
 		{
-			project = UCMEntity.GetProject( "Hudson@\\Cool_PVOB", false );
+			project = UCMEntity.GetProject( "hudson@\\Cool_PVOB", false );
 
 		}
 		catch ( Exception e )
 		{
-			throw new ScmException( "Could not find project: Hudson in PVOB - please check and retry" );
+			throw new ScmException( "Could not find project 'hudson' in \\Cool_PVOB - please check and retry" );
 		}
 		try
 		{
