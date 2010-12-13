@@ -27,12 +27,13 @@
       <url>http://maven.glassfish.org/content/groups/public/</url>
     </pluginRepository>
   </pluginRepositories>
-
+ 
   <dependencies>
     <dependency>
       <groupId>net.praqma</groupId>
       <artifactId>COOL</artifactId>
       <version>1.0-SNAPSHOT</version>
+
     </dependency>
   </dependencies>
 </project>

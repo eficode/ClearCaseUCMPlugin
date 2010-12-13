@@ -183,7 +183,7 @@ public class PucmScm extends SCM
 			Stream devstream = null;
 			try
 			{
-				devstream = getDeveloperStream( "stream:"+viewtag + Config.getPvob() );
+				devstream = getDeveloperStream( "stream:"+viewtag, Config.getPvob(integrationstream) );
 				if ( UCMView.ViewExists( viewtag ) )
 				{
 					hudsonOut.println( "Reusing viewtag: " + viewtag + "\n" );
@@ -249,19 +249,19 @@ public class PucmScm extends SCM
 		return result;
 	}
 
-	private Stream getDeveloperStream( String fqDevStreamname ) throws ScmException
+	private Stream getDeveloperStream( String streamname, String pvob ) throws ScmException
 	{
 		Stream devstream = null;
 		try
 		{
-			if ( Stream.StreamExists( fqDevStreamname ) )
+			if ( Stream.StreamExists( streamname + pvob ) )
 			{
-				devstream = Stream.GetStream( fqDevStreamname, false );
+				devstream = Stream.GetStream( streamname + pvob, false );
 				System.out.println("Getstream ln 260");
 			}
 			else
 			{
-				devstream = Stream.Create( Config.getIntegrationStream(), fqDevStreamname, true, bl );
+				devstream = Stream.Create( Config.getIntegrationStream(pvob), streamname + pvob, true, bl );
 				System.out.println("StreamCreate ln 265");
 			}
 		}

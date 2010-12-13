@@ -50,23 +50,23 @@ public class Config
 		}
 	}
 
-	public static Stream devStream()
+	public static Stream devStream( String pvob )
 	{
-		return UCMEntity.GetStream( "stream:Hudson_Server_dev@\\Cool_PVOB", false );
+		return UCMEntity.GetStream( "stream:Hudson_Server_dev@" + pvob, false );
 	}
 
-	public static Stream getIntegrationStream() throws ScmException
+	public static Stream getIntegrationStream( String pvob ) throws ScmException
 	{
 		Stream stream = null;
 		Project project = null;
 		try
 		{
-			project = UCMEntity.GetProject( "hudson@\\Cool_PVOB", false );
+			project = UCMEntity.GetProject( "hudson" + pvob, false );
 
 		}
 		catch ( Exception e )
 		{
-			throw new ScmException( "Could not find project 'hudson' in \\Cool_PVOB - please check and retry" );
+			throw new ScmException( "Could not find project 'hudson' in " + pvob + " - please check and retry" );
 		}
 		try
 		{
@@ -80,9 +80,10 @@ public class Config
 		return stream;
 	}
 
-	public static String getPvob()
+	public static String getPvob( Stream stream )
 	{
-		return "@\\Cool_PVOB";
+
+		return "@" + stream.GetPvob();
 	}
 
 }
