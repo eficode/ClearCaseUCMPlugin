@@ -155,6 +155,7 @@ public class PucmScm extends SCM
 	{
 		boolean result = true;
 		// We know we have a stream (st), because it is set in baselinesToBuild()
+		
 
 		String viewtag = "pucm_" + System.getenv( "COMPUTERNAME" ) + "_" + jobname; //"Hudson_Server_dev_view";
 		
@@ -180,7 +181,7 @@ public class PucmScm extends SCM
 		{
 			Stream devstream = null;
 			try{
-				devstream = getDeveloperStream(viewtag);
+				devstream = getDeveloperStream(viewtag+Config.getPvob());
 				if ( UCMView.ViewExists( viewtag ) )
 				{
 					hudsonOut.println( "Reusing viewtag: " + viewtag + "\n");

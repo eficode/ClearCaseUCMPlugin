@@ -103,6 +103,7 @@ public class PucmNotifier extends Notifier
 				}
 			} else
 			{
+				hudsonOut.println( "Error in SCM section - not performing any post build actions." );
 				result = false;
 			}
 		}
