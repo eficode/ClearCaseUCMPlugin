@@ -45,8 +45,12 @@ public class PucmNotifier extends Notifier
 	/**
 	 * This constructor is used in the inner class <code>DescriptorImpl</code>.
 	 * 
-	 * @param promote  if <code>true</code>, the baseline will be promoted after the build.
-	 * @param recommended if <code>true</code>, the baseline will be marked 'recommended' in ClearCase.
+	 * @param promote
+	 *            if <code>true</code>, the baseline will be promoted after the
+	 *            build.
+	 * @param recommended
+	 *            if <code>true</code>, the baseline will be marked
+	 *            'recommended' in ClearCase.
 	 */
 	public PucmNotifier( boolean promote, boolean recommended )
 	{
@@ -75,10 +79,10 @@ public class PucmNotifier extends Notifier
 		logger.trace_function();
 		boolean result = true;
 		hudsonOut = listener.getLogger();
-		hudsonOut.println("------------------------------------------------------------\nPraqmatic UCM - Post build section started\n------------------------------------------------------------\n");
-		
+		hudsonOut.println( "------------------------------------------------------------\nPraqmatic UCM - Post build section started\n------------------------------------------------------------\n" );
+
 		SCM scmTemp = null;
-		if (result)
+		if ( result )
 		{
 			scmTemp = build.getProject().getScm();
 			if ( !( scmTemp instanceof PucmScm ) )
@@ -87,50 +91,54 @@ public class PucmNotifier extends Notifier
 				result = false;
 			}
 		}
-		
-		if( result )
+
+		if ( result )
 		{
 			PucmScm scm = (PucmScm) scmTemp;
-			if( scm.doPostbuild() )
+			if ( scm.doPostbuild() )
 			{
 				baseline = scm.getBaseline();
 				st = scm.getStreamObject();
 				if ( baseline == null )
 				{
-					// If baseline is null, the user has already been notified in
+					// If baseline is null, the user has already been notified
+					// in
 					// Console output from PucmScm.checkout()
 					result = false;
 				}
-			} else
+			}
+			else
 			{
 				hudsonOut.println( "Error in SCM section - not performing any post build actions." );
 				result = false;
 			}
 		}
 
-		if( result )
+		if ( result )
 		{
 			try
 			{
-			processBuild(build);
-			}catch (NotifierException ne){
-				hudsonOut.println(ne.getMessage());
+				processBuild( build );
+			}
+			catch ( NotifierException ne )
+			{
+				hudsonOut.println( ne.getMessage() );
 			}
 		}
-		
+
 		logger.print_trace();
-		hudsonOut.println("------------------------------------------------------------\nPraqmatic UCM - Post build section finished\n------------------------------------------------------------\n");
+		hudsonOut.println( "------------------------------------------------------------\nPraqmatic UCM - Post build section finished\n------------------------------------------------------------\n" );
 		return result;
 	}
-	
-	private void processBuild( AbstractBuild build )throws NotifierException
+
+	private void processBuild( AbstractBuild build ) throws NotifierException
 	{
 		String buildstatus = null;
 		// Getting tag to set buildstatus
-		Tag tag = baseline.GetTag( build.getParent().getDisplayName(), Integer.toString(build.getNumber()) );
+		Tag tag = baseline.GetTag( build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) );
 
 		Result buildResult = build.getResult();
-		hudsonOut.println("Buildresult: " + buildResult);
+		hudsonOut.println( "Buildresult: " + buildResult );
 
 		if ( buildResult.equals( Result.SUCCESS ) )
 		{
@@ -147,7 +155,7 @@ public class PucmNotifier extends Notifier
 					}
 					catch ( Exception e )
 					{
-						throw new NotifierException("Could not promote baseline. " + e.getMessage());
+						throw new NotifierException( "Could not promote baseline. " + e.getMessage() );
 					}
 				}
 				if ( recommended )
@@ -155,11 +163,11 @@ public class PucmNotifier extends Notifier
 					try
 					{
 						st.RecommendBaseline( baseline );
-						hudsonOut.println( "Baseline " + baseline.GetShortname() + " is now recommended ");
+						hudsonOut.println( "Baseline " + baseline.GetShortname() + " is now recommended " );
 					}
 					catch ( Exception e )
 					{
-						throw new NotifierException(  "Could not recommend baseline. " + e.getMessage() );
+						throw new NotifierException( "Could not recommend baseline. " + e.getMessage() );
 					}
 				}
 			}
@@ -168,42 +176,43 @@ public class PucmNotifier extends Notifier
 				throw new NotifierException( "New plevel could not be set." );
 			}
 		}
-		else if ( buildResult.equals( Result.FAILURE ) )
-		{
-			hudsonOut.println( "Build failed" );
-			try
-			{
-				tag.SetEntry( "buildstatus", "FAILURE" );
-				if ( promote )
-					try
-					{
-						
-						baseline.Demote();
-						hudsonOut.println( "Baseline is " + baseline.GetPromotionLevel( true )+"." );
-					}
-					catch ( Exception e )
-					{
-						throw new NotifierException( "Could not demote baseline. " + e.getMessage());
-					}
-			}
-			catch ( Exception e )
-			{
-				throw new NotifierException(  "New plevel could not be set. " + e.getMessage());
-			}
-		}
 		else
-		{
-			logger.log( "Buildstatus (Result) was " + buildResult + ". Not handled by plugin." );
-			throw new NotifierException( "Baseline not changed. Buildstatus: " + buildResult );
-		}
-		persistTag(tag);
-		
-		//The below hudsonOut are for a little plugin that can display the information on hudsons build-history page.
-		hudsonOut.println( "\n\nDISPLAY_STATUS:<small>" + baseline.GetShortname() + "</small><BR/>" + buildResult.toString() + 
-				(recommended?"<BR/><B>Recommended</B>":"")+"<BR/><small>Level:[" + baseline.GetPromotionLevel( true ) + "]</small>");
+			if ( buildResult.equals( Result.FAILURE ) )
+			{
+				hudsonOut.println( "Build failed" );
+				try
+				{
+					tag.SetEntry( "buildstatus", "FAILURE" );
+					if ( promote )
+						try
+						{
+
+							baseline.Demote();
+							hudsonOut.println( "Baseline is " + baseline.GetPromotionLevel( true ) + "." );
+						}
+						catch ( Exception e )
+						{
+							throw new NotifierException( "Could not demote baseline. " + e.getMessage() );
+						}
+				}
+				catch ( Exception e )
+				{
+					throw new NotifierException( "New plevel could not be set. " + e.getMessage() );
+				}
+			}
+			else
+			{
+				logger.log( "Buildstatus (Result) was " + buildResult + ". Not handled by plugin." );
+				throw new NotifierException( "Baseline not changed. Buildstatus: " + buildResult );
+			}
+		persistTag( tag );
+
+		// The below hudsonOut are for a little plugin that can display the
+		// information on hudsons build-history page.
+		hudsonOut.println( "\n\nDISPLAY_STATUS:<small>" + baseline.GetShortname() + "</small><BR/>" + buildResult.toString() + ( recommended ? "<BR/><B>Recommended</B>" : "" ) + "<BR/><small>Level:[" + baseline.GetPromotionLevel( true ) + "]</small>" );
 	}
-	
-	private void persistTag(Tag tag) throws NotifierException
+
+	private void persistTag( Tag tag ) throws NotifierException
 	{
 		try
 		{
@@ -212,7 +221,7 @@ public class PucmNotifier extends Notifier
 		}
 		catch ( Exception e )
 		{
-			throw new NotifierException(  "Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
+			throw new NotifierException( "Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
 		}
 	}
 
@@ -267,9 +276,6 @@ public class PucmNotifier extends Notifier
 			save();
 			return new PucmNotifier( promote, recommended );
 		}
-		
-
-
 
 		@Override
 		public boolean isApplicable( Class<? extends AbstractProject> arg0 )

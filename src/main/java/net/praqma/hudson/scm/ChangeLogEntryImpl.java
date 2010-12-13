@@ -44,7 +44,6 @@ public class ChangeLogEntryImpl extends Entry
 		return affectedPaths;
 	}
 
-
 	public void setNextFilepath( String filepath )
 	{
 		logger.trace_function();

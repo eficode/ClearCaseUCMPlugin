@@ -79,8 +79,9 @@ public class Config
 
 		return stream;
 	}
-	
-	public static String getPvob(){
+
+	public static String getPvob()
+	{
 		return "@\\Cool_PVOB";
 	}
 
