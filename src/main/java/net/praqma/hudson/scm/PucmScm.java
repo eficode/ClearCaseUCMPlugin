@@ -4,7 +4,6 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.BuildListener;
-import hudson.model.Result;
 import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
@@ -29,7 +28,6 @@ import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.utils.BaselineList;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
-import net.praqma.clearcase.ucm.entities.UCMEntityException;
 import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
@@ -121,7 +119,15 @@ public class PucmScm extends SCM
 		// so if we haven't polled, we do it now
 		if ( !compRevCalled )
 		{
-			result = baselinesToBuild();
+			try
+			{
+				baselinesToBuild();
+			}
+			catch ( ScmException e )
+			{
+				pollMsgs.append( e.getMessage() );
+				result = false;
+			}
 		}
 
 		compRevCalled = false;
@@ -133,8 +139,11 @@ public class PucmScm extends SCM
 
 		if ( result )
 		{
-			result = makeWorkspace( consoleOutput, workspace, jobname );
-			if ( !result )
+			try
+			{
+				result = makeWorkspace( consoleOutput, workspace, jobname );
+			}
+			catch ( ScmException e )
 			{
 				consoleOutput.println( "Could not make workspace." );
 				doPostBuild = false;
@@ -143,16 +152,25 @@ public class PucmScm extends SCM
 
 		if ( result )
 		{
-			BaselineDiff changes = bl.GetDiffs( sv );
-			consoleOutput.println( changes.size() + " elements changed" );
-			result = writeChangelog( changelogFile, changes, consoleOutput );
+			BaselineDiff changes = null;
+			try
+			{
+				changes = bl.GetDiffs( sv );
+				consoleOutput.println( changes.size() + " elements changed" );
+				result = writeChangelog( changelogFile, changes, consoleOutput );
+			}
+			catch ( UCMException e )
+			{
+				consoleOutput.println( "Could not get changes. " + e.getMessage() );
+				result = false;
+			}
 		}
 		consoleOutput.println( "------------------------------------------------------------\nPraqmatic UCM - SCM section finished\n------------------------------------------------------------\n" );
 
 		return result;
 	}
 
-	private boolean makeWorkspace( PrintStream hudsonOut, FilePath workspace, String jobname )
+	private boolean makeWorkspace( PrintStream hudsonOut, FilePath workspace, String jobname ) throws ScmException
 	{
 		boolean result = true;
 		// We know we have a stream (st), because it is set in
@@ -181,70 +199,81 @@ public class PucmScm extends SCM
 		if ( result )
 		{
 			Stream devstream = null;
-			try
+
+			devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( integrationstream ) );
+			if ( UCMView.ViewExists( viewtag ) )
 			{
-				devstream = getDeveloperStream( "stream:"+viewtag, Config.getPvob(integrationstream) );
-				if ( UCMView.ViewExists( viewtag ) )
+				hudsonOut.println( "Reusing viewtag: " + viewtag + "\n" );
+				try
 				{
-					hudsonOut.println( "Reusing viewtag: " + viewtag + "\n" );
+					SnapshotView.ViewrootIsValid( viewroot );
+					hudsonOut.println( "Viewroot is valid in ClearCase" );
+				}
+				catch ( UCMException ucmE )
+				{
 					try
 					{
-						SnapshotView.ViewrootIsValid( viewroot );
-						hudsonOut.println( "Viewroot is valid in ClearCase" );
+						hudsonOut.println( "Viewroot not valid - now regenerating.... " );
+						SnapshotView.RegenerateViewDotDat( viewroot, viewtag );
 					}
-					catch ( UCMException ucmE )
+					catch ( UCMException ucmEe )
 					{
-						try
-						{
-							hudsonOut.println( "Viewroot not valid - now regenerating.... " );
-							SnapshotView.RegenerateViewDotDat( viewroot, viewtag );
-						}
-						catch ( UCMException ucmEe)
-						{
-							hudsonOut.println( "Could not regenerate view: " + ucmEe.getMessage() );
-							result = false;
-						}
+						hudsonOut.println( "Could not regenerate view: " + ucmEe.getMessage() );
+						result = false;
 					}
-					hudsonOut.println( "Getting snapshotview..." );
+				}
+				hudsonOut.println( "Getting snapshotview..." );
+				try
+				{
 					sv = UCMView.GetSnapshotView( viewroot );
 				}
-				else
+				catch ( UCMException e )
 				{
-					hudsonOut.println( "View doesn't exist - now creating it in local workspace" );
-					sv = SnapshotView.Create( devstream, viewroot, viewtag );
-				}
-				if ( sv == null )
-				{
-					result = false;
+					throw new ScmException( "Could not get view. " + e.getMessage() );
 				}
 
-				// All below parameters according to LAK and CHW -components
-				// corresponds to pucms loadmodules, loadrules must always be
-				// null from pucm
+			}
+			else
+			{
+
+				try
+				{
+					hudsonOut.print( "View doesn't exist" );
+					sv = SnapshotView.Create( devstream, viewroot, viewtag );
+					hudsonOut.println( " - created new view in local workspace" );
+				}
+				catch ( UCMException e )
+				{
+					throw new ScmException( " - could not create a new view. " + e.getMessage() );
+				}
+
+			}
+
+			// All below parameters according to LAK and CHW -components
+			// corresponds to pucms loadmodules, loadrules must always be
+			// null from pucm
+			try
+			{
 				hudsonOut.println( "Updating view using " + loadModule.toLowerCase() + " modules" );
 				sv.Update( true, true, true, false, COMP.valueOf( loadModule.toUpperCase() ), null );
-
-				if ( result )
-				{
-					// Now we have to rebase - if a rebase is in progress, the
-					// old one must be stopped and the new started instead
-					if ( devstream.IsRebaseInProgress() )
-					{
-						hudsonOut.println( "Cancelling previous rebase..." );
-						devstream.CancelRebase();
-					}
-					// The last boolean, complete, must always be true from PUCM
-					// as we are always working on a read-only stream according
-					// to LAK
-					hudsonOut.println( "Rebasing development stream (" + devstream.GetShortname() + ") against parent stream (" + integrationstream.GetShortname() + ")" );
-					devstream.Rebase( sv, bl, true );
-				}
 			}
-			catch ( ScmException se )
+			catch ( UCMException e )
 			{
-				hudsonOut.println( se.getMessage() );
-				result = false;
+				throw new ScmException( "Could not update snapshot view. " + e.getMessage() );
 			}
+
+			// Now we have to rebase - if a rebase is in progress, the
+			// old one must be stopped and the new started instead
+			if ( devstream.IsRebaseInProgress() )
+			{
+				hudsonOut.println( "Cancelling previous rebase..." );
+				devstream.CancelRebase();
+			}
+			// The last boolean, complete, must always be true from PUCM
+			// as we are always working on a read-only stream according
+			// to LAK
+			hudsonOut.println( "Rebasing development stream (" + devstream.GetShortname() + ") against parent stream (" + integrationstream.GetShortname() + ")" );
+			devstream.Rebase( sv, bl, true );
 		}
 		return result;
 	}
@@ -256,13 +285,13 @@ public class PucmScm extends SCM
 		{
 			if ( Stream.StreamExists( streamname + pvob ) )
 			{
-				System.out.println("Getstream ln 260");
+				System.out.println( "Getstream ln 260" );
 				devstream = Stream.GetStream( streamname + pvob, false );
 			}
 			else
 			{
-				System.out.println("StreamCreate ln 265");
-				devstream = Stream.Create( Config.getIntegrationStream(pvob), streamname + pvob, true, bl );
+				System.out.println( "StreamCreate ln 265" );
+				devstream = Stream.Create( Config.getIntegrationStream( pvob ), streamname + pvob, true, bl );
 			}
 		}
 		catch ( ScmException se )
@@ -339,20 +368,22 @@ public class PucmScm extends SCM
 	public PollingResult compareRemoteRevisionWith( AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState baseline ) throws IOException, InterruptedException
 	{
 		logger.trace_function();
-		// SCMRevisionStateImpl scmState = (SCMRevisionStateImpl) baseline;
 
 		PollingResult p;
-
-		if ( baselinesToBuild() )
+		try
 		{
+			baselinesToBuild();
 			compRevCalled = true;
 			p = PollingResult.BUILD_NOW;
 		}
-		else
+		catch ( ScmException e )
 		{
 			p = PollingResult.NO_CHANGES;
+			PrintStream consoleOut = listener.getLogger();
+			consoleOut.println(pollMsgs + "\n" + e.getMessage());
 			pollMsgs = new StringBuffer();
 		}
+
 		return p;
 	}
 
@@ -370,63 +401,57 @@ public class PucmScm extends SCM
 		return scmRS;
 	}
 
-	private boolean baselinesToBuild()
+	private void baselinesToBuild() throws ScmException
 	{
 		logger.trace_function();
 
-		boolean result = true;
-
 		comp = null;
 		integrationstream = null;
-		Stream devstream = null;
 
 		try
 		{
 			comp = UCMEntity.GetComponent( component, false );
+		}
+		catch ( UCMException e )
+		{
+			throw new ScmException( "Could not get component. " + e.getMessage() );
+		}
 
+		try
+		{
 			integrationstream = UCMEntity.GetStream( stream, false );
-
-			// integrationstream.Create( pstream, nstream, readonly, baseline )
-			// pstream = getProject(Hudson).getIntStream, viewtag, true,
-			// den_vi_har_fundet)
-			// hvis hudson ikke eksisterer - så skriv i fejlbesked at der skal
-			// være hudson-projekt - rtfm
 		}
-		catch ( UCMEntityException ucmEe )
+		catch ( UCMException e )
 		{
-			pollMsgs.append( ucmEe.toString() + "\n" );
-			result = false;
+			throw new ScmException( "Could not get stream. " + e.getMessage() );
 		}
 
-		if ( result )
+		try
 		{
+			pollMsgs.append( "Getting alle baselines for :\n* Stream:         " );
+			pollMsgs.append( stream );
+			pollMsgs.append( "\n* Component:      " );
+			pollMsgs.append( component );
+			pollMsgs.append( "\n* Promotionlevel: " );
+			pollMsgs.append( levelToPoll );
+			pollMsgs.append( "\n" );
+
+			baselines = comp.GetBaselines( integrationstream, Project.Plevel.valueOf( levelToPoll ) );
+		}
+		catch ( UCMException e )
+		{
+			throw new ScmException( "Could not retrieve baselines from repository. " + e.getMessage() );
+		}
+
+		if ( baselines.size() > 0 )
+		{
+			printBaselines( baselines );
+
 			try
 			{
-				pollMsgs.append( "Getting alle baselines for :\n* Stream:         " );
-				pollMsgs.append( stream );
-				pollMsgs.append( "\n* Component:      " );
-				pollMsgs.append( component );
-				pollMsgs.append( "\n* Promotionlevel: " );
-				pollMsgs.append( levelToPoll );
-				pollMsgs.append( "\n" );
-
-				baselines = comp.GetBaselines( integrationstream, Project.Plevel.valueOf( levelToPoll ) );
-			}
-			catch ( Exception e )
-			{
-				pollMsgs.append( "Could not retrieve baselines from repository\n" );
-				result = false;
-			}
-		}
-
-		if ( result )
-		{
-			if ( baselines.size() > 0 )
-			{
-				printBaselines( baselines );
-
+				ArrayList<Baseline> baselinelist = integrationstream.GetRecommendedBaselines();
 				pollMsgs.append( "\nRecommended baseline(s): \n" );
-				for ( Baseline b : integrationstream.GetRecommendedBaselines() )
+				for ( Baseline b : baselinelist )
 				{
 					pollMsgs.append( b.GetShortname() + "\n" );
 				}
@@ -446,13 +471,16 @@ public class PucmScm extends SCM
 					pollMsgs.append( "\n" );
 				}
 			}
-			else
+			catch ( UCMException e )
 			{
-				pollMsgs.append( "\nNo baselines on chosen parameters.\n" );
-				result = false;
+				throw new ScmException( "Could not get recommended baselines. " + e.getMessage() );
 			}
+
 		}
-		return result;
+		else
+		{
+			throw new ScmException( "No baselines on chosen parameters." );
+		}
 	}
 
 	private void printBaselines( BaselineList baselines )

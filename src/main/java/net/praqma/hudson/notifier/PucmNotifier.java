@@ -5,6 +5,8 @@ import java.io.PrintStream;
 import java.util.List;
 
 import org.kohsuke.stapler.StaplerRequest;
+
+import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Tag;
@@ -133,9 +135,16 @@ public class PucmNotifier extends Notifier
 
 	private void processBuild( AbstractBuild build ) throws NotifierException
 	{
-		String buildstatus = null;
-		// Getting tag to set buildstatus
-		Tag tag = baseline.GetTag( build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) );
+		Tag tag = null;
+		try
+		{
+			// Getting tag to set buildstatus
+			tag = baseline.GetTag( build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) );
+		}
+		catch ( UCMException e )
+		{
+			hudsonOut.println( "Could not get Tag. " + e.getMessage() );
+		}
 
 		Result buildResult = build.getResult();
 		hudsonOut.println( "Buildresult: " + buildResult );
@@ -207,9 +216,18 @@ public class PucmNotifier extends Notifier
 			}
 		persistTag( tag );
 
+		String promotionlevel = "unknown";
+		try
+		{
+			promotionlevel = baseline.GetPromotionLevel( true ).toString();
+		}
+		catch (UCMException e)
+		{
+			hudsonOut.println( "Tried and failed to get promotionlevel. " + e.getMessage() );
+		}
 		// The below hudsonOut are for a little plugin that can display the
 		// information on hudsons build-history page.
-		hudsonOut.println( "\n\nDISPLAY_STATUS:<small>" + baseline.GetShortname() + "</small><BR/>" + buildResult.toString() + ( recommended ? "<BR/><B>Recommended</B>" : "" ) + "<BR/><small>Level:[" + baseline.GetPromotionLevel( true ) + "]</small>" );
+		hudsonOut.println( "\n\nDISPLAY_STATUS:<small>" + baseline.GetShortname() + "</small><BR/>" + buildResult.toString() + ( recommended ? "<BR/><B>Recommended</B>" : "" ) + "<BR/><small>Level:[" + promotionlevel + "]</small>" );
 	}
 
 	private void persistTag( Tag tag ) throws NotifierException

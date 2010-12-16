@@ -3,6 +3,7 @@ package net.praqma.hudson;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCM;
@@ -50,9 +51,18 @@ public class Config
 		}
 	}
 
-	public static Stream devStream( String pvob )
+	public static Stream devStream( String pvob ) throws ScmException
 	{
-		return UCMEntity.GetStream( "Hudson_Server_dev@" + pvob, false );
+		Stream devStream = null;
+		try
+		{
+			devStream = UCMEntity.GetStream( "Hudson_Server_dev@" + pvob, false );
+		}
+		catch ( UCMException e )
+		{
+			throw new ScmException( "Could not get developer stream. " + e.getMessage() );
+		}
+		return devStream;
 	}
 
 	public static Stream getIntegrationStream( String pvob ) throws ScmException
