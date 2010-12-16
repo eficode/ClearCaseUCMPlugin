@@ -8,7 +8,7 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.hudson.exception.ScmException;
-import net.praqma.utils.Debug;
+import net.praqma.util.Debug;
 
 public class Config
 {
@@ -52,7 +52,7 @@ public class Config
 
 	public static Stream devStream( String pvob )
 	{
-		return UCMEntity.GetStream( "stream:Hudson_Server_dev@" + pvob, false );
+		return UCMEntity.GetStream( "Hudson_Server_dev@" + pvob, false );
 	}
 
 	public static Stream getIntegrationStream( String pvob ) throws ScmException

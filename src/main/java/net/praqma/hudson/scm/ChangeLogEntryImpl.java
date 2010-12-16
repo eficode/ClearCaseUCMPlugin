@@ -6,7 +6,7 @@ import java.util.List;
 import hudson.model.User;
 import hudson.scm.ChangeLogSet.Entry;
 
-import net.praqma.utils.Debug;
+import net.praqma.util.Debug;
 
 /**
  * A change set is a collection of changed entries. This classes represents one

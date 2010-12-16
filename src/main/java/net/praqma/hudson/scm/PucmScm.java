@@ -36,7 +36,7 @@ import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.ScmException;
-import net.praqma.utils.Debug;
+import net.praqma.util.Debug;
 import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -183,7 +183,7 @@ public class PucmScm extends SCM
 			Stream devstream = null;
 			try
 			{
-				devstream = getDeveloperStream( "stream:"+viewtag, Config.getPvob(integrationstream) );
+				devstream = getDeveloperStream( viewtag, Config.getPvob(integrationstream) );
 				if ( UCMView.ViewExists( viewtag ) )
 				{
 					hudsonOut.println( "Reusing viewtag: " + viewtag + "\n" );
@@ -199,9 +199,9 @@ public class PucmScm extends SCM
 							hudsonOut.println( "Viewroot not valid - now regenerating.... " );
 							SnapshotView.RegenerateViewDotDat( viewroot, viewtag );
 						}
-						catch ( IOException ioe )
+						catch ( UCMException ucmEe)
 						{
-							hudsonOut.println( "Could not regenerate view: " + ioe.getMessage() );
+							hudsonOut.println( "Could not regenerate view: " + ucmEe.getMessage() );
 							result = false;
 						}
 					}
@@ -382,9 +382,9 @@ public class PucmScm extends SCM
 
 		try
 		{
-			comp = UCMEntity.GetComponent( "component:" + component, false );
+			comp = UCMEntity.GetComponent( component, false );
 
-			integrationstream = UCMEntity.GetStream( "stream:" + stream, false );
+			integrationstream = UCMEntity.GetStream( stream, false );
 
 			// integrationstream.Create( pstream, nstream, readonly, baseline )
 			// pstream = getProject(Hudson).getIntStream, viewtag, true,
