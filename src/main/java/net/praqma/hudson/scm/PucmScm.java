@@ -64,7 +64,7 @@ public class PucmScm extends SCM
 	private boolean compRevCalled;
 	private StringBuffer pollMsgs = new StringBuffer();
 	private Stream integrationstream;
-	private Component component;
+	private Component comp;
 	private SnapshotView sv = null;
 	private boolean doPostBuild = true;
 
@@ -379,16 +379,16 @@ public class PucmScm extends SCM
 		return scmRS;
 	}
 
-	private void baselinesToBuild( String componentName, String streamName ) throws ScmException
+	private void baselinesToBuild( String component, String stream ) throws ScmException
 	{
 		logger.trace_function();
 
-		component = null;
+		comp = null;
 		integrationstream = null;
 
 		try
 		{
-			component = UCMEntity.GetComponent( componentName, false );
+			comp = UCMEntity.GetComponent( component, false );
 		}
 		catch ( UCMException e )
 		{
@@ -397,7 +397,7 @@ public class PucmScm extends SCM
 
 		try
 		{
-			integrationstream = UCMEntity.GetStream( streamName, false );
+			integrationstream = UCMEntity.GetStream( stream, false );
 		}
 		catch ( UCMException e )
 		{
@@ -407,14 +407,14 @@ public class PucmScm extends SCM
 		try
 		{
 			pollMsgs.append( "Getting alle baselines for :\n* Stream:         " );
-			pollMsgs.append( streamName );
+			pollMsgs.append( stream );
 			pollMsgs.append( "\n* Component:      " );
-			pollMsgs.append( componentName );
+			pollMsgs.append( component );
 			pollMsgs.append( "\n* Promotionlevel: " );
 			pollMsgs.append( levelToPoll );
 			pollMsgs.append( "\n" );
 
-			baselines = component.GetBaselines( integrationstream, Project.Plevel.valueOf( levelToPoll ) );
+			baselines = comp.GetBaselines( integrationstream, Project.Plevel.valueOf( levelToPoll ) );
 		}
 		catch ( UCMException e )
 		{
