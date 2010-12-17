@@ -47,7 +47,6 @@ public class Config
 		else
 		{
 			UCM.SetContext( UCM.ContextType.CLEARTOOL );
-			System.out.println( "PUCM is running on real ClearCase " );
 		}
 	}
 
