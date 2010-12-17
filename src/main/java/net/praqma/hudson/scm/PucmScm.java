@@ -54,8 +54,8 @@ public class PucmScm extends SCM
 
 	private String levelToPoll;
 	private String loadModule;
-	private String componentName;
-	private String streamName;
+	private String component;
+	private String stream;
 	private boolean newest;
 	private Baseline bl;
 	private List<String> levels = null;
@@ -95,10 +95,10 @@ public class PucmScm extends SCM
 	public PucmScm( String component, String levelToPoll, String loadModule, String stream, boolean newest, boolean newerThanRecommended, boolean testing )
 	{
 		logger.trace_function();
-		this.componentName = component;
+		this.component = component;
 		this.levelToPoll = levelToPoll;
 		this.loadModule = loadModule;
-		this.streamName = stream;
+		this.stream = stream;
 		this.newest = newest;
 	}
 
@@ -121,7 +121,7 @@ public class PucmScm extends SCM
 		{
 			try
 			{
-				baselinesToBuild( componentName, streamName );
+				baselinesToBuild( component, stream );
 			}
 			catch ( ScmException e )
 			{
@@ -350,7 +350,7 @@ public class PucmScm extends SCM
 		PollingResult p;
 		try
 		{
-			baselinesToBuild( componentName, streamName );
+			baselinesToBuild( component, stream );
 			compRevCalled = true;
 			p = PollingResult.BUILD_NOW;
 		}
@@ -501,13 +501,13 @@ public class PucmScm extends SCM
 	public String getComponent()
 	{
 		logger.trace_function();
-		return componentName;
+		return component;
 	}
 
 	public String getStream()
 	{
 		logger.trace_function();
-		return streamName;
+		return stream;
 	}
 
 	public String getLoadModule()
