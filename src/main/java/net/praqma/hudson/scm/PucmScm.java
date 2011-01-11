@@ -250,11 +250,15 @@ public class PucmScm extends SCM
 			// debugrev - remove nexxt
 			hudsonOut.println("linie 249 - devstream "+devstream + " viewtag: "+ viewtag + " viewtag from snapshot: "+sv.GetViewtag());
 			sv.Update( true, true, true, false, COMP.valueOf( loadModule.toUpperCase() ), null );
+			hudsonOut.print( "  ..done" );
 		}
 		catch ( UCMException e )
 		{
 			throw new ScmException( "Could not update snapshot view. " + e.getMessage() );
 		}
+		
+		// debugrev - remove nexxt
+		hudsonOut.println("linie 261 - before IsRebaseInPrgres - devstream "+devstream);
 
 		// Now we have to rebase - if a rebase is in progress, the
 		// old one must be stopped and the new started instead
