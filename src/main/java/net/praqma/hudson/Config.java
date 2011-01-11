@@ -53,14 +53,21 @@ public class Config
 	public static Stream devStream( String pvob ) throws ScmException
 	{
 		Stream devStream = null;
+		// debugrev - remove nexxt
+		System.out.println("linie 57 - pvob "+pvob);
 		try
 		{
-			devStream = UCMEntity.GetStream( "Hudson_Server_dev@" + pvob, false );
+			//devStream = UCMEntity.GetStream( "Hudson_Server_dev@" + pvob, false );
+			devStream = UCMEntity.GetStream( "HardcodedStreamInConfigJava@" + pvob, false );
+			// debugrev - remove nexxt
+			System.out.println("linie 62 - devstream "+devStream);
 		}
 		catch ( UCMException e )
 		{
 			throw new ScmException( "Could not get developer stream. " + e.getMessage() );
 		}
+		// debugrev - remove nexxt
+		System.out.println("linie 67 - pvob "+pvob);
 		return devStream;
 	}
 

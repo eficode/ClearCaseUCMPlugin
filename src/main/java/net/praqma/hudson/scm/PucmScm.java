@@ -190,8 +190,11 @@ public class PucmScm extends SCM
 		}
 
 		Stream devstream = null;
-
+		// debugrev - remove nexxt
+		hudsonOut.println("linie 193 - viewtag "+viewtag);
 		devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( integrationstream ) );
+		// debugrev - remove nexxt
+		hudsonOut.println("linie 197 - devstream "+devstream);
 		if ( UCMView.ViewExists( viewtag ) )
 		{
 			hudsonOut.println( "Reusing viewtag: " + viewtag + "\n" );
