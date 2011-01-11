@@ -50,7 +50,20 @@ public class Config
 		}
 	}
 
-
+	/*Below method is obsolete - remove when everything works
+	public static Stream devStream( String pvob ) throws ScmException
+	{
+		Stream devStream = null;
+		try
+		{
+			devStream = UCMEntity.GetStream( "Hudson_Server_dev@" + pvob, false );
+		}
+		catch ( UCMException e )
+		{
+			throw new ScmException( "Could not get developer stream. " + e.getMessage() );
+		}
+		return devStream;
+	}*/
 
 	public static Stream getIntegrationStream( String pvob ) throws ScmException
 	{

@@ -219,6 +219,8 @@ public class PucmScm extends SCM
 			try
 			{
 				sv = UCMView.GetSnapshotView( viewroot );
+				// debugrev - remove nexxt
+				hudsonOut.println("linie 223 - devstream "+devstream + " and viewroot "+viewroot);
 			}
 			catch ( UCMException e )
 			{
@@ -245,6 +247,8 @@ public class PucmScm extends SCM
 		try
 		{
 			hudsonOut.println( "Updating view using " + loadModule.toLowerCase() + " modules" );
+			// debugrev - remove nexxt
+			hudsonOut.println("linie 249 - devstream "+devstream + " viewtag: "+ viewtag);
 			sv.Update( true, true, true, false, COMP.valueOf( loadModule.toUpperCase() ), null );
 		}
 		catch ( UCMException e )
