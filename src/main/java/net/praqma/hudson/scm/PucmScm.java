@@ -248,7 +248,7 @@ public class PucmScm extends SCM
 		{
 			hudsonOut.println( "Updating view using " + loadModule.toLowerCase() + " modules" );
 			// debugrev - remove nexxt
-			hudsonOut.println("linie 249 - devstream "+devstream + " viewtag: "+ viewtag);
+			hudsonOut.println("linie 249 - devstream "+devstream + " viewtag: "+ viewtag + " viewtag from snapshot: "+sv.GetViewtag());
 			sv.Update( true, true, true, false, COMP.valueOf( loadModule.toUpperCase() ), null );
 		}
 		catch ( UCMException e )
