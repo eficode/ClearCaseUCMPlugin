@@ -9,14 +9,14 @@
 
   <groupId>net.praqma</groupId>
   <artifactId>PUCM</artifactId>
-  <version>0.1.6</version>
+  <version>0.1.7</version>
   <name>PUCM</name>
   <packaging>hpi</packaging>
   <dependencies>
     <dependency>
       <groupId>net.praqma</groupId>
       <artifactId>COOL</artifactId>
-      <version>0.1.4</version>
+      <version>0.1.5</version>
 		<type>jar</type>
       <scope>compile</scope>
     </dependency>

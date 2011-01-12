@@ -106,14 +106,13 @@ public class PucmNotifier extends Notifier
 				if ( baseline == null )
 				{
 					// If baseline is null, the user has already been notified
-					// in
-					// Console output from PucmScm.checkout()
+					// in Console output from PucmScm.checkout()
 					result = false;
 				}
 			}
 			else
 			{
-				hudsonOut.println( "Error in SCM section - not performing any post build actions." );
+				hudsonOut.println( "Not performing any post build actions." );
 				result = false;
 			}
 		}
@@ -130,6 +129,27 @@ public class PucmNotifier extends Notifier
 			}
 		}
 
+		try
+		{
+			String promotionlevel = "unknown";
+			try
+			{
+				promotionlevel = baseline.GetPromotionLevel( true ).toString();
+			}
+			catch ( UCMException e )
+			{
+				hudsonOut.println( "Tried and failed to get promotionlevel. " + e.getMessage() );
+			}
+
+			// The below hudsonOut are for a little plugin that can display the
+			// information on hudsons build-history page.
+			hudsonOut.println( "\n\nDISPLAY_STATUS:<small>" + baseline.GetShortname() + "</small><BR/>" + build.getResult().toString() + ( recommended ? "<BR/><B>Recommended</B>" : "" ) + "<BR/><small>Level:[" + promotionlevel + "]</small>" );
+		}
+		catch ( Exception e )
+		{
+			hudsonOut.println( "Tried and failed to set DISPLAY_STATUS" );
+		}
+
 		logger.print_trace();
 		hudsonOut.println( "------------------------------------------------------------\nPraqmatic UCM - Post build section finished\n------------------------------------------------------------\n" );
 		return result;
@@ -138,14 +158,17 @@ public class PucmNotifier extends Notifier
 	private void processBuild( AbstractBuild build ) throws NotifierException
 	{
 		Tag tag = null;
-		try
+		if ( makeTag == true )
 		{
-			// Getting tag to set buildstatus
-			tag = baseline.GetTag( build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) );
-		}
-		catch ( UCMException e )
-		{
-			hudsonOut.println( "Could not get Tag. " + e.getMessage() );
+			try
+			{
+				// Getting tag to set buildstatus
+				tag = baseline.GetTag( build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) );
+			}
+			catch ( UCMException e )
+			{
+				hudsonOut.println( "Could not get Tag. " + e.getMessage() );
+			}
 		}
 
 		Result buildResult = build.getResult();
@@ -156,7 +179,11 @@ public class PucmNotifier extends Notifier
 			hudsonOut.println( "Build successful" );
 			try
 			{
-				tag.SetEntry( "buildstatus", "SUCCESS" );
+				if ( makeTag == true )
+				{
+					tag.SetEntry( "buildstatus", "SUCCESS" );
+				}
+
 				if ( promote )
 				{
 					try
@@ -193,7 +220,10 @@ public class PucmNotifier extends Notifier
 				hudsonOut.println( "Build failed" );
 				try
 				{
-					tag.SetEntry( "buildstatus", "FAILURE" );
+					if ( makeTag == true )
+					{
+						tag.SetEntry( "buildstatus", "FAILURE" );
+					}
 					if ( promote )
 						try
 						{
@@ -215,29 +245,21 @@ public class PucmNotifier extends Notifier
 				logger.log( "Buildstatus (Result) was " + buildResult + ". Not handled by plugin." );
 				throw new NotifierException( "Baseline not changed. Buildstatus: " + buildResult );
 			}
-		persistTag( tag );
 
-		String promotionlevel = "unknown";
-		try
+		if ( makeTag == true )
 		{
-			promotionlevel = baseline.GetPromotionLevel( true ).toString();
+			try
+			{
+				persistTag( tag );
+			}
+			catch ( NotifierException ne )
+			{
+				hudsonOut.println( ne.getMessage() );
+			}
 		}
-		catch (UCMException e)
-		{
-			hudsonOut.println( "Tried and failed to get promotionlevel. " + e.getMessage() );
-		}
-		// The below hudsonOut are for a little plugin that can display the
-		// information on hudsons build-history page.
-		hudsonOut.println( "\n\nDISPLAY_STATUS:<small>" + baseline.GetShortname() + "</small><BR/>" + buildResult.toString() + ( recommended ? "<BR/><B>Recommended</B>" : "" ) + "<BR/><small>Level:[" + promotionlevel + "]</small>" );
+
 	}
 
-	private Tag getTag(Baseline baseline)
-	{
-		Tag tag = null;
-		
-		return tag;
-	}
-	
 	private void persistTag( Tag tag ) throws NotifierException
 	{
 		try

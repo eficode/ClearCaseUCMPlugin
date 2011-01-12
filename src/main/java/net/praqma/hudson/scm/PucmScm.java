@@ -574,7 +574,6 @@ public class PucmScm extends SCM
 		{
 			super( PucmScm.class, null );
 			logger.trace_function();
-			// levels = getLevels();
 			loadModules = getLoadModules();
 			load();
 			Config.setContext();
