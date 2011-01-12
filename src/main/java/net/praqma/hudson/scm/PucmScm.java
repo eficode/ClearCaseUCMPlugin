@@ -188,10 +188,6 @@ public class PucmScm extends SCM
 				throw new ScmException( "Could not create folder for viewroot:  " + viewroot.toString() );
 			}
 		}
-		catch ( SecurityException se )
-		{
-			throw new ScmException( "Could not make workspace (for viewroot " + viewroot.toString() + "). Permission denied" );
-		}
 		catch ( Exception e )
 		{
 			throw new ScmException( "Could not make workspace (for viewroot " + viewroot.toString() + "). Cause: " + e.getMessage() );
