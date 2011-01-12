@@ -145,7 +145,7 @@ public class PucmScm extends SCM
 				BaselineDiff changes = bl.GetDiffs( sv );
 				consoleOutput.println( changes.size() + " elements changed" );
 				writeChangelog( changelogFile, changes, consoleOutput );
-			}	
+			}
 			catch ( UCMException e )
 			{
 				consoleOutput.println( "Could not get changes. " + e.getMessage() );
@@ -169,21 +169,23 @@ public class PucmScm extends SCM
 		// We know we have a stream (st), because it is set in
 		// baselinesToBuild()
 
-		String viewtag = "pucm_" + System.getenv( "COMPUTERNAME" ) + "_" + jobname; 
-		
+		String viewtag = "pucm_" + System.getenv( "COMPUTERNAME" ) + "_" + jobname;
+
 		File viewroot = new File( workspace + "\\view" );
-				
+
 		try
 		{
-			//viewroot.exists();
-			
-			if ( viewroot.mkdir() )
+			if ( viewroot.exists() )
+			{
+				hudsonOut.println( "Reusing viewroot: " + viewroot.toString() );
+			}
+			else if (viewroot.mkdir())
 			{
 				hudsonOut.println( "Created folder for viewroot:  " + viewroot.toString() );
 			}
 			else
 			{
-				hudsonOut.println( "Reusing viewroot: " + viewroot.toString() );
+				throw new ScmException( "Could not create folder for viewroot:  " + viewroot.toString() );
 			}
 		}
 		catch ( Exception e )
@@ -193,9 +195,9 @@ public class PucmScm extends SCM
 		}
 
 		Stream devstream = null;
-		
+
 		devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( integrationstream ) );
-		
+
 		if ( UCMView.ViewExists( viewtag ) )
 		{
 			hudsonOut.println( "Reusing viewtag: " + viewtag + "\n" );
@@ -220,8 +222,8 @@ public class PucmScm extends SCM
 			try
 			{
 				sv = UCMView.GetSnapshotView( viewroot );
-				hudsonOut.println(" DONE");
-				
+				hudsonOut.println( " DONE" );
+
 			}
 			catch ( UCMException e )
 			{
@@ -248,29 +250,29 @@ public class PucmScm extends SCM
 		try
 		{
 			hudsonOut.print( "Updating view using " + loadModule.toLowerCase() + " modules..." );
-			
+
 			sv.Update( true, true, true, false, COMP.valueOf( loadModule.toUpperCase() ), null );
-			hudsonOut.println( " DONE");
+			hudsonOut.println( " DONE" );
 		}
 		catch ( UCMException e )
 		{
 			throw new ScmException( "Could not update snapshot view. " + e.getMessage() );
 		}
-		
+
 		// Now we have to rebase - if a rebase is in progress, the
 		// old one must be stopped and the new started instead
 		if ( devstream.IsRebaseInProgress() )
 		{
 			hudsonOut.print( "Cancelling previous rebase..." );
 			devstream.CancelRebase();
-			hudsonOut.println( " DONE");
+			hudsonOut.println( " DONE" );
 		}
 		// The last boolean, complete, must always be true from PUCM
 		// as we are always working on a read-only stream according
 		// to LAK
 		hudsonOut.print( "Rebasing development stream (" + devstream.GetShortname() + ") against parent stream (" + integrationstream.GetShortname() + ")" );
 		devstream.Rebase( sv, bl, true );
-		hudsonOut.println( " DONE");
+		hudsonOut.println( " DONE" );
 	}
 
 	private Stream getDeveloperStream( String streamname, String pvob ) throws ScmException
