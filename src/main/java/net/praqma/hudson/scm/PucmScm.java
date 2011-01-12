@@ -179,15 +179,18 @@ public class PucmScm extends SCM
 			{
 				hudsonOut.println( "Reusing viewroot: " + viewroot.toString() );
 			}
-			else 
+			else if (viewroot.mkdir())
 			{
-				viewroot.mkdir();
 				hudsonOut.println( "Created folder for viewroot:  " + viewroot.toString() );
+			}
+			else
+			{
+				throw new ScmException( "Could not create folder for viewroot:  " + viewroot.toString() );
 			}
 		}
 		catch ( SecurityException se )
 		{
-			throw new ScmException( "Permission denied. Could not make workspace (for viewroot " + viewroot.toString() + ")." );
+			throw new ScmException( "Could not make workspace (for viewroot " + viewroot.toString() + "). Permission denied" );
 		}
 		catch ( Exception e )
 		{
