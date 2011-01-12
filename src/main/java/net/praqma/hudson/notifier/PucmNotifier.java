@@ -41,6 +41,7 @@ public class PucmNotifier extends Notifier
 	private Baseline baseline;
 	private PrintStream hudsonOut;
 	private Stream st;
+	private boolean makeTag;
 
 	protected static Debug logger = Debug.GetLogger();
 
@@ -59,6 +60,7 @@ public class PucmNotifier extends Notifier
 		logger.trace_function();
 		this.promote = promote;
 		this.recommended = recommended;
+		this.makeTag = false;
 	}
 
 	@Override
@@ -195,7 +197,6 @@ public class PucmNotifier extends Notifier
 					if ( promote )
 						try
 						{
-
 							baseline.Demote();
 							hudsonOut.println( "Baseline is " + baseline.GetPromotionLevel( true ) + "." );
 						}
@@ -230,6 +231,13 @@ public class PucmNotifier extends Notifier
 		hudsonOut.println( "\n\nDISPLAY_STATUS:<small>" + baseline.GetShortname() + "</small><BR/>" + buildResult.toString() + ( recommended ? "<BR/><B>Recommended</B>" : "" ) + "<BR/><small>Level:[" + promotionlevel + "]</small>" );
 	}
 
+	private Tag getTag(Baseline baseline)
+	{
+		Tag tag = null;
+		
+		return tag;
+	}
+	
 	private void persistTag( Tag tag ) throws NotifierException
 	{
 		try
