@@ -273,7 +273,10 @@ public class PucmNotifier extends Notifier
 		}
 		catch ( UCMException e )
 		{
-			throw new NotifierException ( "Tried and failed to write DISPLAY_STATUS. " + e.getMessage() );
+			throw new NotifierException ( "Failed to get and write DISPLAY_STATUS. " + e.getMessage() );
+		}
+		catch( Exception ee){
+			throw new NotifierException ( "Failed to get and write DISPLAY_STATUS. " );
 		}
 	}
 
