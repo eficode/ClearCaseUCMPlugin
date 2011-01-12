@@ -131,23 +131,11 @@ public class PucmNotifier extends Notifier
 
 		try
 		{
-			String promotionlevel = "unknown";
-			try
-			{
-				promotionlevel = baseline.GetPromotionLevel( true ).toString();
-			}
-			catch ( UCMException e )
-			{
-				hudsonOut.println( "Tried and failed to get promotionlevel. " + e.getMessage() );
-			}
-
-			// The below hudsonOut are for a little plugin that can display the
-			// information on hudsons build-history page.
-			hudsonOut.println( "\n\nDISPLAY_STATUS:<small>" + baseline.GetShortname() + "</small><BR/>" + build.getResult().toString() + ( recommended ? "<BR/><B>Recommended</B>" : "" ) + "<BR/><small>Level:[" + promotionlevel + "]</small>" );
+			setDisplaystatus( build );
 		}
-		catch ( Exception e )
+		catch ( NotifierException e )
 		{
-			hudsonOut.println( "Tried and failed to set DISPLAY_STATUS" );
+			hudsonOut.println( e.getMessage() );
 		}
 
 		logger.print_trace();
@@ -273,6 +261,22 @@ public class PucmNotifier extends Notifier
 		}
 	}
 
+	private void setDisplaystatus(AbstractBuild build) throws NotifierException
+	{
+		String promotionlevel = "unknown";
+		try
+		{
+			// The below hudsonOut are for a little plugin that can display the
+			// information on hudsons build-history page.
+			hudsonOut.println( "\n\nDISPLAY_STATUS:<small>" + baseline.GetShortname() + "</small><BR/>" + build.getResult().toString() + ( recommended ? "<BR/><B>Recommended</B>" : "" ) + "<BR/><small>Level:[" + baseline.GetPromotionLevel( true ).toString() + "]</small>" );
+			
+		}
+		catch ( UCMException e )
+		{
+			throw new NotifierException ( "Tried and failed to write DISPLAY_STATUS. " + e.getMessage() );
+		}
+	}
+
 	public boolean isPromote()
 	{
 		logger.trace_function();
@@ -289,7 +293,7 @@ public class PucmNotifier extends Notifier
 	 * This class is used by Hudson to define the plugin.
 	 * 
 	 * @author Troels Selch Sørensen
-	 * @author Margit
+	 * @author Margit Bennetzen
 	 * 
 	 */
 	@Extension
