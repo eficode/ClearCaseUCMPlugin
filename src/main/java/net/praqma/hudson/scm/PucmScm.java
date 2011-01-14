@@ -145,10 +145,12 @@ public class PucmScm extends SCM
 				BaselineDiff changes = bl.GetDiffs( sv );
 				consoleOutput.println( changes.size() + " elements changed" );
 				writeChangelog( changelogFile, changes, consoleOutput );
+				doPostBuild = true;
 			}
 			catch ( UCMException e )
 			{
 				consoleOutput.println( "Could not get changes. " + e.getMessage() );
+				doPostBuild = false;
 				result = false;
 			}
 			catch ( ScmException e )
