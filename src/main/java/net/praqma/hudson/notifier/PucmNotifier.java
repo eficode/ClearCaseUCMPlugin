@@ -54,13 +54,15 @@ public class PucmNotifier extends Notifier
 	 * @param recommended
 	 *            if <code>true</code>, the baseline will be marked
 	 *            'recommended' in ClearCase.
+	 * @param makeTag
+	 * 			  if <code>true</code>, pucm will set a Tag()  on the baseline in ClearCase.
 	 */
-	public PucmNotifier( boolean promote, boolean recommended )
+	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag )
 	{
 		logger.trace_function();
 		this.promote = promote;
 		this.recommended = recommended;
-		this.makeTag = false;
+		this.makeTag = makeTag;
 	}
 
 	@Override
@@ -291,6 +293,11 @@ public class PucmNotifier extends Notifier
 		logger.trace_function();
 		return recommended;
 	}
+	
+	public boolean isMakeTag()
+	{
+		return makeTag;
+	}
 
 	/**
 	 * This class is used by Hudson to define the plugin.
@@ -328,8 +335,9 @@ public class PucmNotifier extends Notifier
 			logger.trace_function();
 			boolean promote = req.getParameter( "Pucm.promote" ) != null;
 			boolean recommended = req.getParameter( "Pucm.recommended" ) != null;
+			boolean makeTag = req.getParameter ("Pucm.makeTag") != null;
 			save();
-			return new PucmNotifier( promote, recommended );
+			return new PucmNotifier( promote, recommended, makeTag );
 		}
 
 		@Override

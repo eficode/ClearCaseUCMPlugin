@@ -10,4 +10,7 @@ This should be the file that makes it possible to select our notifier in the "po
 	<f:entry title="Recommend baseline?" help="/plugin/PUCM/notifier/help-recommendBaseline.html">
 	    <f:checkbox name="Pucm.recommended" checked="${instance.recommended}" />
 	</f:entry>
+	<f:entry title="Make tag?" help="/plugin/PUCM/notifier/help-makeTag.html">
+	    <f:checkbox name="Pucm.makeTag" checked="${instance.makeTag}" />
+	</f:entry>
 </j:jelly>
