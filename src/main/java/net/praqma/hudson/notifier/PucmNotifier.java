@@ -10,9 +10,9 @@ import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Tag;
-import net.praqma.util.Debug;
 import net.praqma.hudson.exception.NotifierException;
 import net.praqma.hudson.scm.PucmScm;
+import net.praqma.util.debug.Logger;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.BuildListener;
@@ -43,7 +43,7 @@ public class PucmNotifier extends Notifier
 	private Stream st;
 	private boolean makeTag;
 
-	protected static Debug logger = Debug.GetLogger();
+	protected static Logger logger = Logger.getLogger();
 
 	/**
 	 * This constructor is used in the inner class <code>DescriptorImpl</code>.
@@ -72,7 +72,6 @@ public class PucmNotifier extends Notifier
 		return true;
 	}
 
-	@Override
 	public BuildStepMonitor getRequiredMonitorService()
 	{
 		logger.trace_function();

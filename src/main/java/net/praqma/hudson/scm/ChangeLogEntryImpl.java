@@ -6,7 +6,7 @@ import java.util.List;
 import hudson.model.User;
 import hudson.scm.ChangeLogSet.Entry;
 
-import net.praqma.util.Debug;
+import net.praqma.util.debug.Logger;
 
 /**
  * A change set is a collection of changed entries. This classes represents one
@@ -24,7 +24,7 @@ public class ChangeLogEntryImpl extends Entry
 	private String msg;
 	private String author;
 	private String date;
-	protected static Debug logger = Debug.GetLogger();
+	protected static Logger logger = Logger.getLogger();
 	private volatile List<String> affectedPaths = new ArrayList<String>();
 
 	public ChangeLogEntryImpl()

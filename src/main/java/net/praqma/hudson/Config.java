@@ -9,11 +9,11 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.hudson.exception.ScmException;
-import net.praqma.util.Debug;
+import net.praqma.util.debug.Logger;
 
 public class Config
 {
-	protected static Debug logger = Debug.GetLogger();
+	protected static Logger logger = Logger.getLogger();
 
 	private Config()
 	{

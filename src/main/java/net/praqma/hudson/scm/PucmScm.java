@@ -34,7 +34,7 @@ import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.ScmException;
-import net.praqma.util.Debug;
+import net.praqma.util.debug.Logger;
 import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -68,7 +68,7 @@ public class PucmScm extends SCM
 	private SnapshotView sv = null;
 	private boolean doPostBuild = true;
 
-	protected static Debug logger = Debug.GetLogger();
+	protected static Logger logger = Logger.getLogger();
 
 	/**
 	 * The constructor is used by Hudson to create the instance of the plugin

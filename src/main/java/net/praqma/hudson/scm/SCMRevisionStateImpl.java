@@ -1,7 +1,7 @@
 package net.praqma.hudson.scm;
 
 import hudson.scm.SCMRevisionState;
-import net.praqma.util.Debug;
+import net.praqma.util.debug.Logger;
 
 /**
  * 
@@ -12,7 +12,7 @@ import net.praqma.util.Debug;
 public class SCMRevisionStateImpl extends SCMRevisionState
 {
 
-	protected static Debug logger = Debug.GetLogger();
+	protected static Logger logger = Logger.getLogger();
 
 	public SCMRevisionStateImpl()
 	{

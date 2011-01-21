@@ -4,10 +4,10 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import net.praqma.util.debug.Logger;
+
 import hudson.model.AbstractBuild;
 import hudson.scm.ChangeLogSet;
-
-import net.praqma.util.Debug;
 
 /**
  * This class represents a ChangeLogSet. This is the accumulation of all the
@@ -21,7 +21,7 @@ import net.praqma.util.Debug;
 public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl>
 {
 
-	protected static Debug logger = Debug.GetLogger();
+	protected static Logger logger = Logger.getLogger();
 	private List<ChangeLogEntryImpl> entries = null;
 	private String baselineName;
 
