@@ -131,6 +131,7 @@ public class PucmScm extends SCM
 		}
 
 		compRevCalled = false;
+		
 
 		// pollMsgs are set in either compareRemoteRevisionWith() or
 		// baselinesToBuild()
@@ -420,7 +421,7 @@ public class PucmScm extends SCM
 
 		try
 		{
-			pollMsgs.append( "Getting alle baselines for :\n* Stream:         " );
+			pollMsgs.append( "Getting all baselines for :\n* Stream:         " );
 			pollMsgs.append( stream );
 			pollMsgs.append( "\n* Component:      " );
 			pollMsgs.append( component );
@@ -441,7 +442,7 @@ public class PucmScm extends SCM
 
 			try
 			{
-				ArrayList<Baseline> baselinelist = integrationstream.GetRecommendedBaselines();
+				List<Baseline> baselinelist = integrationstream.GetRecommendedBaselines();
 				pollMsgs.append( "\nRecommended baseline(s): \n" );
 				for ( Baseline b : baselinelist )
 				{

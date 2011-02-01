@@ -55,7 +55,8 @@ public class PucmNotifier extends Notifier
 	 *            if <code>true</code>, the baseline will be marked
 	 *            'recommended' in ClearCase.
 	 * @param makeTag
-	 * 			  if <code>true</code>, pucm will set a Tag()  on the baseline in ClearCase.
+	 *            if <code>true</code>, pucm will set a Tag() on the baseline in
+	 *            ClearCase.
 	 */
 	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag )
 	{
@@ -130,13 +131,16 @@ public class PucmNotifier extends Notifier
 			}
 		}
 
-		try
+		if ( result )
 		{
-			setDisplaystatus( build );
-		}
-		catch ( NotifierException e )
-		{
-			hudsonOut.println( e.getMessage() );
+			try
+			{
+				setDisplaystatus( build );
+			}
+			catch ( NotifierException e )
+			{
+				hudsonOut.println( e.getMessage() );
+			}
 		}
 
 		logger.print_trace();
@@ -262,7 +266,7 @@ public class PucmNotifier extends Notifier
 		}
 	}
 
-	private void setDisplaystatus(AbstractBuild build) throws NotifierException
+	private void setDisplaystatus( AbstractBuild build ) throws NotifierException
 	{
 		String promotionlevel = "unknown";
 		try
@@ -270,14 +274,15 @@ public class PucmNotifier extends Notifier
 			// The below hudsonOut are for a little plugin that can display the
 			// information on hudsons build-history page.
 			hudsonOut.println( "\n\nDISPLAY_STATUS:<small>" + baseline.GetShortname() + "</small><BR/>" + build.getResult().toString() + ( recommended ? "<BR/><B>Recommended</B>" : "" ) + "<BR/><small>Level:[" + baseline.GetPromotionLevel( true ).toString() + "]</small>" );
-			
+
 		}
 		catch ( UCMException e )
 		{
-			throw new NotifierException ( "Failed to get and write DISPLAY_STATUS. " + e.getMessage() );
+			throw new NotifierException( "Failed to get and write DISPLAY_STATUS. " + e.getMessage() );
 		}
-		catch( Exception ee){
-			throw new NotifierException ( "Failed to get and write DISPLAY_STATUS. " );
+		catch ( Exception ee )
+		{
+			throw new NotifierException( "Failed to get and write DISPLAY_STATUS. " );
 		}
 	}
 
@@ -292,7 +297,7 @@ public class PucmNotifier extends Notifier
 		logger.trace_function();
 		return recommended;
 	}
-	
+
 	public boolean isMakeTag()
 	{
 		return makeTag;
@@ -334,7 +339,7 @@ public class PucmNotifier extends Notifier
 			logger.trace_function();
 			boolean promote = req.getParameter( "Pucm.promote" ) != null;
 			boolean recommended = req.getParameter( "Pucm.recommended" ) != null;
-			boolean makeTag = req.getParameter ("Pucm.makeTag") != null;
+			boolean makeTag = req.getParameter( "Pucm.makeTag" ) != null;
 			save();
 			return new PucmNotifier( promote, recommended, makeTag );
 		}
