@@ -4,6 +4,7 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.BuildListener;
+import hudson.model.ParameterValue;
 import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
@@ -13,6 +14,8 @@ import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
 import hudson.scm.SCM;
 import hudson.util.FormValidation;
+import hudson.util.VariableResolver;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -114,29 +117,48 @@ public class PucmScm extends SCM
 		consoleOutput.println( "------------------------------------------------------------\nPraqmatic UCM - SCM section started\n------------------------------------------------------------\n" );
 
 		String jobname = build.getParent().getDisplayName();
-
-		// compRevCalled tells whether we have polled for baselines to build -
-		// so if we haven't polled, we do it now
-		if ( !compRevCalled )
+		
+		if (build.getBuildVariables().get( "pucm_baseline" )!=null)
 		{
+			String baselinename = (String) build.getBuildVariables().get( "pucm_baseline" );
 			try
 			{
-				baselinesToBuild( component, stream );
+				bl = Baseline.GetBaseline( baselinename);
+				integrationstream = bl.GetStream();
+				consoleOutput.println(baselinename + " found on integrationstream " + integrationstream.GetShortname());
 			}
-			catch ( ScmException e )
+			catch ( UCMException e )
 			{
-				pollMsgs.append( e.getMessage() );
+				consoleOutput.println( "Could not find baseline" );
+				doPostBuild = false;
 				result = false;
 			}
+		}else
+			
+		{
+	
+			// compRevCalled tells whether we have polled for baselines to build -
+			// so if we haven't polled, we do it now
+			if ( !compRevCalled )
+			{
+				try
+				{
+					baselinesToBuild( component, stream );
+				}
+				catch ( ScmException e )
+				{
+					pollMsgs.append( e.getMessage() );
+					result = false;
+				}
+			}
+	
+			compRevCalled = false;
+	
+			// pollMsgs are set in either compareRemoteRevisionWith() or
+			// baselinesToBuild()
+			consoleOutput.println( pollMsgs );
+			pollMsgs = new StringBuffer();
 		}
-
-		compRevCalled = false;
-		
-
-		// pollMsgs are set in either compareRemoteRevisionWith() or
-		// baselinesToBuild()
-		consoleOutput.println( pollMsgs );
-		pollMsgs = new StringBuffer();
 
 		if ( result )
 		{
@@ -182,14 +204,15 @@ public class PucmScm extends SCM
 			{
 				hudsonOut.println( "Reusing viewroot: " + viewroot.toString() );
 			}
-			else if (viewroot.mkdir())
-			{
-				hudsonOut.println( "Created folder for viewroot:  " + viewroot.toString() );
-			}
 			else
-			{
-				throw new ScmException( "Could not create folder for viewroot:  " + viewroot.toString() );
-			}
+				if ( viewroot.mkdir() )
+				{
+					hudsonOut.println( "Created folder for viewroot:  " + viewroot.toString() );
+				}
+				else
+				{
+					throw new ScmException( "Could not create folder for viewroot:  " + viewroot.toString() );
+				}
 		}
 		catch ( Exception e )
 		{
