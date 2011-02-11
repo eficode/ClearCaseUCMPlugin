@@ -312,12 +312,13 @@ public class PucmScm extends SCM
 			}
 			else
 			{
-				devstream = Stream.Create( Config.getIntegrationStream( pvob ), streamname + pvob, true, bl );
+				devstream = Stream.Create( Config.getIntegrationStream( bl, hudsonOut ), streamname + pvob, true, bl );
 			}
 		}
 		/* This tries to handle the issue where the project hudson is not available */
 		catch ( ScmException se )
 		{
+			/*
 			logger.warning( "The hudson Project was not found." );
 			hudsonOut.println( "The hudson Project was not found. You can install the Poject with: \"cleartool mkproject -c \"The special Hudson Project\" -in rootFolder@\\your_pvob hudson@\\your_pvob\"." );
 			try
@@ -328,6 +329,8 @@ public class PucmScm extends SCM
 			{
 				throw new ScmException( "Could not get the Projects integration stream." );
 			}
+			*/
+			throw se;
 		
 		}
 		catch ( Exception e )
