@@ -222,7 +222,7 @@ public class PucmScm extends SCM
 
 		Stream devstream = null;
 
-		devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( integrationstream ) );
+		devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( integrationstream ), hudsonOut );
 
 		if ( UCMView.ViewExists( viewtag ) )
 		{
@@ -301,7 +301,7 @@ public class PucmScm extends SCM
 		hudsonOut.println( " DONE" );
 	}
 
-	private Stream getDeveloperStream( String streamname, String pvob ) throws ScmException
+	private Stream getDeveloperStream( String streamname, String pvob, PrintStream hudsonOut ) throws ScmException
 	{
 		Stream devstream = null;
 		try
@@ -315,14 +315,26 @@ public class PucmScm extends SCM
 				devstream = Stream.Create( Config.getIntegrationStream( pvob ), streamname + pvob, true, bl );
 			}
 		}
+		/* This tries to handle the issue where the project hudson is not available */
 		catch ( ScmException se )
 		{
-			throw se;
+			logger.warning( "The hudson Project was not found." );
+			hudsonOut.println( "The hudson Project was not found. You can install the Poject with: \"cleartool mkproject -c \"The special Hudson Project\" -in rootFolder@\\your_pvob hudson@\\your_pvob\"." );
+			try
+			{
+				devstream = bl.GetStream().getProject().getIntegrationStream();
+			}
+			catch ( UCMException e )
+			{
+				throw new ScmException( "Could not get the Projects integration stream." );
+			}
+		
 		}
 		catch ( Exception e )
 		{
 			throw new ScmException( "Could not get stream: " + e.getMessage() );
 		}
+		
 		return devstream;
 	}
 

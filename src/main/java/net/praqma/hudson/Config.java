@@ -76,11 +76,12 @@ public class Config
 		}
 		catch ( Exception e )
 		{
-			throw new ScmException( "Could not find project 'hudson' in " + pvob + " - please check and retry" );
+			throw new ScmException( "Could not find project 'hudson' in " + pvob + ". You can install the Poject with: \"cleartool mkproject -c \"The special Hudson Project\" -in rootFolder@\\your_pvob hudson@\\your_pvob\"." );
 		}
+		
 		try
 		{
-			stream = project.GetStream();
+			stream = project.getIntegrationStream();
 		}
 		catch ( Exception e )
 		{

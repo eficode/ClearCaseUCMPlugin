@@ -143,7 +143,6 @@ public class PucmNotifier extends Notifier
 			}
 		}
 
-		logger.print_trace();
 		hudsonOut.println( "------------------------------------------------------------\nPraqmatic UCM - Post build section finished\n------------------------------------------------------------\n" );
 		return result;
 	}
