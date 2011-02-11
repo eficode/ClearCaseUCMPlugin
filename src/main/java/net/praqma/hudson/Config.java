@@ -73,7 +73,7 @@ public class Config
 		Project project = null;
 		try
 		{
-			project = UCMEntity.GetProject( "hudson" + bl.GetPvob(), false );
+			project = UCMEntity.GetProject( "hudson@" + bl.GetPvob(), false );
 
 		}
 		catch ( Exception e )
