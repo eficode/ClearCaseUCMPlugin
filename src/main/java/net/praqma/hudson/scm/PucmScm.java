@@ -299,6 +299,7 @@ public class PucmScm extends SCM
 		hudsonOut.print( "Rebasing development stream (" + devstream.GetShortname() + ") against parent stream (" + integrationstream.GetShortname() + ")" );
 		devstream.Rebase( sv, bl, true );
 		hudsonOut.println( " DONE" );
+		hudsonOut.println( "Log written to " + logger.getPath() );
 	}
 
 	private Stream getDeveloperStream( String streamname, String pvob, PrintStream hudsonOut ) throws ScmException
