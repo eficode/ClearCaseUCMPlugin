@@ -1,9 +1,11 @@
 package net.praqma.hudson;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import net.praqma.clearcase.ucm.UCMException;
+import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCM;
@@ -65,22 +67,34 @@ public class Config
 		return devStream;
 	}*/
 
-	public static Stream getIntegrationStream( String pvob ) throws ScmException
+	public static Stream getIntegrationStream( Baseline bl, PrintStream hudsonOut ) throws ScmException
 	{
 		Stream stream = null;
 		Project project = null;
 		try
 		{
-			project = UCMEntity.GetProject( "hudson" + pvob, false );
+			project = UCMEntity.GetProject( "hudson@" + bl.GetPvob(), false );
 
 		}
 		catch ( Exception e )
 		{
-			throw new ScmException( "Could not find project 'hudson' in " + pvob + " - please check and retry" );
+			//throw new ScmException( "Could not find project 'hudson' in " + pvob + ". You can install the Poject with: \"cleartool mkproject -c \"The special Hudson Project\" -in rootFolder@\\your_pvob hudson@\\your_pvob\"." );
+			logger.warning( "The hudson Project was not found." );
+			hudsonOut.println( "The hudson Project was not found. You can install the Poject with: \"cleartool mkproject -c \"The special Hudson Project\" -in rootFolder@\\your_pvob hudson@\\your_pvob\"." );
+			
+			try
+			{
+				project = bl.GetStream().getProject();
+			}
+			catch ( UCMException ucme )
+			{
+				throw new ScmException( "Could not get the Project." );
+			}
 		}
+		
 		try
 		{
-			stream = project.GetStream();
+			stream = project.getIntegrationStream();
 		}
 		catch ( Exception e )
 		{
