@@ -70,6 +70,7 @@ public class PucmScm extends SCM
 	private Component comp;
 	private SnapshotView sv = null;
 	private boolean doPostBuild = true;
+	private String buildProject;
 
 	protected static Logger logger = Logger.getLogger();
 
@@ -95,7 +96,7 @@ public class PucmScm extends SCM
 	 *            newer than the recommended baseline
 	 */
 	@DataBoundConstructor
-	public PucmScm( String component, String levelToPoll, String loadModule, String stream, boolean newest, boolean newerThanRecommended, boolean testing )
+	public PucmScm( String component, String levelToPoll, String loadModule, String stream, boolean newest, boolean testing, String buildProject )
 	{
 		logger.trace_function();
 		this.component = component;
@@ -103,6 +104,7 @@ public class PucmScm extends SCM
 		this.loadModule = loadModule;
 		this.stream = stream;
 		this.newest = newest;
+		this.buildProject = buildProject;
 	}
 
 	@Override
@@ -117,15 +119,15 @@ public class PucmScm extends SCM
 		consoleOutput.println( "---------------------------Praqmatic UCM - SCM section started---------------------------\n" );
 
 		String jobname = build.getParent().getDisplayName();
-		
-		if (build.getBuildVariables().get( "pucm_baseline" )!=null)
+
+		if ( build.getBuildVariables().get( "pucm_baseline" ) != null )
 		{
 			String baselinename = (String) build.getBuildVariables().get( "pucm_baseline" );
 			try
 			{
-				bl = Baseline.GetBaseline( baselinename);
+				bl = Baseline.GetBaseline( baselinename );
 				integrationstream = bl.GetStream();
-				consoleOutput.println(baselinename + " found on integrationstream " + integrationstream.GetShortname());
+				consoleOutput.println( baselinename + " found on integrationstream " + integrationstream.GetShortname() );
 			}
 			catch ( UCMException e )
 			{
@@ -133,11 +135,13 @@ public class PucmScm extends SCM
 				doPostBuild = false;
 				result = false;
 			}
-		}else
-			
+		}
+		else
+
 		{
-	
-			// compRevCalled tells whether we have polled for baselines to build -
+
+			// compRevCalled tells whether we have polled for baselines to build
+			// -
 			// so if we haven't polled, we do it now
 			if ( !compRevCalled )
 			{
@@ -151,9 +155,9 @@ public class PucmScm extends SCM
 					result = false;
 				}
 			}
-	
+
 			compRevCalled = false;
-	
+
 			// pollMsgs are set in either compareRemoteRevisionWith() or
 			// baselinesToBuild()
 			consoleOutput.println( pollMsgs );
@@ -305,6 +309,7 @@ public class PucmScm extends SCM
 	private Stream getDeveloperStream( String streamname, String pvob, PrintStream hudsonOut ) throws ScmException
 	{
 		Stream devstream = null;
+		
 		try
 		{
 			if ( Stream.StreamExists( streamname + pvob ) )
@@ -313,32 +318,23 @@ public class PucmScm extends SCM
 			}
 			else
 			{
-				devstream = Stream.Create( Config.getIntegrationStream( bl, hudsonOut ), streamname + pvob, true, bl );
+				devstream = Stream.Create( Config.getIntegrationStream( bl, hudsonOut, buildProject ), streamname + pvob, true, bl );
 			}
 		}
-		/* This tries to handle the issue where the project hudson is not available */
+		/*
+		 * This tries to handle the issue where the project hudson is not
+		 * available
+		 */
 		catch ( ScmException se )
 		{
-			/*
-			logger.warning( "The hudson Project was not found." );
-			hudsonOut.println( "The hudson Project was not found. You can install the Poject with: \"cleartool mkproject -c \"The special Hudson Project\" -in rootFolder@\\your_pvob hudson@\\your_pvob\"." );
-			try
-			{
-				devstream = bl.GetStream().getProject().getIntegrationStream();
-			}
-			catch ( UCMException e )
-			{
-				throw new ScmException( "Could not get the Projects integration stream." );
-			}
-			*/
 			throw se;
-		
+
 		}
 		catch ( Exception e )
 		{
 			throw new ScmException( "Could not get stream: " + e.getMessage() );
 		}
-		
+
 		return devstream;
 	}
 
@@ -574,6 +570,17 @@ public class PucmScm extends SCM
 	{
 		logger.trace_function();
 		return newest;
+	}
+
+	public String getBuildProject()
+	{
+		logger.trace_function();
+		
+		if ( buildProject.equals( "" ) )
+		{
+			buildProject = "hudson";
+		}
+		return buildProject;
 	}
 
 	/*

@@ -32,5 +32,10 @@
 	<f:entry title="Newest" help="/plugin/PUCM/scm/help-newest.html">
 	    <f:checkbox name="PUCM.newest" checked="${instance.newest}" />
 	</f:entry>
+	<f:advanced>
+	    <f:entry title="Build project" help="/plugin/PUCM/scm/help-buildProject.html">
+      		<f:textbox name="buildProject" value="${scm.buildProject}"/>
+    	</f:entry>
+	</f:advanced>
    
 </j:jelly>
