@@ -127,7 +127,7 @@ public class PucmScm extends SCM
 			{
 				bl = Baseline.GetBaseline( baselinename );
 				integrationstream = bl.GetStream();
-				consoleOutput.println( baselinename + " found on integrationstream " + integrationstream.GetShortname() );
+				consoleOutput.println( "Starting parameterized build with a pucm_baseline.\nUsing baseline: " + baselinename + " from integrationstream " + integrationstream.GetShortname() );
 			}
 			catch ( UCMException e )
 			{
@@ -309,7 +309,7 @@ public class PucmScm extends SCM
 	private Stream getDeveloperStream( String streamname, String pvob, PrintStream hudsonOut ) throws ScmException
 	{
 		Stream devstream = null;
-		
+
 		try
 		{
 			if ( Stream.StreamExists( streamname + pvob ) )
@@ -318,6 +318,8 @@ public class PucmScm extends SCM
 			}
 			else
 			{
+				if (buildProject.equals(""))
+					buildProject = "hudson";
 				devstream = Stream.Create( Config.getIntegrationStream( bl, hudsonOut, buildProject ), streamname + pvob, true, bl );
 			}
 		}
@@ -572,17 +574,6 @@ public class PucmScm extends SCM
 		return newest;
 	}
 
-	public String getBuildProject()
-	{
-		logger.trace_function();
-		
-		if ( buildProject.equals( "" ) )
-		{
-			buildProject = "hudson";
-		}
-		return buildProject;
-	}
-
 	/*
 	 * getStreamObject() and getBaseline() are used by PucmNotifier to get the
 	 * Baseline and Stream in use
@@ -606,6 +597,12 @@ public class PucmScm extends SCM
 		return doPostBuild;
 	}
 
+	public String getBuildProject()
+	{
+		logger.trace_function();
+		return buildProject;
+	}
+
 	/**
 	 * This class is used to describe the plugin to Hudson
 	 * 
@@ -618,7 +615,6 @@ public class PucmScm extends SCM
 	{
 
 		private String cleartool;
-		// private List<String> levels;
 		private List<String> loadModules;
 
 		public PucmScmDescriptor()
@@ -709,5 +705,6 @@ public class PucmScm extends SCM
 			loadModules.add( "Modifiable" );
 			return loadModules;
 		}
+
 	}
 }

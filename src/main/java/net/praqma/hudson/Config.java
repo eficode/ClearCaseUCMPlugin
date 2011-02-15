@@ -71,7 +71,7 @@ public class Config
 	{
 		Stream stream = null;
 		Project project = null;
-		
+
 		try
 		{
 			project = UCMEntity.GetProject( buildProject + "@" + bl.GetPvob(), false );
