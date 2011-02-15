@@ -42,6 +42,7 @@ public class PucmNotifier extends Notifier
 	private PrintStream hudsonOut;
 	private Stream st;
 	private boolean makeTag;
+	private Status status;
 
 	protected static Logger logger = Logger.getLogger();
 
@@ -85,7 +86,9 @@ public class PucmNotifier extends Notifier
 		logger.trace_function();
 		boolean result = true;
 		hudsonOut = listener.getLogger();
-		hudsonOut.println( "------------------------------------------------------------\nPraqmatic UCM - Post build section started\n------------------------------------------------------------\n" );
+		hudsonOut.println( "---------------------------Praqmatic UCM - Post build section started---------------------------\n" );
+
+		status = new Status();
 
 		SCM scmTemp = null;
 		if ( result )
@@ -124,15 +127,12 @@ public class PucmNotifier extends Notifier
 			try
 			{
 				processBuild( build );
+
 			}
 			catch ( NotifierException ne )
 			{
 				hudsonOut.println( ne.getMessage() );
 			}
-		}
-
-		if ( result )
-		{
 			try
 			{
 				setDisplaystatus( build );
@@ -141,21 +141,25 @@ public class PucmNotifier extends Notifier
 			{
 				hudsonOut.println( e.getMessage() );
 			}
-		}
 
-		hudsonOut.println( "------------------------------------------------------------\nPraqmatic UCM - Post build section finished\n------------------------------------------------------------\n" );
+		}
+		logger.print_trace();
+
+		hudsonOut.println( "---------------------------Praqmatic UCM - Post build section finished---------------------------\n" );
 		return result;
 	}
 
 	private void processBuild( AbstractBuild build ) throws NotifierException
 	{
+
 		Tag tag = null;
-		if ( makeTag == true )
+		if ( makeTag )
 		{
 			try
 			{
 				// Getting tag to set buildstatus
 				tag = baseline.GetTag( build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) );
+				status.setTagAvailable( true );
 			}
 			catch ( UCMException e )
 			{
@@ -166,71 +170,77 @@ public class PucmNotifier extends Notifier
 		Result buildResult = build.getResult();
 		hudsonOut.println( "Buildresult: " + buildResult );
 
+		status.setBuildStatus( buildResult );
 		if ( buildResult.equals( Result.SUCCESS ) )
 		{
 			hudsonOut.println( "Build successful" );
-			try
-			{
-				if ( makeTag == true )
-				{
-					tag.SetEntry( "buildstatus", "SUCCESS" );
-				}
 
-				if ( promote )
+			if ( status.isTagAvailable() )
+			{
+				tag.SetEntry( "buildstatus", "SUCCESS" );
+			}
+
+			if ( promote )
+			{
+				try
 				{
-					try
+					baseline.Promote();
+					status.setPLevel( true );
+					hudsonOut.println( "Baseline promoted to " + baseline.GetPromotionLevel( true ) + "." );
+				}
+				catch ( UCMException e )
+				{
+					build.setResult( Result.UNSTABLE );
+					// as it will not make sense to recommend if we cannot
+					// promote, we do this:
+					if ( recommended )
 					{
-						baseline.Promote();
-						hudsonOut.println( "Baseline promoted to " + baseline.GetPromotionLevel( true ) + "." );
+						throw new NotifierException( "Could not promote baseline and will not recommend. " + e.getMessage() );
 					}
-					catch ( Exception e )
+					else
 					{
+						// As we will not recommend if we cannot promote, it's
+						// ok to break method here
 						throw new NotifierException( "Could not promote baseline. " + e.getMessage() );
 					}
 				}
-				if ( recommended )
-				{
-					try
-					{
-						st.RecommendBaseline( baseline );
-						hudsonOut.println( "Baseline " + baseline.GetShortname() + " is now recommended " );
-					}
-					catch ( Exception e )
-					{
-						throw new NotifierException( "Could not recommend baseline. " + e.getMessage() );
-					}
-				}
 			}
-			catch ( Exception e )
+			if ( recommended )
 			{
-				throw new NotifierException( "New plevel could not be set." );
+				try
+				{
+					st.RecommendBaseline( baseline );
+					status.setRecommended( true );
+					hudsonOut.println( "Baseline " + baseline.GetShortname() + " is now recommended " );
+				}
+				catch ( Exception e )
+				{
+					build.setResult( Result.UNSTABLE );
+					throw new NotifierException( "Could not recommend baseline. Reason: " + e.getMessage() );
+				}
 			}
 		}
 		else
 			if ( buildResult.equals( Result.FAILURE ) )
 			{
 				hudsonOut.println( "Build failed" );
-				try
+
+				if ( status.isTagAvailable() )
 				{
-					if ( makeTag == true )
+					tag.SetEntry( "buildstatus", "FAILURE" );
+				}
+				if ( promote )
+					try
 					{
-						tag.SetEntry( "buildstatus", "FAILURE" );
+						baseline.Demote();
+						status.setPLevel( true );
+						hudsonOut.println( "Baseline is " + baseline.GetPromotionLevel( true ) + "." );
 					}
-					if ( promote )
-						try
-						{
-							baseline.Demote();
-							hudsonOut.println( "Baseline is " + baseline.GetPromotionLevel( true ) + "." );
-						}
-						catch ( Exception e )
-						{
-							throw new NotifierException( "Could not demote baseline. " + e.getMessage() );
-						}
-				}
-				catch ( Exception e )
-				{
-					throw new NotifierException( "New plevel could not be set. " + e.getMessage() );
-				}
+					catch ( Exception e )
+					{
+						build.setResult( Result.UNSTABLE );
+						throw new NotifierException( "Could not demote baseline. " + e.getMessage() );
+					}
 			}
 			else
 			{
@@ -238,7 +248,7 @@ public class PucmNotifier extends Notifier
 				throw new NotifierException( "Baseline not changed. Buildstatus: " + buildResult );
 			}
 
-		if ( makeTag == true )
+		if ( makeTag )
 		{
 			try
 			{
@@ -267,12 +277,19 @@ public class PucmNotifier extends Notifier
 
 	private void setDisplaystatus( AbstractBuild build ) throws NotifierException
 	{
-		String promotionlevel = "unknown";
 		try
 		{
 			// The below hudsonOut are for a little plugin that can display the
 			// information on hudsons build-history page.
-			hudsonOut.println( "\n\nDISPLAY_STATUS:<small>" + baseline.GetShortname() + "</small><BR/>" + build.getResult().toString() + ( recommended ? "<BR/><B>Recommended</B>" : "" ) + "<BR/><small>Level:[" + baseline.GetPromotionLevel( true ).toString() + "]</small>" );
+			String recStatus = "";
+			if ( recommended )
+			{
+				if ( status.isRecommended() )
+					recStatus = "<BR/><B>recommended</B>";
+				else
+					recStatus = "<BR/><B>could not recommend</B>";
+			}
+			hudsonOut.println( "\n\nDISPLAY_STATUS:<small>" + baseline.GetShortname() + "</small><BR/>" + status.getBuildStatus().toString() + recStatus + "<BR/><small>Level:[" + baseline.GetPromotionLevel( true ).toString() + "]</small>" );
 
 		}
 		catch ( UCMException e )

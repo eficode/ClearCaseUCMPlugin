@@ -114,7 +114,7 @@ public class PucmScm extends SCM
 		// consoleOutput Printstream is from Hudson, so it can only be accessed
 		// here
 		PrintStream consoleOutput = listener.getLogger();
-		consoleOutput.println( "------------------------------------------------------------\nPraqmatic UCM - SCM section started\n------------------------------------------------------------\n" );
+		consoleOutput.println( "---------------------------Praqmatic UCM - SCM section started---------------------------\n" );
 
 		String jobname = build.getParent().getDisplayName();
 		
@@ -184,7 +184,7 @@ public class PucmScm extends SCM
 			}
 		}
 
-		consoleOutput.println( "------------------------------------------------------------\nPraqmatic UCM - SCM section finished\n------------------------------------------------------------\n" );
+		consoleOutput.println( "---------------------------Praqmatic UCM - SCM section finished---------------------------\n" );
 
 		return result;
 	}
