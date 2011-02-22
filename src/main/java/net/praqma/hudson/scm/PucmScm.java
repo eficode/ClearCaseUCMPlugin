@@ -118,10 +118,12 @@ public class PucmScm extends SCM
 		PrintStream consoleOutput = listener.getLogger();
 		consoleOutput.println( "---------------------------Praqmatic UCM - SCM section started---------------------------\n" );
 
+
 		String jobname = build.getParent().getDisplayName();
 
 		if ( build.getBuildVariables().get( "pucm_baseline" ) != null )
 		{
+			Stream integrationstream = null;
 			String baselinename = (String) build.getBuildVariables().get( "pucm_baseline" );
 			try
 			{
@@ -168,8 +170,14 @@ public class PucmScm extends SCM
 		{
 			try
 			{
-				makeWorkspace( consoleOutput, workspace, jobname );
-				BaselineDiff changes = bl.GetDiffs( sv );
+				//Dto dto = new Dto(bl);
+				//CheckoutTask ct = new CheckoutTask(consoleOutput, jobname, integrationstream,loadModule, dto, buildProject );
+				CheckoutTask ct = new CheckoutTask( listener, jobname, stream ,loadModule, bl.GetFQName(), buildProject );
+				boolean res = workspace.act( ct );
+				
+				consoleOutput.println( "workspace.act called "+ res );
+				//makeWorkspace( consoleOutput, workspace, jobname );
+				BaselineDiff changes = ct.getBaselineDiffs();
 				consoleOutput.println( changes.size() + " elements changed" );
 				writeChangelog( changelogFile, changes, consoleOutput );
 				doPostBuild = true;
@@ -193,152 +201,7 @@ public class PucmScm extends SCM
 		return result;
 	}
 
-	private void makeWorkspace( PrintStream hudsonOut, FilePath workspace, String jobname ) throws ScmException
-	{
-		// We know we have a stream (st), because it is set in
-		// baselinesToBuild()
-
-		String viewtag = "pucm_" + System.getenv( "COMPUTERNAME" ) + "_" + jobname;
-
-		File viewroot = new File( workspace + "\\view" );
-
-		try
-		{
-			if ( viewroot.exists() )
-			{
-				hudsonOut.println( "Reusing viewroot: " + viewroot.toString() );
-			}
-			else
-				if ( viewroot.mkdir() )
-				{
-					hudsonOut.println( "Created folder for viewroot:  " + viewroot.toString() );
-				}
-				else
-				{
-					throw new ScmException( "Could not create folder for viewroot:  " + viewroot.toString() );
-				}
-		}
-		catch ( Exception e )
-		{
-			throw new ScmException( "Could not make workspace (for viewroot " + viewroot.toString() + "). Cause: " + e.getMessage() );
-
-		}
-
-		Stream devstream = null;
-
-		devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( integrationstream ), hudsonOut );
-
-		if ( UCMView.ViewExists( viewtag ) )
-		{
-			hudsonOut.println( "Reusing viewtag: " + viewtag + "\n" );
-			try
-			{
-				SnapshotView.ViewrootIsValid( viewroot );
-				hudsonOut.println( "Viewroot is valid in ClearCase" );
-			}
-			catch ( UCMException ucmE )
-			{
-				try
-				{
-					hudsonOut.println( "Viewroot not valid - now regenerating.... " );
-					SnapshotView.RegenerateViewDotDat( viewroot, viewtag );
-				}
-				catch ( UCMException ucmEe )
-				{
-					throw new ScmException( "Could not make workspace - could not regenerate view: " + ucmEe.getMessage() + " Type: " + "" );
-				}
-			}
-			hudsonOut.print( "Getting snapshotview..." );
-			try
-			{
-				sv = UCMView.GetSnapshotView( viewroot );
-				hudsonOut.println( " DONE" );
-
-			}
-			catch ( UCMException e )
-			{
-				throw new ScmException( "Could not get view for workspace. " + e.getMessage() );
-			}
-		}
-		else
-		{
-			try
-			{
-				hudsonOut.print( "View doesn't exist" );
-				sv = SnapshotView.Create( devstream, viewroot, viewtag );
-				hudsonOut.println( " - created new view in local workspace" );
-			}
-			catch ( UCMException e )
-			{
-				throw new ScmException( " - could not create a new view for workspace. " + e.getMessage() );
-			}
-		}
-
-		// All below parameters according to LAK and CHW -components
-		// corresponds to pucms loadmodules, loadrules must always be
-		// null from pucm
-		try
-		{
-			hudsonOut.print( "Updating view using " + loadModule.toLowerCase() + " modules..." );
-
-			sv.Update( true, true, true, false, COMP.valueOf( loadModule.toUpperCase() ), null );
-			hudsonOut.println( " DONE" );
-		}
-		catch ( UCMException e )
-		{
-			throw new ScmException( "Could not update snapshot view. " + e.getMessage() );
-		}
-
-		// Now we have to rebase - if a rebase is in progress, the
-		// old one must be stopped and the new started instead
-		if ( devstream.IsRebaseInProgress() )
-		{
-			hudsonOut.print( "Cancelling previous rebase..." );
-			devstream.CancelRebase();
-			hudsonOut.println( " DONE" );
-		}
-		// The last boolean, complete, must always be true from PUCM
-		// as we are always working on a read-only stream according
-		// to LAK
-		hudsonOut.print( "Rebasing development stream (" + devstream.GetShortname() + ") against parent stream (" + integrationstream.GetShortname() + ")" );
-		devstream.Rebase( sv, bl, true );
-		hudsonOut.println( " DONE" );
-		hudsonOut.println( "Log written to " + logger.getPath() );
-	}
-
-	private Stream getDeveloperStream( String streamname, String pvob, PrintStream hudsonOut ) throws ScmException
-	{
-		Stream devstream = null;
-
-		try
-		{
-			if ( Stream.StreamExists( streamname + pvob ) )
-			{
-				devstream = Stream.GetStream( streamname + pvob, false );
-			}
-			else
-			{
-				if (buildProject.equals(""))
-					buildProject = "hudson";
-				devstream = Stream.Create( Config.getIntegrationStream( bl, hudsonOut, buildProject ), streamname + pvob, true, bl );
-			}
-		}
-		/*
-		 * This tries to handle the issue where the project hudson is not
-		 * available
-		 */
-		catch ( ScmException se )
-		{
-			throw se;
-
-		}
-		catch ( Exception e )
-		{
-			throw new ScmException( "Could not get stream: " + e.getMessage() );
-		}
-
-		return devstream;
-	}
+	
 
 	private void writeChangelog( File changelogFile, BaselineDiff changes, PrintStream hudsonOut ) throws ScmException
 	{
@@ -416,6 +279,7 @@ public class PucmScm extends SCM
 
 		return p;
 	}
+	
 
 	@Override
 	public SCMRevisionState calcRevisionsFromBuild( AbstractBuild<?, ?> build, Launcher launcher, TaskListener listener ) throws IOException, InterruptedException
