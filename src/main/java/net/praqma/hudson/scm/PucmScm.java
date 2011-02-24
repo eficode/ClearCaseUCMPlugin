@@ -3,11 +3,13 @@ package net.praqma.hudson.scm;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
 import hudson.model.ParameterValue;
 import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.remoting.VirtualChannel;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.PollingResult;
 import hudson.scm.SCMDescriptor;
@@ -16,6 +18,7 @@ import hudson.scm.SCM;
 import hudson.util.FormValidation;
 import hudson.util.VariableResolver;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,7 +29,6 @@ import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Activity;
-import net.praqma.clearcase.ucm.entities.Baseline.BaselineDiff;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.utils.BaselineList;
 import net.praqma.clearcase.ucm.entities.Stream;
@@ -35,6 +37,7 @@ import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
 import net.praqma.clearcase.ucm.view.UCMView;
+import net.praqma.clearcase.ucm.utils.BaselineDiff;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.util.debug.Logger;
@@ -99,6 +102,7 @@ public class PucmScm extends SCM
 	public PucmScm( String component, String levelToPoll, String loadModule, String stream, boolean newest, boolean testing, String buildProject )
 	{
 		logger.trace_function();
+		logger.debug( "PucmSCM constructor" );
 		this.component = component;
 		this.levelToPoll = levelToPoll;
 		this.loadModule = loadModule;
@@ -111,8 +115,9 @@ public class PucmScm extends SCM
 	public boolean checkout( AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile ) throws IOException, InterruptedException
 	{
 		logger.trace_function();
+		logger.debug( "PucmSCM checkout" );
 		boolean result = true;
-
+		
 		// consoleOutput Printstream is from Hudson, so it can only be accessed
 		// here
 		PrintStream consoleOutput = listener.getLogger();
@@ -139,7 +144,6 @@ public class PucmScm extends SCM
 			}
 		}
 		else
-
 		{
 
 			// compRevCalled tells whether we have polled for baselines to build
@@ -171,26 +175,36 @@ public class PucmScm extends SCM
 			try
 			{
 				//Dto dto = new Dto(bl);
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				//CheckoutTask ct = new CheckoutTask(consoleOutput, jobname, integrationstream,loadModule, dto, buildProject );
-				CheckoutTask ct = new CheckoutTask( listener, jobname, stream ,loadModule, bl.GetFQName(), buildProject );
-				boolean res = workspace.act( ct );
+				/* Force the Baseline to be loaded */
+				bl.Load();
+				CheckoutTask ct = new CheckoutTask( listener, jobname, stream, loadModule, bl.GetFQName(), buildProject );
+				//doPostBuild = workspace.act( ct );
+				String test = workspace.act( ct );
 				
-				consoleOutput.println( "workspace.act called "+ res );
+				/* Write change log */
+				FileOutputStream fos = new FileOutputStream( changelogFile );
+				fos.write( test.getBytes() );
+				fos.close();
+				
+				doPostBuild = test.length() > 0 ? true : false;
+				
 				//makeWorkspace( consoleOutput, workspace, jobname );
+				
+				/*
 				BaselineDiff changes = ct.getBaselineDiffs();
-				consoleOutput.println( changes.size() + " elements changed" );
-				writeChangelog( changelogFile, changes, consoleOutput );
+				*/
+				//consoleOutput.println( bldiff.size() + " elements changed" );
+
+				//writeChangelog( changelogFile, bldiff, consoleOutput );
+				/*
 				doPostBuild = true;
+				*/
 			}
-			catch ( UCMException e )
+			catch ( Exception e )
 			{
-				consoleOutput.println( "Could not get changes. " + e.getMessage() );
-				doPostBuild = false;
-				result = false;
-			}
-			catch ( ScmException e )
-			{
-				consoleOutput.println( e.getMessage() );
+				consoleOutput.println( "An error occured: " + e.getMessage() );
 				doPostBuild = false;
 				result = false;
 			}
@@ -200,8 +214,6 @@ public class PucmScm extends SCM
 
 		return result;
 	}
-
-	
 
 	private void writeChangelog( File changelogFile, BaselineDiff changes, PrintStream hudsonOut ) throws ScmException
 	{
@@ -256,11 +268,17 @@ public class PucmScm extends SCM
 		logger.trace_function();
 		return new ChangeLogParserImpl();
 	}
+	
+	//private static Map<>
 
 	@Override
 	public PollingResult compareRemoteRevisionWith( AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState baseline ) throws IOException, InterruptedException
 	{
 		logger.trace_function();
+		logger.debug( "PucmSCM Pollingresult" );
+		
+		PucmScm scm = (PucmScm)project.getScm();
+		
 
 		PollingResult p;
 		try

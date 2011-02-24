@@ -9,7 +9,7 @@
 
   <groupId>net.praqma</groupId>
   <artifactId>PUCM</artifactId>
-  <version>0.1.9</version>
+  <version>0.1.9.1</version>
   <name>PUCM</name>
   <packaging>hpi</packaging>
   <dependencies>
