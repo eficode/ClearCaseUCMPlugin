@@ -1,7 +1,13 @@
 package net.praqma.hudson.notifier;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.util.List;
 
 import org.kohsuke.stapler.StaplerRequest;
@@ -10,16 +16,27 @@ import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Tag;
+import net.praqma.clearcase.ucm.entities.UCM;
+import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.hudson.exception.NotifierException;
 import net.praqma.hudson.scm.PucmScm;
 import net.praqma.util.debug.Logger;
 import hudson.Extension;
 import hudson.Launcher;
+import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
 import hudson.model.Result;
+import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.Hudson;
+import hudson.model.Hudson.MasterComputer;
+import hudson.model.Node;
 
+import hudson.remoting.Callable;
+import hudson.remoting.Channel.Listener;
+import hudson.remoting.DelegatingCallable;
+import hudson.remoting.VirtualChannel;
 import hudson.scm.SCM;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
@@ -43,6 +60,8 @@ public class PucmNotifier extends Notifier
 	private Stream st;
 	private boolean makeTag;
 	private Status status;
+	
+	private String id = "";
 
 	protected static Logger logger = Logger.getLogger();
 
@@ -81,7 +100,7 @@ public class PucmNotifier extends Notifier
 	}
 
 	@Override
-	public boolean perform( AbstractBuild build, Launcher launcer, BuildListener listener ) throws InterruptedException, IOException
+	public boolean perform( AbstractBuild build, Launcher launcher, BuildListener listener ) throws InterruptedException, IOException
 	{
 		logger.trace_function();
 		boolean result = true;
@@ -89,6 +108,8 @@ public class PucmNotifier extends Notifier
 		hudsonOut.println( "---------------------------Praqmatic UCM - Post build section started---------------------------\n" );
 
 		status = new Status();
+		
+		this.id = "[" + build.getParent().getDisplayName() + "::" + build.getNumber() + "]";
 
 		SCM scmTemp = null;
 		if ( result )
@@ -106,14 +127,37 @@ public class PucmNotifier extends Notifier
 			PucmScm scm = (PucmScm) scmTemp;
 			if ( scm.doPostbuild() )
 			{
-				baseline = scm.getBaseline();
-				st = scm.getStreamObject();
-				if ( baseline == null )
+				//baseline = scm.getBaseline();
+
+				String bl = scm.getBaselineFromJob( build.getParent().getDisplayName(), build.getNumber() );
+				
+				/* If no baselines found bl will be null */
+				if( bl != null )
 				{
-					// If baseline is null, the user has already been notified
-					// in Console output from PucmScm.checkout()
+					try
+					{
+						baseline = UCMEntity.GetBaseline( bl );
+					}
+					catch ( UCMException e )
+					{
+						logger.warning( id + "Could not initialize baseline." );
+						baseline = null;
+					}
+					
+					st = scm.getStreamObject();
+					if ( baseline == null )
+					{
+						// If baseline is null, the user has already been notified
+						// in Console output from PucmScm.checkout()
+						result = false;
+					}
+				}
+				else
+				{
 					result = false;
 				}
+						
+					
 			}
 			else
 			{
@@ -121,12 +165,14 @@ public class PucmNotifier extends Notifier
 				result = false;
 			}
 		}
-
+		
 		if ( result )
 		{
+			hudsonOut.println( "Performing post build steps for " + ( baseline != null ? baseline : "Missing" ) );
+			
 			try
 			{
-				processBuild( build );
+				processBuild( build, launcher, listener );
 
 			}
 			catch ( NotifierException ne )
@@ -143,15 +189,220 @@ public class PucmNotifier extends Notifier
 			}
 
 		}
-		logger.print_trace();
+		
+		/* Removing baseline and job from collection, do this no matter what as long as the SCM is pucm */
+		if ( ( scmTemp instanceof PucmScm ) && baseline != null )
+		{
+			PucmScm scm = (PucmScm) scmTemp;
+			boolean done = scm.removeJobByBaseline( build.getParent().getDisplayName(), baseline.GetFQName() );
+			logger.debug( id + "Removing job " + build.getNumber() + " from collection: " + done );
+		}
 
 		hudsonOut.println( "---------------------------Praqmatic UCM - Post build section finished---------------------------\n" );
 		return result;
 	}
+	
+	
+	private static class RemoteTagTask implements Callable<Status, IOException>, Serializable
+	{
+		private static final long serialVersionUID = 1L;
+		private String displayName;
+		private String buildNumber;
+		
+		private Result result;
+		
+		private String baseline;
+		private String stream;
+		
+		private boolean makeTag     = false;
+		private boolean promote     = false;
+		private boolean recommended = false;
+		private Status status;
+		private BuildListener listener;
+		
+		private String id = "";
+		
+		public RemoteTagTask( Result result, Status status, BuildListener listener, boolean makeTag, boolean promote, boolean recommended, String baseline, String stream, String displayName, String buildNumber )
+		{
+			this.displayName = displayName;
+			this.buildNumber = buildNumber;
+			
+			this.id = "[" + displayName + "::" + buildNumber + "]";
+			
+			this.baseline = baseline;
+			this.stream   = stream;
+			
+			this.result  = result;
+			
+			this.makeTag     = makeTag;
+			this.promote     = promote;
+			this.recommended = recommended;
+			this.status      = status;
+			this.listener    = listener;
+		}
 
-	private void processBuild( AbstractBuild build ) throws NotifierException
+		public Status call() throws IOException
+		{
+			Logger logger = Logger.getLogger();
+			PrintStream hudsonOut = listener.getLogger();
+			UCM.SetContext( UCM.ContextType.CLEARTOOL );
+			
+			/* Create the baseline object */
+			Baseline baseline = null;
+			try
+			{
+				baseline = UCMEntity.GetBaseline( this.baseline );
+			}
+			catch( UCMException e )
+			{
+				logger.debug( id + "could not create Baseline object:" + e.getMessage() );
+				throw new IOException( "could not create Baseline object:" + e.getMessage() );
+			}
+			
+			/* Create the stream object */
+			Stream stream = null;
+			try
+			{
+				stream = UCMEntity.GetStream( this.stream );
+			}
+			catch( UCMException e )
+			{
+				logger.debug( id + "could not create Stream object:" + e.getMessage() );
+				throw new IOException( "could not create Stream object:" + e.getMessage() );
+			}			
+			
+			/* Create the Tag object */
+			Tag tag = null;
+			if ( makeTag )
+			{
+				try
+				{
+					// Getting tag to set buildstatus
+					tag = baseline.GetTag( this.displayName, this.buildNumber );
+					status.setTagAvailable( true );
+				}
+				catch ( UCMException e )
+				{
+					hudsonOut.println( "Could not get Tag: " + e.getMessage() );
+					logger.warning( id + "Could not get Tag: " + e.getMessage() );
+				}
+			}
+			
+			/* The build was a success */
+			if ( result.equals( Result.SUCCESS ) )
+			{
+				if ( status.isTagAvailable() )
+				{
+					tag.SetEntry( "buildstatus", "SUCCESS" );
+				}
+	
+				if ( promote )
+				{
+					try
+					{
+						baseline.Promote();
+						status.setPLevel( true );
+						hudsonOut.println( "Baseline promoted to " + baseline.GetPromotionLevel( true ) + "." );
+					}
+					catch ( UCMException e )
+					{
+						status.setStable( false );
+						//build.setResult( Result.UNSTABLE );
+						// as it will not make sense to recommend if we cannot
+						// promote, we do this:
+						if ( recommended )
+						{
+							recommended = false;
+							//throw new NotifierException( "Could not promote baseline and will not recommend. " + e.getMessage() );
+							hudsonOut.println( "Could not promote baseline and will not recommend. " + e.getMessage() );
+							logger.warning( id + "Could not promote baseline and will not recommend. " + e.getMessage() );
+						}
+						else
+						{
+							// As we will not recommend if we cannot promote, it's
+							// ok to break method here
+							//throw new NotifierException( "Could not promote baseline. " + e.getMessage() );
+							hudsonOut.println( "Could not promote baseline. " + e.getMessage() );
+							logger.warning( id + "Could not promote baseline. " + e.getMessage() );
+						}
+					}
+				}
+				/* Recommend the Baseline */
+				if ( recommended )
+				{
+					try
+					{
+						stream.RecommendBaseline( baseline );
+						status.setRecommended( true );
+						hudsonOut.println( "Baseline " + baseline.GetShortname() + " is now recommended " );
+					}
+					catch ( Exception e )
+					{
+						//build.setResult( Result.UNSTABLE );
+						//throw new NotifierException( "Could not recommend baseline. Reason: " + e.getMessage() );
+						status.setStable( false );
+						hudsonOut.println( "Could not recommend baseline. Reason: " + e.getMessage() );
+						logger.warning( id + "Could not recommend baseline. Reason: " + e.getMessage() );
+					}
+				}
+			}
+			/* The build failed */
+			else if ( result.equals( Result.FAILURE ) )
+			{
+				hudsonOut.println( "Build failed" );
+
+				if ( status.isTagAvailable() )
+				{
+					tag.SetEntry( "buildstatus", "FAILURE" );
+				}
+				if ( promote )
+					try
+					{
+						baseline.Demote();
+						status.setPLevel( true );
+						hudsonOut.println( "Baseline is " + baseline.GetPromotionLevel( true ) + "." );
+					}
+					catch ( Exception e )
+					{
+						status.setStable( false );
+						//throw new NotifierException( "Could not demote baseline. " + e.getMessage() );
+						hudsonOut.println( "Could not demote baseline. " + e.getMessage() );
+						logger.warning( id + "Could not demote baseline. " + e.getMessage() );
+					}
+			}
+			/* Result not handled by PUCM */
+			else
+			{
+				logger.log( id + "Buildstatus (Result) was " + result + ". Not handled by plugin." );
+				hudsonOut.println( "Baseline not changed. Buildstatus: " + result );
+				//throw new NotifierException( "Baseline not changed. Buildstatus: " + result );
+			}
+			
+			/* Persist the Tag */
+			if( makeTag )
+			{
+				try
+				{
+					tag = tag.Persist();
+					hudsonOut.println( "Baseline now marked with tag: \n" + tag.Stringify() );
+				}
+				catch ( Exception e )
+				{
+					hudsonOut.println( "Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
+				}
+			}
+			
+			
+			return status;
+		}
+		
+	}
+	
+
+	private void processBuild( AbstractBuild build, Launcher launcher, BuildListener listener ) throws NotifierException
 	{
 
+		/*
 		Tag tag = null;
 		if ( makeTag )
 		{
@@ -166,14 +417,42 @@ public class PucmNotifier extends Notifier
 				hudsonOut.println( "Could not get Tag. " + e.getMessage() );
 			}
 		}
+		*/
 
 		Result buildResult = build.getResult();
 		hudsonOut.println( "Buildresult: " + buildResult );
+		
+		hudsonOut.println( "Build successful" );
+		
+		VirtualChannel ch  = launcher.getChannel();
+		
+		if( ch == null )
+		{
+			logger.debug( "The channel was null" );
+		}
 
+		try
+		{
+			logger.debug( id + "Trying to run TagTask" );
+			status = ch.call( new RemoteTagTask( buildResult, status, listener, makeTag, promote, recommended, baseline.GetFQName(), st.GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) ) );
+		}
+		catch ( Exception e )
+		{
+			logger.debug( id + "Something went wrong: " + e.getMessage() );
+		}
+		
 		status.setBuildStatus( buildResult );
+		
+		if( !status.isStable() )
+		{
+			build.setResult( Result.UNSTABLE );
+		}
+		
+		
+		/*
 		if ( buildResult.equals( Result.SUCCESS ) )
 		{
-			hudsonOut.println( "Build successful" );
+
 
 			if ( status.isTagAvailable() )
 			{
@@ -252,6 +531,54 @@ public class PucmNotifier extends Notifier
 		{
 			try
 			{
+				Node n = build.getBuiltOn();
+				//build.get
+				
+				logger.debug( "DIPLAY=" + n.getDisplayName() + ". NODENAME=" + n.getNodeName() + ". TOSTRINF" + n.toString() );
+				
+				//AbstractBuild<?,?> lastCompletedBuild = project.getLastCompletedBuild();
+				//build.getProject().getl;
+				
+				if( n == null )
+				{
+					logger.debug( "The slave node was null" );
+					throw new NotifierException( "Slave does not exist anymore, cannot proceed." );
+				}
+				
+				//VirtualChannel ch = n.getChannel();
+				//VirtualChannel ch = MasterComputer.localChannel;
+				VirtualChannel ch  = launcher.getChannel();
+				
+				if( ch == null )
+				{
+					logger.debug( "The channel was null" );
+				}
+
+				try
+				{
+					logger.debug( "Trying to run task" );
+					ch.call( new MyTagTask( "SWIM!" ) );
+					logger.debug( "Task was run" );
+
+				}
+				catch ( Exception e )
+				{
+					logger.debug( "Something went wrong: " + e.getMessage() );
+					logger.debug( e.toString() );
+				}
+				
+				try
+				{
+					logger.debug( "Trying to run task2" );
+					ch.call( new MyTagTask2( "snade" ) );
+					logger.debug( "Task2 was run" );
+				}
+				catch ( Exception e )
+				{
+					logger.debug( "Something went wrong: " + e.getMessage() );
+					logger.debug( e.toString() );
+				}
+				
 				persistTag( tag );
 			}
 			catch ( NotifierException ne )
@@ -259,6 +586,7 @@ public class PucmNotifier extends Notifier
 				hudsonOut.println( ne.getMessage() );
 			}
 		}
+		*/
 
 	}
 

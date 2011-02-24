@@ -1,8 +1,10 @@
 package net.praqma.hudson.notifier;
 
+import java.io.Serializable;
+
 import hudson.model.Result;
 
-public class Status
+public class Status implements Serializable
 {
 	private boolean pLevel = false;
 	private boolean recommended = false;
@@ -10,6 +12,8 @@ public class Status
 	private boolean tagAvailable = false;
 	private Result buildStatus;
 	private String errorMsg = "";
+	
+	private boolean stable = true;
 	
 	public Status()
 	{
@@ -24,6 +28,16 @@ public class Status
 	public boolean isPLevel()
 	{
 		return pLevel;
+	}
+	
+	public void setStable( boolean stable )
+	{
+		this.stable = stable;
+	}
+	
+	public boolean isStable()
+	{
+		return this.stable;
 	}
 
 	public void setRecommended( boolean recommended )
