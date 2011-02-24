@@ -1,7 +1,9 @@
 package net.praqma.hudson.notifier;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.util.List;
 
 import org.kohsuke.stapler.StaplerRequest;
@@ -15,11 +17,18 @@ import net.praqma.hudson.scm.PucmScm;
 import net.praqma.util.debug.Logger;
 import hudson.Extension;
 import hudson.Launcher;
+import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.Hudson;
+import hudson.model.Hudson.MasterComputer;
+import hudson.model.Node;
 
+import hudson.remoting.Callable;
+import hudson.remoting.DelegatingCallable;
+import hudson.remoting.VirtualChannel;
 import hudson.scm.SCM;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
@@ -148,6 +157,34 @@ public class PucmNotifier extends Notifier
 		hudsonOut.println( "---------------------------Praqmatic UCM - Post build section finished---------------------------\n" );
 		return result;
 	}
+	
+	
+	private class MyTagTask implements DelegatingCallable<String,IOException>
+	{
+		private Logger logger = Logger.getLogger();
+		private String test;
+		
+		public MyTagTask( String test )
+		{
+			this.test = test;
+		}
+
+		public String call()
+		{
+			logger = Logger.getLogger();
+			logger.debug( "I was here = " + test );
+			
+			logger.debug( "This message should be written to the slave log" );
+			return null;
+		}
+
+		public ClassLoader getClassLoader()
+		{
+			return Hudson.getInstance().getPluginManager().uberClassLoader;
+		}
+		
+	}
+	
 
 	private void processBuild( AbstractBuild build ) throws NotifierException
 	{
@@ -252,6 +289,36 @@ public class PucmNotifier extends Notifier
 		{
 			try
 			{
+				Node n = build.getBuiltOn();
+				if( n == null )
+				{
+					logger.debug( "The slave node was null" );
+					throw new NotifierException( "Slave does not exist anymore, cannot proceed." );
+				}
+				
+				VirtualChannel ch = n.getChannel();
+
+				try
+				{
+					logger.debug( "Trying to run task" );
+					ch.call( new MyTagTask( "SWIM!" ) );
+					logger.debug( "Task was run" );
+//					final String t = build.getDisplayName();
+//					ch.call(new DelegatingCallable<String,IOException> () {
+//			            public ClassLoader getClassLoader() {
+//			                return Hudson.getInstance().getPluginManager().uberClassLoader;
+//			            }
+//			            public String call() throws IOException 
+//			            {
+//			            	logger.debug( "I was here2" + t );
+//			            	return null;
+//			            }
+//					});
+				}
+				catch ( Exception e )
+				{
+					logger.debug( "Something went wrong: " + e.getMessage() );
+				}
 				persistTag( tag );
 			}
 			catch ( NotifierException ne )

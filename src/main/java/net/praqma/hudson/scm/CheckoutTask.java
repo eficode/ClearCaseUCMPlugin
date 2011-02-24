@@ -2,16 +2,22 @@ package net.praqma.hudson.scm;
 
 
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.List;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
-import net.praqma.clearcase.ucm.entities.Baseline.BaselineDiff;
+import net.praqma.clearcase.ucm.utils.BaselineDiff;
+import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
+import net.praqma.clearcase.ucm.entities.Version;
+import net.praqma.clearcase.ucm.utils.BaselineList;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
@@ -26,7 +32,7 @@ import hudson.remoting.VirtualChannel;
 
 
 
-public class CheckoutTask implements FileCallable<Boolean> {
+public class CheckoutTask implements FileCallable<String> {
 	
 	private PrintStream hudsonOut;
 	private Stream integrationstream;
@@ -39,6 +45,7 @@ public class CheckoutTask implements FileCallable<Boolean> {
 	private String intStream;
 	private String baselinefqname;
 	private BuildListener listener;
+	private ByteArrayOutputStream baos;
 	
 	/*public CheckoutTask(PrintStream hudsonOut, String jobname, Stream integrationstream, String loadModule, Dto dto, String buildProject){
 		this.hudsonOut=hudsonOut;
@@ -49,30 +56,51 @@ public class CheckoutTask implements FileCallable<Boolean> {
 		this.buildProject=buildProject;
 	}*/
 	
-	public CheckoutTask (BuildListener listener , String jobname, String intStream, String loadModule, String baselinefqname, String buildProject){
-		this.jobname =jobname;
-		this.intStream=intStream;
-		this.loadModule=loadModule;
-		this.baselinefqname=baselinefqname;
-		this.buildProject=buildProject;
-		this.listener=listener;
+	public CheckoutTask( BuildListener listener, String jobname, String intStream, String loadModule, String baselinefqname, String buildProject )
+	{
+		this.jobname = jobname;
+		this.intStream = intStream;
+		this.loadModule = loadModule;
+		this.baselinefqname = baselinefqname;
+		this.buildProject = buildProject;
+		this.listener = listener;
+		this.baos = baos;
 	}
 	
-    public Boolean invoke(File workspace, VirtualChannel channel) throws IOException {
-        logger = Logger.getLogger();
-        logger.debug( "hul igennem:1 "+jobname+intStream+loadModule+baselinefqname+buildProject );
-        hudsonOut = listener.getLogger(); 
-        hudsonOut.println("hudsonout is here");
-        try{
-        	UCM.SetContext( UCM.ContextType.CLEARTOOL );
-        	//hudsonOut.println("output from checkouttask");
-          	makeWorkspace(workspace);
-        }catch (ScmException e){
-        	throw new IOException(e);
-        }
-        
-        return true;
-    }
+	
+	public String invoke( File workspace, VirtualChannel channel ) throws IOException
+	{
+		logger = Logger.getLogger();
+		logger.debug( "hul igennem:1 " + jobname + intStream + loadModule + baselinefqname + buildProject );
+		hudsonOut = listener.getLogger();
+		hudsonOut.println( "hudsonout is here" );
+		
+		boolean doPostBuild = false;
+		String diff = null;
+		
+		try
+		{
+			UCM.SetContext( UCM.ContextType.CLEARTOOL );
+			// hudsonOut.println("output from checkouttask");
+			makeWorkspace( workspace );
+			BaselineDiff bldiff = bl.GetDiffs( sv );
+			hudsonOut.println( bldiff.size() + " elements changed(ON SLAVE)" );
+			diff = createChangelog( bldiff, hudsonOut );
+			doPostBuild = true;
+		}
+		catch ( ScmException e )
+		{
+			throw new IOException( e );
+		}
+		catch ( UCMException e )
+		{
+			hudsonOut.println( "Could not get changes. " + e.getMessage() );
+		}
+
+		return diff;
+	}
+	
+	
     
     private void makeWorkspace(File workspace) throws ScmException
     {
@@ -242,6 +270,47 @@ public class CheckoutTask implements FileCallable<Boolean> {
 
     	return devstream;
     }
+    
+	private String createChangelog( BaselineDiff changes, PrintStream hudsonOut )
+	{
+		StringBuffer buffer = new StringBuffer();
+
+		hudsonOut.print( "Writing Hudson changelog..." );
+
+		buffer.append( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
+		buffer.append( "<changelog>" );
+		buffer.append( "<changeset>" );
+		buffer.append( "<entry>" );
+		buffer.append( ( "<blName>" + bl.GetShortname() + "</blName>" ) );
+		for ( Activity act : changes )
+		{
+			buffer.append( "<activity>" );
+			buffer.append( ( "<actName>" + act.GetShortname() + "</actName>" ) );
+			try
+			{
+				buffer.append( ( "<author>" + act.GetUser() + "</author>" ) );
+			}
+			catch ( UCMException e )
+			{
+				buffer.append( ( "<author>Unknown</author>" ) );
+			}
+			List<Version> versions = act.changeset.versions;
+			String temp;
+			for ( Version v : versions )
+			{
+				temp = "<file>" + v.GetSFile() + "[" + v.GetRevision() + "] user: " + v.Blame() + "</file>";
+				buffer.append( temp );
+			}
+			buffer.append( "</activity>" );
+		}
+		buffer.append( "</entry>" );
+		buffer.append( "</changeset>" );
+
+		buffer.append( "</changelog>" );
+
+		
+		return buffer.toString();
+	}
     
     public SnapshotView getSnapshotView(){
     	return sv;
