@@ -28,8 +28,6 @@ public class Config
 		levels.add( "INITIAL" );
 		levels.add( "BUILT" );
 		levels.add( "TESTED" );
-		levels.add( "RELEASED" );
-		levels.add( "REJECTED" );
 		return levels;
 	}
 
