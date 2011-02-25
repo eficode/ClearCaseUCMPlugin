@@ -93,9 +93,11 @@ public class CheckoutTask implements FileCallable<String> {
 		catch ( ScmException e )
 		{
 			logger.debug( id + "SCM exception: " + e.getMessage() );
+			hudsonOut.println( "SCM exception: " + e.getMessage() );
 		}
 		catch ( UCMException e )
 		{
+			logger.debug( id + "Could not get changes. " + e.getMessage() );
 			hudsonOut.println( "Could not get changes. " + e.getMessage() );
 		}
 

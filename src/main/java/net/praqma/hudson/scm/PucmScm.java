@@ -205,6 +205,43 @@ public class PucmScm extends SCM
 					logger.debug( id + "Could not load Baseline" );
 					consoleOutput.println( "Could not load Baseline" );
 				}
+				
+				/* Check parameters */
+				if( listener == null )
+				{
+					consoleOutput.println( "Listener is null" );
+				}
+				
+				if( jobname == null )
+				{
+					consoleOutput.println( "jobname is null" );
+				}
+				
+				if( build == null )
+				{
+					consoleOutput.println( "BUILD is null" );
+				}
+				
+				if( stream == null )
+				{
+					consoleOutput.println( "stream is null" );
+				}
+				
+				if( loadModule == null )
+				{
+					consoleOutput.println( "loadModule is null" );
+				}
+				
+				if( buildProject == null )
+				{
+					consoleOutput.println( "buildProject is null" );
+				}
+				
+				if( bl == null )
+				{
+					consoleOutput.println( "bl is null" );
+				}
+				
 				CheckoutTask ct = new CheckoutTask( listener, jobname, build.getNumber(), stream, loadModule, bl.GetFQName(), buildProject );
 				String changelog = workspace.act( ct );
 			
