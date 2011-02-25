@@ -178,18 +178,21 @@ public class CheckoutTask implements FileCallable<String> {
     			}
     			catch ( UCMException ucmEe )
     			{
+    				logger.warning( id + "Could regenerate workspace." );
     				throw new ScmException( "Could not make workspace - could not regenerate view: " + ucmEe.getMessage() + " Type: " + "" );
     			}
     		}
+    		
     		hudsonOut.print( "Getting snapshotview..." );
+    		
     		try
     		{
     			sv = UCMView.GetSnapshotView( viewroot );
     			hudsonOut.println( " DONE" );
-
     		}
     		catch ( UCMException e )
     		{
+    			logger.warning( id + "Could not get view for workspace. " + e.getMessage() );
     			throw new ScmException( "Could not get view for workspace. " + e.getMessage() );
     		}
     	}
@@ -200,9 +203,11 @@ public class CheckoutTask implements FileCallable<String> {
     			hudsonOut.println( "View doesn't exist" );
     			sv = SnapshotView.Create( devstream, viewroot, viewtag );
     			hudsonOut.println( " - created new view in local workspace" );
+    			logger.log( "The view did not exist and created a new" );
     		}
     		catch ( UCMException e )
     		{
+    			logger.warning( id + "The view could not be created" );
     			throw new ScmException( " - could not create a new view for workspace. " + e.getMessage() );
     		}
     	}

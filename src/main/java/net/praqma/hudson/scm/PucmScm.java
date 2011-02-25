@@ -137,6 +137,15 @@ public class PucmScm extends SCM
 		String jobname = build.getParent().getDisplayName();
 		
 		this.id = "[" + build.getParent().getDisplayName() + "::" + build.getNumber() + "]";
+		
+		if ( build.getBuildVariables().get( "include_classes" ) != null )
+		{
+			String[] is = build.getBuildVariables().get( "include_classes" ).toString().split( "," );
+			for( String i : is )
+			{
+				logger.includeClass( i.trim() );
+			}
+		}
 
 		if ( build.getBuildVariables().get( "pucm_baseline" ) != null )
 		{
