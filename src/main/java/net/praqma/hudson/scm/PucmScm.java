@@ -291,11 +291,13 @@ public class PucmScm extends SCM
 	{
 		logger.trace_function();
 		logger.debug( id + "PucmSCM Pollingresult" );
+		
+		this.id = "[" + project.getDisplayName() + "::" + project.getNextBuildNumber() + "]";
 
 		PollingResult p;
 		try
 		{
-			baselinesToBuild( component, stream, project, project.getParent().getDisplayName(), project.getNextBuildNumber() );
+			baselinesToBuild( component, stream, project, project.getDisplayName(), project.getNextBuildNumber() );
 			compRevCalled = true;
 			p = PollingResult.BUILD_NOW;
 		}
