@@ -47,7 +47,7 @@ import net.sf.json.JSONObject;
 /**
  * PucmNotifier perfoms the user-chosen PUCM post-build actions
  * 
- * @author Troels Selch Sørensen
+ * @author Troels Selch Sï¿½rensen
  * @author Margit Bennetzen
  * 
  */
@@ -59,6 +59,7 @@ public class PucmNotifier extends Notifier
 	private PrintStream hudsonOut;
 	private Stream st;
 	private boolean makeTag;
+	private boolean setDescription;
 	private Status status;
 	
 	private String id = "";
@@ -78,12 +79,13 @@ public class PucmNotifier extends Notifier
 	 *            if <code>true</code>, pucm will set a Tag() on the baseline in
 	 *            ClearCase.
 	 */
-	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag )
+	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag, boolean setDescription )
 	{
 		logger.trace_function();
 		this.promote = promote;
 		this.recommended = recommended;
 		this.makeTag = makeTag;
+		this.setDescription = setDescription;
 	}
 
 	@Override
@@ -168,28 +170,25 @@ public class PucmNotifier extends Notifier
 		
 		if ( result )
 		{
-			hudsonOut.println( "Performing post build steps for " + ( baseline != null ? baseline : "Missing" ) );
-			
+			hudsonOut.println( "Performing post build steps for " + ( baseline != null ? baseline : "Missing" ) );			
 			try
 			{
-				processBuild( build, launcher, listener );
-
+				processBuild( build, launcher, listener );				
+				if(setDescription)
+				{
+					build.setDescription(status.getBuildDescr());
+					hudsonOut.println("[PUCM] Description set.");
+				}
+				
 			}
 			catch ( NotifierException ne )
 			{
 				hudsonOut.println( ne.getMessage() );
+			} catch (IOException e) {
+				hudsonOut.println("[PUCM] Couldn't set build description.");
 			}
-			try
-			{
-				setDisplaystatus( build );
-			}
-			catch ( NotifierException e )
-			{
-				hudsonOut.println( e.getMessage() );
-			}
-
 		}
-		
+
 		/* Removing baseline and job from collection, do this no matter what as long as the SCM is pucm */
 		if ( ( scmTemp instanceof PucmScm ) && baseline != null )
 		{
@@ -246,6 +245,7 @@ public class PucmNotifier extends Notifier
 			Logger logger = Logger.getLogger();
 			PrintStream hudsonOut = listener.getLogger();
 			UCM.SetContext( UCM.ContextType.CLEARTOOL );
+			String newPLevel = "";
 			
 			/* Create the baseline object */
 			Baseline baseline = null;
@@ -302,7 +302,8 @@ public class PucmNotifier extends Notifier
 					{
 						baseline.Promote();
 						status.setPLevel( true );
-						hudsonOut.println( "Baseline promoted to " + baseline.GetPromotionLevel( true ) + "." );
+						newPLevel = baseline.GetPromotionLevel( true ).toString();
+						hudsonOut.println( "Baseline promoted to " + newPLevel + "." );
 					}
 					catch ( UCMException e )
 					{
@@ -360,7 +361,8 @@ public class PucmNotifier extends Notifier
 					{
 						baseline.Demote();
 						status.setPLevel( true );
-						hudsonOut.println( "Baseline is " + baseline.GetPromotionLevel( true ) + "." );
+						newPLevel = baseline.GetPromotionLevel( true ).toString();
+						hudsonOut.println( "Baseline is " + newPLevel + "." );
 					}
 					catch ( Exception e )
 					{
@@ -392,8 +394,30 @@ public class PucmNotifier extends Notifier
 				}
 			}
 			
-			
+			status.setBuildDescr(setDisplaystatus(newPLevel,baseline.GetShortname()));
+
 			return status;
+		}
+
+		private String setDisplaystatus(String plevel, String fqn)
+		{
+			String s ="";
+			
+			//Get shortname
+			s += "<small>" + fqn + "</small>";			
+
+			if ( recommended )
+			{
+				if ( status.isRecommended() )
+					s += "<BR/><B>Recommended</B>";
+				else
+					s += "<BR/><B>Could not recommend</B>";
+			}
+
+			//Get plevel:
+			s += "<BR/><small>"+ plevel +"</small>";
+
+			return s;
 		}
 		
 	}
@@ -447,7 +471,6 @@ public class PucmNotifier extends Notifier
 		{
 			build.setResult( Result.UNSTABLE );
 		}
-		
 		
 		/*
 		if ( buildResult.equals( Result.SUCCESS ) )
@@ -603,33 +626,6 @@ public class PucmNotifier extends Notifier
 		}
 	}
 
-	private void setDisplaystatus( AbstractBuild build ) throws NotifierException
-	{
-		try
-		{
-			// The below hudsonOut are for a little plugin that can display the
-			// information on hudsons build-history page.
-			String recStatus = "";
-			if ( recommended )
-			{
-				if ( status.isRecommended() )
-					recStatus = "<BR/><B>recommended</B>";
-				else
-					recStatus = "<BR/><B>could not recommend</B>";
-			}
-			hudsonOut.println( "\n\nDISPLAY_STATUS:<small>" + baseline.GetShortname() + "</small><BR/>" + status.getBuildStatus().toString() + recStatus + "<BR/><small>Level:[" + baseline.GetPromotionLevel( true ).toString() + "]</small>" );
-
-		}
-		catch ( UCMException e )
-		{
-			throw new NotifierException( "Failed to get and write DISPLAY_STATUS. " + e.getMessage() );
-		}
-		catch ( Exception ee )
-		{
-			throw new NotifierException( "Failed to get and write DISPLAY_STATUS. " );
-		}
-	}
-
 	public boolean isPromote()
 	{
 		logger.trace_function();
@@ -650,7 +646,7 @@ public class PucmNotifier extends Notifier
 	/**
 	 * This class is used by Hudson to define the plugin.
 	 * 
-	 * @author Troels Selch Sørensen
+	 * @author Troels Selch Sï¿½rensen
 	 * @author Margit Bennetzen
 	 * 
 	 */
@@ -684,8 +680,9 @@ public class PucmNotifier extends Notifier
 			boolean promote = req.getParameter( "Pucm.promote" ) != null;
 			boolean recommended = req.getParameter( "Pucm.recommended" ) != null;
 			boolean makeTag = req.getParameter( "Pucm.makeTag" ) != null;
+			boolean setDescription = req.getParameter( "Pucm.setDescription" ) != null;
 			save();
-			return new PucmNotifier( promote, recommended, makeTag );
+			return new PucmNotifier( promote, recommended, makeTag, setDescription);
 		}
 
 		@Override

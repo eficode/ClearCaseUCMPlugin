@@ -12,6 +12,7 @@ public class Status implements Serializable
 	private boolean tagAvailable = false;
 	private Result buildStatus;
 	private String errorMsg = "";
+	private String buildDescr = "";
 	
 	private boolean stable = true;
 	
@@ -78,6 +79,14 @@ public class Status implements Serializable
 	public boolean isTagAvailable()
 	{
 		return tagAvailable;
+	}
+
+	public void setBuildDescr(String buildDescr) {
+		this.buildDescr = buildDescr;
+	}
+
+	public String getBuildDescr() {
+		return buildDescr;
 	}
 
 	

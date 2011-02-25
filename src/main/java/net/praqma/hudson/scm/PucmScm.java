@@ -60,7 +60,7 @@ import org.kohsuke.stapler.QueryParameter;
  * ClearCase pre-build. This class defines all the files required by the user.
  * The information can be entered on the config page.
  * 
- * @author Troels Selch Sørensen
+ * @author Troels Selch Sï¿½rensen
  * @author Margit Bennetzen
  * 
  */
@@ -212,7 +212,7 @@ public class PucmScm extends SCM
 					consoleOutput.println( "Could not write change log file" );
 				}
 				
-				doPostBuild = changelog.length() > 0 ? true : false;
+				//doPostBuild = changelog.length() > 0 ? true : false;
 			}
 			catch ( Exception e )
 			{
@@ -636,7 +636,7 @@ public class PucmScm extends SCM
 	/**
 	 * This class is used to describe the plugin to Hudson
 	 * 
-	 * @author Troels Selch Sørensen
+	 * @author Troels Selch Sï¿½rensen
 	 * @author Margit Bennetzen
 	 * 
 	 */

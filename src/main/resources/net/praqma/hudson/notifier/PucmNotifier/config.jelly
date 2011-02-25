@@ -13,4 +13,7 @@ This should be the file that makes it possible to select our notifier in the "po
 	<f:entry title="Make tag?" help="/plugin/PUCM/notifier/help-makeTag.html">
 	    <f:checkbox name="Pucm.makeTag" checked="${instance.makeTag}" />
 	</f:entry>
+	<f:entry title="Set Description" help="/plugin/PUCM/notifier/help-setDescription.html">
+	    <f:checkbox name="Pucm.setDescription" checked="${instance.setDescription}" />
+	</f:entry>
 </j:jelly>
