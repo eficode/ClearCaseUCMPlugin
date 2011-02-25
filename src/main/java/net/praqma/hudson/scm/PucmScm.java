@@ -496,18 +496,17 @@ public class PucmScm extends SCM
 						Integer bnum = thisJob.get( b.GetFQName() );
 						Object o = project.getBuildByNumber( bnum );
 						Build bld = (Build)o;
-						logger.debug( id + "JOB=" + bld.isBuilding() );
 						/* The job is not running */
 						if( !bld.isBuilding() )
 						{
-							logger.debug( id + "BUILD IS NOT RUNNING, using baseline: " + b );
+							logger.debug( id + "Job " + bld.getNumber() + " is not building, using baseline: " + b );
 							bl = b;
 							thisJob.put( b.GetFQName(), buildNumber );
 							break;
 						}
 						else
 						{
-							logger.debug( id + "BUILD IS RUNNING" );
+							logger.debug( id + "Job " + bld.getNumber() + " is building" );
 						}
 					}
 					/* The baseline is available */
@@ -528,7 +527,6 @@ public class PucmScm extends SCM
 				
 				pollMsgs.append( "\nBuilding baseline: " + bl + "\n" );
 				
-
 				/* Store the baseline to build */
 				thisJob.put( bl.GetFQName(), buildNumber );
 			}
@@ -541,64 +539,6 @@ public class PucmScm extends SCM
 		{
 			throw new ScmException( "No baselines on chosen parameters." );
 		}
-				
-
-//				if ( newest )
-//				{
-//					bl = baselines.get( baselines.size() - 1 );
-//					pollMsgs.append( "\nBuilding newest baseline: " );
-//					pollMsgs.append( bl );
-//					pollMsgs.append( "\n" );
-//				}
-//				else
-//				{
-//					bl = null;
-//					/* For each baseline retrieved from ClearCase */
-//					for ( Baseline b : baselinelist )
-//					{
-//						/* The baseline is in progress, determine if the job is still running */
-//						if( thisJob.containsKey( b.GetFQName() ) )
-//						{
-//							Integer bnum = thisJob.get( b.GetFQName() );
-//							Object o = project.getBuildByNumber( bnum );
-//							Build bld = (Build)o;
-//							logger.debug( "JOB=" + bld.isBuilding() );
-//							/* The job is not running */
-//							if( !bld.isBuilding() )
-//							{
-//								logger.debug( "BUILD IS NOT RUNNING, using baseline: " + b );
-//								bl = b;
-//								thisJob.put( b.GetFQName(), buildNumber );
-//								break;
-//							}
-//							else
-//							{
-//								logger.debug( "BUILD IS RUNNING" );
-//							}
-//						}
-//						/* The baseline is available */
-//						else
-//						{
-//							bl = b;
-//							thisJob.put( b.GetFQName(), buildNumber );
-//							logger.debug( "The baseline " + b + " is available" );
-//							break;
-//						}
-//					}
-//					
-//					bl = baselines.get( 0 );
-//					pollMsgs.append( "\nBuilding next baseline: " );
-//					pollMsgs.append( bl );
-//					pollMsgs.append( "\n" );
-//				}
-//			}
-//			catch ( UCMException e )
-//			{
-//				throw new ScmException( "Could not get recommended baselines. " + e.getMessage() );
-//			}
-//			*/
-
-
 		
 		logger.debug( id + "PRINTING THIS JOB:" );
 		logger.debug( net.praqma.util.structure.Printer.mapPrinterToString( thisJob ) );
