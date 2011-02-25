@@ -50,6 +50,7 @@ import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.util.debug.Logger;
 import net.sf.json.JSONObject;
+//import net.praqma.hudson.Version;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -131,8 +132,7 @@ public class PucmScm extends SCM
 		// consoleOutput Printstream is from Hudson, so it can only be accessed
 		// here
 		PrintStream consoleOutput = listener.getLogger();
-		consoleOutput.println( "---------------------------Praqmatic UCM - SCM section started---------------------------\n" );
-
+		consoleOutput.println( "---------------------------Praqmatic UCM v." + net.praqma.hudson.Version.version + " - SCM section started---------------------------\n" );
 
 		String jobname = build.getParent().getDisplayName();
 		
