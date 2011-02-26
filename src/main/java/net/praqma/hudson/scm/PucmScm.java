@@ -48,12 +48,14 @@ import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.ucm.utils.BaselineDiff;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.ScmException;
+import net.praqma.hudson.scm.PucmState.State;
 import net.praqma.util.debug.Logger;
 import net.sf.json.JSONObject;
 //import net.praqma.hudson.Version;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.export.Exported;
 
 /**
  * CC4HClass is responsible for everything regarding Hudsons connection to
@@ -83,6 +85,9 @@ public class PucmScm extends SCM
 	private SnapshotView sv = null;
 	private boolean doPostBuild = true;
 	private String buildProject;
+	
+	private String jobName = "";
+	private Integer jobNumber;
 	
 	private String id = "";
 
@@ -128,15 +133,20 @@ public class PucmScm extends SCM
 		logger.trace_function();
 		logger.debug( "PucmSCM checkout" );
 		boolean result = true;
-			
+		
 		// consoleOutput Printstream is from Hudson, so it can only be accessed
 		// here
 		PrintStream consoleOutput = listener.getLogger();
 		consoleOutput.println( "---------------------------Praqmatic UCM v." + net.praqma.hudson.Version.version + " - SCM section started---------------------------\n" );
-
-		String jobname = build.getParent().getDisplayName();
 		
-		this.id = "[" + build.getParent().getDisplayName() + "::" + build.getNumber() + "]";
+		doPostBuild = true;
+
+		jobName   = build.getParent().getDisplayName();
+		jobNumber = build.getNumber();
+		
+		State state = pucm.getState( jobName, jobNumber );
+		
+		this.id = "[" + jobName + "::" + jobNumber + "]";
 		
 		if ( build.getBuildVariables().get( "include_classes" ) != null )
 		{
@@ -146,6 +156,8 @@ public class PucmScm extends SCM
 				logger.includeClass( i.trim() );
 			}
 		}
+		
+		consoleOutput.println( "DOPOSTBUILDACTIONS2=" + doPostbuild() );
 
 		if ( build.getBuildVariables().get( "pucm_baseline" ) != null )
 		{
@@ -156,6 +168,7 @@ public class PucmScm extends SCM
 				bl = Baseline.GetBaseline( baselinename );
 				integrationstream = bl.GetStream();
 				consoleOutput.println( "Starting parameterized build with a pucm_baseline.\nUsing baseline: " + baselinename + " from integrationstream " + integrationstream.GetShortname() );
+				consoleOutput.println( "DOPOSTBUILDACTIONS5=" + doPostbuild() );
 			}
 			catch ( UCMException e )
 			{
@@ -189,6 +202,7 @@ public class PucmScm extends SCM
 			// baselinesToBuild()
 			consoleOutput.println( pollMsgs );
 			pollMsgs = new StringBuffer();
+			consoleOutput.println( "DOPOSTBUILDACTIONS6=" + doPostbuild() );
 		}
 
 		if ( result )
@@ -244,6 +258,8 @@ public class PucmScm extends SCM
 				
 				CheckoutTask ct = new CheckoutTask( listener, jobname, build.getNumber(), stream, loadModule, bl.GetFQName(), buildProject );
 				String changelog = workspace.act( ct );
+				
+				consoleOutput.println( "DOPOSTBUILDACTIONS8=" + doPostbuild() );
 			
 				/* Write change log */
 				try
@@ -251,6 +267,7 @@ public class PucmScm extends SCM
 					FileOutputStream fos = new FileOutputStream( changelogFile );
 					fos.write( changelog.getBytes() );
 					fos.close();
+					consoleOutput.println( "DOPOSTBUILDACTIONS9=" + doPostbuild() );
 				}
 				catch( IOException e )
 				{
@@ -268,12 +285,79 @@ public class PucmScm extends SCM
 			}
 		}
 		
-		//build.getProject().setScm( this );
+		consoleOutput.println( "DOPOSTBUILDACTIONS10=" + doPostbuild() );
+		
+		pucm.add( new PucmState( build.getParent().getDisplayName(), build.getNumber(), bl, null, comp, doPostBuild ) );
 
 		consoleOutput.println( "---------------------------Praqmatic UCM - SCM section finished---------------------------\n" );
 
 		return result;
 	}
+	
+//	public class PucmState
+//	{
+//		public Baseline  baseline;
+//		public Stream    stream;
+//		public Component component;
+//		public boolean   doPostBuild;
+//		
+//		public String    jobName;
+//		public Integer   jobNumber;
+//		
+//		public PucmState(){}
+//		public PucmState( String jobName, Integer jobNumber, Baseline baseline, Stream stream, Component component, boolean doPostBuild )
+//		{
+//			this.jobName     = jobName;
+//			this.jobNumber   = jobNumber;
+//			this.baseline    = baseline;
+//			this.stream      = stream;
+//			this.component   = component;
+//			this.doPostBuild = doPostBuild;
+//		}
+//	}
+	
+	//public static List<PucmState> pucm = new ArrayList<PucmState>();
+	public static PucmState pucm = new PucmState();
+	
+//	public PucmState getPucmState( String jobName, Integer jobNumber )
+//	{
+//		for( PucmState ps : pucm )
+//		{
+//			if( ps.jobName.equals( jobName ) && ps.jobNumber == jobNumber )
+//			{
+//				return ps;
+//			}
+//		}
+//		
+//		return null;
+//	}
+//	
+//	public boolean removeState( String jobName, Integer jobNumber )
+//	{
+//		for( PucmState ps : pucm )
+//		{
+//			if( ps.jobName.equals( jobName ) && ps.jobNumber == jobNumber )
+//			{
+//				pucm.remove( ps );
+//				return true;
+//			}
+//		}
+//		
+//		return false;
+//	}
+//	
+//	public PucmState getStateByBaseline( String jobName, String baseline )
+//	{
+//		for( PucmState ps : pucm )
+//		{
+//			if( ps.jobName.equals( jobName ) && ps.baseline.GetFQName().equals( baseline ) )
+//			{
+//				return ps;
+//			}
+//		}
+//		
+//		return null;		
+//	}
 
 	private void writeChangelog( File changelogFile, BaselineDiff changes, PrintStream hudsonOut ) throws ScmException
 	{
@@ -661,12 +745,14 @@ public class PucmScm extends SCM
 		return integrationstream;
 	}
 
+	@Exported
 	public Baseline getBaseline()
 	{
 		logger.trace_function();
 		return bl;
 	}
 
+	@Exported
 	public boolean doPostbuild()
 	{
 		logger.trace_function();

@@ -20,6 +20,7 @@ import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.hudson.exception.NotifierException;
 import net.praqma.hudson.scm.PucmScm;
+import net.praqma.hudson.scm.PucmScm.PucmState;
 import net.praqma.util.debug.Logger;
 import hudson.Extension;
 import hudson.Launcher;
@@ -127,9 +128,14 @@ public class PucmNotifier extends Notifier
 		if ( result )
 		{
 			PucmScm scm = (PucmScm) scmTemp;
-			if ( scm.doPostbuild() )
+			PucmState state = scm.getPucmState( build.getParent().getDisplayName(), build.getNumber() );
+			//if ( scm.doPostbuild() )
+			if ( state.doPostBuild )
 			{
-				//baseline = scm.getBaseline();
+				logger.debug( id + "" );
+				Baseline mybaseline = state.baseline;
+				hudsonOut.println( "MY BASELINE=" + mybaseline );
+				
 
 				String bl = scm.getBaselineFromJob( build.getParent().getDisplayName(), build.getNumber() );
 				
@@ -194,7 +200,8 @@ public class PucmNotifier extends Notifier
 		{
 			PucmScm scm = (PucmScm) scmTemp;
 			boolean done = scm.removeJobByBaseline( build.getParent().getDisplayName(), baseline.GetFQName() );
-			logger.debug( id + "Removing job " + build.getNumber() + " from collection: " + done );
+			boolean done2 = scm.removeState( build.getParent().getDisplayName(), build.getNumber() );
+			logger.debug( id + "Removing job " + build.getNumber() + " from collection: " + done + "-" + done2 );
 		}
 
 		hudsonOut.println( "---------------------------Praqmatic UCM - Post build section finished---------------------------\n" );
