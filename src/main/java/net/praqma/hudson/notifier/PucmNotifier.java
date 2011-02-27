@@ -20,6 +20,7 @@ import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.hudson.exception.NotifierException;
 import net.praqma.hudson.scm.PucmScm;
+import net.praqma.hudson.scm.PucmState.State;
 import net.praqma.util.debug.Logger;
 import hudson.Extension;
 import hudson.Launcher;
@@ -102,7 +103,7 @@ public class PucmNotifier extends Notifier
 	}
 
 	@Override
-	public boolean perform( AbstractBuild build, Launcher launcher, BuildListener listener ) throws InterruptedException, IOException
+	public boolean perform( AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener ) throws InterruptedException, IOException
 	{
 		logger.trace_function();
 		boolean result = true;
@@ -124,14 +125,24 @@ public class PucmNotifier extends Notifier
 			}
 		}
 
+		
+		State pstate = null;
 		if ( result )
 		{
-			PucmScm scm = (PucmScm) scmTemp;
-			if ( scm.doPostbuild() )
+			//PucmScm scm = (PucmScm) scmTemp;
+			//PucmState state = scm.getPucmState( build.getParent().getDisplayName(), build.getNumber() );
+			pstate = PucmScm.pucm.getState( build.getParent().getDisplayName(), build.getNumber() );
+				
+			//if ( scm.doPostbuild() )
+			if ( pstate.doPostBuild() && pstate.getBaseline() != null )
 			{
-				//baseline = scm.getBaseline();
+				logger.debug( id + "" );
+				Baseline mybaseline = pstate.getBaseline();
+				hudsonOut.println( "MY BASELINE=" + mybaseline );
+				
 
-				String bl = scm.getBaselineFromJob( build.getParent().getDisplayName(), build.getNumber() );
+				//String bl = scm.getBaselineFromJob( build.getParent().getDisplayName(), build.getNumber() );
+				String bl = pstate.getBaseline().GetFQName();
 				
 				/* If no baselines found bl will be null */
 				if( bl != null )
@@ -146,7 +157,8 @@ public class PucmNotifier extends Notifier
 						baseline = null;
 					}
 					
-					st = scm.getStreamObject();
+					//st = scm.getStreamObject();
+					st = pstate.getStream();
 					if ( baseline == null )
 					{
 						// If baseline is null, the user has already been notified
@@ -173,11 +185,11 @@ public class PucmNotifier extends Notifier
 			hudsonOut.println( "Performing post build steps for " + ( baseline != null ? baseline : "Missing" ) );			
 			try
 			{
-				processBuild( build, launcher, listener );				
-				if(setDescription)
+				processBuild( build, launcher, listener, pstate );
+				if ( setDescription )
 				{
-					build.setDescription(status.getBuildDescr());
-					hudsonOut.println("[PUCM] Description set.");
+					build.setDescription( status.getBuildDescr() );
+					hudsonOut.println( "[PUCM] Description set." );
 				}
 				
 			}
@@ -192,10 +204,18 @@ public class PucmNotifier extends Notifier
 		/* Removing baseline and job from collection, do this no matter what as long as the SCM is pucm */
 		if ( ( scmTemp instanceof PucmScm ) && baseline != null )
 		{
-			PucmScm scm = (PucmScm) scmTemp;
-			boolean done = scm.removeJobByBaseline( build.getParent().getDisplayName(), baseline.GetFQName() );
-			logger.debug( id + "Removing job " + build.getNumber() + " from collection: " + done );
+			//PucmScm scm = (PucmScm) scmTemp;
+			//boolean done = scm.removeJobByBaseline( build.getParent().getDisplayName(), baseline.GetFQName() );
+			//boolean done2 = scm.removeState( build.getParent().getDisplayName(), build.getNumber() );
+			boolean done2  = pstate.remove();
+			logger.debug( id + "Removing job " + build.getNumber() + " from collection: " + done2 );
+			
+			logger.debug( "PUCM FINAL=" + PucmScm.pucm.stringify() );
 		}
+		
+		logger.debug( id + "The final state:\n" + pstate.stringify() );
+		
+		
 
 		hudsonOut.println( "---------------------------Praqmatic UCM - Post build section finished---------------------------\n" );
 		return result;
@@ -423,26 +443,8 @@ public class PucmNotifier extends Notifier
 	}
 	
 
-	private void processBuild( AbstractBuild build, Launcher launcher, BuildListener listener ) throws NotifierException
+	private void processBuild( AbstractBuild build, Launcher launcher, BuildListener listener, State pstate ) throws NotifierException
 	{
-
-		/*
-		Tag tag = null;
-		if ( makeTag )
-		{
-			try
-			{
-				// Getting tag to set buildstatus
-				tag = baseline.GetTag( build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) );
-				status.setTagAvailable( true );
-			}
-			catch ( UCMException e )
-			{
-				hudsonOut.println( "Could not get Tag. " + e.getMessage() );
-			}
-		}
-		*/
-
 		Result buildResult = build.getResult();
 		hudsonOut.println( "Buildresult: " + buildResult );
 		
@@ -458,7 +460,7 @@ public class PucmNotifier extends Notifier
 		try
 		{
 			logger.debug( id + "Trying to run TagTask" );
-			status = ch.call( new RemoteTagTask( buildResult, status, listener, makeTag, promote, recommended, baseline.GetFQName(), st.GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) ) );
+			status = ch.call( new RemoteTagTask( buildResult, status, listener, makeTag, promote, recommended, pstate.getBaseline().GetFQName(), pstate.getStream().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) ) );
 		}
 		catch ( Exception e )
 		{
