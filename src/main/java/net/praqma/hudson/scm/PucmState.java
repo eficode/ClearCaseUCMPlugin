@@ -5,15 +5,22 @@ import java.util.List;
 
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
+import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 
 public class PucmState
 {
-	private List<State> state = new ArrayList<State>();
+	private List<State> states = new ArrayList<State>();
 	
+	/**
+	 * Get a state given job name and job number
+	 * @param jobName the hudson job name
+	 * @param jobNumber the hudson job number
+	 * @return
+	 */
 	public State getState( String jobName, Integer jobNumber )
 	{
-		for( State s : state )
+		for( State s : states )
 		{
 			if( s.getJobName().equals( jobName ) && s.getJobNumber() == jobNumber )
 			{
@@ -26,11 +33,11 @@ public class PucmState
 	
 	public boolean removeState( String jobName, Integer jobNumber )
 	{
-		for( State s : state )
+		for( State s : states )
 		{
 			if( s.getJobName().equals( jobName ) && s.getJobNumber() == jobNumber )
 			{
-				state.remove( s );
+				states.remove( s );
 				return true;
 			}
 		}
@@ -40,7 +47,7 @@ public class PucmState
 	
 	public State getStateByBaseline( String jobName, String baseline )
 	{
-		for( State s : state )
+		for( State s : states )
 		{
 			if( s.getJobName().equals( jobName ) && s.getBaseline().GetFQName().equals( baseline ) )
 			{
@@ -49,6 +56,35 @@ public class PucmState
 		}
 		
 		return null;		
+	}
+	
+	
+	public void addState( State state )
+	{
+		this.states.add( state );
+	}
+	
+	public boolean stateExists( State state )
+	{
+		return stateExists( state.jobName, state.jobNumber );
+	}
+	
+	public boolean stateExists( String jobName, Integer jobNumber )
+	{
+		for( State s : states )
+		{
+			if( s.getJobName().equals( jobName ) && s.getJobNumber() == jobNumber )
+			{
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public boolean removeState( State state )
+	{
+		return states.remove( state );
 	}
 
 
@@ -59,6 +95,8 @@ public class PucmState
 		private Stream    stream;
 		private Component component;
 		private boolean   doPostBuild = true;
+		
+		private Project.Plevel plevel;
 		
 		private String    jobName;
 		private Integer   jobNumber;
@@ -78,6 +116,16 @@ public class PucmState
 			this.stream      = stream;
 			this.component   = component;
 			this.doPostBuild = doPostBuild;
+		}
+		
+		public void save()
+		{
+			PucmState.this.addState( this );
+		}
+		
+		public boolean remove()
+		{
+			return PucmState.this.removeState( this );
 		}
 		
 		public Baseline getBaseline()
@@ -104,11 +152,11 @@ public class PucmState
 		{
 			this.component = component;
 		}
-		public boolean isDoPostBuild()
+		public boolean doPostBuild()
 		{
 			return doPostBuild;
 		}
-		public void setDoPostBuild( boolean doPostBuild )
+		public void setPostBuild( boolean doPostBuild )
 		{
 			this.doPostBuild = doPostBuild;
 		}
@@ -127,6 +175,28 @@ public class PucmState
 		public void setJobNumber( Integer jobNumber )
 		{
 			this.jobNumber = jobNumber;
+		}
+		public void setPlevel( Project.Plevel plevel )
+		{
+			this.plevel = plevel;
+		}
+		public Project.Plevel getPlevel()
+		{
+			return plevel;
+		}
+		
+		public String stringify()
+		{
+			StringBuffer sb = new StringBuffer();
+			
+			sb.append( "Job name  : " + this.jobName + "\n" );
+			sb.append( "Job number: " + this.jobNumber + "\n" );
+			sb.append( "Component : " + this.component + "\n" );
+			sb.append( "Stream    : " + this.stream + "\n" );
+			sb.append( "Plevel    : " + this.plevel.toString() + "\n" );
+			sb.append( "postBuild : " + this.doPostBuild + "\n" );
+			
+			return sb.toString();
 		}
 	}
 	
