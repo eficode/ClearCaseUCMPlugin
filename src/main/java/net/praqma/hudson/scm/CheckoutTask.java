@@ -77,7 +77,7 @@ public class CheckoutTask implements FileCallable<String> {
 		hudsonOut = listener.getLogger();
 		hudsonOut.println( "hudsonout is here" );
 		
-		boolean doPostBuild = false;
+		boolean doPostBuild = true;
 		String diff = "";
 		
 		try
