@@ -73,9 +73,7 @@ public class CheckoutTask implements FileCallable<String> {
 	public String invoke( File workspace, VirtualChannel channel ) throws IOException
 	{
 		logger = Logger.getLogger();
-		logger.debug( id + "hul igennem:1 " + jobname + intStream + loadModule + baselinefqname + buildProject );
 		hudsonOut = listener.getLogger();
-		hudsonOut.println( "hudsonout is here" );
 		
 		boolean doPostBuild = true;
 		String diff = "";
@@ -86,7 +84,6 @@ public class CheckoutTask implements FileCallable<String> {
 			// hudsonOut.println("output from checkouttask");
 			makeWorkspace( workspace );
 			BaselineDiff bldiff = bl.GetDiffs( sv );
-			hudsonOut.println( bldiff.size() + " elements changed(ON SLAVE)" );
 			diff = createChangelog( bldiff, hudsonOut );
 			doPostBuild = true;
 		}
@@ -110,7 +107,6 @@ public class CheckoutTask implements FileCallable<String> {
     {
     	// We know we have a stream (st), because it is set in
     	// baselinesToBuild()
-    	logger.debug( id + "hul igennem:2 " );
 		try
 		{
 			integrationstream = UCMEntity.GetStream( intStream, false );
@@ -121,10 +117,14 @@ public class CheckoutTask implements FileCallable<String> {
 		{
 			throw new ScmException( "Could not get stream. " + e.getMessage() );
 		}
-		if (workspace!=null)
-			logger.debug( id + "workspace: "+workspace.getAbsolutePath() );
+		if ( workspace != null )
+		{
+			logger.debug( id + "workspace: " + workspace.getAbsolutePath() );
+		}
 		else
+		{
 			logger.debug( id + "workspace must be null???" );
+		}
 		
 		StringBuffer notHudsonOut = new StringBuffer();
 		
@@ -157,8 +157,6 @@ public class CheckoutTask implements FileCallable<String> {
 
     	}
     	
-    	
-
     	Stream devstream = null;
 
     	devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( integrationstream ), hudsonOut );
