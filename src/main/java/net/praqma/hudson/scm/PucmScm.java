@@ -92,6 +92,8 @@ public class PucmScm extends SCM
 	private String id = "";
 
 	protected static Logger logger = Logger.getLogger();
+	
+	public static PucmState pucm = new PucmState();
 
 	/**
 	 * The constructor is used by Hudson to create the instance of the plugin
@@ -296,117 +298,7 @@ public class PucmScm extends SCM
 		return result;
 	}
 	
-//	public class PucmState
-//	{
-//		public Baseline  baseline;
-//		public Stream    stream;
-//		public Component component;
-//		public boolean   doPostBuild;
-//		
-//		public String    jobName;
-//		public Integer   jobNumber;
-//		
-//		public PucmState(){}
-//		public PucmState( String jobName, Integer jobNumber, Baseline baseline, Stream stream, Component component, boolean doPostBuild )
-//		{
-//			this.jobName     = jobName;
-//			this.jobNumber   = jobNumber;
-//			this.baseline    = baseline;
-//			this.stream      = stream;
-//			this.component   = component;
-//			this.doPostBuild = doPostBuild;
-//		}
-//	}
 	
-	//public static List<PucmState> pucm = new ArrayList<PucmState>();
-	public static PucmState pucm = new PucmState();
-	
-//	public PucmState getPucmState( String jobName, Integer jobNumber )
-//	{
-//		for( PucmState ps : pucm )
-//		{
-//			if( ps.jobName.equals( jobName ) && ps.jobNumber == jobNumber )
-//			{
-//				return ps;
-//			}
-//		}
-//		
-//		return null;
-//	}
-//	
-//	public boolean removeState( String jobName, Integer jobNumber )
-//	{
-//		for( PucmState ps : pucm )
-//		{
-//			if( ps.jobName.equals( jobName ) && ps.jobNumber == jobNumber )
-//			{
-//				pucm.remove( ps );
-//				return true;
-//			}
-//		}
-//		
-//		return false;
-//	}
-//	
-//	public PucmState getStateByBaseline( String jobName, String baseline )
-//	{
-//		for( PucmState ps : pucm )
-//		{
-//			if( ps.jobName.equals( jobName ) && ps.baseline.GetFQName().equals( baseline ) )
-//			{
-//				return ps;
-//			}
-//		}
-//		
-//		return null;		
-//	}
-
-	private void writeChangelog( File changelogFile, BaselineDiff changes, PrintStream hudsonOut ) throws ScmException
-	{
-		logger.trace_function();
-
-		StringBuffer buffer = new StringBuffer();
-
-		// Here the .hudson/jobs/[project
-		// name]/builds/[buildnumber]/changelog.xml is written
-		hudsonOut.print( "Writing Hudson changelog..." );
-		try
-		{
-			buffer.append( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
-			buffer.append( "<changelog>" );
-			buffer.append( "<changeset>" );
-			buffer.append( "<entry>" );
-			buffer.append( ( "<blName>" + bl.GetShortname() + "</blName>" ) );
-			for ( Activity act : changes )
-			{
-				buffer.append( "<activity>" );
-				buffer.append( ( "<actName>" + act.GetShortname() + "</actName>" ) );
-				buffer.append( ( "<author>" + act.GetUser() + "</author>" ) );
-				List<Version> versions = act.changeset.versions;
-				String temp;
-				for ( Version v : versions )
-				{
-					temp = "<file>" + v.GetSFile() + "[" + v.GetRevision() + "] user: " + v.Blame() + "</file>";
-					buffer.append( temp );
-				}
-				buffer.append( "</activity>" );
-			}
-			buffer.append( "</entry>" );
-			buffer.append( "</changeset>" );
-
-			buffer.append( "</changelog>" );
-			FileOutputStream fos = new FileOutputStream( changelogFile );
-			fos.write( buffer.toString().getBytes() );
-			fos.close();
-			hudsonOut.println( " DONE" );
-		}
-		catch ( Exception e )
-		{
-			hudsonOut.println( "FAILED" );
-			logger.log( id + "Changelog failed with " + e.getMessage() );
-			throw new ScmException( "Changelog failed with " + e.getMessage() );
-		}
-	}
 
 	@Override
 	public ChangeLogParser createChangeLogParser()
@@ -415,9 +307,6 @@ public class PucmScm extends SCM
 		return new ChangeLogParserImpl();
 	}
 	
-	/* <Job name, <baseline, jobnr>> */
-	//private static Map<String, Map<String, Integer>> pucmJobs = new HashMap<String, Map<String, Integer>>();
-
 	@Override
 	public PollingResult compareRemoteRevisionWith( AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState baseline ) throws IOException, InterruptedException
 	{
@@ -473,80 +362,6 @@ public class PucmScm extends SCM
 		return scmRS;
 	}
 	
-	
-	
-	/* The following methods should be replaced by State */
-	
-//	public String getBaselineFromJob( String project, Integer jobNumber )
-//	{
-//		if( pucmJobs.containsKey( project ) )
-//		{
-//			Map<String, Integer> jobs = pucmJobs.get( project );
-//			Iterator<Entry<String, Integer>> it = jobs.entrySet().iterator();
-//		    while( it.hasNext() )
-//		    {
-//		    	Map.Entry<String, Integer> entry = (Map.Entry<String, Integer>)it.next();
-//		    	if( entry.getValue().equals( jobNumber ) )
-//		    	{
-//		    		return entry.getKey();
-//		    	}
-//		    }
-//		    
-//		    /* No matching baseline found */
-//		    return null;
-//		}
-//		else
-//		{
-//			return null;
-//		}
-//	}
-	
-//	public boolean removeJobByInteger( String project, Integer jobNumber )
-//	{
-//		if( pucmJobs.containsKey( project ) )
-//		{
-//			Map<String, Integer> jobs = pucmJobs.get( project );
-//			Iterator<Entry<String, Integer>> it = jobs.entrySet().iterator();
-//		    while( it.hasNext() )
-//		    {
-//		    	Map.Entry<String, Integer> entry = (Map.Entry<String, Integer>)it.next();
-//		    	if( entry.getValue().equals( jobNumber ) )
-//		    	{
-//		    		jobs.remove( entry.getKey() );
-//		    		return true;
-//		    	}
-//		    }
-//		    
-//		    /* No matching baseline found */
-//		    return false;
-//		}
-//		else
-//		{
-//			return true;
-//		}
-//	}
-
-
-//	public boolean removeJobByBaseline( String project, String baseline )
-//	{
-//		if( pucmJobs.containsKey( project ) )
-//		{
-//			Map<String, Integer> jobs = pucmJobs.get( project );
-//			if( jobs.containsKey( baseline ) )
-//			{
-//				jobs.remove( baseline );
-//				return true;
-//			}
-//		    
-//		    /* No matching baseline found */
-//		    return false;
-//		}
-//		else
-//		{
-//			return true;
-//		}
-//	}
-
 
 	private void baselinesToBuild( AbstractProject<?, ?> project, State state ) throws ScmException
 	{
@@ -576,22 +391,6 @@ public class PucmScm extends SCM
 		
 		/* The baseline list */
 		BaselineList baselines = null;
-
-		/*
-		logger.debug( id + "jobName=" + state.getJobName() + " + buiildno=" + state.getJobNumber() );
-		Map<String, Integer> thisJob = null;
-		if( pucmJobs.containsKey( jobName ) )
-		{
-			logger.debug( id + "pucmJobs contained " + jobName );
-			thisJob = pucmJobs.get( jobName );
-		}
-		else
-		{
-			logger.debug( id + "pucmJobs did not contain " + jobName );
-			thisJob = new HashMap<String, Integer>();
-			pucmJobs.put( jobName, thisJob );
-		}
-		*/
 
 		try
 		{

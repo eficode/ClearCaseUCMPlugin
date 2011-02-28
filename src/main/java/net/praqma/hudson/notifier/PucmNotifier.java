@@ -136,12 +136,8 @@ public class PucmNotifier extends Notifier
 			//if ( scm.doPostbuild() )
 			if ( pstate.doPostBuild() && pstate.getBaseline() != null )
 			{
-				logger.debug( id + "" );
-				Baseline mybaseline = pstate.getBaseline();
-				hudsonOut.println( "MY BASELINE=" + mybaseline );
+				logger.debug( id + "Post build" );
 				
-
-				//String bl = scm.getBaselineFromJob( build.getParent().getDisplayName(), build.getNumber() );
 				String bl = pstate.getBaseline().GetFQName();
 				
 				/* If no baselines found bl will be null */
@@ -204,9 +200,6 @@ public class PucmNotifier extends Notifier
 		/* Removing baseline and job from collection, do this no matter what as long as the SCM is pucm */
 		if ( ( scmTemp instanceof PucmScm ) && baseline != null )
 		{
-			//PucmScm scm = (PucmScm) scmTemp;
-			//boolean done = scm.removeJobByBaseline( build.getParent().getDisplayName(), baseline.GetFQName() );
-			//boolean done2 = scm.removeState( build.getParent().getDisplayName(), build.getNumber() );
 			boolean done2  = pstate.remove();
 			logger.debug( id + "Removing job " + build.getNumber() + " from collection: " + done2 );
 			
@@ -221,7 +214,11 @@ public class PucmNotifier extends Notifier
 		return result;
 	}
 	
-	
+	/**
+	 * 
+	 * @author wolfgang
+	 *
+	 */
 	private static class RemoteTagTask implements Callable<Status, IOException>, Serializable
 	{
 		private static final long serialVersionUID = 1L;
@@ -471,146 +468,6 @@ public class PucmNotifier extends Notifier
 		{
 			build.setResult( Result.UNSTABLE );
 		}
-		
-		/*
-		if ( buildResult.equals( Result.SUCCESS ) )
-		{
-
-
-			if ( status.isTagAvailable() )
-			{
-				tag.SetEntry( "buildstatus", "SUCCESS" );
-			}
-
-			if ( promote )
-			{
-				try
-				{
-					baseline.Promote();
-					status.setPLevel( true );
-					hudsonOut.println( "Baseline promoted to " + baseline.GetPromotionLevel( true ) + "." );
-				}
-				catch ( UCMException e )
-				{
-					build.setResult( Result.UNSTABLE );
-					// as it will not make sense to recommend if we cannot
-					// promote, we do this:
-					if ( recommended )
-					{
-						throw new NotifierException( "Could not promote baseline and will not recommend. " + e.getMessage() );
-					}
-					else
-					{
-						// As we will not recommend if we cannot promote, it's
-						// ok to break method here
-						throw new NotifierException( "Could not promote baseline. " + e.getMessage() );
-					}
-				}
-			}
-			if ( recommended )
-			{
-				try
-				{
-					st.RecommendBaseline( baseline );
-					status.setRecommended( true );
-					hudsonOut.println( "Baseline " + baseline.GetShortname() + " is now recommended " );
-				}
-				catch ( Exception e )
-				{
-					build.setResult( Result.UNSTABLE );
-					throw new NotifierException( "Could not recommend baseline. Reason: " + e.getMessage() );
-				}
-			}
-		}
-		else
-			if ( buildResult.equals( Result.FAILURE ) )
-			{
-				hudsonOut.println( "Build failed" );
-
-				if ( status.isTagAvailable() )
-				{
-					tag.SetEntry( "buildstatus", "FAILURE" );
-				}
-				if ( promote )
-					try
-					{
-						baseline.Demote();
-						status.setPLevel( true );
-						hudsonOut.println( "Baseline is " + baseline.GetPromotionLevel( true ) + "." );
-					}
-					catch ( Exception e )
-					{
-						build.setResult( Result.UNSTABLE );
-						throw new NotifierException( "Could not demote baseline. " + e.getMessage() );
-					}
-			}
-			else
-			{
-				logger.log( "Buildstatus (Result) was " + buildResult + ". Not handled by plugin." );
-				throw new NotifierException( "Baseline not changed. Buildstatus: " + buildResult );
-			}
-
-		if ( makeTag )
-		{
-			try
-			{
-				Node n = build.getBuiltOn();
-				//build.get
-				
-				logger.debug( "DIPLAY=" + n.getDisplayName() + ". NODENAME=" + n.getNodeName() + ". TOSTRINF" + n.toString() );
-				
-				//AbstractBuild<?,?> lastCompletedBuild = project.getLastCompletedBuild();
-				//build.getProject().getl;
-				
-				if( n == null )
-				{
-					logger.debug( "The slave node was null" );
-					throw new NotifierException( "Slave does not exist anymore, cannot proceed." );
-				}
-				
-				//VirtualChannel ch = n.getChannel();
-				//VirtualChannel ch = MasterComputer.localChannel;
-				VirtualChannel ch  = launcher.getChannel();
-				
-				if( ch == null )
-				{
-					logger.debug( "The channel was null" );
-				}
-
-				try
-				{
-					logger.debug( "Trying to run task" );
-					ch.call( new MyTagTask( "SWIM!" ) );
-					logger.debug( "Task was run" );
-
-				}
-				catch ( Exception e )
-				{
-					logger.debug( "Something went wrong: " + e.getMessage() );
-					logger.debug( e.toString() );
-				}
-				
-				try
-				{
-					logger.debug( "Trying to run task2" );
-					ch.call( new MyTagTask2( "snade" ) );
-					logger.debug( "Task2 was run" );
-				}
-				catch ( Exception e )
-				{
-					logger.debug( "Something went wrong: " + e.getMessage() );
-					logger.debug( e.toString() );
-				}
-				
-				persistTag( tag );
-			}
-			catch ( NotifierException ne )
-			{
-				hudsonOut.println( ne.getMessage() );
-			}
-		}
-		*/
-
 	}
 
 	private void persistTag( Tag tag ) throws NotifierException

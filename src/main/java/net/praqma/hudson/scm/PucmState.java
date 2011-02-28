@@ -6,13 +6,16 @@ import hudson.model.Build;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.collections.list.SynchronizedList;
-
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 
+/**
+ * 
+ * @author wolfgang
+ *
+ */
 public class PucmState
 {
 	private List<State> states          = new ArrayList<State>();
@@ -34,7 +37,6 @@ public class PucmState
 			}
 		}
 		
-		//return new State( jobName, jobNumber );
 		State s = new State( jobName, jobNumber );
 		states.add( s );
 		return s;
