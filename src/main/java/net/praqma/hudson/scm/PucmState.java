@@ -107,7 +107,7 @@ public class PucmState
 			Build bld = (Build)o;
 			
 			/* The job is not running */
-			if( !bld.isBuilding() )
+			if( !bld.isLogUpdated() )
 			{
 				s.remove();
 				count++;

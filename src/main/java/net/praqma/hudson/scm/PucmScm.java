@@ -448,9 +448,11 @@ public class PucmScm extends SCM
 			PrintStream consoleOut = listener.getLogger();
 			consoleOut.println( pollMsgs + "\n" + e.getMessage() );
 			pollMsgs = new StringBuffer();
-			logger.debug( "Removed job " + state.getJobNumber() + " from list" );
+			logger.debug( id + "Removed job " + state.getJobNumber() + " from list" );
 			state.remove();			
 		}
+		
+		logger.debug( id + "FINAL Polling result = " + p.change.toString() );
 		
 		return p;
 	}
@@ -613,7 +615,7 @@ public class PucmScm extends SCM
 		{
 			printBaselines( baselines );
 			
-			logger.debug( "PUCM=" + pucm.stringify() );
+			logger.debug( id + "PUCM=" + pucm.stringify() );
 
 			try
 			{
@@ -658,7 +660,7 @@ public class PucmScm extends SCM
 						Object o = project.getBuildByNumber( bnum );
 						Build bld = (Build)o;
 						/* The job is not running */
-						if( !bld.isBuilding() )
+						if( !bld.isLogUpdated() )
 						{
 							logger.debug( id + "Job " + bld.getNumber() + " is not building, using baseline: " + b );
 							bl = b;

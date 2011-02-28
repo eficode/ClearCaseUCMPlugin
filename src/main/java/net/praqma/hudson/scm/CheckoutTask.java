@@ -110,7 +110,6 @@ public class CheckoutTask implements FileCallable<String> {
 		try
 		{
 			integrationstream = UCMEntity.GetStream( intStream, false );
-			logger.debug( id + "hul igennem:3 " );
 			bl = Baseline.GetBaseline( baselinefqname );
 		}
 		catch ( UCMException e )
@@ -217,7 +216,7 @@ public class CheckoutTask implements FileCallable<String> {
     	// null from pucm
     	try
     	{
-    		hudsonOut.println( "Updating view using " + loadModule.toLowerCase() + " modules..." );
+    		hudsonOut.print( "Updating view using " + loadModule.toLowerCase() + " modules..." );
 
     		sv.Update( true, true, true, false, COMP.valueOf( loadModule.toUpperCase() ), null );
     		hudsonOut.println( " DONE" );
@@ -231,14 +230,14 @@ public class CheckoutTask implements FileCallable<String> {
     	// old one must be stopped and the new started instead
     	if ( devstream.IsRebaseInProgress() )
     	{
-    		hudsonOut.println( "Cancelling previous rebase..." );
+    		hudsonOut.print( "Cancelling previous rebase..." );
     		devstream.CancelRebase();
     		hudsonOut.println( " DONE" );
     	}
     	// The last boolean, complete, must always be true from PUCM
     	// as we are always working on a read-only stream according
     	// to LAK
-    	hudsonOut.println( "Rebasing development stream (" + devstream.GetShortname() + ") against parent stream (" + integrationstream.GetShortname() + ")" );
+    	hudsonOut.print( "Rebasing development stream (" + devstream.GetShortname() + ") against parent stream (" + integrationstream.GetShortname() + ")" );
     	devstream.Rebase( sv, bl, true );
     	hudsonOut.println( " DONE" );
     	hudsonOut.println( "Log written to " + logger.getPath() );
