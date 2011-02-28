@@ -151,6 +151,8 @@ public class PucmScm extends SCM
 		/* If we polled, we should get the same object created at that point */
 		State state = pucm.getState( jobName, jobNumber );
 		
+		logger.debug( id + "The initial state:\n" + state.stringify() );
+		
 		this.id = "[" + jobName + "::" + jobNumber + "]";
 		
 		if ( build.getBuildVariables().get( "include_classes" ) != null )
@@ -419,10 +421,10 @@ public class PucmScm extends SCM
 	@Override
 	public PollingResult compareRemoteRevisionWith( AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState baseline ) throws IOException, InterruptedException
 	{
+		this.id = "[" + project.getDisplayName() + "::" + project.getNextBuildNumber() + "]";
+		
 		logger.trace_function();
 		logger.debug( id + "PucmSCM Pollingresult" );
-		
-		this.id = "[" + project.getDisplayName() + "::" + project.getNextBuildNumber() + "]";
 		
 		/* Make a state object, which is only temporary, only to determine if there's baselines to build this object will be stored in checkout  */
 		jobName   = project.getDisplayName();
@@ -446,6 +448,8 @@ public class PucmScm extends SCM
 			PrintStream consoleOut = listener.getLogger();
 			consoleOut.println( pollMsgs + "\n" + e.getMessage() );
 			pollMsgs = new StringBuffer();
+			logger.debug( "Removed job " + state.getJobNumber() + " from list" );
+			state.remove();			
 		}
 		
 		return p;

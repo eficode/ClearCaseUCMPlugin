@@ -235,7 +235,7 @@ public class PucmState
 			sb.append( "Component : " + this.component + linesep );
 			sb.append( "Stream    : " + this.stream + linesep );
 			sb.append( "Baseline  : " + this.baseline + linesep );
-			sb.append( "Plevel    : " + this.plevel.toString() + linesep );
+			sb.append( "Plevel    : " + ( this.plevel != null ? this.plevel.toString() : "Missing" ) + linesep );
 			sb.append( "postBuild : " + this.doPostBuild + linesep );
 			
 			return sb.toString();

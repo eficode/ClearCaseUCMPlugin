@@ -448,8 +448,6 @@ public class PucmNotifier extends Notifier
 		Result buildResult = build.getResult();
 		hudsonOut.println( "Buildresult: " + buildResult );
 		
-		hudsonOut.println( "Build successful" );
-		
 		VirtualChannel ch  = launcher.getChannel();
 		
 		if( ch == null )
