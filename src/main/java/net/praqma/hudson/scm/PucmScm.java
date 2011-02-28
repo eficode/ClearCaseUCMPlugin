@@ -669,7 +669,7 @@ public class PucmScm extends SCM
 						}
 						else
 						{
-							logger.debug( id + "Job " + bld.getNumber() + " is building" );
+							logger.debug( id + "Job " + bld.getNumber() + " is building " + cstate.getBaseline().GetFQName() );
 						}
 					}
 					/* The baseline is available */
