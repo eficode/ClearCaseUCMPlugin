@@ -139,7 +139,7 @@ public class PucmScm extends SCM
 		// consoleOutput Printstream is from Hudson, so it can only be accessed
 		// here
 		PrintStream consoleOutput = listener.getLogger();
-		consoleOutput.println( "---------------------------Praqmatic UCM v." + net.praqma.hudson.Version.version + " - SCM section started---------------------------\n" );
+		consoleOutput.println( "[PUCM] Praqmatic UCM v." + net.praqma.hudson.Version.version + " - SCM section started" );
 		
 		/* Recalculate the states */
 		int count = pucm.recalculate( build.getProject() );
@@ -174,11 +174,11 @@ public class PucmScm extends SCM
 			{
 				state.setBaseline( UCMEntity.GetBaseline( baselinename ) );
 				integrationstream = bl.GetStream();
-				consoleOutput.println( "Starting parameterized build with a pucm_baseline.\nUsing baseline: " + baselinename + " from integrationstream " + integrationstream.GetShortname() );
+				consoleOutput.println( "[PUCM] Starting parameterized build with a pucm_baseline.\nUsing baseline: " + baselinename + " from integrationstream " + integrationstream.GetShortname() );
 			}
 			catch ( UCMException e )
 			{
-				consoleOutput.println( "Could not find baseline" );
+				consoleOutput.println( "[PUCM] Could not find baseline from parameter." );
 				state.setPostBuild( false );
 				result = false;
 			}
@@ -223,43 +223,43 @@ public class PucmScm extends SCM
 				catch( UCMException e )
 				{
 					logger.debug( id + "Could not load Baseline" );
-					consoleOutput.println( "Could not load Baseline" );
+					consoleOutput.println( "[PUCM] Could not load Baseline." );
 				}
 				
 				/* Check parameters */
 				if( listener == null )
 				{
-					consoleOutput.println( "Listener is null" );
+					consoleOutput.println( "[PUCM] Listener is null" );
 				}
 				
 				if( jobName == null )
 				{
-					consoleOutput.println( "jobname is null" );
+					consoleOutput.println( "[PUCM] jobname is null" );
 				}
 				
 				if( build == null )
 				{
-					consoleOutput.println( "BUILD is null" );
+					consoleOutput.println( "[PUCM] BUILD is null" );
 				}
 				
 				if( stream == null )
 				{
-					consoleOutput.println( "stream is null" );
+					consoleOutput.println( "[PUCM] stream is null" );
 				}
 				
 				if( loadModule == null )
 				{
-					consoleOutput.println( "loadModule is null" );
+					consoleOutput.println( "[PUCM] loadModule is null" );
 				}
 				
 				if( buildProject == null )
 				{
-					consoleOutput.println( "buildProject is null" );
+					consoleOutput.println( "[PUCM] buildProject is null" );
 				}
 				
 				if( bl == null )
 				{
-					consoleOutput.println( "bl is null" );
+					consoleOutput.println( "[PUCM] bl is null" );
 				}
 				
 				CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), stream, loadModule, bl.GetFQName(), buildProject );
@@ -275,14 +275,14 @@ public class PucmScm extends SCM
 				catch( IOException e )
 				{
 					logger.debug( id + "Could not write change log file" );
-					consoleOutput.println( "Could not write change log file" );
+					consoleOutput.println( "[PUCM] Could not write change log file" );
 				}
 				
 				//doPostBuild = changelog.length() > 0 ? true : false;
 			}
 			catch ( Exception e )
 			{
-				consoleOutput.println( "An unknown error occured: " + e.getMessage() );
+				consoleOutput.println( "[PUCM] An unknown error occured: " + e.getMessage() );
 				doPostBuild = false;
 				result = false;
 			}
@@ -292,8 +292,6 @@ public class PucmScm extends SCM
 		//state.save();
 		
 		logger.debug( id + "The CO state:\n" + state.stringify() );
-
-		consoleOutput.println( "---------------------------Praqmatic UCM - SCM section finished---------------------------\n" );
 
 		return result;
 	}
@@ -338,7 +336,7 @@ public class PucmScm extends SCM
 			consoleOut.println( pollMsgs + "\n" + e.getMessage() );
 			pollMsgs = new StringBuffer();
 			logger.debug( id + "Removed job " + state.getJobNumber() + " from list" );
-			state.remove();			
+			state.remove();
 		}
 		
 		logger.debug( id + "FINAL Polling result = " + p.change.toString() );
@@ -394,11 +392,11 @@ public class PucmScm extends SCM
 
 		try
 		{
-			pollMsgs.append( "Getting all baselines for :\n* Stream:         " );
+			pollMsgs.append( "[PUCM] Getting all baselines for :\n[PUCM] * Stream:         " );
 			pollMsgs.append( stream );
-			pollMsgs.append( "\n* Component:      " );
+			pollMsgs.append( "\n[PUCM] * Component:      " );
 			pollMsgs.append( component );
-			pollMsgs.append( "\n* Promotionlevel: " );
+			pollMsgs.append( "\n[PUCM] * Promotionlevel: " );
 			pollMsgs.append( levelToPoll );
 			pollMsgs.append( "\n" );
 
@@ -419,7 +417,7 @@ public class PucmScm extends SCM
 			try
 			{
 				List<Baseline> baselinelist = state.getStream().GetRecommendedBaselines();
-				pollMsgs.append( "\nRecommended baseline(s): \n" );
+				pollMsgs.append( "\n[PUCM] Recommended baseline(s): \n" );
 				for ( Baseline b : baselinelist )
 				{
 					pollMsgs.append( b.GetShortname() + "\n" );
@@ -487,7 +485,7 @@ public class PucmScm extends SCM
 					throw new ScmException( "No baselines available on chosen parameters." );
 				}
 				
-				pollMsgs.append( "\nBuilding baseline: " + bl + "\n" );
+				pollMsgs.append( "\n[PUCM] Building baseline: " + bl + "\n" );
 				
 				state.setBaseline( bl );
 				
@@ -510,7 +508,7 @@ public class PucmScm extends SCM
 
 	private void printBaselines( BaselineList baselines )
 	{
-		pollMsgs.append( "--------------------\nRetrieved baselines:\n--------------------\n" );
+		pollMsgs.append( "[PUCM] Retrieved baselines:\n" );
 		if ( !( baselines.size() > 20 ) )
 		{
 			for ( Baseline b : baselines )
@@ -522,7 +520,7 @@ public class PucmScm extends SCM
 		else
 		{
 			int i = baselines.size();
-			pollMsgs.append( "There are " + i + " baselines - only printing first and last three\n" );
+			pollMsgs.append( "[PUCM] There are " + i + " baselines - only printing first and last three\n" );
 			pollMsgs.append( baselines.get( 0 ).GetShortname() + "\n" );
 			pollMsgs.append( baselines.get( 1 ).GetShortname() + "\n" );
 			pollMsgs.append( baselines.get( 2 ).GetShortname() + "\n" );

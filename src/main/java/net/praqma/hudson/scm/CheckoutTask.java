@@ -81,7 +81,6 @@ public class CheckoutTask implements FileCallable<String> {
 		try
 		{
 			UCM.SetContext( UCM.ContextType.CLEARTOOL );
-			// hudsonOut.println("output from checkouttask");
 			makeWorkspace( workspace );
 			BaselineDiff bldiff = bl.GetDiffs( sv );
 			diff = createChangelog( bldiff, hudsonOut );
@@ -90,12 +89,12 @@ public class CheckoutTask implements FileCallable<String> {
 		catch ( ScmException e )
 		{
 			logger.debug( id + "SCM exception: " + e.getMessage() );
-			hudsonOut.println( "SCM exception: " + e.getMessage() );
+			hudsonOut.println( "[PUCM] SCM exception: " + e.getMessage() );
 		}
 		catch ( UCMException e )
 		{
 			logger.debug( id + "Could not get changes. " + e.getMessage() );
-			hudsonOut.println( "Could not get changes. " + e.getMessage() );
+			hudsonOut.println( "[PUCM] Could not get changes. " + e.getMessage() );
 		}
 
 		return diff;
@@ -138,12 +137,12 @@ public class CheckoutTask implements FileCallable<String> {
     	{
     		if ( viewroot.exists() )
     		{
-    			hudsonOut.println( "Reusing viewroot: " + viewroot.toString() );
+    			hudsonOut.println( "[PUCM] Reusing viewroot: " + viewroot.toString() );
     		}
     		else
     			if ( viewroot.mkdir() )
     			{
-    				hudsonOut.println( "Created folder for viewroot:  " + viewroot.toString() );
+    				hudsonOut.println( "[PUCM] Created folder for viewroot:  " + viewroot.toString() );
     			}
     			else
     			{
@@ -162,17 +161,17 @@ public class CheckoutTask implements FileCallable<String> {
 
     	if ( UCMView.ViewExists( viewtag ) )
     	{
-    		hudsonOut.println( "Reusing viewtag: " + viewtag + "\n" );
+    		hudsonOut.println( "[PUCM] Reusing viewtag: " + viewtag + "\n" );
     		try
     		{
     			SnapshotView.ViewrootIsValid( viewroot );
-    			hudsonOut.println( "Viewroot is valid in ClearCase" );
+    			hudsonOut.println( "[PUCM] Viewroot is valid in ClearCase" );
     		}
     		catch ( UCMException ucmE )
     		{
     			try
     			{
-    				hudsonOut.println( "Viewroot not valid - now regenerating.... " );
+    				hudsonOut.println( "[PUCM] Viewroot not valid - now regenerating.... " );
     				SnapshotView.RegenerateViewDotDat( viewroot, viewtag );
     			}
     			catch ( UCMException ucmEe )
@@ -182,8 +181,7 @@ public class CheckoutTask implements FileCallable<String> {
     			}
     		}
     		
-    		hudsonOut.print( "Getting snapshotview..." );
-    		
+    		hudsonOut.print( "[PUCM] Getting snapshotview..." );
     		try
     		{
     			sv = UCMView.GetSnapshotView( viewroot );
@@ -199,7 +197,7 @@ public class CheckoutTask implements FileCallable<String> {
     	{
     		try
     		{
-    			hudsonOut.println( "View doesn't exist" );
+    			hudsonOut.print( "[PUCM] View doesn't exist" );
     			sv = SnapshotView.Create( devstream, viewroot, viewtag );
     			hudsonOut.println( " - created new view in local workspace" );
     			logger.log( "The view did not exist and created a new" );
@@ -207,7 +205,7 @@ public class CheckoutTask implements FileCallable<String> {
     		catch ( UCMException e )
     		{
     			logger.warning( id + "The view could not be created" );
-    			throw new ScmException( " - could not create a new view for workspace. " + e.getMessage() );
+    			throw new ScmException( "Could not create a new view for workspace. " + e.getMessage() );
     		}
     	}
 
@@ -216,7 +214,7 @@ public class CheckoutTask implements FileCallable<String> {
     	// null from pucm
     	try
     	{
-    		hudsonOut.print( "Updating view using " + loadModule.toLowerCase() + " modules..." );
+    		hudsonOut.print( "[PUCM] Updating view using " + loadModule.toLowerCase() + " modules..." );
 
     		sv.Update( true, true, true, false, COMP.valueOf( loadModule.toUpperCase() ), null );
     		hudsonOut.println( " DONE" );
@@ -230,17 +228,17 @@ public class CheckoutTask implements FileCallable<String> {
     	// old one must be stopped and the new started instead
     	if ( devstream.IsRebaseInProgress() )
     	{
-    		hudsonOut.print( "Cancelling previous rebase..." );
+    		hudsonOut.print( "[PUCM] Cancelling previous rebase..." );
     		devstream.CancelRebase();
     		hudsonOut.println( " DONE" );
     	}
     	// The last boolean, complete, must always be true from PUCM
     	// as we are always working on a read-only stream according
     	// to LAK
-    	hudsonOut.print( "Rebasing development stream (" + devstream.GetShortname() + ") against parent stream (" + integrationstream.GetShortname() + ")" );
+    	hudsonOut.print( "[PUCM] Rebasing development stream (" + devstream.GetShortname() + ") against parent stream (" + integrationstream.GetShortname() + ")" );
     	devstream.Rebase( sv, bl, true );
     	hudsonOut.println( " DONE" );
-    	hudsonOut.println( "Log written to " + logger.getPath() );
+    	hudsonOut.println( "[PUCM] Log written to " + logger.getPath() );
     }
 
     private Stream getDeveloperStream( String streamname, String pvob, PrintStream hudsonOut ) throws ScmException
@@ -280,8 +278,6 @@ public class CheckoutTask implements FileCallable<String> {
 	private String createChangelog( BaselineDiff changes, PrintStream hudsonOut )
 	{
 		StringBuffer buffer = new StringBuffer();
-
-		hudsonOut.println( "Writing Hudson changelog..." );
 
 		buffer.append( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
 		buffer.append( "<changelog>" );

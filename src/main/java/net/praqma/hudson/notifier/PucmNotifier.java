@@ -108,7 +108,6 @@ public class PucmNotifier extends Notifier
 		logger.trace_function();
 		boolean result = true;
 		hudsonOut = listener.getLogger();
-		hudsonOut.println( "---------------------------Praqmatic UCM - Post build section started---------------------------\n" );
 
 		status = new Status();
 		
@@ -120,7 +119,7 @@ public class PucmNotifier extends Notifier
 			scmTemp = build.getProject().getScm();
 			if ( !( scmTemp instanceof PucmScm ) )
 			{
-				listener.fatalError( "Not a PUCM scm. This Post build action can only be used when polling from ClearCase with PUCM plugin." );
+				listener.fatalError( "[PUCM] Not a PUCM scm. This Post build action can only be used when polling from ClearCase with PUCM plugin." );
 				result = false;
 			}
 		}
@@ -171,14 +170,13 @@ public class PucmNotifier extends Notifier
 			}
 			else
 			{
-				hudsonOut.println( "Not performing any post build actions." );
+				//Not performing any post build actions.
 				result = false;
 			}
 		}
 		
 		if ( result )
 		{
-			hudsonOut.println( "Performing post build steps for " + ( baseline != null ? baseline : "Missing" ) );			
 			try
 			{
 				processBuild( build, launcher, listener, pstate );
@@ -208,9 +206,6 @@ public class PucmNotifier extends Notifier
 		
 		logger.debug( id + "The final state:\n" + pstate.stringify() );
 		
-		
-
-		hudsonOut.println( "---------------------------Praqmatic UCM - Post build section finished---------------------------\n" );
 		return result;
 	}
 	
@@ -273,7 +268,7 @@ public class PucmNotifier extends Notifier
 			catch( UCMException e )
 			{
 				logger.debug( id + "could not create Baseline object:" + e.getMessage() );
-				throw new IOException( "could not create Baseline object:" + e.getMessage() );
+				throw new IOException( "[PUCM] Could not create Baseline object: " + e.getMessage() );
 			}
 			
 			/* Create the stream object */
@@ -285,7 +280,7 @@ public class PucmNotifier extends Notifier
 			catch( UCMException e )
 			{
 				logger.debug( id + "could not create Stream object:" + e.getMessage() );
-				throw new IOException( "could not create Stream object:" + e.getMessage() );
+				throw new IOException( "[PUCM] Could not create Stream object: " + e.getMessage() );
 			}			
 			
 			/* Create the Tag object */
@@ -300,11 +295,12 @@ public class PucmNotifier extends Notifier
 				}
 				catch ( UCMException e )
 				{
-					hudsonOut.println( "Could not get Tag: " + e.getMessage() );
+					hudsonOut.println( "[PUCM] Could not get Tag: " + e.getMessage() );
 					logger.warning( id + "Could not get Tag: " + e.getMessage() );
 				}
 			}
 			
+			hudsonOut.println("[PUCM] Build result: "+result);
 			/* The build was a success */
 			if ( result.equals( Result.SUCCESS ) )
 			{
@@ -320,7 +316,7 @@ public class PucmNotifier extends Notifier
 						baseline.Promote();
 						status.setPLevel( true );
 						newPLevel = baseline.GetPromotionLevel( true ).toString();
-						hudsonOut.println( "Baseline promoted to " + newPLevel + "." );
+						hudsonOut.println( "[PUCM] Baseline promoted to " + newPLevel + "." );
 					}
 					catch ( UCMException e )
 					{
@@ -332,7 +328,7 @@ public class PucmNotifier extends Notifier
 						{
 							recommended = false;
 							//throw new NotifierException( "Could not promote baseline and will not recommend. " + e.getMessage() );
-							hudsonOut.println( "Could not promote baseline and will not recommend. " + e.getMessage() );
+							hudsonOut.println( "[PUCM] Could not promote baseline and will not recommend. " + e.getMessage() );
 							logger.warning( id + "Could not promote baseline and will not recommend. " + e.getMessage() );
 						}
 						else
@@ -340,7 +336,7 @@ public class PucmNotifier extends Notifier
 							// As we will not recommend if we cannot promote, it's
 							// ok to break method here
 							//throw new NotifierException( "Could not promote baseline. " + e.getMessage() );
-							hudsonOut.println( "Could not promote baseline. " + e.getMessage() );
+							hudsonOut.println( "[PUCM] Could not promote baseline. " + e.getMessage() );
 							logger.warning( id + "Could not promote baseline. " + e.getMessage() );
 						}
 					}
@@ -350,16 +346,19 @@ public class PucmNotifier extends Notifier
 				{
 					try
 					{
-						stream.RecommendBaseline( baseline );
-						status.setRecommended( true );
-						hudsonOut.println( "Baseline " + baseline.GetShortname() + " is now recommended " );
+						if(status.isPLevel())
+						{
+							stream.RecommendBaseline( baseline );
+							status.setRecommended( true );
+							hudsonOut.println( "[PUCM] Baseline " + baseline.GetShortname() + " is now recommended." );							
+						}
 					}
 					catch ( Exception e )
 					{
 						//build.setResult( Result.UNSTABLE );
 						//throw new NotifierException( "Could not recommend baseline. Reason: " + e.getMessage() );
 						status.setStable( false );
-						hudsonOut.println( "Could not recommend baseline. Reason: " + e.getMessage() );
+						hudsonOut.println( "[PUCM] Could not recommend baseline. Reason: " + e.getMessage() );
 						logger.warning( id + "Could not recommend baseline. Reason: " + e.getMessage() );
 					}
 				}
@@ -367,7 +366,7 @@ public class PucmNotifier extends Notifier
 			/* The build failed */
 			else if ( result.equals( Result.FAILURE ) )
 			{
-				hudsonOut.println( "Build failed" );
+				hudsonOut.println( "[PUCM] Build failed." );
 
 				if ( status.isTagAvailable() )
 				{
@@ -379,13 +378,13 @@ public class PucmNotifier extends Notifier
 						baseline.Demote();
 						status.setPLevel( true );
 						newPLevel = baseline.GetPromotionLevel( true ).toString();
-						hudsonOut.println( "Baseline is " + newPLevel + "." );
+						hudsonOut.println( "[PUCM] Baseline is " + newPLevel + "." );
 					}
 					catch ( Exception e )
 					{
 						status.setStable( false );
 						//throw new NotifierException( "Could not demote baseline. " + e.getMessage() );
-						hudsonOut.println( "Could not demote baseline. " + e.getMessage() );
+						hudsonOut.println( "[PUCM] Could not demote baseline. " + e.getMessage() );
 						logger.warning( id + "Could not demote baseline. " + e.getMessage() );
 					}
 			}
@@ -393,7 +392,7 @@ public class PucmNotifier extends Notifier
 			else
 			{
 				logger.log( id + "Buildstatus (Result) was " + result + ". Not handled by plugin." );
-				hudsonOut.println( "Baseline not changed. Buildstatus: " + result );
+				hudsonOut.println( "[PUCM] Baseline not changed. Buildstatus: " + result );
 				//throw new NotifierException( "Baseline not changed. Buildstatus: " + result );
 			}
 			
@@ -403,11 +402,11 @@ public class PucmNotifier extends Notifier
 				try
 				{
 					tag = tag.Persist();
-					hudsonOut.println( "Baseline now marked with tag: \n" + tag.Stringify() );
+					hudsonOut.println( "[PUCM] Baseline now marked with tag: \n" + tag.Stringify() );
 				}
 				catch ( Exception e )
 				{
-					hudsonOut.println( "Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
+					hudsonOut.println( "[PUCM] Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
 				}
 			}
 			
@@ -443,7 +442,6 @@ public class PucmNotifier extends Notifier
 	private void processBuild( AbstractBuild build, Launcher launcher, BuildListener listener, State pstate ) throws NotifierException
 	{
 		Result buildResult = build.getResult();
-		hudsonOut.println( "Buildresult: " + buildResult );
 		
 		VirtualChannel ch  = launcher.getChannel();
 		
