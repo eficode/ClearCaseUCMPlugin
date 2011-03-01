@@ -391,11 +391,12 @@ public class PucmNotifier extends Notifier
 			/* Result not handled by PUCM */
 			else
 			{
+				tag.SetEntry( "buildstatus", result.toString() );
 				logger.log( id + "Buildstatus (Result) was " + result + ". Not handled by plugin." );
 				hudsonOut.println( "[PUCM] Baseline not changed. Buildstatus: " + result );
 				//throw new NotifierException( "Baseline not changed. Buildstatus: " + result );
 			}
-			
+
 			/* Persist the Tag */
 			if( makeTag )
 			{
