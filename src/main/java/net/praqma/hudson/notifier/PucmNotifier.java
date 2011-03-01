@@ -500,6 +500,11 @@ public class PucmNotifier extends Notifier
 		return makeTag;
 	}
 
+	public boolean isSetDescription()
+	{
+		return setDescription;
+	}
+	
 	/**
 	 * This class is used by Hudson to define the plugin.
 	 * 
