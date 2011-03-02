@@ -98,7 +98,7 @@ public class PucmState
 		return states.remove( state );
 	}
 	
-	public int recalculate( AbstractProject<?, ?> project )
+	public synchronized int recalculate( AbstractProject<?, ?> project )
 	{
 		int count = 0;
 		
