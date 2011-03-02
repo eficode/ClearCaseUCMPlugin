@@ -4,12 +4,14 @@ import hudson.model.AbstractProject;
 import hudson.model.Build;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
+import net.praqma.util.debug.Logger;
 
 /**
  * 
@@ -20,6 +22,7 @@ public class PucmState
 {
 	private List<State> states          = new ArrayList<State>();
 	private static final String linesep = System.getProperty( "line.separator" );
+	private Logger logger               = Logger.getLogger();
 	
 	/**
 	 * Get a state given job name and job number
@@ -27,7 +30,7 @@ public class PucmState
 	 * @param jobNumber the hudson job number
 	 * @return
 	 */
-	public State getState( String jobName, Integer jobNumber )
+	public synchronized State getState( String jobName, Integer jobNumber )
 	{
 		for( State s : states )
 		{
@@ -42,7 +45,7 @@ public class PucmState
 		return s;
 	}
 	
-	public boolean removeState( String jobName, Integer jobNumber )
+	public synchronized boolean removeState( String jobName, Integer jobNumber )
 	{
 		for( State s : states )
 		{
@@ -56,7 +59,7 @@ public class PucmState
 		return false;
 	}
 	
-	public State getStateByBaseline( String jobName, String baseline )
+	public synchronized State getStateByBaseline( String jobName, String baseline )
 	{
 		for( State s : states )
 		{
@@ -70,17 +73,17 @@ public class PucmState
 	}
 	
 	
-	public void addState( State state )
+	public synchronized void addState( State state )
 	{
 		this.states.add( state );
 	}
 	
-	public boolean stateExists( State state )
+	public synchronized boolean stateExists( State state )
 	{
 		return stateExists( state.jobName, state.jobNumber );
 	}
 	
-	public boolean stateExists( String jobName, Integer jobNumber )
+	public synchronized boolean stateExists( String jobName, Integer jobNumber )
 	{
 		for( State s : states )
 		{
@@ -93,7 +96,7 @@ public class PucmState
 		return false;
 	}
 	
-	public boolean removeState( State state )
+	public synchronized boolean removeState( State state )
 	{
 		return states.remove( state );
 	}
@@ -102,18 +105,25 @@ public class PucmState
 	{
 		int count = 0;
 		
-		for( State s : states )
+		try
 		{
-			Integer bnum = s.getJobNumber();
-			Object o = project.getBuildByNumber( bnum );
-			Build bld = (Build)o;
-			
-			/* The job is not running */
-			if( !bld.isLogUpdated() )
+			for( State s : states )
 			{
-				s.remove();
-				count++;
+				Integer bnum = s.getJobNumber();
+				Object o = project.getBuildByNumber( bnum );
+				Build bld = (Build)o;
+				
+				/* The job is not running */
+				if( !bld.isLogUpdated() )
+				{
+					s.remove();
+					count++;
+				}
 			}
+		}
+		catch( ConcurrentModificationException e )
+		{
+			logger.warning( "Concurrency warning in PucmState" );
 		}
 		
 		return count;
