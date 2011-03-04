@@ -4,6 +4,7 @@ import hudson.model.AbstractProject;
 import hudson.model.Build;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 
@@ -20,7 +21,7 @@ import net.praqma.util.debug.Logger;
  */
 public class PucmState
 {
-	private List<State> states          = new ArrayList<State>();
+	private List<State> states          = Collections.synchronizedList( new ArrayList<State>() );
 	private static final String linesep = System.getProperty( "line.separator" );
 	private Logger logger               = Logger.getLogger();
 	
@@ -30,7 +31,7 @@ public class PucmState
 	 * @param jobNumber the hudson job number
 	 * @return
 	 */
-	public synchronized State getState( String jobName, Integer jobNumber )
+	public State getState( String jobName, Integer jobNumber )
 	{
 		for( State s : states )
 		{
@@ -45,7 +46,7 @@ public class PucmState
 		return s;
 	}
 	
-	public synchronized boolean removeState( String jobName, Integer jobNumber )
+	public boolean removeState( String jobName, Integer jobNumber )
 	{
 		for( State s : states )
 		{
@@ -59,7 +60,7 @@ public class PucmState
 		return false;
 	}
 	
-	public synchronized State getStateByBaseline( String jobName, String baseline )
+	public State getStateByBaseline( String jobName, String baseline )
 	{
 		for( State s : states )
 		{
@@ -73,17 +74,17 @@ public class PucmState
 	}
 	
 	
-	public synchronized void addState( State state )
+	public void addState( State state )
 	{
 		this.states.add( state );
 	}
 	
-	public synchronized boolean stateExists( State state )
+	public boolean stateExists( State state )
 	{
 		return stateExists( state.jobName, state.jobNumber );
 	}
 	
-	public synchronized boolean stateExists( String jobName, Integer jobNumber )
+	public boolean stateExists( String jobName, Integer jobNumber )
 	{
 		for( State s : states )
 		{
@@ -96,12 +97,12 @@ public class PucmState
 		return false;
 	}
 	
-	public synchronized boolean removeState( State state )
+	public boolean removeState( State state )
 	{
 		return states.remove( state );
 	}
 	
-	public synchronized int recalculate( AbstractProject<?, ?> project )
+	public int recalculate( AbstractProject<?, ?> project )
 	{
 		int count = 0;
 		
