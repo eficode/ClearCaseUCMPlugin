@@ -174,6 +174,7 @@ public class PucmScm extends SCM
 			{
 				state.setBaseline( UCMEntity.GetBaseline( baselinename ) );
 				integrationstream = bl.GetStream();
+				state.setStream( state.getBaseline().GetStream() );
 				consoleOutput.println( "[PUCM] Starting parameterized build with a pucm_baseline.\nUsing baseline: " + baselinename + " from integrationstream " + integrationstream.GetShortname() );
 			}
 			catch ( UCMException e )
