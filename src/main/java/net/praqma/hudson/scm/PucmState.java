@@ -126,6 +126,10 @@ public class PucmState
 		{
 			logger.warning( "Concurrency warning in PucmState" );
 		}
+		catch( NullPointerException e )
+		{
+			logger.warning( "This should not happen" );
+		}
 		
 		return count;
 	}
