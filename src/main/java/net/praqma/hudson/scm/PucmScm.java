@@ -262,8 +262,11 @@ public class PucmScm extends SCM
 					consoleOutput.println( "[PUCM] bl is null" );
 				}
 				
+				consoleOutput.println( "[PUCM] Initializing checkout task" );
 				CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), stream, loadModule, bl.GetFQName(), buildProject );
+				consoleOutput.println( "[PUCM] Launching checkout tast" );
 				String changelog = workspace.act( ct );
+				consoleOutput.println( "[PUCM] Checkout tast done" );
 			
 				/* Write change log */
 				try
