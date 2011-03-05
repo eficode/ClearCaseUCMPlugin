@@ -174,7 +174,7 @@ public class PucmScm extends SCM
 			{
 				state.setBaseline( UCMEntity.GetBaseline( baselinename ) );
 				state.setStream( state.getBaseline().GetStream() );
-				consoleOutput.println( "[PUCM] Starting parameterized build with a pucm_baseline.\nUsing baseline: " + state.getBaseline().GetShortname() + " from integrationstream " + state.getStream().GetShortname() );
+				consoleOutput.println( "[PUCM] Starting parameterized build with a pucm_baseline.\nUsing baseline: " + baselinename + " from integrationstream " + state.getStream().GetShortname() );
 			}
 			catch ( UCMException e )
 			{
@@ -227,40 +227,48 @@ public class PucmScm extends SCM
 				}
 				
 				/* Check parameters */
+				consoleOutput.println( "[PUCM] Check 1" );
 				if( listener == null )
 				{
 					consoleOutput.println( "[PUCM] Listener is null" );
 				}
 				
+				consoleOutput.println( "[PUCM] Check 2" );
 				if( jobName == null )
 				{
 					consoleOutput.println( "[PUCM] jobname is null" );
 				}
 				
+				consoleOutput.println( "[PUCM] Check 3" );
 				if( build == null )
 				{
 					consoleOutput.println( "[PUCM] BUILD is null" );
 				}
 				
+				consoleOutput.println( "[PUCM] Check 4" );
 				if( stream == null )
 				{
 					consoleOutput.println( "[PUCM] stream is null" );
 				}
 				
+				consoleOutput.println( "[PUCM] Check 5" );
 				if( loadModule == null )
 				{
 					consoleOutput.println( "[PUCM] loadModule is null" );
 				}
 				
+				consoleOutput.println( "[PUCM] Check 6" );
 				if( buildProject == null )
 				{
 					consoleOutput.println( "[PUCM] buildProject is null" );
 				}
 				
+				/*
 				if( bl == null )
 				{
 					consoleOutput.println( "[PUCM] bl is null" );
 				}
+				*/
 				
 				consoleOutput.println( "[PUCM] Initializing checkout task" );
 				CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), stream, loadModule, bl.GetFQName(), buildProject );
