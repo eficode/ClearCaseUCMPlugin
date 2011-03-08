@@ -27,6 +27,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -77,7 +78,7 @@ public class PucmScm extends SCM
 	private Baseline bl;
 	private List<String> levels = null;
 	private List<String> loadModules = null;
-	//private BaselineList baselines;
+	// private BaselineList baselines;
 	private boolean compRevCalled;
 	private StringBuffer pollMsgs = new StringBuffer();
 	private Stream integrationstream;
@@ -85,14 +86,14 @@ public class PucmScm extends SCM
 	private SnapshotView sv = null;
 	private boolean doPostBuild = true;
 	private String buildProject;
-	
+
 	private String jobName = "";
 	private Integer jobNumber;
-	
+
 	private String id = "";
 
 	protected static Logger logger = Logger.getLogger();
-	
+
 	public static PucmState pucm = new PucmState();
 
 	/**
@@ -135,46 +136,56 @@ public class PucmScm extends SCM
 		logger.trace_function();
 		logger.debug( "PucmSCM checkout" );
 		boolean result = true;
-		
+
 		// consoleOutput Printstream is from Hudson, so it can only be accessed
 		// here
 		PrintStream consoleOutput = listener.getLogger();
 		consoleOutput.println( "[PUCM] Praqmatic UCM v." + net.praqma.hudson.Version.version + " - SCM section started" );
-		
+
 		/* Recalculate the states */
 		int count = pucm.recalculate( build.getProject() );
 		logger.info( "Removed " + count + " from states." );
-		
+
 		doPostBuild = true;
 
-		jobName   = build.getParent().getDisplayName();
+		jobName = build.getParent().getDisplayName();
 		jobNumber = build.getNumber();
-		
+
 		/* If we polled, we should get the same object created at that point */
 		State state = pucm.getState( jobName, jobNumber );
-		
+
 		logger.debug( id + "The initial state:\n" + state.stringify() );
-		
+
 		this.id = "[" + jobName + "::" + jobNumber + "]";
-		
+
 		if ( build.getBuildVariables().get( "include_classes" ) != null )
 		{
 			String[] is = build.getBuildVariables().get( "include_classes" ).toString().split( "," );
-			for( String i : is )
+			for ( String i : is )
 			{
 				logger.includeClass( i.trim() );
 			}
 		}
-
-		if ( build.getBuildVariables().get( "pucm_baseline" ) != null )
+		
+		String baselinevalue = "";
+		Collection c = build.getBuildVariables().keySet();
+		Iterator i = c.iterator();
+		
+		while ( i.hasNext() )
 		{
-			Stream integrationstream = null;
-			String baselinename = (String) build.getBuildVariables().get( "pucm_baseline" );
+			String next = i.next().toString();
+			if ( next.equalsIgnoreCase( "pucm_baseline" ) )
+				baselinevalue = next;
+		}
+
+		if ( build.getBuildVariables().get(baselinevalue)!=null )
+		{
+			String baselinename =  (String) build.getBuildVariables().get( baselinevalue );
 			try
 			{
 				state.setBaseline( UCMEntity.GetBaseline( baselinename ) );
 				state.setStream( state.getBaseline().GetStream() );
-				consoleOutput.println( "[PUCM] Starting parameterized build with a pucm_baseline.\nUsing baseline: " + baselinename + " from integrationstream " + state.getStream().GetShortname() );
+				consoleOutput.println( "[PUCM] Starting parameterized build with a pucm_baseline.\n[PUCM] Using baseline: " + baselinename + " from integrationstream " + state.getStream().GetShortname() );
 			}
 			catch ( UCMException e )
 			{
@@ -193,7 +204,8 @@ public class PucmScm extends SCM
 			{
 				try
 				{
-					//baselinesToBuild( component, stream, build.getProject(), build.getParent().getDisplayName(), build.getNumber() );
+					// baselinesToBuild( component, stream, build.getProject(),
+					// build.getParent().getDisplayName(), build.getNumber() );
 					baselinesToBuild( build.getProject(), state );
 				}
 				catch ( ScmException e )
@@ -220,56 +232,51 @@ public class PucmScm extends SCM
 				{
 					state.getBaseline().Load();
 				}
-				catch( UCMException e )
+				catch ( UCMException e )
 				{
 					logger.debug( id + "Could not load Baseline" );
 					consoleOutput.println( "[PUCM] Could not load Baseline." );
 				}
-				
+
 				/* Check parameters */
-				if( listener == null )
+				if ( listener == null )
 				{
 					consoleOutput.println( "[PUCM] Listener is null" );
 				}
-				
-				if( jobName == null )
+
+				if ( jobName == null )
 				{
 					consoleOutput.println( "[PUCM] jobname is null" );
 				}
-				
-				if( build == null )
+
+				if ( build == null )
 				{
 					consoleOutput.println( "[PUCM] BUILD is null" );
 				}
-				
-				if( stream == null )
+
+				if ( stream == null )
 				{
 					consoleOutput.println( "[PUCM] stream is null" );
 				}
-				
-				if( loadModule == null )
+
+				if ( loadModule == null )
 				{
 					consoleOutput.println( "[PUCM] loadModule is null" );
 				}
-				
-				if( buildProject == null )
+
+				if ( buildProject == null )
 				{
 					consoleOutput.println( "[PUCM] buildProject is null" );
 				}
-				
+
 				/*
-				if( bl == null )
-				{
-					consoleOutput.println( "[PUCM] bl is null" );
-				}
-				*/
-				
-				consoleOutput.println( "[PUCM] Initializing checkout task" );
-				CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), stream, loadModule, state.getBaseline().GetFQName(), buildProject );
-				consoleOutput.println( "[PUCM] Launching checkout tast" );
+				 * if( bl == null ) { consoleOutput.println( "[PUCM] bl is null"
+				 * ); }
+				 */
+
+				CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), state.getStream().GetFQName(), loadModule, state.getBaseline().GetFQName(), buildProject );
 				String changelog = workspace.act( ct );
-				consoleOutput.println( "[PUCM] Checkout tast done" );
-			
+
 				/* Write change log */
 				try
 				{
@@ -277,13 +284,13 @@ public class PucmScm extends SCM
 					fos.write( changelog.getBytes() );
 					fos.close();
 				}
-				catch( IOException e )
+				catch ( IOException e )
 				{
 					logger.debug( id + "Could not write change log file" );
 					consoleOutput.println( "[PUCM] Could not write change log file" );
 				}
-				
-				//doPostBuild = changelog.length() > 0 ? true : false;
+
+				// doPostBuild = changelog.length() > 0 ? true : false;
 			}
 			catch ( Exception e )
 			{
@@ -292,16 +299,15 @@ public class PucmScm extends SCM
 				result = false;
 			}
 		}
-		
-		//pucm.add( new PucmState( build.getParent().getDisplayName(), build.getNumber(), bl, null, comp, doPostBuild ) );
-		//state.save();
-		
+
+		// pucm.add( new PucmState( build.getParent().getDisplayName(),
+		// build.getNumber(), bl, null, comp, doPostBuild ) );
+		// state.save();
+
 		logger.debug( id + "The CO state:\n" + state.stringify() );
 
 		return result;
 	}
-	
-	
 
 	@Override
 	public ChangeLogParser createChangeLogParser()
@@ -309,25 +315,32 @@ public class PucmScm extends SCM
 		logger.trace_function();
 		return new ChangeLogParserImpl();
 	}
-	
+
 	@Override
 	public PollingResult compareRemoteRevisionWith( AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState baseline ) throws IOException, InterruptedException
 	{
 		this.id = "[" + project.getDisplayName() + "::" + project.getNextBuildNumber() + "]";
-		
+
 		logger.trace_function();
 		logger.debug( id + "PucmSCM Pollingresult" );
-		
-		/* Make a state object, which is only temporary, only to determine if there's baselines to build this object will be stored in checkout  */
-		jobName   = project.getDisplayName();
-		jobNumber = project.getNextBuildNumber(); /* This number is not the final job number */
-		
+
+		/*
+		 * Make a state object, which is only temporary, only to determine if
+		 * there's baselines to build this object will be stored in checkout
+		 */
+		jobName = project.getDisplayName();
+		jobNumber = project.getNextBuildNumber(); /*
+												 * This number is not the final
+												 * job number
+												 */
+
 		State state = pucm.getState( jobName, jobNumber );
 
 		PollingResult p;
 		try
 		{
-			//baselinesToBuild( component, stream, project, project.getDisplayName(), project.getNextBuildNumber() );
+			// baselinesToBuild( component, stream, project,
+			// project.getDisplayName(), project.getNextBuildNumber() );
 			baselinesToBuild( project, state );
 			compRevCalled = true;
 			logger.info( id + "Polling result = BUILD NOW" );
@@ -343,12 +356,11 @@ public class PucmScm extends SCM
 			logger.debug( id + "Removed job " + state.getJobNumber() + " from list" );
 			state.remove();
 		}
-		
+
 		logger.debug( id + "FINAL Polling result = " + p.change.toString() );
-		
+
 		return p;
 	}
-		
 
 	@Override
 	public SCMRevisionState calcRevisionsFromBuild( AbstractBuild<?, ?> build, Launcher launcher, TaskListener listener ) throws IOException, InterruptedException
@@ -364,12 +376,11 @@ public class PucmScm extends SCM
 		}
 		return scmRS;
 	}
-	
 
 	private void baselinesToBuild( AbstractProject<?, ?> project, State state ) throws ScmException
 	{
 		logger.trace_function();
-		
+
 		/* Store the component to the state */
 		try
 		{
@@ -389,9 +400,9 @@ public class PucmScm extends SCM
 		{
 			throw new ScmException( "Could not get stream. " + e.getMessage() );
 		}
-		
+
 		state.setPlevel( Project.Plevel.valueOf( levelToPoll ) );
-		
+
 		/* The baseline list */
 		BaselineList baselines = null;
 
@@ -412,11 +423,10 @@ public class PucmScm extends SCM
 			throw new ScmException( "Could not retrieve baselines from repository. " + e.getMessage() );
 		}
 
-
 		if ( baselines.size() > 0 )
 		{
 			printBaselines( baselines );
-			
+
 			logger.debug( id + "PUCM=" + pucm.stringify() );
 
 			try
@@ -427,46 +437,50 @@ public class PucmScm extends SCM
 				{
 					pollMsgs.append( b.GetShortname() + "\n" );
 				}
-				
+
 				/* Determine the baseline to build */
-				
+
 				bl = null;
 				state.setBaseline( null );
 				/* For each baseline retrieved from ClearCase */
-				//for ( Baseline b : baselinelist )
+				// for ( Baseline b : baselinelist )
 				int start = 0;
 				int stop = baselines.size();
 				int increment = 1;
-				if( newest )
+				if ( newest )
 				{
 					start = baselines.size() - 1;
-					//stop = 0;
+					// stop = 0;
 					increment = -1;
 				}
-				
+
 				/* Find the Baseline to build */
-				for( int i = start ; i < stop && i >= 0 ; i += increment )
+				for ( int i = start ; i < stop && i >= 0 ; i += increment )
 				{
 					/* The current baseline */
 					Baseline b = baselines.get( i );
-					
+
 					State cstate = pucm.getStateByBaseline( jobName, b.GetFQName() );
-					
-					/* The baseline is in progress, determine if the job is still running */
-					//if( thisJob.containsKey( b.GetFQName() ) )
-					if( cstate != null )
+
+					/*
+					 * The baseline is in progress, determine if the job is
+					 * still running
+					 */
+					// if( thisJob.containsKey( b.GetFQName() ) )
+					if ( cstate != null )
 					{
-						//Integer bnum = thisJob.get( b.GetFQName() );
-						//State
+						// Integer bnum = thisJob.get( b.GetFQName() );
+						// State
 						Integer bnum = cstate.getJobNumber();
 						Object o = project.getBuildByNumber( bnum );
-						Build bld = (Build)o;
+						Build bld = (Build) o;
 						/* The job is not running */
-						if( !bld.isLogUpdated() )
+						if ( !bld.isLogUpdated() )
 						{
 							logger.debug( id + "Job " + bld.getNumber() + " is not building, using baseline: " + b );
 							bl = b;
-							//thisJob.put( b.GetFQName(), state.getJobNumber() );
+							// thisJob.put( b.GetFQName(), state.getJobNumber()
+							// );
 							break;
 						}
 						else
@@ -478,24 +492,24 @@ public class PucmScm extends SCM
 					else
 					{
 						bl = b;
-						//thisJob.put( b.GetFQName(), state.getJobNumber() );
+						// thisJob.put( b.GetFQName(), state.getJobNumber() );
 						logger.debug( id + "The baseline " + b + " is available" );
 						break;
 					}
 				}
-				
-				if( bl == null )
+
+				if ( bl == null )
 				{
 					logger.log( id + "No baselines available on chosen parameters." );
 					throw new ScmException( "No baselines available on chosen parameters." );
 				}
-				
+
 				pollMsgs.append( "\n[PUCM] Building baseline: " + bl + "\n" );
-				
+
 				state.setBaseline( bl );
-				
+
 				/* Store the baseline to build */
-				//thisJob.put( bl.GetFQName(), state.getJobNumber() );
+				// thisJob.put( bl.GetFQName(), state.getJobNumber() );
 			}
 			catch ( UCMException e )
 			{
@@ -506,9 +520,10 @@ public class PucmScm extends SCM
 		{
 			throw new ScmException( "No baselines on chosen parameters." );
 		}
-		
-		//logger.debug( id + "PRINTING THIS JOB:" );
-		//logger.debug( net.praqma.util.structure.Printer.mapPrinterToString( thisJob ) );
+
+		// logger.debug( id + "PRINTING THIS JOB:" );
+		// logger.debug( net.praqma.util.structure.Printer.mapPrinterToString(
+		// thisJob ) );
 	}
 
 	private void printBaselines( BaselineList baselines )

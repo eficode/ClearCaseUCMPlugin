@@ -131,7 +131,7 @@ public class CheckoutTask implements FileCallable<String> {
 
     	File viewroot = new File( workspace.getPath() + "\\view" );
 
-    	hudsonOut.println( "viewtag " + viewtag );
+    	hudsonOut.println( "[PUCM] viewtag " + viewtag );
 
     	try
     	{
