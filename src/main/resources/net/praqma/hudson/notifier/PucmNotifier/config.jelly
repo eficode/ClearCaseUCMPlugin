@@ -4,16 +4,16 @@ This should be the file that makes it possible to select our notifier in the "po
 
 -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-	<f:entry title="Promote?" help="/plugin/PUCM/notifier/help-promoteToLevel.html">
+	<f:entry title="Promote" help="/plugin/PUCM/notifier/help-promoteToLevel.html">
 	    <f:checkbox name="Pucm.promote" checked="${h.defaultToTrue(instance.promote)}" />
 	</f:entry>
-	<f:entry title="Recommend baseline?" help="/plugin/PUCM/notifier/help-recommendBaseline.html">
+	<f:entry title="Recommend baseline" help="/plugin/PUCM/notifier/help-recommendBaseline.html">
 	    <f:checkbox name="Pucm.recommended" checked="${instance.recommended}" />
 	</f:entry>
-	<f:entry title="Make tag?" help="/plugin/PUCM/notifier/help-makeTag.html">
+	<f:entry title="Make tag" help="/plugin/PUCM/notifier/help-makeTag.html">
 	    <f:checkbox name="Pucm.makeTag" checked="${instance.makeTag}" />
 	</f:entry>
-	<f:entry title="Set Description" help="/plugin/PUCM/notifier/help-setDescription.html">
+	<f:entry title="Set description" help="/plugin/PUCM/notifier/help-setDescription.html">
 	    <f:checkbox name="Pucm.setDescription" checked="${instance.setDescription}" />
 	</f:entry>
 </j:jelly>
