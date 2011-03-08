@@ -426,11 +426,12 @@ public class PucmScm extends SCM
 			try
 			{
 				List<Baseline> baselinelist = state.getStream().GetRecommendedBaselines();
-				pollMsgs.append( "\n[PUCM] Recommended baseline(s): \n" );
+				pollMsgs.append( "[PUCM] Recommended baseline(s):" );
 				for ( Baseline b : baselinelist )
 				{
-					pollMsgs.append( b.GetShortname() + "\n" );
+					pollMsgs.append( "\n[PUCM] " + b.GetShortname() );
 				}
+				pollMsgs.append( "\n" );
 
 				/* Determine the baseline to build */
 
@@ -522,25 +523,23 @@ public class PucmScm extends SCM
 
 	private void printBaselines( BaselineList baselines )
 	{
-		pollMsgs.append( "[PUCM] Retrieved baselines:\n" );
+		pollMsgs.append( "[PUCM] Retrieved baselines:" );
 		if ( !( baselines.size() > 20 ) )
 		{
 			for ( Baseline b : baselines )
 			{
-				pollMsgs.append( b.GetShortname() );
-				pollMsgs.append( "\n" );
+				pollMsgs.append( "\n[PUCM]" + b.GetShortname() );
 			}
 		}
 		else
 		{
 			int i = baselines.size();
-			pollMsgs.append( "[PUCM] There are " + i + " baselines - only printing first and last three\n" );
-			pollMsgs.append( baselines.get( 0 ).GetShortname() + "\n" );
-			pollMsgs.append( baselines.get( 1 ).GetShortname() + "\n" );
-			pollMsgs.append( baselines.get( 2 ).GetShortname() + "\n" );
-			pollMsgs.append( "...\n" );
-			pollMsgs.append( baselines.get( i - 3 ).GetShortname() + "\n" );
-			pollMsgs.append( baselines.get( i - 2 ).GetShortname() + "\n" );
+			pollMsgs.append( "\n[PUCM] " + baselines.get( 0 ).GetShortname() + "\n[PUCM] " );
+			pollMsgs.append( baselines.get( 1 ).GetShortname() + "\n[PUCM] " );
+			pollMsgs.append( baselines.get( 2 ).GetShortname() + "\n[PUCM] " );
+			pollMsgs.append( "...("+ (i-6) +" baselines not shown)...\n[PUCM] " );
+			pollMsgs.append( baselines.get( i - 3 ).GetShortname() + "\n[PUCM] " );
+			pollMsgs.append( baselines.get( i - 2 ).GetShortname() + "\n[PUCM] " );
 			pollMsgs.append( baselines.get( i - 1 ).GetShortname() + "\n" );
 		}
 	}
