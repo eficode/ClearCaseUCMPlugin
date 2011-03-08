@@ -148,7 +148,7 @@ public class PucmScm extends SCM
 
 		doPostBuild = true;
 
-		jobName = build.getParent().getDisplayName();
+		jobName   = build.getParent().getDisplayName().replace(' ','_');
 		jobNumber = build.getNumber();
 
 		/* If we polled, we should get the same object created at that point */
@@ -189,7 +189,7 @@ public class PucmScm extends SCM
 			}
 			catch ( UCMException e )
 			{
-				consoleOutput.println( "[PUCM] Could not find baseline from parameter." );
+				consoleOutput.println( "[PUCM] Could not find baseline from parameter '"+baselinename+"'." );
 				state.setPostBuild( false );
 				result = false;
 			}
@@ -210,7 +210,7 @@ public class PucmScm extends SCM
 				}
 				catch ( ScmException e )
 				{
-					pollMsgs.append( e.getMessage() );
+					pollMsgs.append( "[PUCM] " + e.getMessage() );
 					result = false;
 				}
 			}
@@ -323,17 +323,11 @@ public class PucmScm extends SCM
 
 		logger.trace_function();
 		logger.debug( id + "PucmSCM Pollingresult" );
-
-		/*
-		 * Make a state object, which is only temporary, only to determine if
-		 * there's baselines to build this object will be stored in checkout
-		 */
-		jobName = project.getDisplayName();
-		jobNumber = project.getNextBuildNumber(); /*
-												 * This number is not the final
-												 * job number
-												 */
-
+		
+		/* Make a state object, which is only temporary, only to determine if there's baselines to build this object will be stored in checkout  */
+		jobName   = project.getDisplayName().replace(' ','_');
+		jobNumber = project.getNextBuildNumber(); /* This number is not the final job number */
+		
 		State state = pucm.getState( jobName, jobNumber );
 
 		PollingResult p;
@@ -351,7 +345,7 @@ public class PucmScm extends SCM
 			logger.info( id + "Polling result = NO CHANGES" );
 			p = PollingResult.NO_CHANGES;
 			PrintStream consoleOut = listener.getLogger();
-			consoleOut.println( pollMsgs + "\n" + e.getMessage() );
+			consoleOut.println( pollMsgs + "\n[PUCM] " + e.getMessage() );
 			pollMsgs = new StringBuffer();
 			logger.debug( id + "Removed job " + state.getJobNumber() + " from list" );
 			state.remove();

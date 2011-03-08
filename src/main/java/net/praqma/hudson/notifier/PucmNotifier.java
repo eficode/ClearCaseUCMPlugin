@@ -483,19 +483,6 @@ public class PucmNotifier extends Notifier
 		}
 	}
 
-	private void persistTag( Tag tag ) throws NotifierException
-	{
-		try
-		{
-			tag = tag.Persist();
-			hudsonOut.println( "Baseline now marked with tag: \n" + tag.Stringify() );
-		}
-		catch ( Exception e )
-		{
-			throw new NotifierException( "Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
-		}
-	}
-
 	public boolean isPromote()
 	{
 		logger.trace_function();
