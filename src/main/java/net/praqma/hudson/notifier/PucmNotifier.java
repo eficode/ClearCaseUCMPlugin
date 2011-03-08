@@ -262,7 +262,6 @@ public class PucmNotifier extends Notifier
 			Logger logger = Logger.getLogger();
 			PrintStream hudsonOut = listener.getLogger();
 			UCM.SetContext( UCM.ContextType.CLEARTOOL );
-			String newPLevel = "";
 
 			/* Create the baseline object */
 			Baseline baseline = null;
@@ -320,8 +319,7 @@ public class PucmNotifier extends Notifier
 					{
 						baseline.Promote();
 						status.setPLevel( true );
-						newPLevel = baseline.GetPromotionLevel( true ).toString();
-						hudsonOut.println( "[PUCM] Baseline promoted to " + newPLevel + "." );
+						hudsonOut.println( "[PUCM] Baseline promoted to " + baseline.GetPromotionLevel( true ).toString() + "." );
 					}
 					catch ( UCMException e )
 					{
@@ -390,8 +388,7 @@ public class PucmNotifier extends Notifier
 						{
 							baseline.Demote();
 							status.setPLevel( true );
-							newPLevel = baseline.GetPromotionLevel( true ).toString();
-							hudsonOut.println( "[PUCM] Baseline is " + newPLevel + "." );
+							hudsonOut.println( "[PUCM] Baseline is " + baseline.GetPromotionLevel( true ).toString() + "." );
 						}
 						catch ( Exception e )
 						{
@@ -408,8 +405,6 @@ public class PucmNotifier extends Notifier
 					tag.SetEntry( "buildstatus", result.toString() );
 					logger.log( id + "Buildstatus (Result) was " + result + ". Not handled by plugin." );
 					hudsonOut.println( "[PUCM] Baseline not changed. Buildstatus: " + result );
-					// throw new NotifierException(
-					// "Baseline not changed. Buildstatus: " + result );
 				}
 
 			/* Persist the Tag */
@@ -426,6 +421,17 @@ public class PucmNotifier extends Notifier
 				}
 			}
 
+			String newPLevel = "";
+			try
+			{
+				newPLevel = baseline.GetPromotionLevel( true ).toString();
+			}
+			catch(UCMException e)
+			{
+				logger.log( id + " Could not get promotionlevel." );
+				hudsonOut.println( "[PUCM] Could not get promotion level." );
+			}
+			
 			status.setBuildDescr( setDisplaystatus( newPLevel, baseline.GetShortname() ) );
 
 			return status;
@@ -438,17 +444,16 @@ public class PucmNotifier extends Notifier
 			// Get shortname
 			s += "<small>" + fqn + "</small>";
 
-			if ( recommended )
-			{
-				if ( status.isRecommended() )
-					s += "<BR/><B>Recommended</B>";
-				else
-					s += "<BR/><B>Could not recommend</B>";
-			}
-
 			// Get plevel:
 			s += "<BR/><small>" + plevel + "</small>";
 
+			if ( recommended )
+			{
+				if ( status.isRecommended() )
+					s += "<BR/<B><small>Recommended</small></B>";
+				else
+					s += "<BR/><B><small>Could not recommend</small></B>";
+			}
 			return s;
 		}
 
