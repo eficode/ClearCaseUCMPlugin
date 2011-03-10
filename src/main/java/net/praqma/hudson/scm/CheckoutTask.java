@@ -113,7 +113,7 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 		}
 		catch ( UCMException e )
 		{
-			throw new ScmException( "Could not get stream. " + e.getMessage() );
+			throw new ScmException( "Could not get stream. Job might run on machine with different region. " + e.getMessage() );
 		}
 		if ( workspace != null )
 		{
@@ -131,7 +131,7 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 
     	File viewroot = new File( workspace.getPath() + "\\view" );
 
-    	hudsonOut.println( "viewtag " + viewtag );
+    	hudsonOut.println( "[PUCM] viewtag " + viewtag );
 
     	try
     	{
@@ -197,16 +197,18 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
     	{
     		try
     		{
-    			hudsonOut.print( "[PUCM] View doesn't exist" );
+    			//View APPARENTLY doesn't exist. Test to see if it exists in other regions using SnapshotView.getRegionWithView(String view);
     			sv = SnapshotView.Create( devstream, viewroot, viewtag );
-    			hudsonOut.println( " - created new view in local workspace" );
+
+    			hudsonOut.print( "[PUCM] View doesn't exist. Created new view in local workspace" );
     			log += logger.log( "The view did not exist and created a new" );
     		}
     		catch ( UCMException e )
     		{
+    			//View couldn't be created or found. Hudson slave might be set in different region.
     			log += logger.warning( id + "The view could not be created" );
     			log += logger.warning( e );
-    			throw new ScmException( "Could not create a new view for workspace. " + e.getMessage() );
+    			throw new ScmException("View not found in this region, but view with viewtag '"+viewtag+"' might exists in the other regions. Try changing the region Hudson or the slave runs in.");
     		}
     	}
 
