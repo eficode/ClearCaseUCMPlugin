@@ -23,7 +23,9 @@ import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.ScmException;
-import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.PraqmaLogger;
+import net.praqma.util.debug.PraqmaLogger.Logger;
+import net.praqma.util.structure.Tuple;
 
 import hudson.FilePath;
 import hudson.FilePath.FileCallable;
@@ -32,7 +34,7 @@ import hudson.remoting.VirtualChannel;
 
 
 
-public class CheckoutTask implements FileCallable<String> {
+public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 	
 	private PrintStream hudsonOut;
 	private Stream integrationstream;
@@ -48,32 +50,30 @@ public class CheckoutTask implements FileCallable<String> {
 	private Integer jobNumber;
 	private String id = "";
 	
-	/*public CheckoutTask(PrintStream hudsonOut, String jobname, Stream integrationstream, String loadModule, Dto dto, String buildProject){
-		this.hudsonOut=hudsonOut;
-		this.integrationstream=integrationstream;
-		this.jobname=jobname;
-		this.loadModule=loadModule;
-		this.bl=dto.getBl();
-		this.buildProject=buildProject;
-	}*/
+	private String log = "";
 	
-	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, String intStream, String loadModule, String baselinefqname, String buildProject )
+	
+	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, String intStream, String loadModule, String baselinefqname, String buildProject, Logger logger )
 	{
-		this.jobname = jobname;
-		this.intStream = intStream;
-		this.loadModule = loadModule;
+		this.jobname        = jobname;
+		this.jobNumber      = jobNumber;
+		this.intStream      = intStream;
+		this.loadModule     = loadModule;
 		this.baselinefqname = baselinefqname;
-		this.buildProject = buildProject;
-		this.listener = listener;
+		this.buildProject   = buildProject;
+		this.listener       = listener;
+		this.logger         = logger;
 		
 		this.id = "[" + jobname + "::" + jobNumber + "]";
 	}
 	
 	
-	public String invoke( File workspace, VirtualChannel channel ) throws IOException
+	public Tuple<String, String> invoke( File workspace, VirtualChannel channel ) throws IOException
 	{
-		logger = Logger.getLogger();
+		PraqmaLogger.getLogger( logger );
 		hudsonOut = listener.getLogger();
+		
+		log += logger.info( "Starting CheckoutTask" );
 		
 		boolean doPostBuild = true;
 		String diff = "";
@@ -88,16 +88,16 @@ public class CheckoutTask implements FileCallable<String> {
 		}
 		catch ( ScmException e )
 		{
-			logger.debug( id + "SCM exception: " + e.getMessage() );
+			log += logger.debug( id + "SCM exception: " + e.getMessage() );
 			hudsonOut.println( "[PUCM] SCM exception: " + e.getMessage() );
 		}
 		catch ( UCMException e )
 		{
-			logger.debug( id + "Could not get changes. " + e.getMessage() );
+			log += logger.debug( id + "Could not get changes. " + e.getMessage() );
 			hudsonOut.println( "[PUCM] Could not get changes. " + e.getMessage() );
 		}
 
-		return diff;
+		return new Tuple<String, String>( diff, log );
 	}
 	
 	
@@ -117,11 +117,11 @@ public class CheckoutTask implements FileCallable<String> {
 		}
 		if ( workspace != null )
 		{
-			logger.debug( id + "workspace: " + workspace.getAbsolutePath() );
+			log += logger.debug( id + "workspace: " + workspace.getAbsolutePath() );
 		}
 		else
 		{
-			logger.debug( id + "workspace must be null???" );
+			log += logger.debug( id + "workspace must be null???" );
 		}
 		
 		StringBuffer notHudsonOut = new StringBuffer();
@@ -176,7 +176,7 @@ public class CheckoutTask implements FileCallable<String> {
     			}
     			catch ( UCMException ucmEe )
     			{
-    				logger.warning( id + "Could regenerate workspace." );
+    				log += logger.warning( id + "Could regenerate workspace." );
     				throw new ScmException( "Could not make workspace - could not regenerate view: " + ucmEe.getMessage() + " Type: " + "" );
     			}
     		}
@@ -189,7 +189,7 @@ public class CheckoutTask implements FileCallable<String> {
     		}
     		catch ( UCMException e )
     		{
-    			logger.warning( id + "Could not get view for workspace. " + e.getMessage() );
+    			log += logger.warning( id + "Could not get view for workspace. " + e.getMessage() );
     			throw new ScmException( "Could not get view for workspace. " + e.getMessage() );
     		}
     	}
@@ -200,11 +200,12 @@ public class CheckoutTask implements FileCallable<String> {
     			hudsonOut.print( "[PUCM] View doesn't exist" );
     			sv = SnapshotView.Create( devstream, viewroot, viewtag );
     			hudsonOut.println( " - created new view in local workspace" );
-    			logger.log( "The view did not exist and created a new" );
+    			log += logger.log( "The view did not exist and created a new" );
     		}
     		catch ( UCMException e )
     		{
-    			logger.warning( id + "The view could not be created" );
+    			log += logger.warning( id + "The view could not be created" );
+    			log += logger.warning( e );
     			throw new ScmException( "Could not create a new view for workspace. " + e.getMessage() );
     		}
     	}
@@ -254,7 +255,9 @@ public class CheckoutTask implements FileCallable<String> {
     		else
     		{
     			if ( buildProject.equals( "" ) )
+    			{
     				buildProject = "hudson";
+    			}
     			devstream = Stream.Create( Config.getIntegrationStream( bl, hudsonOut, buildProject ), streamname + pvob, true, bl );
     		}
     	}

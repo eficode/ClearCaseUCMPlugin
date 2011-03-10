@@ -14,6 +14,7 @@ import org.kohsuke.stapler.StaplerRequest;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
+import net.praqma.clearcase.ucm.entities.Cool;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Tag;
 import net.praqma.clearcase.ucm.entities.UCM;
@@ -21,7 +22,8 @@ import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.hudson.exception.NotifierException;
 import net.praqma.hudson.scm.PucmScm;
 import net.praqma.hudson.scm.PucmState.State;
-import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.PraqmaLogger;
+import net.praqma.util.debug.PraqmaLogger.Logger;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.FilePath.FileCallable;
@@ -65,7 +67,7 @@ public class PucmNotifier extends Notifier
 	
 	private String id = "";
 
-	protected static Logger logger = Logger.getLogger();
+	private Logger logger = null;
 
 	/**
 	 * This constructor is used in the inner class <code>DescriptorImpl</code>.
@@ -82,7 +84,6 @@ public class PucmNotifier extends Notifier
 	 */
 	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag, boolean setDescription )
 	{
-		logger.trace_function();
 		this.promote = promote;
 		this.recommended = recommended;
 		this.makeTag = makeTag;
@@ -92,22 +93,32 @@ public class PucmNotifier extends Notifier
 	@Override
 	public boolean needsToRunAfterFinalized()
 	{
-		logger.trace_function();
 		return true;
 	}
 
 	public BuildStepMonitor getRequiredMonitorService()
 	{
-		logger.trace_function();
 		return BuildStepMonitor.NONE;
 	}
 
 	@Override
 	public boolean perform( AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener ) throws InterruptedException, IOException
 	{
+		logger = PraqmaLogger.getLogger();
 		logger.trace_function();
 		boolean result = true;
 		hudsonOut = listener.getLogger();
+		
+		if ( build.getBuildVariables().get( "include_classes" ) != null )
+		{
+			String[] is = build.getBuildVariables().get( "include_classes" ).toString().split( "," );
+			for( String i : is )
+			{
+				logger.subscribe( i.trim() );
+			}
+		}
+		
+		Cool.setLogger( logger );
 
 		status = new Status();
 		
@@ -214,7 +225,7 @@ public class PucmNotifier extends Notifier
 	 * @author wolfgang
 	 *
 	 */
-	private static class RemoteTagTask implements Callable<Status, IOException>, Serializable
+	private static class RemotePostBuildTask implements Callable<Status, IOException>, Serializable
 	{
 		private static final long serialVersionUID = 1L;
 		private String displayName;
@@ -233,7 +244,9 @@ public class PucmNotifier extends Notifier
 		
 		private String id = "";
 		
-		public RemoteTagTask( Result result, Status status, BuildListener listener, boolean makeTag, boolean promote, boolean recommended, String baseline, String stream, String displayName, String buildNumber )
+		private Logger logger = null;
+		
+		public RemotePostBuildTask( Result result, Status status, BuildListener listener, boolean makeTag, boolean promote, boolean recommended, String baseline, String stream, String displayName, String buildNumber, Logger logger )
 		{
 			this.displayName = displayName;
 			this.buildNumber = buildNumber;
@@ -250,14 +263,18 @@ public class PucmNotifier extends Notifier
 			this.recommended = recommended;
 			this.status      = status;
 			this.listener    = listener;
+			
+			this.logger = logger;
 		}
 
 		public Status call() throws IOException
 		{
-			Logger logger = Logger.getLogger();
+			PraqmaLogger.getLogger( logger );
 			PrintStream hudsonOut = listener.getLogger();
 			UCM.SetContext( UCM.ContextType.CLEARTOOL );
 			String newPLevel = "";
+			
+			status.addToLog( logger.info( "Starting PostBuild task" ) );
 			
 			/* Create the baseline object */
 			Baseline baseline = null;
@@ -267,7 +284,7 @@ public class PucmNotifier extends Notifier
 			}
 			catch( UCMException e )
 			{
-				logger.debug( id + "could not create Baseline object:" + e.getMessage() );
+				status.addToLog( logger.debug( id + "could not create Baseline object:" + e.getMessage() ) );
 				throw new IOException( "[PUCM] Could not create Baseline object: " + e.getMessage() );
 			}
 			
@@ -279,7 +296,7 @@ public class PucmNotifier extends Notifier
 			}
 			catch( UCMException e )
 			{
-				logger.debug( id + "could not create Stream object:" + e.getMessage() );
+				status.addToLog( logger.debug( id + "could not create Stream object:" + e.getMessage() ) );
 				throw new IOException( "[PUCM] Could not create Stream object: " + e.getMessage() );
 			}			
 			
@@ -296,7 +313,7 @@ public class PucmNotifier extends Notifier
 				catch ( UCMException e )
 				{
 					hudsonOut.println( "[PUCM] Could not get Tag: " + e.getMessage() );
-					logger.warning( id + "Could not get Tag: " + e.getMessage() );
+					status.addToLog( logger.warning( id + "Could not get Tag: " + e.getMessage() ) );
 				}
 			}
 			
@@ -329,7 +346,7 @@ public class PucmNotifier extends Notifier
 							recommended = false;
 							//throw new NotifierException( "Could not promote baseline and will not recommend. " + e.getMessage() );
 							hudsonOut.println( "[PUCM] Could not promote baseline and will not recommend. " + e.getMessage() );
-							logger.warning( id + "Could not promote baseline and will not recommend. " + e.getMessage() );
+							status.addToLog( logger.warning( id + "Could not promote baseline and will not recommend. " + e.getMessage() ) );
 						}
 						else
 						{
@@ -337,7 +354,7 @@ public class PucmNotifier extends Notifier
 							// ok to break method here
 							//throw new NotifierException( "Could not promote baseline. " + e.getMessage() );
 							hudsonOut.println( "[PUCM] Could not promote baseline. " + e.getMessage() );
-							logger.warning( id + "Could not promote baseline. " + e.getMessage() );
+							status.addToLog( logger.warning( id + "Could not promote baseline. " + e.getMessage() ) );
 						}
 					}
 				}
@@ -359,7 +376,7 @@ public class PucmNotifier extends Notifier
 						//throw new NotifierException( "Could not recommend baseline. Reason: " + e.getMessage() );
 						status.setStable( false );
 						hudsonOut.println( "[PUCM] Could not recommend baseline. Reason: " + e.getMessage() );
-						logger.warning( id + "Could not recommend baseline. Reason: " + e.getMessage() );
+						status.addToLog( logger.warning( id + "Could not recommend baseline. Reason: " + e.getMessage() ) );
 					}
 				}
 			}
@@ -385,14 +402,14 @@ public class PucmNotifier extends Notifier
 						status.setStable( false );
 						//throw new NotifierException( "Could not demote baseline. " + e.getMessage() );
 						hudsonOut.println( "[PUCM] Could not demote baseline. " + e.getMessage() );
-						logger.warning( id + "Could not demote baseline. " + e.getMessage() );
+						status.addToLog( logger.warning( id + "Could not demote baseline. " + e.getMessage() ) );
 					}
 			}
 			/* Result not handled by PUCM */
 			else
 			{
 				tag.SetEntry( "buildstatus", result.toString() );
-				logger.log( id + "Buildstatus (Result) was " + result + ". Not handled by plugin." );
+				status.addToLog( logger.log( id + "Buildstatus (Result) was " + result + ". Not handled by plugin." ) );
 				hudsonOut.println( "[PUCM] Baseline not changed. Buildstatus: " + result );
 				//throw new NotifierException( "Baseline not changed. Buildstatus: " + result );
 			}
@@ -454,7 +471,8 @@ public class PucmNotifier extends Notifier
 		try
 		{
 			logger.debug( id + "Trying to run TagTask" );
-			status = ch.call( new RemoteTagTask( buildResult, status, listener, makeTag, promote, recommended, pstate.getBaseline().GetFQName(), pstate.getStream().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) ) );
+			status = ch.call( new RemotePostBuildTask( buildResult, status, listener, makeTag, promote, recommended, pstate.getBaseline().GetFQName(), pstate.getStream().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), logger ) );
+			logger.empty( status.getLog() );
 		}
 		catch ( Exception e )
 		{
@@ -517,14 +535,14 @@ public class PucmNotifier extends Notifier
 		public DescriptorImpl()
 		{
 			super( PucmNotifier.class );
-			logger.trace_function();
+			//logger.trace_function();
 			load();
 		}
 
 		@Override
 		public String getDisplayName()
 		{
-			logger.trace_function();
+			//logger.trace_function();
 			return "Praqmatic UCM";
 		}
 
@@ -537,7 +555,7 @@ public class PucmNotifier extends Notifier
 		@Override
 		public Notifier newInstance( StaplerRequest req, JSONObject formData ) throws FormException
 		{
-			logger.trace_function();
+			//logger.trace_function();
 			boolean promote = req.getParameter( "Pucm.promote" ) != null;
 			boolean recommended = req.getParameter( "Pucm.recommended" ) != null;
 			boolean makeTag = req.getParameter( "Pucm.makeTag" ) != null;
@@ -549,14 +567,14 @@ public class PucmNotifier extends Notifier
 		@Override
 		public boolean isApplicable( Class<? extends AbstractProject> arg0 )
 		{
-			logger.trace_function();
+			//logger.trace_function();
 			return true;
 		}
 
 		@Override
 		public String getHelpFile()
 		{
-			logger.trace_function();
+			//logger.trace_function();
 			return "/plugin/PucmScm/notifier/help.html";
 		}
 	}

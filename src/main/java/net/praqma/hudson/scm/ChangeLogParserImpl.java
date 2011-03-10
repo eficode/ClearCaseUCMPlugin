@@ -16,7 +16,8 @@ import hudson.scm.ChangeLogSet;
 import hudson.scm.ChangeLogSet.Entry;
 import hudson.util.Digester2;
 
-import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.PraqmaLogger;
+import net.praqma.util.debug.PraqmaLogger.Logger;
 
 /**
  * 
@@ -27,7 +28,7 @@ import net.praqma.util.debug.Logger;
 public class ChangeLogParserImpl extends ChangeLogParser
 {
 
-	protected static Logger logger = Logger.getLogger();
+	protected static Logger logger = PraqmaLogger.getLogger();
 
 	@Override
 	public ChangeLogSet<? extends Entry> parse( AbstractBuild build, File changelogFile ) throws IOException, SAXException
