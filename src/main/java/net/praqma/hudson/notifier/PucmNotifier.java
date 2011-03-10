@@ -442,7 +442,6 @@ public class PucmNotifier extends Notifier
 				}
 			}
 
-			String newPLevel = "";
 			try
 			{
 				newPLevel = baseline.GetPromotionLevel( true ).toString();

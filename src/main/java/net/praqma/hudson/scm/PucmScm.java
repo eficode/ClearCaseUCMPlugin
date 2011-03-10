@@ -185,9 +185,9 @@ public class PucmScm extends SCM
 		if ( build.getBuildVariables().get( "include_classes" ) != null )
 		{
 			String[] is = build.getBuildVariables().get( "include_classes" ).toString().split( "," );
-			for ( String i : is )
+			for( String i : is )
 			{
-				logger.includeClass( i.trim() );
+				logger.subscribe( i.trim() );
 			}
 		}
 		
