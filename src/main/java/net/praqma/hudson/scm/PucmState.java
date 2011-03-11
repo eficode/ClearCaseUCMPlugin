@@ -12,7 +12,8 @@ import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
-import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.PraqmaLogger;
+import net.praqma.util.debug.PraqmaLogger.Logger;
 
 /**
  * 
@@ -23,7 +24,7 @@ public class PucmState
 {
 	private List<State> states          = Collections.synchronizedList( new ArrayList<State>() );
 	private static final String linesep = System.getProperty( "line.separator" );
-	private Logger logger               = Logger.getLogger();
+	private Logger logger               = PraqmaLogger.getLogger();
 	
 	/**
 	 * Get a state given job name and job number
@@ -158,6 +159,8 @@ public class PucmState
 		private String    jobName;
 		private Integer   jobNumber;
 		
+		private Logger logger;
+		
 		
 		public State(){}
 		public State( String jobName, Integer jobNumber )
@@ -165,6 +168,7 @@ public class PucmState
 			this.jobName   = jobName;
 			this.jobNumber = jobNumber;
 		}
+		
 		public State( String jobName, Integer jobNumber, Baseline baseline, Stream stream, Component component, boolean doPostBuild )
 		{
 			this.jobName     = jobName;
@@ -241,6 +245,15 @@ public class PucmState
 		public Project.Plevel getPlevel()
 		{
 			return plevel;
+		}
+		
+		public void setLogger( Logger logger )
+		{
+			this.logger = logger;
+		}
+		public Logger getLogger()
+		{
+			return logger;
 		}
 		
 		public String stringify()

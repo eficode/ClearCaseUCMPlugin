@@ -4,7 +4,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.PraqmaLogger;
+import net.praqma.util.debug.PraqmaLogger.Logger;
 
 import hudson.model.AbstractBuild;
 import hudson.scm.ChangeLogSet;
@@ -21,7 +22,7 @@ import hudson.scm.ChangeLogSet;
 public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl>
 {
 
-	protected static Logger logger = Logger.getLogger();
+	protected static Logger logger = PraqmaLogger.getLogger();
 	private List<ChangeLogEntryImpl> entries = null;
 	private String baselineName;
 

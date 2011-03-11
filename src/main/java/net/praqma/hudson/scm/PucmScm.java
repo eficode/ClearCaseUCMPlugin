@@ -35,10 +35,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import net.praqma.clearcase.ucm.UCMException;
+import net.praqma.clearcase.ucm.entities.Cool;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Component;
+import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.utils.BaselineList;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
@@ -50,7 +52,9 @@ import net.praqma.clearcase.ucm.utils.BaselineDiff;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.scm.PucmState.State;
-import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.PraqmaLogger;
+import net.praqma.util.debug.PraqmaLogger.Logger;
+import net.praqma.util.structure.Tuple;
 import net.sf.json.JSONObject;
 //import net.praqma.hudson.Version;
 
@@ -92,8 +96,8 @@ public class PucmScm extends SCM
 
 	private String id = "";
 
-	protected static Logger logger = Logger.getLogger();
-
+	private Logger logger = null;
+	
 	public static PucmState pucm = new PucmState();
 
 	/**
@@ -120,6 +124,7 @@ public class PucmScm extends SCM
 	@DataBoundConstructor
 	public PucmScm( String component, String levelToPoll, String loadModule, String stream, boolean newest, boolean testing, String buildProject )
 	{
+		this.logger = PraqmaLogger.getLogger();
 		logger.trace_function();
 		logger.debug( "PucmSCM constructor" );
 		this.component = component;
@@ -133,7 +138,24 @@ public class PucmScm extends SCM
 	@Override
 	public boolean checkout( AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile ) throws IOException, InterruptedException
 	{
-		logger.trace_function();
+		logger = PraqmaLogger.getLogger();
+		File rdir = build.getRootDir();
+		File pdir = build.getProject().getRootDir();
+		logger.setLocalLog( new File( rdir + System.getProperty( "file.separator" ) + "log.log" ) );
+		
+		if ( build.getBuildVariables().get( "include_classes" ) != null )
+		{
+			String[] is = build.getBuildVariables().get( "include_classes" ).toString().split( "," );
+			for( String i : is )
+			{
+				logger.subscribe( i.trim() );
+			}
+		}
+		
+		Cool.setLogger( logger );
+		
+		logger.debug( "pdir=" + pdir );
+
 		logger.debug( "PucmSCM checkout" );
 		boolean result = true;
 
@@ -154,6 +176,8 @@ public class PucmScm extends SCM
 		/* If we polled, we should get the same object created at that point */
 		State state = pucm.getState( jobName, jobNumber );
 
+		state.setLogger( logger );
+		
 		logger.debug( id + "The initial state:\n" + state.stringify() );
 
 		this.id = "[" + jobName + "::" + jobNumber + "]";
@@ -161,9 +185,9 @@ public class PucmScm extends SCM
 		if ( build.getBuildVariables().get( "include_classes" ) != null )
 		{
 			String[] is = build.getBuildVariables().get( "include_classes" ).toString().split( "," );
-			for ( String i : is )
+			for( String i : is )
 			{
-				logger.includeClass( i.trim() );
+				logger.subscribe( i.trim() );
 			}
 		}
 		
@@ -269,14 +293,13 @@ public class PucmScm extends SCM
 					consoleOutput.println( "[PUCM] buildProject is null" );
 				}
 
-				/*
-				 * if( bl == null ) { consoleOutput.println( "[PUCM] bl is null"
-				 * ); }
-				 */
+				CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), state.getStream().GetFQName(), loadModule, state.getBaseline().GetFQName(), buildProject, logger );
 
-				CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), state.getStream().GetFQName(), loadModule, state.getBaseline().GetFQName(), buildProject );
-				String changelog = workspace.act( ct );
-
+				//String changelog = workspace.act( ct );
+				Tuple<String, String> ctresult = workspace.act( ct );
+				String changelog = ctresult.t1;
+				logger.empty( ctresult.t2 );
+				
 				/* Write change log */
 				try
 				{
@@ -295,6 +318,8 @@ public class PucmScm extends SCM
 			catch ( Exception e )
 			{
 				consoleOutput.println( "[PUCM] An unknown error occured: " + e.getMessage() );
+				logger.warning( e );
+				e.printStackTrace( consoleOutput );
 				doPostBuild = false;
 				result = false;
 			}
@@ -319,6 +344,7 @@ public class PucmScm extends SCM
 	@Override
 	public PollingResult compareRemoteRevisionWith( AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState baseline ) throws IOException, InterruptedException
 	{
+		logger = PraqmaLogger.getLogger();
 		this.id = "[" + project.getDisplayName() + "::" + project.getNextBuildNumber() + "]";
 
 		logger.trace_function();
@@ -627,7 +653,6 @@ public class PucmScm extends SCM
 		public PucmScmDescriptor()
 		{
 			super( PucmScm.class, null );
-			logger.trace_function();
 			loadModules = getLoadModules();
 			load();
 			Config.setContext();
@@ -640,7 +665,6 @@ public class PucmScm extends SCM
 		@Override
 		public boolean configure( org.kohsuke.stapler.StaplerRequest req, JSONObject json ) throws FormException
 		{
-			logger.trace_function();
 			cleartool = req.getParameter( "PUCM.cleartool" ).trim();
 			save();
 			return true;
@@ -652,7 +676,6 @@ public class PucmScm extends SCM
 		@Override
 		public String getDisplayName()
 		{
-			logger.trace_function();
 			return "Praqmatic UCM";
 		}
 
@@ -665,7 +688,6 @@ public class PucmScm extends SCM
 		 */
 		public FormValidation doExecutableCheck( @QueryParameter String value )
 		{
-			logger.trace_function();
 			return FormValidation.validateExecutable( value );
 		}
 
@@ -677,7 +699,6 @@ public class PucmScm extends SCM
 		 */
 		public String getCleartool()
 		{
-			logger.trace_function();
 			if ( cleartool == null || cleartool.equals( "" ) )
 			{
 				return "cleartool";
@@ -694,7 +715,6 @@ public class PucmScm extends SCM
 		 */
 		public List<String> getLevels()
 		{
-			logger.trace_function();
 			return Config.getLevels();
 		}
 
@@ -706,7 +726,6 @@ public class PucmScm extends SCM
 		 */
 		public List<String> getLoadModules()
 		{
-			logger.trace_function();
 			loadModules = new ArrayList<String>();
 			loadModules.add( "All" );
 			loadModules.add( "Modifiable" );
