@@ -276,6 +276,9 @@ public class PucmNotifier extends Notifier
 		public Status call() throws IOException
 		{
 			PraqmaLogger.getLogger( logger );
+			/* Make sure that the local log file is not written */
+			logger.setLocalLog( null );
+			Cool.setLogger( logger );
 			PrintStream hudsonOut = listener.getLogger();
 			UCM.SetContext( UCM.ContextType.CLEARTOOL );
 

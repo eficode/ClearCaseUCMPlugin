@@ -13,6 +13,7 @@ import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.utils.BaselineDiff;
 import net.praqma.clearcase.ucm.entities.Activity;
+import net.praqma.clearcase.ucm.entities.Cool;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
@@ -71,6 +72,9 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 	public Tuple<String, String> invoke( File workspace, VirtualChannel channel ) throws IOException
 	{
 		PraqmaLogger.getLogger( logger );
+		/* Make sure that the local log file is not written */
+		logger.setLocalLog( null );
+		Cool.setLogger( logger );
 		hudsonOut = listener.getLogger();
 		
 		log += logger.info( "Starting CheckoutTask" );
