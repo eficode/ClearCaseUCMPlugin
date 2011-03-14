@@ -136,7 +136,7 @@ public class PucmScm extends SCM
 	}
 
 	@Override
-	public boolean checkout( AbstractBuild build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile ) throws IOException, InterruptedException
+	public boolean checkout( AbstractBuild<?, ?> build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile ) throws IOException, InterruptedException
 	{
 		logger = PraqmaLogger.getLogger();
 		File rdir = build.getRootDir();
@@ -175,6 +175,7 @@ public class PucmScm extends SCM
 
 		/* If we polled, we should get the same object created at that point */
 		State state = pucm.getState( jobName, jobNumber );
+		state.setLoadModule( loadModule );
 
 		state.setLogger( logger );
 		
@@ -192,8 +193,10 @@ public class PucmScm extends SCM
 		}
 		
 		String baselinevalue = "";
-		Collection c = build.getBuildVariables().keySet();
-		Iterator i = c.iterator();
+		Collection<?> c = build.getBuildVariables().keySet();
+		Iterator<?> i = c.iterator();
+		
+		//hudson.remoting.pipe
 		
 		while ( i.hasNext() )
 		{

@@ -4,6 +4,7 @@ This should be the file that makes it possible to select our notifier in the "po
 
 -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
 	<f:entry title="Promote" help="/plugin/PUCM/notifier/help-promoteToLevel.html">
 	    <f:checkbox name="Pucm.promote" checked="${h.defaultToTrue(instance.promote)}" />
 	</f:entry>
@@ -16,4 +17,40 @@ This should be the file that makes it possible to select our notifier in the "po
 	<f:entry title="Set description" help="/plugin/PUCM/notifier/help-setDescription.html">
 	    <f:checkbox name="Pucm.setDescription" checked="${instance.setDescription}" />
 	</f:entry>
+	
+	
+	<f:advanced>
+
+		<f:nested>
+			<h2>UCM Deliver</h2>
+			<table>
+				<f:entry title="Use UCM Deliver">
+					<f:checkbox name="Pucm.ucm_deliver" checked="${instance.ucm_deliver}" />
+				</f:entry>
+				
+				<!--
+				<f:entry title="Default target" help="/plugin/PUCM/notifier/help-recommendBaseline.html">
+				    <f:checkbox name="Pucm.default_target" checked="${h.defaultToTrue(instance.default_target)}" />
+				</f:entry>
+				-->
+				
+			    <f:entry title="Alternate target" help="/plugin/PUCM/scm/help-buildProject.html">
+		      		<f:textbox name="Pucm.alternate_target" value="${scm.alternate_target}"/>
+		    	</f:entry>
+		    	
+		    	<!--
+				<f:entry title="Create Baseline on target" help="/plugin/PUCM/notifier/help-recommendBaseline.html">
+				    <f:checkbox name="Pucm.default_target" checked="${h.defaultToTrue(instance.create_baseline)}" />
+				</f:entry>
+				-->
+				
+			    <f:entry title="Baseline name" help="/plugin/PUCM/scm/help-buildProject.html">
+		      		<f:textbox name="Pucm.baseline_name" value="${scm.baseline_name}"/>
+		    	</f:entry>
+		    </table>
+		</f:nested>
+	    
+
+	</f:advanced>
+	
 </j:jelly>

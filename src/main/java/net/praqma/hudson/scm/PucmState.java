@@ -155,6 +155,7 @@ public class PucmState
 		private boolean   doPostBuild = true;
 		
 		private Project.Plevel plevel;
+		private String loadModule;
 		
 		private String    jobName;
 		private Integer   jobNumber;
@@ -260,13 +261,14 @@ public class PucmState
 		{
 			StringBuffer sb = new StringBuffer();
 			
-			sb.append( "Job name  : " + this.jobName + linesep );
-			sb.append( "Job number: " + this.jobNumber + linesep );
-			sb.append( "Component : " + this.component + linesep );
-			sb.append( "Stream    : " + this.stream + linesep );
-			sb.append( "Baseline  : " + this.baseline + linesep );
-			sb.append( "Plevel    : " + ( this.plevel != null ? this.plevel.toString() : "Missing" ) + linesep );
-			sb.append( "postBuild : " + this.doPostBuild + linesep );
+			sb.append( "Job name    : " + this.jobName + linesep );
+			sb.append( "Job number  : " + this.jobNumber + linesep );
+			sb.append( "Component   : " + this.component + linesep );
+			sb.append( "Stream      : " + this.stream + linesep );
+			sb.append( "Baseline    : " + this.baseline + linesep );
+			sb.append( "Plevel      : " + ( this.plevel != null ? this.plevel.toString() : "Missing" ) + linesep );
+			sb.append( "Load Module : " + this.loadModule + linesep );
+			sb.append( "postBuild   : " + this.doPostBuild + linesep );
 			
 			return sb.toString();
 		}
@@ -274,6 +276,14 @@ public class PucmState
 		public String toString()
 		{
 			return "(" + jobName + ", " + jobNumber + ")";
+		}
+		public void setLoadModule( String loadModule )
+		{
+			this.loadModule = loadModule;
+		}
+		public String getLoadModule()
+		{
+			return loadModule;
 		}
 	}
 	
