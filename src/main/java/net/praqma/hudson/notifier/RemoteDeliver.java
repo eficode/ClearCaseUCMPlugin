@@ -15,10 +15,12 @@ import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Cool;
+import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Tag;
 import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
+import net.praqma.clearcase.ucm.utils.BuildNumber;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
@@ -47,7 +49,7 @@ class RemoteDeliver implements FileCallable<Integer>
 
 	private String id = "";
 	
-	/* Advanced */
+	private boolean apply4level;
 	private String alternateTarget;
 	private String baselineName;
 	private String component;
@@ -62,8 +64,8 @@ class RemoteDeliver implements FileCallable<Integer>
 								/* Values for advanced */
 								String alternateTarget/*, boolean createBaseline*/, String baselineName, String component, String loadModule,
 								/* Common values */
-								String baseline, String stream,
-								String jobName, String buildNumber, 
+								String baseline,
+								String jobName, String buildNumber, boolean apply4level,
 								Logger logger )
 	{
 		this.jobName = jobName;
@@ -72,7 +74,7 @@ class RemoteDeliver implements FileCallable<Integer>
 		this.id = "[" + jobName + "::" + buildNumber + "]";
 
 		this.baseline = baseline;
-		this.stream = stream;
+		this.stream = "";
 
 		this.status      = status;
 		this.listener    = listener;
@@ -81,6 +83,8 @@ class RemoteDeliver implements FileCallable<Integer>
 		this.baselineName    = baselineName;
 		this.component       = component;
 		this.loadModule      = loadModule;
+		
+		this.apply4level     = apply4level;
 		
 		this.logger = logger;
 	}
@@ -110,6 +114,9 @@ class RemoteDeliver implements FileCallable<Integer>
 		}
 		
 		/* Create the development stream object */
+		/* Append vob to dev stream */
+		this.stream = "pucm_" + System.getenv( "COMPUTERNAME" ) + "_" + jobName + "@" + baseline.GetPvob();
+		
 		Stream stream = null;
 		try
 		{
@@ -121,6 +128,7 @@ class RemoteDeliver implements FileCallable<Integer>
 			status.addToLog( logger.debug( id + "could not create Stream object:" + e.getMessage() ) );
 			throw new IOException( "[PUCM] Could not create Stream object: " + e.getMessage() );
 		}
+		
 		
 		/* Create the component object */
 		Component component = null;
@@ -205,11 +213,29 @@ class RemoteDeliver implements FileCallable<Integer>
 		/* Make baseline */
 		if( baselineName.length() > 0 )
 		{
+			/* Four level version number */
+			String number = "";
+			if( apply4level )
+			{
+				try
+				{
+					Project project = target.getProject();
+					number = BuildNumber.getBuildNumber( project );
+				}
+				catch ( UCMException e )
+				{
+					status.addToLog( logger.warning( id + "Could not get four level version" ) );
+					status.addToLog( logger.warning( e ) );
+					throw new IOException( "Could not get four level version: " + e.getMessage() );
+				}
+			}
+			
+			/* Create the baseline */
 			Baseline newbl = null;
 			try
 			{
 				status.addToLog( logger.info( id + "Creating new baseline " + baselineName ) );
-				newbl = Baseline.create( baselineName + "@" + target.GetPvob(), component, view.GetViewRoot(), false, false );
+				newbl = Baseline.create( baselineName + number, component, view.GetViewRoot(), false, false );
 			}
 			catch ( UCMException e )
 			{

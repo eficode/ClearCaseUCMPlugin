@@ -72,7 +72,8 @@ public class PucmNotifier extends Notifier
 
 	private String id = "";
 	
-	private boolean UCMDeliver = false;
+	private boolean ucmDeliver  = false;
+	private boolean apply4level = true;
 	//private boolean defaultTarget = true;
 	private String alternateTarget;
 	//private boolean createBaseline = true;
@@ -93,7 +94,7 @@ public class PucmNotifier extends Notifier
 	 *            if <code>true</code>, pucm will set a Tag() on the baseline in
 	 *            ClearCase.
 	 */
-	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag, boolean setDescription, boolean UCMDeliver/*, boolean defaultTarget*/, String alternateTarget/*, boolean createBaseline*/, String baselineName )
+	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag, boolean setDescription, boolean ucmDeliver/*, boolean defaultTarget*/, String alternateTarget/*, boolean createBaseline*/, String baselineName, boolean apply4level )
 	{
 		this.promote         = promote;
 		this.recommended     = recommended;
@@ -101,7 +102,8 @@ public class PucmNotifier extends Notifier
 		this.setDescription  = setDescription;
 		
 		/* Advanced */
-		this.UCMDeliver      = UCMDeliver;
+		this.ucmDeliver      = ucmDeliver;
+		this.apply4level     = apply4level;
 		//this.defaultTarget   = defaultTarget;
 		this.alternateTarget = alternateTarget;
 		//this.createBaseline  = createBaseline;
@@ -267,16 +269,16 @@ public class PucmNotifier extends Notifier
 		try
 		{
 			logger.debug( id + "Trying to run remote tasks" );
-			if( UCMDeliver )
+			if( ucmDeliver )
 			{
 				logger.debug( id + "UCM deliver" );
 				
-				String devstream = "pucm_" + System.getenv( "COMPUTERNAME" ) + "_" + build.getParent().getDisplayName() + "@" + pstate.getStream().GetPvob();
-				logger.debug( id + "Deliver to " + devstream );
+				//String devstream = "pucm_" + System.getenv( "COMPUTERNAME" ) + "_" + build.getParent().getDisplayName() + "@" + pstate.getStream().GetPvob();
+				//logger.debug( id + "Deliver to " + devstream );
 				int i = 0;
 				try
 				{
-					i = workspace.act( new RemoteDeliver( buildResult, status, listener, alternateTarget, baselineName, pstate.getComponent().GetFQName(), pstate.getLoadModule(), pstate.getBaseline().GetFQName(), devstream, build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), logger ) );
+					i = workspace.act( new RemoteDeliver( buildResult, status, listener, alternateTarget, baselineName, pstate.getComponent().GetFQName(), pstate.getLoadModule(), pstate.getBaseline().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), apply4level, logger ) );
 				}
 				catch( IOException e )
 				{
@@ -306,13 +308,11 @@ public class PucmNotifier extends Notifier
 
 	public boolean isPromote()
 	{
-		logger.trace_function();
 		return promote;
 	}
 
 	public boolean isRecommended()
 	{
-		logger.trace_function();
 		return recommended;
 	}
 
@@ -326,9 +326,24 @@ public class PucmNotifier extends Notifier
 		return setDescription;
 	}
 	
-	public String getbaseline_name()
+	public boolean isUcmDeliver()
+	{
+		return ucmDeliver;
+	}
+	
+	public boolean isApply4level()
+	{
+		return apply4level;
+	}
+	
+	public String getBaselineName()
 	{
 		return baselineName;
+	}
+	
+	public String getAlternateTarget()
+	{
+		return alternateTarget;
 	}
 
 	/**
@@ -368,15 +383,16 @@ public class PucmNotifier extends Notifier
 			boolean promote         = req.getParameter( "Pucm.promote" ) != null;
 			boolean recommended     = req.getParameter( "Pucm.recommended" ) != null;
 			boolean makeTag         = req.getParameter( "Pucm.makeTag" ) != null;
-			boolean setDescription  = req.getParameter( "Pucm.alternate_target" ) != null;
+			boolean setDescription  = req.getParameter( "Pucm.setDescription" ) != null;
 			
-			boolean UCMDeliver      = req.getParameter( "Pucm.ucm_deliver" ) != null;
+			boolean ucmDeliver      = req.getParameter( "Pucm.ucmDeliver" ) != null;
+			boolean apply4level     = req.getParameter( "Pucm.apply4level" ) != null;
 			//boolean defaultTarget   = req.getParameter( "Pucm.default_target" ) != null;
-			String alternateTarget  = req.getParameter( "Pucm.alternate_target" );
+			String alternateTarget  = req.getParameter( "Pucm.alternateTarget" );
 			//boolean createBaseline  = req.getParameter( "Pucm.create_baseline" ) != null;
-			String baselineName     = req.getParameter( "Pucm.baseline_name" );
+			String baselineName     = req.getParameter( "Pucm.baselineName" );
 			save();
-			return new PucmNotifier( promote, recommended, makeTag, setDescription, UCMDeliver/*, defaultTarget*/, alternateTarget/*, createBaseline*/, baselineName );
+			return new PucmNotifier( promote, recommended, makeTag, setDescription, ucmDeliver/*, defaultTarget*/, alternateTarget/*, createBaseline*/, baselineName, apply4level );
 		}
 
 		@Override

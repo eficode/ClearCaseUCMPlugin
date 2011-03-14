@@ -25,28 +25,20 @@ This should be the file that makes it possible to select our notifier in the "po
 			<h2>UCM Deliver</h2>
 			<table>
 				<f:entry title="Use UCM Deliver">
-					<f:checkbox name="Pucm.ucm_deliver" checked="${instance.ucm_deliver}" />
+					<f:checkbox name="Pucm.ucmDeliver" checked="${instance.ucmDeliver}" />
 				</f:entry>
-				
-				<!--
-				<f:entry title="Default target" help="/plugin/PUCM/notifier/help-recommendBaseline.html">
-				    <f:checkbox name="Pucm.default_target" checked="${h.defaultToTrue(instance.default_target)}" />
-				</f:entry>
-				-->
 				
 			    <f:entry title="Alternate target" help="/plugin/PUCM/scm/help-buildProject.html">
-		      		<f:textbox name="Pucm.alternate_target" value="${scm.alternate_target}"/>
+		      		<f:textbox name="Pucm.alternateTarget" value="${instance.alternateTarget}"/>
 		    	</f:entry>
 		    	
-		    	<!--
-				<f:entry title="Create Baseline on target" help="/plugin/PUCM/notifier/help-recommendBaseline.html">
-				    <f:checkbox name="Pucm.default_target" checked="${h.defaultToTrue(instance.create_baseline)}" />
-				</f:entry>
-				-->
-				
 			    <f:entry title="Baseline name" help="/plugin/PUCM/scm/help-buildProject.html">
-		      		<f:textbox name="Pucm.baseline_name" value="${scm.baseline_name}"/>
+		      		<f:textbox name="Pucm.baselineName" value="${instance.baselineName}"/>
 		    	</f:entry>
+		    	
+				<f:entry title="Apply four level version number to baseline" help="/plugin/PUCM/notifier/help-recommendBaseline.html">
+				    <f:checkbox name="Pucm.apply4level" checked="${h.defaultToTrue(instance.apply4level)}" />
+				</f:entry>
 		    </table>
 		</f:nested>
 	    
