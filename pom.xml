@@ -3,15 +3,51 @@
   <parent>
     <groupId>org.jvnet.hudson.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.373</version><!-- which version of Hudson is this plugin built against? -->
+    <version>1.373</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <groupId>net.praqma</groupId>
   <artifactId>PUCM</artifactId>
-  <version>0.2.5</version>
+  <version>0.2.6</version>
   <name>PUCM</name>
+  <description>Integrates Jenkins to ClearCase UCM</description>
+  <url></url>
   <packaging>hpi</packaging>
+
+  <distributionManagement>
+   <repository>
+    <id>maven.jenkins-ci.org</id>
+    <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
+   </repository>
+  </distributionManagement>
+
+  <developers>
+    <developer>
+      <name>Christian Wolfgang</name>
+    </developer>
+    <developer>
+      <name>Troels Selch</name>
+    </developer>
+    <developer>
+      <name>Margit Bennetzen</name>
+    </developer>
+    <developer>
+      <name>Lars Kruse</name>
+      <email>pucm@praqma.net</email>
+    </developer>
+  </developers>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <goals>deploy</goals><!--because plugin is built against version before 1.387-->
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
   <dependencies>
     <dependency>
       <groupId>net.praqma</groupId>
