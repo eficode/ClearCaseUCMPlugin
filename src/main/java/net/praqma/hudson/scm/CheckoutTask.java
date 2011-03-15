@@ -309,7 +309,7 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 			String temp;
 			for ( Version v : versions )
 			{
-				temp = "<file>" + v.GetSFile() + "[" + v.GetRevision() + "] user: " + v.Blame() + "</file>";
+				temp = "<file>" + v.GetSFile() + " (" + v.GetRevision() + ") user: " + v.Blame() + "</file>";
 				buffer.append( temp );
 			}
 			buffer.append( "</activity>" );
