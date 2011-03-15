@@ -1,9 +1,12 @@
 package net.praqma.hudson.notifier;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -44,6 +47,8 @@ import hudson.model.Node;
 import hudson.remoting.Callable;
 import hudson.remoting.Channel.Listener;
 import hudson.remoting.DelegatingCallable;
+import hudson.remoting.Future;
+import hudson.remoting.Pipe;
 import hudson.remoting.VirtualChannel;
 import hudson.scm.SCM;
 import hudson.tasks.BuildStepDescriptor;
@@ -275,14 +280,29 @@ public class PucmNotifier extends Notifier
 				
 				//String devstream = "pucm_" + System.getenv( "COMPUTERNAME" ) + "_" + build.getParent().getDisplayName() + "@" + pstate.getStream().GetPvob();
 				//logger.debug( id + "Deliver to " + devstream );
-				int i = 0;
+				Future<Integer> i = null;
 				try
 				{
-					i = workspace.act( new RemoteDeliver( buildResult, status, listener, alternateTarget, baselineName, pstate.getComponent().GetFQName(), pstate.getLoadModule(), pstate.getBaseline().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), apply4level, logger ) );
+					//hudson.remoting.pi
+					final Pipe pipe = Pipe.createRemoteToLocal();
+					i = workspace.actAsync( new RemoteDeliver( buildResult, status, listener, alternateTarget, baselineName, pstate.getComponent().GetFQName(), pstate.getLoadModule(), pstate.getBaseline().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), apply4level, logger, pipe ) );
+					InputStream is = pipe.getIn();
+					InputStreamReader isr = new InputStreamReader( is );
+					BufferedReader br = new BufferedReader( isr );
+					StringBuffer sb = new StringBuffer();
+					while( !i.isDone() )
+					{
+						//sb.append( br.readLine() );
+					}
+					
+					i.get();
+					
+					//logger.debug( "Der blev skrevet: " + sb.toString() );
 				}
 				catch( IOException e )
 				{
-					logger.warning( "COULD NOT DELIVER" );
+					logger.warning( "COULD NOT DELIVER: " + e.getMessage() );
+					logger.warning( e );
 					throw new NotifierException( "Could not deliver" );
 				}
 				logger.debug( id + "UCM deliver DONE" );
@@ -295,6 +315,7 @@ public class PucmNotifier extends Notifier
 		}
 		catch ( Exception e )
 		{
+			build.setResult( Result.UNSTABLE );
 			logger.debug( id + "Something went wrong: " + e.getMessage() );
 		}
 

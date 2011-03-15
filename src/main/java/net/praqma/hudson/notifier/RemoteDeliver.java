@@ -4,10 +4,13 @@ import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.remoting.Callable;
+import hudson.remoting.Pipe;
 import hudson.remoting.VirtualChannel;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.Serializable;
 
@@ -57,6 +60,8 @@ class RemoteDeliver implements FileCallable<Integer>
 	
 	private Logger logger = null;
 	private PrintStream hudsonOut = null;
+	private Pipe pipe = null;
+	//private OutputStream out = null;
 	
 	/* Advanced */
 	
@@ -66,7 +71,7 @@ class RemoteDeliver implements FileCallable<Integer>
 								/* Common values */
 								String baseline,
 								String jobName, String buildNumber, boolean apply4level,
-								Logger logger )
+								Logger logger, Pipe pipe )
 	{
 		this.jobName = jobName;
 		this.buildNumber = buildNumber;
@@ -87,6 +92,7 @@ class RemoteDeliver implements FileCallable<Integer>
 		this.apply4level     = apply4level;
 		
 		this.logger = logger;
+		this.pipe   = pipe;
 	}
 	
 
@@ -99,6 +105,58 @@ class RemoteDeliver implements FileCallable<Integer>
 		hudsonOut = listener.getLogger();
 		UCM.SetContext( UCM.ContextType.CLEARTOOL );
 		
+		
+		/*
+		hudsonOut.println( "PRE" );
+		
+		boolean failed = false;
+		
+		OutputStream out = null;
+		try
+		{
+			out = pipe.getOut();
+		}
+		catch( Exception e )
+		{
+			hudsonOut.println( "I failed to get pipe " + e );
+			failed = true;
+		}
+		
+		if( out == null )
+		{
+			hudsonOut.println( "What the...." );
+		}
+		
+		OutputStreamWriter osw = null;
+		try
+		{
+			osw = new OutputStreamWriter( out );
+		}
+		catch( Exception e )
+		{
+			hudsonOut.println( "I failed to make stream: " + e );
+			hudsonOut.println( e );
+			failed = true;
+		}
+		
+		if( failed )
+		{
+			throw new IOException( "Darn!" );
+		}
+		
+		hudsonOut.println( "I am here" );
+		//osw.write( "Hej" );
+		//osw.write( "Hej2" );
+		//out.write( 10 );
+		hudsonOut.println( "I am there" );
+		*/
+		
+		/**
+		 * $ cleartool mkbl -component component:_System@\Cool_PVOB -full "wolles_fede_baseline_2__1_2_3_7"
+		 * Executing command in d:\hslave\workspace\wolfgang10\deliverview
+		 * 
+		 */
+				
 		status.addToLog( logger.info( "Starting remote deliver task" ) );
 		
 		/* Create the baseline object */
@@ -126,6 +184,7 @@ class RemoteDeliver implements FileCallable<Integer>
 		catch ( UCMException e )
 		{
 			status.addToLog( logger.debug( id + "could not create Stream object:" + e.getMessage() ) );
+			//osw.close();
 			throw new IOException( "[PUCM] Could not create Stream object: " + e.getMessage() );
 		}
 		
@@ -205,8 +264,20 @@ class RemoteDeliver implements FileCallable<Integer>
 		}
 		catch ( UCMException e )
 		{
-			status.addToLog( logger.warning( id + "The baseline could not be delivered" ) );
+			status.addToLog( logger.warning( id + "The baseline could not be delivered" + e.getMessage() ) );
 			status.addToLog( logger.warning( e ) );
+			try
+			{
+				stream.cancelDeliver( view.GetViewRoot() );
+			}
+			catch( UCMException e1 )
+			{
+				status.addToLog( logger.warning( id + "Could not cancel non-trivial deliver" ) );
+				status.addToLog( logger.warning( e1 ) );
+				hudsonOut.println( id + "Could not cancel non-trivial deliver" );
+				hudsonOut.println( e1 );
+				throw new IOException( "Could not cancel non-trivial deliver: " + e.getMessage() );
+			}
 			throw new IOException( "The baseline could not be delivered: " + e.getMessage() );
 		}
 		
@@ -232,9 +303,10 @@ class RemoteDeliver implements FileCallable<Integer>
 			
 			/* Create the baseline */
 			Baseline newbl = null;
+			System.out.println( "The baseline is " + baselineName + number );
 			try
 			{
-				status.addToLog( logger.info( id + "Creating new baseline " + baselineName ) );
+				status.addToLog( logger.info( id + "Creating new baseline " + baselineName + number ) );
 				newbl = Baseline.create( baselineName + number, component, view.GetViewRoot(), false, false );
 			}
 			catch ( UCMException e )
@@ -244,6 +316,8 @@ class RemoteDeliver implements FileCallable<Integer>
 			}
 		}
 		/* End of deliver */
+		
+		//osw.close();
 
 		return 1;
 	}

@@ -39,6 +39,11 @@ This should be the file that makes it possible to select our notifier in the "po
 				<f:entry title="Apply four level version number to baseline" help="/plugin/PUCM/notifier/help-recommendBaseline.html">
 				    <f:checkbox name="Pucm.apply4level" checked="${h.defaultToTrue(instance.apply4level)}" />
 				</f:entry>
+				
+				<f:entry title="Get attributes from project and component" help="/plugin/PUCM/notifier/help-recommendBaseline.html">
+				    <f:checkbox name="Pucm.fromProject" checked="${h.defaultToTrue(instance.fromProject)}" />
+				</f:entry>
+				
 		    </table>
 		</f:nested>
 	    
