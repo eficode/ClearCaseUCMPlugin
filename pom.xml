@@ -13,6 +13,13 @@
   <description>Integrates Jenkins to ClearCase UCM</description>
   <url></url>
   <packaging>hpi</packaging>
+  
+  <repositories>
+    <repository>
+      <id>praqma-repo</id>
+      <url>http://code.praqma.net/repo/maven/</url>
+    </repository>
+  </repositories>
 
   <distributionManagement>
    <repository>
@@ -49,6 +56,7 @@
   </build>
 
   <dependencies>
+  	
     <dependency>
       <groupId>net.praqma</groupId>
       <artifactId>COOL</artifactId>
@@ -56,5 +64,6 @@
 		<type>jar</type>
       <scope>compile</scope>
     </dependency>
+
   </dependencies>
 </project>
