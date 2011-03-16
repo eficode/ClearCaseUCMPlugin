@@ -52,11 +52,15 @@ class RemoteDeliver implements FileCallable<Integer>
 
 	private String id = "";
 	
+	/*
 	private boolean apply4level;
 	private String alternateTarget;
 	private String baselineName;
+	*/
 	private String component;
 	private String loadModule;
+	
+	UCMDeliver ucmDeliver = null;
 	
 	private Logger logger = null;
 	private PrintStream hudsonOut = null;
@@ -66,11 +70,9 @@ class RemoteDeliver implements FileCallable<Integer>
 	/* Advanced */
 	
 	public RemoteDeliver( Result result, Status status, BuildListener listener,
-								/* Values for advanced */
-								String alternateTarget/*, boolean createBaseline*/, String baselineName, String component, String loadModule,
 								/* Common values */
-								String baseline,
-								String jobName, String buildNumber, boolean apply4level,
+								String component, String loadModule, String baseline,
+								String jobName, String buildNumber, UCMDeliver ucmDeliver,
 								Logger logger, Pipe pipe )
 	{
 		this.jobName = jobName;
@@ -84,12 +86,17 @@ class RemoteDeliver implements FileCallable<Integer>
 		this.status      = status;
 		this.listener    = listener;
 		
-		this.alternateTarget = alternateTarget;
-		this.baselineName    = baselineName;
 		this.component       = component;
 		this.loadModule      = loadModule;
+
 		
+		this.ucmDeliver = ucmDeliver;
+		
+		/*
+		this.alternateTarget = alternateTarget;
+		this.baselineName    = baselineName;
 		this.apply4level     = apply4level;
+		*/
 		
 		this.logger = logger;
 		this.pipe   = pipe;
@@ -187,8 +194,7 @@ class RemoteDeliver implements FileCallable<Integer>
 			//osw.close();
 			throw new IOException( "[PUCM] Could not create Stream object: " + e.getMessage() );
 		}
-		
-		
+				
 		/* Create the component object */
 		Component component = null;
 		try
@@ -203,12 +209,12 @@ class RemoteDeliver implements FileCallable<Integer>
 		
 		/* Get the target Stream */
 		Stream target = null;
-		if( alternateTarget.length() > 0 )
+		if( ucmDeliver.alternateTarget.length() > 0 )
 		{
 			try
 			{
-				status.addToLog( logger.info( id + "Trying to create target Stream " + alternateTarget ) );
-				target = UCMEntity.GetStream( alternateTarget );
+				status.addToLog( logger.info( id + "Trying to create target Stream " + ucmDeliver.alternateTarget ) );
+				target = UCMEntity.GetStream( ucmDeliver.alternateTarget );
 			}
 			catch ( UCMException e )
 			{
@@ -243,7 +249,6 @@ class RemoteDeliver implements FileCallable<Integer>
 			status.addToLog( logger.warning( e ) );
 			throw new IOException( "[PUCM] Could not create deliver view: " + e.getMessage() );
 		}
-
 		
 		/* Make the deliver */
 		try
@@ -264,29 +269,44 @@ class RemoteDeliver implements FileCallable<Integer>
 		}
 		catch ( UCMException e )
 		{
+			hudsonOut.print( "[PUCM] Deliver operation failed. " );
 			status.addToLog( logger.warning( id + "The baseline could not be delivered" + e.getMessage() ) );
 			status.addToLog( logger.warning( e ) );
 			try
 			{
-				stream.cancelDeliver( view.GetViewRoot() );
+				if( stream.isDelivering() )
+				{
+					hudsonOut.print( "Trying to cancel..." );
+					stream.cancelDeliver( view.GetViewRoot() );
+				}
+				else
+				{
+					status.addToLog( logger.warning( id + "Failed to deliver" ) );
+					status.addToLog( logger.warning( e ) );
+					hudsonOut.println( "" );
+					hudsonOut.println( "Error was: " + e.getMessage() );
+					throw new IOException( "Deliver operation failed: " + e.getMessage() );
+				}
 			}
 			catch( UCMException e1 )
 			{
 				status.addToLog( logger.warning( id + "Could not cancel non-trivial deliver" ) );
 				status.addToLog( logger.warning( e1 ) );
-				hudsonOut.println( id + "Could not cancel non-trivial deliver" );
-				hudsonOut.println( e1 );
-				throw new IOException( "Could not cancel non-trivial deliver: " + e.getMessage() );
+				hudsonOut.println( "Failed" );
+				throw new IOException( "Deliver operation failed and could not cancel: " + e.getMessage() );
 			}
-			throw new IOException( "The baseline could not be delivered: " + e.getMessage() );
+			
+			hudsonOut.println( "Done" );
+			throw new IOException( "The baseline could not be delivered and was cancelled: " + e.getMessage() );
 		}
 		
 		/* Make baseline */
-		if( baselineName.length() > 0 )
+		if( ucmDeliver.baselineName.length() > 0 )
 		{
 			/* Four level version number */
 			String number = "";
-			if( apply4level )
+			/* Get version number from project+component */
+			if( ucmDeliver.versionFrom.equals( "project" ) )
 			{
 				try
 				{
@@ -300,14 +320,52 @@ class RemoteDeliver implements FileCallable<Integer>
 					throw new IOException( "Could not get four level version: " + e.getMessage() );
 				}
 			}
+			/* Get version number from project+component */
+			else if( ucmDeliver.versionFrom.equals( "settings" ) )
+			{
+				/* Verify settings */
+				if( ucmDeliver.buildnumberMajor.length() > 0 && ucmDeliver.buildnumberMinor.length() > 0 && ucmDeliver.buildnumberPatch.length() > 0 )
+				{
+					number = "__" + ucmDeliver.buildnumberMajor + "_" + ucmDeliver.buildnumberMinor + "_" + ucmDeliver.buildnumberPatch + "_";
+					
+					/* Get the sequence number from the component */
+					if( ucmDeliver.buildnumberSequenceSelector.equals( "component" ) )
+					{
+						try
+						{
+							component.getAttribute( "buildnumber.sequence" );
+						}
+						catch ( UCMException e )
+						{
+							status.addToLog( logger.warning( id + "Could not get sequence number from component" ) );
+							status.addToLog( logger.warning( e ) );
+							throw new IOException( "Could not get sequence number from component: " + e.getMessage() );
+						}
+					}
+					/* Use the current build number from jenkins */
+					else
+					{
+						number += this.buildNumber;
+					}
+				}
+				else
+				{
+					status.addToLog( logger.warning( id + "Missing information in build numbers" ) );
+					throw new IOException( "Missing information in build numbers" );
+				}
+			}
+			else
+			{
+				/* No op = none */
+			}
 			
 			/* Create the baseline */
 			Baseline newbl = null;
-			System.out.println( "The baseline is " + baselineName + number );
+			System.out.println( "The baseline is " + ucmDeliver.baselineName + number );
 			try
 			{
-				status.addToLog( logger.info( id + "Creating new baseline " + baselineName + number ) );
-				newbl = Baseline.create( baselineName + number, component, view.GetViewRoot(), false, false );
+				status.addToLog( logger.info( id + "Creating new baseline " + ucmDeliver.baselineName + number ) );
+				newbl = Baseline.create( ucmDeliver.baselineName + number, component, view.GetViewRoot(), false, false );
 			}
 			catch ( UCMException e )
 			{
@@ -315,6 +373,7 @@ class RemoteDeliver implements FileCallable<Integer>
     			throw new IOException( "Could not get view for workspace. " + e.getMessage() );
 			}
 		}
+
 		/* End of deliver */
 		
 		//osw.close();

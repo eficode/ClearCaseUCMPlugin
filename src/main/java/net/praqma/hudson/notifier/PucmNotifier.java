@@ -77,14 +77,16 @@ public class PucmNotifier extends Notifier
 
 	private String id = "";
 	
-	private boolean ucmDeliver  = false;
-	private boolean apply4level = true;
+	//private boolean ucmDeliver  = false;
+	//private boolean apply4level = true;
 	//private boolean defaultTarget = true;
-	private String alternateTarget;
+	//private String alternateTarget;
 	//private boolean createBaseline = true;
-	String baselineName;
+	//String baselineName;
 
 	private Logger logger = null;
+	
+	private UCMDeliver ucmDeliverObj = null;
 
 	/**
 	 * This constructor is used in the inner class <code>DescriptorImpl</code>.
@@ -107,12 +109,32 @@ public class PucmNotifier extends Notifier
 		this.setDescription  = setDescription;
 		
 		/* Advanced */
+		/*
 		this.ucmDeliver      = ucmDeliver;
 		this.apply4level     = apply4level;
 		//this.defaultTarget   = defaultTarget;
 		this.alternateTarget = alternateTarget;
 		//this.createBaseline  = createBaseline;
 		this.baselineName    = baselineName;
+		*/
+		
+		ucmDeliverObj = new UCMDeliver();
+		
+		ucmDeliverObj.ucmDeliver       = ucmDeliver;
+		ucmDeliverObj.alternateTarget  = alternateTarget;
+		ucmDeliverObj.baselineName     = baselineName;
+		//ucmDeliverObj.apply4level      = apply4level;
+	}
+	
+	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag, boolean setDescription, UCMDeliver ucmDeliver )
+	{
+		this.promote         = promote;
+		this.recommended     = recommended;
+		this.makeTag         = makeTag;
+		this.setDescription  = setDescription;
+		
+		/* Advanced */
+		this.ucmDeliverObj = ucmDeliver;
 	}
 
 	@Override
@@ -134,7 +156,7 @@ public class PucmNotifier extends Notifier
 		boolean result = true;
 		hudsonOut = listener.getLogger();
 		
-		if ( build.getBuildVariables().get( "include_classes" ) != null )
+		if( build.getBuildVariables().get( "include_classes" ) != null )
 		{
 			String[] is = build.getBuildVariables().get( "include_classes" ).toString().split( "," );
 			for( String i : is )
@@ -150,7 +172,7 @@ public class PucmNotifier extends Notifier
 		this.id = "[" + build.getParent().getDisplayName() + "::" + build.getNumber() + "]";
 
 		SCM scmTemp = null;
-		if ( result )
+		if( result )
 		{
 			scmTemp = build.getProject().getScm();
 			if ( !( scmTemp instanceof PucmScm ) )
@@ -161,7 +183,7 @@ public class PucmNotifier extends Notifier
 		}
 
 		State pstate = null;
-		if ( result )
+		if( result )
 		{
 			// PucmScm scm = (PucmScm) scmTemp;
 			// PucmState state = scm.getPucmState(
@@ -169,7 +191,7 @@ public class PucmNotifier extends Notifier
 			pstate = PucmScm.pucm.getState( build.getParent().getDisplayName(), build.getNumber() );
 
 			// if ( scm.doPostbuild() )
-			if ( pstate.doPostBuild() && pstate.getBaseline() != null )
+			if( pstate.doPostBuild() && pstate.getBaseline() != null )
 			{
 				logger.debug( id + "Post build" );
 
@@ -274,18 +296,21 @@ public class PucmNotifier extends Notifier
 		try
 		{
 			logger.debug( id + "Trying to run remote tasks" );
-			if( ucmDeliver )
+			if( ucmDeliverObj.ucmDeliver )
 			{
 				logger.debug( id + "UCM deliver" );
 				
 				//String devstream = "pucm_" + System.getenv( "COMPUTERNAME" ) + "_" + build.getParent().getDisplayName() + "@" + pstate.getStream().GetPvob();
 				//logger.debug( id + "Deliver to " + devstream );
-				Future<Integer> i = null;
+				
 				try
 				{
-					//hudson.remoting.pi
 					final Pipe pipe = Pipe.createRemoteToLocal();
-					i = workspace.actAsync( new RemoteDeliver( buildResult, status, listener, alternateTarget, baselineName, pstate.getComponent().GetFQName(), pstate.getLoadModule(), pstate.getBaseline().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), apply4level, logger, pipe ) );
+				
+					Future<Integer> i = null;
+					//hudson.remoting.pi
+					
+					i = workspace.actAsync( new RemoteDeliver( buildResult, status, listener, pstate.getComponent().GetFQName(), pstate.getLoadModule(), pstate.getBaseline().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), ucmDeliverObj, logger, pipe ) );
 					InputStream is = pipe.getIn();
 					InputStreamReader isr = new InputStreamReader( is );
 					BufferedReader br = new BufferedReader( isr );
@@ -295,9 +320,13 @@ public class PucmNotifier extends Notifier
 						//sb.append( br.readLine() );
 					}
 					
-					i.get();
+					int j = i.get();
+					//hudsonOut.println( "RESULTATET VAR " + j );
 					
 					//logger.debug( "Der blev skrevet: " + sb.toString() );
+					
+					
+					//int i = workspace.act( new RemoteDeliver( buildResult, status, listener, pstate.getComponent().GetFQName(), pstate.getLoadModule(), pstate.getBaseline().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), ucmDeliverObj, logger, pipe ) );
 				}
 				catch( IOException e )
 				{
@@ -307,6 +336,8 @@ public class PucmNotifier extends Notifier
 				}
 				logger.debug( id + "UCM deliver DONE" );
 			}
+			
+			hudsonOut.println( "Done doing the deliver thingy" );
 
 			logger.debug( id + "Remote post build step" );
 			status = ch.call( new RemotePostBuild( buildResult, status, listener, makeTag, promote, recommended, pstate.getBaseline().GetFQName(), pstate.getStream().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), logger ) );
@@ -347,25 +378,56 @@ public class PucmNotifier extends Notifier
 		return setDescription;
 	}
 	
+	/* Advanced */
+	
 	public boolean isUcmDeliver()
 	{
-		return ucmDeliver;
-	}
-	
-	public boolean isApply4level()
-	{
-		return apply4level;
-	}
-	
-	public String getBaselineName()
-	{
-		return baselineName;
+		return ucmDeliverObj.ucmDeliver;
 	}
 	
 	public String getAlternateTarget()
 	{
-		return alternateTarget;
+		return ucmDeliverObj.alternateTarget;
 	}
+	
+	public String getBaselineName()
+	{
+		return ucmDeliverObj.baselineName;
+	}
+	
+	/*
+	public boolean isApply4level()
+	{
+		return ucmDeliverObj.apply4level;
+	}
+	*/
+	
+	public String getVersionFrom()
+	{
+		return ucmDeliverObj.versionFrom;
+	}
+	
+	public String getBuildnumberSequenceSelector()
+	{
+		return ucmDeliverObj.buildnumberSequenceSelector;
+	}
+	
+	public String getbuildnumberMajor()
+	{
+		return ucmDeliverObj.buildnumberMajor;
+	}
+	
+	public String getbuildnumberMinor()
+	{
+		return ucmDeliverObj.buildnumberMinor;
+	}
+	
+	public String getbuildnumberPatch()
+	{
+		return ucmDeliverObj.buildnumberPatch;
+	}
+		
+
 
 	/**
 	 * This class is used by Hudson to define the plugin.
@@ -407,13 +469,33 @@ public class PucmNotifier extends Notifier
 			boolean setDescription  = req.getParameter( "Pucm.setDescription" ) != null;
 			
 			boolean ucmDeliver      = req.getParameter( "Pucm.ucmDeliver" ) != null;
-			boolean apply4level     = req.getParameter( "Pucm.apply4level" ) != null;
-			//boolean defaultTarget   = req.getParameter( "Pucm.default_target" ) != null;
 			String alternateTarget  = req.getParameter( "Pucm.alternateTarget" );
-			//boolean createBaseline  = req.getParameter( "Pucm.create_baseline" ) != null;
 			String baselineName     = req.getParameter( "Pucm.baselineName" );
+			boolean apply4level     = req.getParameter( "Pucm.apply4level" ) != null;
+			String versionFrom      = req.getParameter( "Pucm.versionFrom" );
+			String buildnumberSequenceSelector = req.getParameter( "Pucm.buildnumberSequenceSelector" );
+			
+			String buildnumberMajor = req.getParameter( "Pucm.buildnumberMajor" );
+			String buildnumberMinor = req.getParameter( "Pucm.buildnumberMinor" );
+			String buildnumberPatch = req.getParameter( "Pucm.buildnumberPatch" );
+			
+			
+			
+			UCMDeliver d = new UCMDeliver();
+			
+			d.ucmDeliver       = ucmDeliver;
+			d.alternateTarget  = alternateTarget;
+			d.baselineName     = baselineName;
+			//d.apply4level      = apply4level;
+			d.versionFrom      = versionFrom;
+			d.buildnumberSequenceSelector = buildnumberSequenceSelector;
+			d.buildnumberMajor = buildnumberMajor;
+			d.buildnumberMinor = buildnumberMinor;
+			d.buildnumberPatch = buildnumberPatch;
+			
 			save();
-			return new PucmNotifier( promote, recommended, makeTag, setDescription, ucmDeliver/*, defaultTarget*/, alternateTarget/*, createBaseline*/, baselineName, apply4level );
+			
+			return new PucmNotifier( promote, recommended, makeTag, setDescription, d );
 		}
 
 		@Override
