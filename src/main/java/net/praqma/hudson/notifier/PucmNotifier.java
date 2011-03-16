@@ -336,8 +336,6 @@ public class PucmNotifier extends Notifier
 				}
 				logger.debug( id + "UCM deliver DONE" );
 			}
-			
-			hudsonOut.println( "Done doing the deliver thingy" );
 
 			logger.debug( id + "Remote post build step" );
 			status = ch.call( new RemotePostBuild( buildResult, status, listener, makeTag, promote, recommended, pstate.getBaseline().GetFQName(), pstate.getStream().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), logger ) );
