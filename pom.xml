@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>PUCM</artifactId>
-  <version>0.2.7</version>
+  <version>1.0.0-pending1</version>
   <name>PUCM</name>
   <description>Integrates Jenkins to ClearCase UCM</description>
   <url></url>
@@ -60,7 +60,7 @@
     <dependency>
       <groupId>net.praqma</groupId>
       <artifactId>COOL</artifactId>
-      <version>0.2.5</version>
+      <version>0.2.6</version>
 		<type>jar</type>
       <scope>compile</scope>
     </dependency>
