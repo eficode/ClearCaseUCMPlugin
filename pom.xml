@@ -11,7 +11,7 @@
   <version>1.0.0-pending1</version>
   <name>PUCM</name>
   <description>Integrates Jenkins to ClearCase UCM</description>
-  <url>http://wiki.jenkins-ci.org/display/JENKINS/pucm</url>
+  <url>http://wiki.jenkins-ci.org/display/JENKINS/Pucm+plugin</url>
   <packaging>hpi</packaging>
   
   <repositories>
