@@ -68,16 +68,8 @@
   </dependencies>
     
   <scm>
-    <connection>scm:git:ssh://github.com/Praqma/pucm.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/Praqma/pucm.git</developerConnection>
-    <url>https://github.com/jenkinsci/pucm-plugin</url>
-  </scm>
-
-	<!-- 
-  <scm>
     <connection>scm:git:ssh://github.com/jenkinsci/pucm-plugin.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/jenkinsci/pucm-plugin.git</developerConnection>
     <url>https://github.com/jenkinsci/pucm-plugin</url>
-  </scm> -->
-
+  </scm>
 </project>
