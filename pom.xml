@@ -3,12 +3,12 @@
   <parent>
     <groupId>org.jvnet.hudson.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.373-SNAPSHOT</version>
+    <version>1.373</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <artifactId>PUCM</artifactId>
-  <version>0.3.0</version>
+  <version>0.3.0-SNAPSHOT</version>
   <name>PUCM</name>
   <description>Integrates Jenkins to ClearCase UCM</description>
   <url>http://wiki.jenkins-ci.org/display/JENKINS/Pucm+plugin</url>
