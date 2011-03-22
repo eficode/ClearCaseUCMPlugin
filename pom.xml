@@ -70,7 +70,7 @@
   <scm>
     <connection>scm:git:ssh://github.com/Praqma/pucm.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/Praqma/pucm.git</developerConnection>
-    <url>https://github.com/jenkinsci/pucm-plugin</url>
+    <url>https://github.com/Praqma/pucm</url>
   </scm>
 
 	<!-- 
