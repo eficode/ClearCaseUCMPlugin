@@ -274,16 +274,9 @@ class RemoteDeliver implements FileCallable<Integer>
 					
 					try
 					{
-						String p = component.getAttribute( "buildnumber.sequence" );
-						if( p != null )
-						{
-							number += p;
-						}
-						else
-						{
-							status.addToLog( logger.warning( id + "Sequence number did not contain a valid number" ) );
-							throw new IOException( "Sequence number did not contain a valid number" );
-						}
+						Project project = target.getProject();
+						int seq = BuildNumber.getNextBuildSequence( project );
+						number += seq;
 					}
 					catch ( UCMException e )
 					{
