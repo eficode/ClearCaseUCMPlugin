@@ -38,8 +38,6 @@ import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.scm.PucmState.State;
 import net.praqma.util.debug.PraqmaLogger;
 import net.praqma.util.debug.PraqmaLogger.Logger;
-import net.praqma.util.io.Manifest;
-import net.praqma.util.io.Pom;
 import net.praqma.util.structure.Tuple;
 import net.sf.json.JSONObject;
 //import net.praqma.hudson.Version;
