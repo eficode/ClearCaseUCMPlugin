@@ -3,57 +3,43 @@ package net.praqma.hudson.scm;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.FilePath.FileCallable;
 import hudson.model.Build;
 import hudson.model.BuildListener;
-import hudson.model.FreeStyleBuild;
-import hudson.model.ParameterValue;
 import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.Job;
-import hudson.remoting.VirtualChannel;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.PollingResult;
 import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
 import hudson.scm.SCM;
 import hudson.util.FormValidation;
-import hudson.util.VariableResolver;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Cool;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Baseline;
-import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Component;
-import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.utils.BaselineList;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
-import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.view.SnapshotView;
-import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
-import net.praqma.clearcase.ucm.view.UCMView;
-import net.praqma.clearcase.ucm.utils.BaselineDiff;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.scm.PucmState.State;
 import net.praqma.util.debug.PraqmaLogger;
 import net.praqma.util.debug.PraqmaLogger.Logger;
+import net.praqma.util.io.Manifest;
+import net.praqma.util.io.Pom;
 import net.praqma.util.structure.Tuple;
 import net.sf.json.JSONObject;
 //import net.praqma.hudson.Version;
@@ -163,6 +149,16 @@ public class PucmScm extends SCM
 		// here
 		PrintStream consoleOutput = listener.getLogger();
 		consoleOutput.println( "[PUCM] Praqmatic UCM v." + net.praqma.hudson.Version.version + " - SCM section started" );
+		//consoleOutput.println( "[PUCM] Praqmatic UCM v." + getClass().getPackage().getImplementationVersion() + " - SCM section started: " + getClass().getPackage().getImplementationTitle() );
+		//Pom pom = new Pom( getClass().getResourceAsStream( "pom.xml" ) );
+		//Manifest m = new Manifest( getClass().getResourceAsStream( "/META-INF/MANIFEST.MF" ) );
+		//consoleOutput.println( "[PUCM] Praqmatic UCM v." + m.get( "Implementation-Version" ) + " - SCM section started" );
+		
+		//consoleOutput.println( "[PUCM] " + m.toString() );
+		
+		//hudson.PluginWrapper pw = hudson.PluginStrategy.this.createPluginWrapper( new File( "PUCM.hpi" ) );
+		
+		
 
 		/* Recalculate the states */
 		int count = pucm.recalculate( build.getProject() );

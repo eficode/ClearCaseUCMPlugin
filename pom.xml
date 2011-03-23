@@ -1,76 +1,126 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.jvnet.hudson.plugins</groupId>
-    <artifactId>plugin</artifactId>
-    <version>1.373</version>
-    <relativePath>../pom.xml</relativePath>
-  </parent>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.jvnet.hudson.plugins</groupId>
+		<artifactId>plugin</artifactId>
+		<version>1.373</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
 
-  <artifactId>PUCM</artifactId>
-  <version>0.3.0-SNAPSHOT</version>
-  <name>PUCM</name>
-  <description>Integrates Jenkins to ClearCase UCM</description>
-  <url>http://wiki.jenkins-ci.org/display/JENKINS/Pucm+plugin</url>
-  <packaging>hpi</packaging>
-  
-  <repositories>
-    <repository>
-      <id>praqma-repo</id>
-      <url>http://code.praqma.net/repo/maven/</url>
-    </repository>
-  </repositories>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 
-  <distributionManagement>
-   <repository>
-    <id>maven.jenkins-ci.org</id>
-    <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
-   </repository>
-  </distributionManagement>
 
-  <developers>
-    <developer>
-      <name>Christian Wolfgang</name>
-    </developer>
-    <developer>
-      <name>Troels Selch</name>
-    </developer>
-    <developer>
-      <name>Margit Bennetzen</name>
-    </developer>
-    <developer>
-      <name>Lars Kruse</name>
-      <email>pucm@praqma.net</email>
-    </developer>
-  </developers>
+	<artifactId>PUCM</artifactId>
+	<version>0.3.1-SNAPSHOT</version>
+	<name>PUCM</name>
+	<description>Integrates Jenkins to ClearCase UCM</description>
+	<url>http://wiki.jenkins-ci.org/display/JENKINS/Pucm+plugin</url>
+	<packaging>hpi</packaging>
 
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-release-plugin</artifactId>
-        <configuration>
-          <goals>deploy</goals><!--because plugin is built against version before 1.387-->
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+	<repositories>
+		<repository>
+			<id>praqma-repo</id>
+			<url>http://code.praqma.net/repo/maven/</url>
+		</repository>
+	</repositories>
 
-  <dependencies>
-  	
-    <dependency>
-      <groupId>net.praqma</groupId>
-      <artifactId>COOL</artifactId>
-      <version>0.2.7</version>
-		<type>jar</type>
-      <scope>compile</scope>
-    </dependency>
+	<distributionManagement>
+		<repository>
+			<id>maven.jenkins-ci.org</id>
+			<url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
+		</repository>
+	</distributionManagement>
 
-  </dependencies>
-    
-  <scm>
-    <connection>scm:git:ssh://github.com/Praqma/pucm.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/Praqma/pucm.git</developerConnection>
-    <url>https://github.com/Praqma/pucm</url>
-  </scm>
+	<developers>
+		<developer>
+			<name>Christian Wolfgang</name>
+		</developer>
+		<developer>
+			<name>Troels Selch</name>
+		</developer>
+		<developer>
+			<name>Margit Bennetzen</name>
+		</developer>
+		<developer>
+			<name>Lars Kruse</name>
+			<email>pucm@praqma.net</email>
+		</developer>
+	</developers>
+
+	<build>
+		<plugins>
+		
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.1</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>java</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<mainClass>net.praqma.hudson.GetVersion</mainClass>
+					<arguments>
+					</arguments>
+					<systemProperties>
+					</systemProperties>
+				</configuration>
+			</plugin>
+		
+			<plugin>
+				<artifactId>maven-release-plugin</artifactId>
+				<configuration>
+					<goals>deploy</goals><!--because plugin is built against version before 
+						1.387 -->
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<inherited>true</inherited>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+
+
+			<!-- <plugin> <artifactId>maven-antrun-plugin</artifactId> <executions> 
+				<execution> <phase>package</phase> <goals> <goal>run</goal> </goals> <configuration> 
+				<tasks> <copy file="${project.basedir}/target/PUCM/META-INF/MANIFEST.MF" 
+				tofile="${project.basedir}/target/PUCM/specs.txt" /> </tasks> </configuration> 
+				</execution> </executions> </plugin> -->
+
+		</plugins>
+	</build>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>net.praqma</groupId>
+			<artifactId>COOL</artifactId>
+			<version>0.2.7</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+
+	</dependencies>
+
+	<scm>
+		<connection>scm:git:ssh://github.com/Praqma/pucm.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/Praqma/pucm.git</developerConnection>
+		<url>https://github.com/Praqma/pucm</url>
+	</scm>
 
 </project>
