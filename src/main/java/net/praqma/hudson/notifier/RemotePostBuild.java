@@ -112,6 +112,8 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 			throw new IOException( "[PUCM] Could not create Stream object: " + e.getMessage() );
 		}
 		
+		status.addToLog( logger.warning( id + "Stream and component created" ) );
+		
 		/* Create the Tag object */
 		Tag tag = null;
 		if ( makeTag )
@@ -130,15 +132,16 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 		}
 
 		hudsonOut.println( "[PUCM] Build result: " + result );
-		/* The build was a success */
-		if ( result.equals( Result.SUCCESS ) )
+		
+		/* The build was a success and the deliver did not fail */
+		if( result.equals( Result.SUCCESS ) && status.isStable() )
 		{
-			if ( status.isTagAvailable() )
+			if( status.isTagAvailable() )
 			{
 				tag.SetEntry( "buildstatus", "SUCCESS" );
 			}
 
-			if ( promote )
+			if( promote )
 			{
 				try
 				{
@@ -146,13 +149,13 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 					status.setPLevel( true );
 					hudsonOut.println( "[PUCM] Baseline promoted to " + baseline.GetPromotionLevel( true ).toString() + "." );
 				}
-				catch ( UCMException e )
+				catch( UCMException e )
 				{
 					status.setStable( false );
 					// build.setResult( Result.UNSTABLE );
 					// as it will not make sense to recommend if we cannot
 					// promote, we do this:
-					if ( recommended )
+					if( recommended )
 					{
 						recommended = false;
 						// throw new NotifierException(
@@ -198,18 +201,48 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 				}
 			}
 		}
-		/* The build failed */
+		/* The build failed or the deliver failed */
 		else
 		{
-			if ( result.equals( Result.FAILURE ) )
+			/* The build failed */
+			if( result.equals( Result.FAILURE ) )
 			{
+				hudsonOut.println( "[WOLLE] 7" );
 				hudsonOut.println( "[PUCM] Build failed." );
 
-				if ( status.isTagAvailable() )
+				if( status.isTagAvailable() )
 				{
 					tag.SetEntry( "buildstatus", "FAILURE" );
 				}
+				
+				if( promote )
+				{
+					try
+					{
+						baseline.Demote();
+						status.setPLevel( true );
+						hudsonOut.println( "[PUCM] Baseline is " + baseline.GetPromotionLevel( true ).toString() + "." );
+					}
+					catch( Exception e )
+					{
+						status.setStable( false );
+						// throw new NotifierException(
+						// "Could not demote baseline. " + e.getMessage() );
+						hudsonOut.println( "[PUCM] Could not demote baseline. " + e.getMessage() );
+						status.addToLog( logger.warning( id + "Could not demote baseline. " + e.getMessage() ) );
+					}
+				}
+			}
+			/* The build didn't fail, but the deliver did */
+			else if( !result.equals( Result.FAILURE ) && !status.isStable() )
+			{
+				if ( status.isTagAvailable() )
+				{
+					tag.SetEntry( "buildstatus", "UNSTABLE" );
+				}
+				
 				if ( promote )
+				{
 					try
 					{
 						baseline.Demote();
@@ -219,11 +252,10 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 					catch ( Exception e )
 					{
 						status.setStable( false );
-						// throw new NotifierException(
-						// "Could not demote baseline. " + e.getMessage() );
 						hudsonOut.println( "[PUCM] Could not demote baseline. " + e.getMessage() );
 						status.addToLog( logger.warning( id + "Could not demote baseline. " + e.getMessage() ) );
 					}
+				}
 			}
 			/* Result not handled by PUCM */
 			else

@@ -196,23 +196,28 @@ public class PucmScm extends SCM
 		Collection<?> c = build.getBuildVariables().keySet();
 		Iterator<?> i = c.iterator();
 		
-		//hudson.remoting.pipe
-		
 		while ( i.hasNext() )
 		{
 			String next = i.next().toString();
 			if ( next.equalsIgnoreCase( "pucm_baseline" ) )
+			{
 				baselinevalue = next;
+			}
 		}
 
-		if ( build.getBuildVariables().get(baselinevalue)!=null )
+		if ( build.getBuildVariables().get( baselinevalue ) != null )
 		{
-			String baselinename =  (String) build.getBuildVariables().get( baselinevalue );
+			String baselinename = (String) build.getBuildVariables().get( baselinevalue );
 			try
 			{
 				state.setBaseline( UCMEntity.GetBaseline( baselinename ) );
 				state.setStream( state.getBaseline().GetStream() );
 				consoleOutput.println( "[PUCM] Starting parameterized build with a pucm_baseline.\n[PUCM] Using baseline: " + baselinename + " from integrationstream " + state.getStream().GetShortname() );
+				
+				/* The component could be used in the post build section */
+				state.setComponent( state.getBaseline().GetComponent() );
+				state.setStream( state.getBaseline().GetStream() );
+				logger.debug( "Saving the component for later use" );
 			}
 			catch ( UCMException e )
 			{

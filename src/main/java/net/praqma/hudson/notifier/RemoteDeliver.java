@@ -237,6 +237,100 @@ class RemoteDeliver implements FileCallable<Integer>
 		
 		status.addToLog( logger.debug( id + "Target stream is " + target.GetFQName() ) );
 		
+		/* Trying to verify the build number attributes */
+		/* Four level version number */
+		String number = "";
+		/* Get version number from project+component */
+		if( ucmDeliver.versionFrom.equals( "project" ) )
+		{
+			try
+			{
+				Project project = target.getProject();
+				number = BuildNumber.getBuildNumber( project );
+			}
+			catch ( UCMException e )
+			{
+				status.addToLog( logger.warning( id + "Could not get four level version" ) );
+				status.addToLog( logger.warning( e ) );
+				throw new IOException( "Could not get four level version: " + e.getMessage() );
+			}
+		}
+		/* Get version number from project+component */
+		else if( ucmDeliver.versionFrom.equals( "settings" ) )
+		{	
+			/* Verify settings */
+			if( ucmDeliver.buildnumberMajor.length() > 0 && ucmDeliver.buildnumberMinor.length() > 0 && ucmDeliver.buildnumberPatch.length() > 0 )
+			{
+				number = "__" + ucmDeliver.buildnumberMajor + "_" + ucmDeliver.buildnumberMinor + "_" + ucmDeliver.buildnumberPatch + "_";
+				
+				/* Get the sequence number from the component */
+				if( ucmDeliver.buildnumberSequenceSelector.equals( "component" ) )
+				{
+					try
+					{
+						component.getAttribute( "buildnumber.sequence" );
+					}
+					catch ( UCMException e )
+					{
+						status.addToLog( logger.warning( id + "Could not get sequence number from component" ) );
+						status.addToLog( logger.warning( e ) );
+						throw new IOException( "Could not get sequence number from component: " + e.getMessage() );
+					}
+				}
+				/* Use the current build number from jenkins */
+				else
+				{
+					number += this.buildNumber;
+				}
+			}
+			else
+			{
+				status.addToLog( logger.warning( id + "Creating error message" ) );
+				String error = ( ucmDeliver.buildnumberMajor.length()    == 0 ? "Major missing. " : "" ) +
+							   ( ucmDeliver.buildnumberMinor.length()    == 0 ? "Minor missing. " : "" ) +
+							   ( ucmDeliver.buildnumberPatch.length()    == 0 ? "Patch missing. " : "" );
+				
+				status.addToLog( logger.warning( id + "Missing information in build numbers: " + error ) );
+				throw new IOException( "Missing build number information: " + error );
+			}
+		}
+		else
+		{
+			/* No op = none */
+		}
+		
+		/*
+		if( ucmDeliver.baselineName.length() > 0 )
+		{
+			if( ucmDeliver.versionFrom.equals( "project" ) )
+			{
+				
+				try
+				{
+					Project project = target.getProject();
+					int mask = BuildNumber.isValidUCMBuildNumber( project );
+					if( mask != BuildNumber.ALL_ATTRIBUTES )
+					{
+						String error = ( ( BuildNumber.ATTRIBUTE_MAJOR    & mask ) == 0 ? "Major missing. " : "" ) + 
+									   ( ( BuildNumber.ATTRIBUTE_MINOR    & mask ) == 0 ? "Minor missing. " : "" ) + 
+									   ( ( BuildNumber.ATTRIBUTE_PATCH    & mask ) == 0 ? "Patch missing. " : "" ) + 
+									   ( ( BuildNumber.ATTRIBUTE_SEQUENCE & mask ) == 0 ? "Sequence missing. " : "" );
+						status.addToLog( logger.debug( id + "The build number attributes does not exist: " + error ) );
+						throw new IOException( "The build number attributes do not exist: " + error );						
+					}
+				}
+				catch( UCMException e )
+				{
+					status.addToLog( logger.debug( id + "An exception occured" ) );
+					status.addToLog( logger.debug( e ) );
+					throw new IOException( "The build number attributes could not be fetched: " + e.getMessage() );
+				}
+				
+			}
+		}
+		*/
+		
+		
 		/* Make deliver view */
 		SnapshotView view;
 		try
@@ -250,6 +344,8 @@ class RemoteDeliver implements FileCallable<Integer>
 			throw new IOException( "[PUCM] Could not create deliver view: " + e.getMessage() );
 		}
 		
+		boolean makebl = true;
+		
 		/* Make the deliver */
 		try
 		{
@@ -259,7 +355,14 @@ class RemoteDeliver implements FileCallable<Integer>
 			{
 				status.addToLog( logger.debug( id + "The stream is read only" ) );
 				//baseline.deliver( null, target, view.GetViewRoot(), null, true, true, true );
-				baseline.deliver( baseline.GetStream(), null, view.GetViewRoot(), view.GetViewtag(), true, true, true );
+				if( !baseline.deliver( baseline.GetStream(), null, view.GetViewRoot(), view.GetViewtag(), true, true, true ) )
+				{
+					status.addToLog( logger.debug( id + "The deliver was empty, no changes" ) );
+					makebl = false;
+					
+					/* Ok ok, we throw an exception*/
+					throw new IOException( "Could not deliver, the change set was empty" );
+				}
 			}
 			else
 			{
@@ -301,63 +404,8 @@ class RemoteDeliver implements FileCallable<Integer>
 		}
 		
 		/* Make baseline */
-		if( ucmDeliver.baselineName.length() > 0 )
+		if( ucmDeliver.baselineName.length() > 0 && makebl )
 		{
-			/* Four level version number */
-			String number = "";
-			/* Get version number from project+component */
-			if( ucmDeliver.versionFrom.equals( "project" ) )
-			{
-				try
-				{
-					Project project = target.getProject();
-					number = BuildNumber.getBuildNumber( project );
-				}
-				catch ( UCMException e )
-				{
-					status.addToLog( logger.warning( id + "Could not get four level version" ) );
-					status.addToLog( logger.warning( e ) );
-					throw new IOException( "Could not get four level version: " + e.getMessage() );
-				}
-			}
-			/* Get version number from project+component */
-			else if( ucmDeliver.versionFrom.equals( "settings" ) )
-			{
-				/* Verify settings */
-				if( ucmDeliver.buildnumberMajor.length() > 0 && ucmDeliver.buildnumberMinor.length() > 0 && ucmDeliver.buildnumberPatch.length() > 0 )
-				{
-					number = "__" + ucmDeliver.buildnumberMajor + "_" + ucmDeliver.buildnumberMinor + "_" + ucmDeliver.buildnumberPatch + "_";
-					
-					/* Get the sequence number from the component */
-					if( ucmDeliver.buildnumberSequenceSelector.equals( "component" ) )
-					{
-						try
-						{
-							component.getAttribute( "buildnumber.sequence" );
-						}
-						catch ( UCMException e )
-						{
-							status.addToLog( logger.warning( id + "Could not get sequence number from component" ) );
-							status.addToLog( logger.warning( e ) );
-							throw new IOException( "Could not get sequence number from component: " + e.getMessage() );
-						}
-					}
-					/* Use the current build number from jenkins */
-					else
-					{
-						number += this.buildNumber;
-					}
-				}
-				else
-				{
-					status.addToLog( logger.warning( id + "Missing information in build numbers" ) );
-					throw new IOException( "Missing information in build numbers" );
-				}
-			}
-			else
-			{
-				/* No op = none */
-			}
 			
 			/* Create the baseline */
 			Baseline newbl = null;

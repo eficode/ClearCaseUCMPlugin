@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -293,50 +294,66 @@ public class PucmNotifier extends Notifier
 			throw new NotifierException( "Workspace is null" );
 		}
 		
+
+		logger.debug( id + "Trying to run remote tasks" );
+		if( ucmDeliverObj.ucmDeliver )
+		{
+			logger.debug( id + "UCM deliver" );
+			
+			
+			try
+			{
+				final Pipe pipe = Pipe.createRemoteToLocal();
+			
+				Future<Integer> i = null;
+				//hudson.remoting.pi
+				
+				i = workspace.actAsync( new RemoteDeliver( buildResult, status, listener, pstate.getComponent().GetFQName(), pstate.getLoadModule(), pstate.getBaseline().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), ucmDeliverObj, logger, pipe ) );
+				InputStream is = pipe.getIn();
+				InputStreamReader isr = new InputStreamReader( is );
+				BufferedReader br = new BufferedReader( isr );
+				StringBuffer sb = new StringBuffer();
+				while( !i.isDone() )
+				{
+					//sb.append( br.readLine() );
+				}
+				
+				int j = i.get();
+				//hudsonOut.println( "RESULTATET VAR " + j );
+				
+				//logger.debug( "Der blev skrevet: " + sb.toString() );
+				
+				
+				//int i = workspace.act( new RemoteDeliver( buildResult, status, listener, pstate.getComponent().GetFQName(), pstate.getLoadModule(), pstate.getBaseline().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), ucmDeliverObj, logger, pipe ) );
+			}
+			catch( IOException e )
+			{
+				status.setStable( false );
+				logger.warning( "COULD NOT DELIVER: " + e.getMessage() );
+				logger.warning( e );
+				hudsonOut.println( "[PUCM] Error: The deliver failed: " + e.getMessage() );
+			}
+			catch( InterruptedException e )
+			{
+				status.setStable( false );
+				logger.warning( "COULD NOT DELIVER111: " + e.getMessage() );
+				logger.warning( e );
+				hudsonOut.println( "[PUCM] Error: The deliver failed: " + e.getMessage() );
+			}
+			catch( ExecutionException e )
+			{
+				status.setStable( false );
+				logger.warning( "COULD NOT DELIVER(Excecution): " + e.getMessage() );
+				logger.warning( e );
+				hudsonOut.println( "[PUCM] Error: The deliver failed: " + e.getMessage() );
+			}
+			
+			logger.debug( id + "UCM deliver DONE" );
+		}
+		
+			
 		try
 		{
-			logger.debug( id + "Trying to run remote tasks" );
-			if( ucmDeliverObj.ucmDeliver )
-			{
-				logger.debug( id + "UCM deliver" );
-				
-				//String devstream = "pucm_" + System.getenv( "COMPUTERNAME" ) + "_" + build.getParent().getDisplayName() + "@" + pstate.getStream().GetPvob();
-				//logger.debug( id + "Deliver to " + devstream );
-				
-				try
-				{
-					final Pipe pipe = Pipe.createRemoteToLocal();
-				
-					Future<Integer> i = null;
-					//hudson.remoting.pi
-					
-					i = workspace.actAsync( new RemoteDeliver( buildResult, status, listener, pstate.getComponent().GetFQName(), pstate.getLoadModule(), pstate.getBaseline().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), ucmDeliverObj, logger, pipe ) );
-					InputStream is = pipe.getIn();
-					InputStreamReader isr = new InputStreamReader( is );
-					BufferedReader br = new BufferedReader( isr );
-					StringBuffer sb = new StringBuffer();
-					while( !i.isDone() )
-					{
-						//sb.append( br.readLine() );
-					}
-					
-					int j = i.get();
-					//hudsonOut.println( "RESULTATET VAR " + j );
-					
-					//logger.debug( "Der blev skrevet: " + sb.toString() );
-					
-					
-					//int i = workspace.act( new RemoteDeliver( buildResult, status, listener, pstate.getComponent().GetFQName(), pstate.getLoadModule(), pstate.getBaseline().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), ucmDeliverObj, logger, pipe ) );
-				}
-				catch( IOException e )
-				{
-					logger.warning( "COULD NOT DELIVER: " + e.getMessage() );
-					logger.warning( e );
-					throw new NotifierException( "Could not deliver" );
-				}
-				logger.debug( id + "UCM deliver DONE" );
-			}
-
 			logger.debug( id + "Remote post build step" );
 			status = ch.call( new RemotePostBuild( buildResult, status, listener, makeTag, promote, recommended, pstate.getBaseline().GetFQName(), pstate.getStream().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), logger ) );
 			
@@ -344,8 +361,10 @@ public class PucmNotifier extends Notifier
 		}
 		catch ( Exception e )
 		{
-			build.setResult( Result.UNSTABLE );
+			status.setStable( false );
 			logger.debug( id + "Something went wrong: " + e.getMessage() );
+			logger.warning( e );
+			hudsonOut.println( "[PUCM] Error: Post build failed: " + e.getMessage() );
 		}
 
 		status.setBuildStatus( buildResult );
