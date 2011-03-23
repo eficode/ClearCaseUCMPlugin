@@ -243,6 +243,8 @@ class RemoteDeliver implements FileCallable<Integer>
 		/* Get version number from project+component */
 		if( ucmDeliver.versionFrom.equals( "project" ) )
 		{
+			status.addToLog( logger.debug( id + "Using project setting" ) );
+			
 			try
 			{
 				Project project = target.getProject();
@@ -258,6 +260,8 @@ class RemoteDeliver implements FileCallable<Integer>
 		/* Get version number from project+component */
 		else if( ucmDeliver.versionFrom.equals( "settings" ) )
 		{	
+			status.addToLog( logger.debug( id + "Using settings" ) );
+			
 			/* Verify settings */
 			if( ucmDeliver.buildnumberMajor.length() > 0 && ucmDeliver.buildnumberMinor.length() > 0 && ucmDeliver.buildnumberPatch.length() > 0 )
 			{
@@ -266,6 +270,8 @@ class RemoteDeliver implements FileCallable<Integer>
 				/* Get the sequence number from the component */
 				if( ucmDeliver.buildnumberSequenceSelector.equals( "component" ) )
 				{
+					status.addToLog( logger.debug( id + "Get sequence from project " + component ) );
+					
 					try
 					{
 						component.getAttribute( "buildnumber.sequence" );
@@ -280,6 +286,7 @@ class RemoteDeliver implements FileCallable<Integer>
 				/* Use the current build number from jenkins */
 				else
 				{
+					status.addToLog( logger.debug( id + "Getting sequence from build number" ) );
 					number += this.buildNumber;
 				}
 			}
@@ -414,11 +421,13 @@ class RemoteDeliver implements FileCallable<Integer>
 			{
 				status.addToLog( logger.info( id + "Creating new baseline " + ucmDeliver.baselineName + number ) );
 				newbl = Baseline.create( ucmDeliver.baselineName + number, component, view.GetViewRoot(), false, false );
+				hudsonOut.println( "[PUCM] Created baseline " + ucmDeliver.baselineName + number );
 			}
 			catch ( UCMException e )
 			{
     			status.addToLog( logger.warning( id + "Could not get view for workspace. " + e.getMessage() ) );
-    			throw new IOException( "Could not get view for workspace. " + e.getMessage() );
+    			hudsonOut.println( "[PUCM] Failed creating baseline " + ucmDeliver.baselineName + number );
+    			throw new IOException( "Could not create baseline: " + e.getMessage() );
 			}
 		}
 
