@@ -420,49 +420,98 @@ public class PucmNotifier extends Notifier
 	
 	public boolean isUcmDeliver()
 	{
-		return ucmDeliverObj.ucmDeliver;
+		if( ucmDeliverObj != null )
+		{		
+			return ucmDeliverObj.ucmDeliver;
+		}
+		else
+		{
+			return false;
+		}
 	}
 	
 	public String getAlternateTarget()
 	{
-		return ucmDeliverObj.alternateTarget;
+		if( ucmDeliverObj != null )
+		{
+			return ucmDeliverObj.alternateTarget;
+		}
+		else
+		{
+			return "";
+		}
 	}
 	
 	public String getBaselineName()
 	{
-		return ucmDeliverObj.baselineName;
+		if( ucmDeliverObj != null )
+		{
+			return ucmDeliverObj.baselineName;
+		}
+		else
+		{
+			return "";
+		}
 	}
-	
-	/*
-	public boolean isApply4level()
-	{
-		return ucmDeliverObj.apply4level;
-	}
-	*/
-	
+		
 	public String getVersionFrom()
 	{
-		return ucmDeliverObj.versionFrom;
+		if( ucmDeliverObj != null )
+		{
+			return ucmDeliverObj.versionFrom;
+		}
+		else
+		{
+			return "";
+		}
 	}
 	
 	public String getBuildnumberSequenceSelector()
 	{
-		return ucmDeliverObj.buildnumberSequenceSelector;
+		if( ucmDeliverObj != null )
+		{
+			return ucmDeliverObj.buildnumberSequenceSelector;
+		}
+		else
+		{
+			return "";
+		}			
 	}
 	
 	public String getbuildnumberMajor()
 	{
-		return ucmDeliverObj.buildnumberMajor;
+		if( ucmDeliverObj != null )
+		{
+			return ucmDeliverObj.buildnumberMajor;
+		}
+		else
+		{
+			return "";
+		}
 	}
 	
 	public String getbuildnumberMinor()
 	{
-		return ucmDeliverObj.buildnumberMinor;
+		if( ucmDeliverObj != null )
+		{
+			return ucmDeliverObj.buildnumberMinor;
+		}
+		else
+		{
+			return "";
+		}
 	}
 	
 	public String getbuildnumberPatch()
 	{
-		return ucmDeliverObj.buildnumberPatch;
+		if( ucmDeliverObj != null )
+		{
+			return ucmDeliverObj.buildnumberPatch;
+		}
+		else
+		{
+			return "";
+		}
 	}
 		
 

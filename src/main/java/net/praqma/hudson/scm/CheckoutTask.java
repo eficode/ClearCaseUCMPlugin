@@ -299,7 +299,7 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 			buffer.append( ( "<actName>" + act.GetShortname() + "</actName>" ) );
 			try
 			{
-				buffer.append( ( "<author>" + act.GetUser() + "</author>" ) );
+				buffer.append( ( "<author>" + act.getUser() + "</author>" ) );
 			}
 			catch ( UCMException e )
 			{
@@ -309,7 +309,7 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 			String temp;
 			for ( Version v : versions )
 			{
-				temp = "<file>" + v.GetSFile() + " (" + v.GetRevision() + ") user: " + v.Blame() + "</file>";
+				temp = "<file>" + v.getSFile() + " (" + v.getRevision() + ") user: " + v.blame() + "</file>";
 				buffer.append( temp );
 			}
 			buffer.append( "</activity>" );

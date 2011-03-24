@@ -160,6 +160,8 @@ public class PucmState
 		private String    jobName;
 		private Integer   jobNumber;
 		
+		private boolean   addedByPoller = false;
+		
 		private Logger logger;
 		
 		
@@ -261,14 +263,15 @@ public class PucmState
 		{
 			StringBuffer sb = new StringBuffer();
 			
-			sb.append( "Job name    : " + this.jobName + linesep );
-			sb.append( "Job number  : " + this.jobNumber + linesep );
-			sb.append( "Component   : " + this.component + linesep );
-			sb.append( "Stream      : " + this.stream + linesep );
-			sb.append( "Baseline    : " + this.baseline + linesep );
-			sb.append( "Plevel      : " + ( this.plevel != null ? this.plevel.toString() : "Missing" ) + linesep );
-			sb.append( "Load Module : " + this.loadModule + linesep );
-			sb.append( "postBuild   : " + this.doPostBuild + linesep );
+			sb.append( "Job name      : " + this.jobName + linesep );
+			sb.append( "Job number    : " + this.jobNumber + linesep );
+			sb.append( "Component     : " + this.component + linesep );
+			sb.append( "Stream        : " + this.stream + linesep );
+			sb.append( "Baseline      : " + this.baseline + linesep );
+			sb.append( "Plevel        : " + ( this.plevel != null ? this.plevel.toString() : "Missing" ) + linesep );
+			sb.append( "Load Module   : " + this.loadModule + linesep );
+			sb.append( "Added by poll : " + ( this.addedByPoller ? "Yes" : "No" ) + linesep );
+			sb.append( "postBuild     : " + this.doPostBuild + linesep );
 			
 			return sb.toString();
 		}
@@ -284,6 +287,14 @@ public class PucmState
 		public String getLoadModule()
 		{
 			return loadModule;
+		}
+		public void setAddedByPoller( boolean addedByPoller )
+		{
+			this.addedByPoller = addedByPoller;
+		}
+		public boolean isAddedByPoller()
+		{
+			return addedByPoller;
 		}
 	}
 	

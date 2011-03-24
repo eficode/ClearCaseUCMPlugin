@@ -137,26 +137,12 @@ public class PucmScm extends SCM
 		}
 		
 		Cool.setLogger( logger );
-		
-		logger.debug( "pdir=" + pdir );
 
 		logger.debug( "PucmSCM checkout" );
 		boolean result = true;
 
-		// consoleOutput Printstream is from Hudson, so it can only be accessed
-		// here
 		PrintStream consoleOutput = listener.getLogger();
 		consoleOutput.println( "[PUCM] Praqmatic UCM v." + net.praqma.hudson.Version.version + " - SCM section started" );
-		//consoleOutput.println( "[PUCM] Praqmatic UCM v." + getClass().getPackage().getImplementationVersion() + " - SCM section started: " + getClass().getPackage().getImplementationTitle() );
-		//Pom pom = new Pom( getClass().getResourceAsStream( "pom.xml" ) );
-		//Manifest m = new Manifest( getClass().getResourceAsStream( "/META-INF/MANIFEST.MF" ) );
-		//consoleOutput.println( "[PUCM] Praqmatic UCM v." + m.get( "Implementation-Version" ) + " - SCM section started" );
-		
-		//consoleOutput.println( "[PUCM] " + m.toString() );
-		
-		//hudson.PluginWrapper pw = hudson.PluginStrategy.this.createPluginWrapper( new File( "PUCM.hpi" ) );
-		
-		
 
 		/* Recalculate the states */
 		int count = pucm.recalculate( build.getProject() );
@@ -357,6 +343,7 @@ public class PucmScm extends SCM
 		jobNumber = project.getNextBuildNumber(); /* This number is not the final job number */
 		
 		State state = pucm.getState( jobName, jobNumber );
+		state.setAddedByPoller( true );
 
 		PollingResult p;
 		try
@@ -380,7 +367,7 @@ public class PucmScm extends SCM
 		}
 
 		logger.debug( id + "FINAL Polling result = " + p.change.toString() );
-
+		
 		return p;
 	}
 

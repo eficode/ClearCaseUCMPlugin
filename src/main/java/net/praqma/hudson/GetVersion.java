@@ -10,10 +10,8 @@ public class GetVersion
 {
 	public static void main( String[] args ) throws IOException
 	{
-		System.out.println( "I AM HERE" );
-		Pom pom = new Pom( new File( "pom.xml" ) );
-		
-		
+		System.out.println( "Trying to stamp version number into Version.java" );
+		Pom pom = new Pom( new File( "pom.xml" ) );	
 		
 		BuildNumberStamper stamp = new BuildNumberStamper( new File( "src/main/java/net/praqma/hudson/Version.java" ) );
 		
@@ -38,5 +36,7 @@ public class GetVersion
 			System.err.println( "Unknown format: " + vs.length );
 			System.exit( 1 );
 		}
+		
+		System.out.println( "Stamped " + version + " into Version.java" );
 	}
 }
