@@ -88,6 +88,27 @@ public class PucmNotifier extends Notifier
 	private Logger logger = null;
 	
 	private UCMDeliver ucmDeliverObj = null;
+	
+	
+	/**
+	 * Before version 0.2.5(I think)
+	 * @param promote
+	 * @param recommended
+	 * @param makeTag
+	 * @param setDescription
+	 * @deprecated
+	 */
+	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag, boolean setDescription )
+	{
+		this.promote = promote;
+		this.recommended = recommended;
+		this.makeTag = makeTag;
+		this.setDescription = setDescription;
+		
+		ucmDeliverObj = new UCMDeliver();
+		ucmDeliverObj.ucmDeliver = false;
+	}
+
 
 	/**
 	 * This constructor is used in the inner class <code>DescriptorImpl</code>.
