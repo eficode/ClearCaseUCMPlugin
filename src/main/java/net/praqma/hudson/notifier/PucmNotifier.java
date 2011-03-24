@@ -317,7 +317,7 @@ public class PucmNotifier extends Notifier
 		
 
 		logger.debug( id + "Trying to run remote tasks" );
-		if( ucmDeliverObj.ucmDeliver )
+		if( ucmDeliverObj != null && ucmDeliverObj.ucmDeliver )
 		{
 			logger.debug( id + "UCM deliver" );
 			
