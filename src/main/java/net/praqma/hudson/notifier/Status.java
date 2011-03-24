@@ -2,6 +2,8 @@ package net.praqma.hudson.notifier;
 
 import java.io.Serializable;
 
+import net.praqma.clearcase.ucm.entities.Project;
+
 import hudson.model.Result;
 
 public class Status implements Serializable
@@ -13,6 +15,8 @@ public class Status implements Serializable
 	private Result buildStatus;
 	private String errorMsg = "";
 	private String buildDescr = "";
+	
+	private Project.Plevel promotedLevel = null;
 	
 	private boolean stable = true;
 	
@@ -99,6 +103,16 @@ public class Status implements Serializable
 
 	public String getBuildDescr() {
 		return buildDescr;
+	}
+
+	public void setPromotedLevel( Project.Plevel promotedLevel )
+	{
+		this.promotedLevel = promotedLevel;
+	}
+
+	public Project.Plevel getPromotedLevel()
+	{
+		return promotedLevel;
 	}
 
 	

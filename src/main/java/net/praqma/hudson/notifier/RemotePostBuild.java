@@ -11,6 +11,7 @@ import java.io.Serializable;
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Cool;
+import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Tag;
 import net.praqma.clearcase.ucm.entities.UCM;
@@ -145,33 +146,24 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 			{
 				try
 				{
-					baseline.Promote();
+					Project.Plevel pl = baseline.promote();
+					status.setPromotedLevel( pl );
 					status.setPLevel( true );
-					hudsonOut.println( "[PUCM] Baseline promoted to " + baseline.GetPromotionLevel( true ).toString() + "." );
+					hudsonOut.println( "[PUCM] Baseline promoted to " + baseline.getPromotionLevel( true ).toString() + "." );
 				}
 				catch( UCMException e )
 				{
 					status.setStable( false );
-					// build.setResult( Result.UNSTABLE );
-					// as it will not make sense to recommend if we cannot
-					// promote, we do this:
+					/* as it will not make sense to recommend if we cannot promote, we do this: */
 					if( recommended )
 					{
 						recommended = false;
-						// throw new NotifierException(
-						// "Could not promote baseline and will not recommend. "
-						// + e.getMessage() );
 						hudsonOut.println( "[PUCM] Could not promote baseline and will not recommend. " + e.getMessage() );
 						status.addToLog( logger.warning( id + "Could not promote baseline and will not recommend. " + e.getMessage() ) );
 					}
 					else
 					{
-						// As we will not recommend if we cannot promote,
-						// it's
-						// ok to break method here
-						// throw new NotifierException(
-						// "Could not promote baseline. " + e.getMessage()
-						// );
+						/* As we will not recommend if we cannot promote, it's ok to break method here */
 						hudsonOut.println( "[PUCM] Could not promote baseline. " + e.getMessage() );
 						status.addToLog( logger.warning( id + "Could not promote baseline. " + e.getMessage() ) );
 					}
@@ -191,10 +183,6 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 				}
 				catch ( Exception e )
 				{
-					// build.setResult( Result.UNSTABLE );
-					// throw new NotifierException(
-					// "Could not recommend baseline. Reason: " +
-					// e.getMessage() );
 					status.setStable( false );
 					hudsonOut.println( "[PUCM] Could not recommend baseline. Reason: " + e.getMessage() );
 					status.addToLog( logger.warning( id + "Could not recommend baseline. Reason: " + e.getMessage() ) );
@@ -207,7 +195,6 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 			/* The build failed */
 			if( result.equals( Result.FAILURE ) )
 			{
-				hudsonOut.println( "[WOLLE] 7" );
 				hudsonOut.println( "[PUCM] Build failed." );
 
 				if( status.isTagAvailable() )
@@ -219,9 +206,11 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 				{
 					try
 					{
-						baseline.Demote();
+						status.addToLog( logger.warning( id + "Demoting baseline" ) );
+						Project.Plevel pl = baseline.demote();
+						status.setPromotedLevel( pl );
 						status.setPLevel( true );
-						hudsonOut.println( "[PUCM] Baseline is " + baseline.GetPromotionLevel( true ).toString() + "." );
+						hudsonOut.println( "[PUCM] Baseline is " + baseline.getPromotionLevel( true ).toString() + "." );
 					}
 					catch( Exception e )
 					{
@@ -245,9 +234,10 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 				{
 					try
 					{
-						baseline.Demote();
+						Project.Plevel pl = baseline.demote();
+						status.setPromotedLevel( pl );
 						status.setPLevel( true );
-						hudsonOut.println( "[PUCM] Baseline is " + baseline.GetPromotionLevel( true ).toString() + "." );
+						hudsonOut.println( "[PUCM] Baseline is " + baseline.getPromotionLevel( true ).toString() + "." );
 					}
 					catch ( Exception e )
 					{
@@ -265,23 +255,32 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 				hudsonOut.println( "[PUCM] Baseline not changed. Buildstatus: " + result );
 			}
 		}
+		
 		/* Persist the Tag */
-		if ( makeTag )
+		if( makeTag )
 		{
-			try
+			if( tag != null )
 			{
-				tag = tag.Persist();
-				hudsonOut.println( "[PUCM] Baseline now marked with tag: \n" + tag.Stringify() );
+				try
+				{
+					tag = tag.Persist();
+					hudsonOut.println( "[PUCM] Baseline now marked with tag: \n" + tag.Stringify() );
+				}
+				catch ( Exception e )
+				{
+					hudsonOut.println( "[PUCM] Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
+				}
 			}
-			catch ( Exception e )
+			else
 			{
-				hudsonOut.println( "[PUCM] Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
+				logger.warning( id + "Tag object was null" );
+				hudsonOut.println( "[PUCM] Tag object was null, tag not set." );
 			}
 		}
 
 		try
 		{
-			newPLevel = baseline.GetPromotionLevel( true ).toString();
+			newPLevel = baseline.getPromotionLevel( true ).toString();
 		}
 		catch(UCMException e)
 		{

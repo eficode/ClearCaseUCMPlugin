@@ -364,7 +364,7 @@ class RemoteDeliver implements FileCallable<Integer>
 			{
 				status.addToLog( logger.debug( id + "The stream is read only" ) );
 				//baseline.deliver( null, target, view.GetViewRoot(), null, true, true, true );
-				if( !baseline.deliver( baseline.GetStream(), null, view.GetViewRoot(), view.GetViewtag(), true, true, true ) )
+				if( !baseline.deliver( baseline.getStream(), null, view.GetViewRoot(), view.GetViewtag(), true, true, true ) )
 				{
 					status.addToLog( logger.debug( id + "The deliver was empty, no changes" ) );
 					makebl = false;

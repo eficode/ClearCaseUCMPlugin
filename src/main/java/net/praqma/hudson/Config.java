@@ -87,7 +87,7 @@ public class Config
 			
 			try
 			{
-				project = bl.GetStream().getProject();
+				project = bl.getStream().getProject();
 			}
 			catch ( UCMException ucme )
 			{

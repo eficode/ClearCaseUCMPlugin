@@ -290,6 +290,16 @@ public class PucmNotifier extends Notifier
 		}
 
 		logger.debug( id + "The final state:\n" + pstate.stringify() );
+		try
+		{
+			logger.debug( id + pstate.getBaseline().Stringify() );
+		}
+		catch( UCMException e )
+		{
+			logger.debug( id + "Could not print baseline" );
+		}
+		
+		/* Trying to store baseline */
 
 		return result;
 	}
@@ -386,6 +396,12 @@ public class PucmNotifier extends Notifier
 			logger.debug( id + "Something went wrong: " + e.getMessage() );
 			logger.warning( e );
 			hudsonOut.println( "[PUCM] Error: Post build failed: " + e.getMessage() );
+		}
+		
+		if( status.getPromotedLevel() != null )
+		{
+			pstate.getBaseline().setPromotionLevel( status.getPromotedLevel() );
+			logger.debug( id + "Baselines promotion level sat to " + status.getPromotedLevel().toString() );
 		}
 
 		status.setBuildStatus( buildResult );

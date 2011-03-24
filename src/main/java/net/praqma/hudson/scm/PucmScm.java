@@ -5,6 +5,7 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Build;
 import hudson.model.BuildListener;
+import hudson.model.JobProperty;
 import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
@@ -83,6 +84,8 @@ public class PucmScm extends SCM
 	private Logger logger = null;
 	
 	public static PucmState pucm = new PucmState();
+	
+	public static final String PUCM_LOGGER_STRING = "include_classes";
 
 	/**
 	 * The constructor is used by Hudson to create the instance of the plugin
@@ -191,12 +194,12 @@ public class PucmScm extends SCM
 			try
 			{
 				state.setBaseline( UCMEntity.GetBaseline( baselinename ) );
-				state.setStream( state.getBaseline().GetStream() );
+				state.setStream( state.getBaseline().getStream() );
 				consoleOutput.println( "[PUCM] Starting parameterized build with a pucm_baseline.\n[PUCM] Using baseline: " + baselinename + " from integrationstream " + state.getStream().GetShortname() );
 				
 				/* The component could be used in the post build section */
-				state.setComponent( state.getBaseline().GetComponent() );
-				state.setStream( state.getBaseline().GetStream() );
+				state.setComponent( state.getBaseline().getComponent() );
+				state.setStream( state.getBaseline().getStream() );
 				logger.debug( "Saving the component for later use" );
 			}
 			catch ( UCMException e )
@@ -332,9 +335,17 @@ public class PucmScm extends SCM
 	@Override
 	public PollingResult compareRemoteRevisionWith( AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState baseline ) throws IOException, InterruptedException
 	{
+		System.out.println( "POLLING....." );
+		
 		logger = PraqmaLogger.getLogger();
 		this.id = "[" + project.getDisplayName() + "::" + project.getNextBuildNumber() + "]";
-
+		logger.subscribeAll();
+		
+		
+		
+		//JobProperty<?> test = project.getProperties().get( PUCM_LOGGER_STRING );
+		//String mytest = test.toString();
+		
 		logger.trace_function();
 		logger.debug( id + "PucmSCM Pollingresult" );
 		
@@ -353,6 +364,16 @@ public class PucmScm extends SCM
 			baselinesToBuild( project, state );
 			compRevCalled = true;
 			logger.info( id + "Polling result = BUILD NOW" );
+			logger.info( id + "Baseline=" + state.getBaseline() );
+			try
+			{
+				logger.info( id + "Baseline plevel=" + state.getBaseline().Stringify() );
+			}
+			catch( UCMException e )
+			{
+				logger.info( id + "Could not get baseline info" );
+			}
+			
 			p = PollingResult.BUILD_NOW;
 		}
 		catch ( ScmException e )
@@ -367,6 +388,8 @@ public class PucmScm extends SCM
 		}
 
 		logger.debug( id + "FINAL Polling result = " + p.change.toString() );
+		
+		
 		
 		return p;
 	}
@@ -538,12 +561,12 @@ public class PucmScm extends SCM
 
 	private void printBaselines( BaselineList baselines )
 	{
-		pollMsgs.append( "[PUCM] Retrieved baselines:" );
+		pollMsgs.append( "[PUCM] Retrieved baselines:\n" );
 		if ( !( baselines.size() > 20 ) )
 		{
 			for ( Baseline b : baselines )
 			{
-				pollMsgs.append( "\n[PUCM]" + b.GetShortname() );
+				pollMsgs.append( "[PUCM]" + b.GetShortname() + "\n" );
 			}
 		}
 		else

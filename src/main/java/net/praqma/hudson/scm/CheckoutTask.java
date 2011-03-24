@@ -86,7 +86,7 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 		{
 			UCM.SetContext( UCM.ContextType.CLEARTOOL );
 			makeWorkspace( workspace );
-			BaselineDiff bldiff = bl.GetDiffs( sv );
+			BaselineDiff bldiff = bl.getDiffs( sv );
 			diff = createChangelog( bldiff, hudsonOut );
 			doPostBuild = true;
 		}
@@ -328,7 +328,7 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
     }
     
     public BaselineDiff getBaselineDiffs() throws UCMException{
-    	return bl.GetDiffs( sv );
+    	return bl.getDiffs( sv );
     }
     
 
