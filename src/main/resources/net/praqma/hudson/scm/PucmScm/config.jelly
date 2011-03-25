@@ -34,7 +34,7 @@
 	</f:entry>
 	
 	
-	<f:entry title="Multi site" help="/plugin/PUCM/scm/help-multisite.html">
+	<f:entry title="Multi-site promotion level cache" help="/plugin/PUCM/scm/help-multisite.html">
 	    <f:checkbox name="PUCM.multiSite" checked="${instance.multiSite}" />
 	</f:entry>
 	
