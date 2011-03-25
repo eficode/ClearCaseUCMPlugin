@@ -37,6 +37,7 @@ import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.scm.PucmState.State;
+import net.praqma.hudson.scm.StoredBaselines.StoredBaseline;
 import net.praqma.util.debug.PraqmaLogger;
 import net.praqma.util.debug.PraqmaLogger.Logger;
 import net.praqma.util.structure.Tuple;
@@ -75,6 +76,7 @@ public class PucmScm extends SCM
 	private SnapshotView sv = null;
 	private boolean doPostBuild = true;
 	private String buildProject;
+	private boolean multiSite = false;
 
 	private String jobName = "";
 	private Integer jobNumber;
@@ -84,6 +86,9 @@ public class PucmScm extends SCM
 	private Logger logger = null;
 	
 	public static PucmState pucm = new PucmState();
+	
+	public static final long __PUCM_STORED_BASELINES_THRESHOLD = 5 * 60 * 1000; /* Threshold in milliseconds */
+	public static StoredBaselines storedBaselines = new StoredBaselines();
 	
 	public static final String PUCM_LOGGER_STRING = "include_classes";
 
@@ -107,8 +112,8 @@ public class PucmScm extends SCM
 	 * @param newerThanRecommended
 	 *            tells whether we should look at all baselines or only ones
 	 *            newer than the recommended baseline
+	 * @deprecated as of 0.3.10
 	 */
-	@DataBoundConstructor
 	public PucmScm( String component, String levelToPoll, String loadModule, String stream, boolean newest, boolean testing, String buildProject )
 	{
 		this.logger = PraqmaLogger.getLogger();
@@ -120,6 +125,42 @@ public class PucmScm extends SCM
 		this.stream = stream;
 		this.newest = newest;
 		this.buildProject = buildProject;
+	}
+	
+	/**
+	 * The constructor is used by Hudson to create the instance of the plugin
+	 * needed for a connection to ClearCase. It is annotated with
+	 * <code>@DataBoundConstructor</code> to tell Hudson where to put the
+	 * information retrieved from the configuration page in the WebUI.
+	 * 
+	 * @param component
+	 *            defines the component needed to find baselines.
+	 * @param levelToPoll
+	 *            defines the level to poll ClearCase for.
+	 * @param loadModule
+	 *            tells if we should load all modules or only the ones that are
+	 *            modifiable.
+	 * @param stream
+	 *            defines the stream needed to find baselines.
+	 * @param newest
+	 *            tells whether we should build only the newest baseline.
+	 * @param newerThanRecommended
+	 *            tells whether we should look at all baselines or only ones
+	 *            newer than the recommended baseline
+	 */
+	@DataBoundConstructor
+	public PucmScm( String component, String levelToPoll, String loadModule, String stream, boolean newest, boolean multiSite, boolean testing, String buildProject )
+	{
+		this.logger = PraqmaLogger.getLogger();
+		logger.trace_function();
+		logger.debug( "PucmSCM constructor" );
+		this.component = component;
+		this.levelToPoll = levelToPoll;
+		this.loadModule = loadModule;
+		this.stream = stream;
+		this.newest = newest;
+		this.buildProject = buildProject;
+		this.multiSite = multiSite;
 	}
 
 	@Override
@@ -162,6 +203,19 @@ public class PucmScm extends SCM
 
 		state.setLogger( logger );
 		
+		if( this.multiSite )
+		{
+			/* Get the time in milli seconds and store it to the state */
+			//state.setMultiSiteFrquency( ( (PucmScmDescriptor) PucmScm.this.getDescriptor() ).getMultiSiteFrequency() * 6000 );
+			state.setMultiSiteFrquency( ( (PucmScmDescriptor) getDescriptor() ).getMultiSiteFrequencyAsInt() * 6000 );
+			logger.info( "My multi site frequency: " + state.getMultiSiteFrquency() );
+		}
+		else
+		{
+			state.setMultiSiteFrquency( 0 );
+			logger.info( "This is not a multi site job" );
+		}
+		
 		logger.debug( id + "The initial state:\n" + state.stringify() );
 
 		this.id = "[" + jobName + "::" + jobNumber + "]";
@@ -179,7 +233,7 @@ public class PucmScm extends SCM
 		Collection<?> c = build.getBuildVariables().keySet();
 		Iterator<?> i = c.iterator();
 		
-		while ( i.hasNext() )
+		while( i.hasNext() )
 		{
 			String next = i.next().toString();
 			if ( next.equalsIgnoreCase( "pucm_baseline" ) )
@@ -188,7 +242,7 @@ public class PucmScm extends SCM
 			}
 		}
 
-		if ( build.getBuildVariables().get( baselinevalue ) != null )
+		if( build.getBuildVariables().get( baselinevalue ) != null )
 		{
 			String baselinename = (String) build.getBuildVariables().get( baselinevalue );
 			try
@@ -202,7 +256,7 @@ public class PucmScm extends SCM
 				state.setStream( state.getBaseline().getStream() );
 				logger.debug( "Saving the component for later use" );
 			}
-			catch ( UCMException e )
+			catch( UCMException e )
 			{
 				consoleOutput.println( "[PUCM] Could not find baseline from parameter '"+baselinename+"'." );
 				state.setPostBuild( false );
@@ -215,15 +269,13 @@ public class PucmScm extends SCM
 			// compRevCalled tells whether we have polled for baselines to build
 			// -
 			// so if we haven't polled, we do it now
-			if ( !compRevCalled )
+			if( !compRevCalled )
 			{
 				try
 				{
-					// baselinesToBuild( component, stream, build.getProject(),
-					// build.getParent().getDisplayName(), build.getNumber() );
 					baselinesToBuild( build.getProject(), state );
 				}
-				catch ( ScmException e )
+				catch( ScmException e )
 				{
 					pollMsgs.append( "[PUCM] " + e.getMessage() );
 					result = false;
@@ -232,13 +284,12 @@ public class PucmScm extends SCM
 
 			compRevCalled = false;
 
-			// pollMsgs are set in either compareRemoteRevisionWith() or
-			// baselinesToBuild()
+			/* pollMsgs are set in either compareRemoteRevisionWith() or baselinesToBuild() */
 			consoleOutput.println( pollMsgs );
 			pollMsgs = new StringBuffer();
 		}
 
-		if ( result )
+		if( result )
 		{
 			try
 			{
@@ -347,7 +398,7 @@ public class PucmScm extends SCM
 		//String mytest = test.toString();
 		
 		logger.trace_function();
-		logger.debug( id + "PucmSCM Pollingresult" );
+		//logger.debug( id + "PucmSCM Pollingresult" );
 		
 		/* Make a state object, which is only temporary, only to determine if there's baselines to build this object will be stored in checkout  */
 		jobName   = project.getDisplayName().replace(' ','_');
@@ -364,15 +415,6 @@ public class PucmScm extends SCM
 			baselinesToBuild( project, state );
 			compRevCalled = true;
 			logger.info( id + "Polling result = BUILD NOW" );
-			logger.info( id + "Baseline=" + state.getBaseline() );
-			try
-			{
-				logger.info( id + "Baseline plevel=" + state.getBaseline().Stringify() );
-			}
-			catch( UCMException e )
-			{
-				logger.info( id + "Could not get baseline info" );
-			}
 			
 			p = PollingResult.BUILD_NOW;
 		}
@@ -460,6 +502,14 @@ public class PucmScm extends SCM
 			printBaselines( baselines );
 
 			logger.debug( id + "PUCM=" + pucm.stringify() );
+			
+			if( state.isMultiSite() )
+			{
+				/* Prune the stored baselines */
+				int pruned = PucmScm.storedBaselines.prune( __PUCM_STORED_BASELINES_THRESHOLD );
+				logger.info( id + "I pruned " + pruned + " baselines from cache with threshold " + StoredBaselines.milliToMinute( __PUCM_STORED_BASELINES_THRESHOLD ) + "m" );
+				logger.debug( id + "My stored baselines:\n" + PucmScm.storedBaselines.toString() );
+			}
 
 			try
 			{
@@ -475,8 +525,7 @@ public class PucmScm extends SCM
 
 				bl = null;
 				state.setBaseline( null );
-				/* For each baseline retrieved from ClearCase */
-				// for ( Baseline b : baselinelist )
+
 				int start = 0;
 				int stop = baselines.size();
 				int increment = 1;
@@ -486,14 +535,25 @@ public class PucmScm extends SCM
 					// stop = 0;
 					increment = -1;
 				}
+				
+				StoredBaseline sbl = null;
 
 				/* Find the Baseline to build */
 				for ( int i = start ; i < stop && i >= 0 ; i += increment )
 				{
 					/* The current baseline */
 					Baseline b = baselines.get( i );
+					
+					logger.debug( id + "Matching " + b );
 
 					State cstate = pucm.getStateByBaseline( jobName, b.GetFQName() );
+					
+					if( state.isMultiSite() )
+					{
+						/* Find the baseline if stored */
+						sbl = PucmScm.storedBaselines.getBaseline( b.GetFQName() );
+						logger.debug( id + "The found stored baseline: " + sbl );
+					}
 
 					/*
 					 * The baseline is in progress, determine if the job is
@@ -511,10 +571,14 @@ public class PucmScm extends SCM
 						if ( !bld.isLogUpdated() )
 						{
 							logger.debug( id + "Job " + bld.getNumber() + " is not building, using baseline: " + b );
-							bl = b;
-							// thisJob.put( b.GetFQName(), state.getJobNumber()
-							// );
-							break;
+							
+							/* Verify that the found baseline has the same promotion as the stored(if stored) */
+							if( sbl == null || sbl.plevel == b.getPromotionLevel( true ) )
+							{
+								logger.debug( id + "This was selected" );
+								bl = b;
+								break;
+							}
 						}
 						else
 						{
@@ -524,10 +588,14 @@ public class PucmScm extends SCM
 					/* The baseline is available */
 					else
 					{
-						bl = b;
-						// thisJob.put( b.GetFQName(), state.getJobNumber() );
-						logger.debug( id + "The baseline " + b + " is available" );
-						break;
+						/* Verify that the found baseline has the same promotion as the stored(if stored) */
+						if( sbl == null || sbl.plevel == b.getPromotionLevel( true ) )
+						{
+							logger.debug( id + "This was selected" );
+							bl = b;
+							logger.debug( id + "The baseline " + b + " is available" );
+							break;
+						}
 					}
 				}
 
@@ -587,64 +655,60 @@ public class PucmScm extends SCM
 	 * userdata in Hudsons gui
 	 */
 
+	public boolean getMultiSite()
+	{
+		return this.multiSite;
+	}
+	
 	public String getLevelToPoll()
 	{
-		logger.trace_function();
 		return levelToPoll;
 	}
 
 	public String getComponent()
 	{
-		logger.trace_function();
 		return component;
 	}
 
 	public String getStream()
 	{
-		logger.trace_function();
 		return stream;
 	}
 
 	public String getLoadModule()
 	{
-		logger.trace_function();
 		return loadModule;
 	}
 
 	public boolean isNewest()
 	{
-		logger.trace_function();
 		return newest;
 	}
 
 	/*
 	 * getStreamObject() and getBaseline() are used by PucmNotifier to get the
-	 * Baseline and Stream in use
+	 * Baseline and Stream in use, but does not work with concurrent builds!!!
 	 */
 
 	public Stream getStreamObject()
 	{
-		logger.trace_function();
 		return integrationstream;
 	}
 
 	@Exported
 	public Baseline getBaseline()
 	{
-		logger.trace_function();
 		return bl;
 	}
 
 	@Exported
 	public boolean doPostbuild()
 	{
-		logger.trace_function();
 		return doPostBuild;
 	}
 
 	public String getBuildProject()
 	{
-		logger.trace_function();
 		return buildProject;
 	}
 
@@ -656,10 +720,11 @@ public class PucmScm extends SCM
 	 * 
 	 */
 	@Extension
-	public static class PucmScmDescriptor extends SCMDescriptor<PucmScm>
+	public static class PucmScmDescriptor extends SCMDescriptor<PucmScm> implements hudson.model.ModelObject
 	{
 
 		private String cleartool;
+		private String multiSiteFrequency;
 		private List<String> loadModules;
 
 		public PucmScmDescriptor()
@@ -677,7 +742,8 @@ public class PucmScm extends SCM
 		@Override
 		public boolean configure( org.kohsuke.stapler.StaplerRequest req, JSONObject json ) throws FormException
 		{
-			cleartool = req.getParameter( "PUCM.cleartool" ).trim();
+			cleartool          = req.getParameter( "PUCM.cleartool" ).trim();
+			multiSiteFrequency = req.getParameter( "PUCM.multiSiteFrequency" ).trim();
 			save();
 			return true;
 		}
@@ -716,6 +782,23 @@ public class PucmScm extends SCM
 				return "cleartool";
 			}
 			return cleartool;
+		}
+		
+		public String getMultiSiteFrequency()
+		{
+			return multiSiteFrequency;
+		}
+		
+		public int getMultiSiteFrequencyAsInt()
+		{
+			try
+			{
+				return Integer.parseInt( multiSiteFrequency );
+			}
+			catch( Exception e )
+			{
+				return 0;
+			}
 		}
 
 		/**

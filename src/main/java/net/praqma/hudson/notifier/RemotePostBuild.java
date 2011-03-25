@@ -222,8 +222,9 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 					}
 				}
 			}
-			/* The build didn't fail, but the deliver did */
-			else if( !result.equals( Result.FAILURE ) && !status.isStable() )
+			/* The build is unstable
+			 * TODO Maybe not else if */
+			else if( !result.equals( Result.FAILURE ) )
 			{
 				if ( status.isTagAvailable() )
 				{

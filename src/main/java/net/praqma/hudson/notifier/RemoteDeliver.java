@@ -175,6 +175,7 @@ class RemoteDeliver implements FileCallable<Integer>
 		catch ( UCMException e )
 		{
 			status.addToLog( logger.debug( id + "could not create Baseline object:" + e.getMessage() ) );
+			if( e.stdout != null ){	hudsonOut.println( e.stdout ); }
 			throw new IOException( "[PUCM] Could not create Baseline object: " + e.getMessage() );
 		}
 		
@@ -191,7 +192,7 @@ class RemoteDeliver implements FileCallable<Integer>
 		catch ( UCMException e )
 		{
 			status.addToLog( logger.debug( id + "could not create Stream object:" + e.getMessage() ) );
-			//osw.close();
+			if( e.stdout != null ){	hudsonOut.println( e.stdout ); }
 			throw new IOException( "[PUCM] Could not create Stream object: " + e.getMessage() );
 		}
 				
@@ -204,6 +205,7 @@ class RemoteDeliver implements FileCallable<Integer>
 		catch ( UCMException e )
 		{
 			status.addToLog( logger.debug( id + "could not create Component object:" + e.getMessage() ) );
+			if( e.stdout != null ){	hudsonOut.println( e.stdout ); }
 			throw new IOException( "[PUCM] Could not create Component object: " + e.getMessage() );
 		}
 		
@@ -219,6 +221,7 @@ class RemoteDeliver implements FileCallable<Integer>
 			catch ( UCMException e )
 			{
 				status.addToLog( logger.debug( id + "could not create target Stream object: " + e.getMessage() ) );
+				if( e.stdout != null ){	hudsonOut.println( e.stdout ); }
 				throw new IOException( "[PUCM] Could not create target Stream object: " + e.getMessage() );
 			}
 		}
@@ -231,6 +234,7 @@ class RemoteDeliver implements FileCallable<Integer>
 			catch ( UCMException e )
 			{
 				status.addToLog( logger.debug( id + "The Stream did not have a default target: " + e.getMessage() ) );
+				if( e.stdout != null ){	hudsonOut.println( e.stdout ); }
 				throw new IOException( "[PUCM] The Stream did not have a default target: " + e.getMessage() );
 			}
 		}
@@ -254,6 +258,7 @@ class RemoteDeliver implements FileCallable<Integer>
 			{
 				status.addToLog( logger.warning( id + "Could not get four level version" ) );
 				status.addToLog( logger.warning( e ) );
+				if( e.stdout != null ){	hudsonOut.println( e.stdout ); }
 				throw new IOException( "Could not get four level version: " + e.getMessage() );
 			}
 		}
@@ -282,6 +287,7 @@ class RemoteDeliver implements FileCallable<Integer>
 					{
 						status.addToLog( logger.warning( id + "Could not get sequence number from component" ) );
 						status.addToLog( logger.warning( e ) );
+						if( e.stdout != null ){	hudsonOut.println( e.stdout ); }
 						throw new IOException( "Could not get sequence number from component: " + e.getMessage() );
 					}
 				}
@@ -382,6 +388,7 @@ class RemoteDeliver implements FileCallable<Integer>
 		catch ( UCMException e )
 		{
 			hudsonOut.print( "[PUCM] Deliver operation failed. " );
+			if( e.stdout != null ){	hudsonOut.println( e.stdout ); }
 			status.addToLog( logger.warning( id + "The baseline could not be delivered" + e.getMessage() ) );
 			status.addToLog( logger.warning( e ) );
 			try
@@ -404,6 +411,7 @@ class RemoteDeliver implements FileCallable<Integer>
 			{
 				status.addToLog( logger.warning( id + "Could not cancel non-trivial deliver" ) );
 				status.addToLog( logger.warning( e1 ) );
+				if( e.stdout != null ){	hudsonOut.println( e1.stdout ); }
 				hudsonOut.println( "Failed" );
 				throw new IOException( "Deliver operation failed and could not cancel: " + e.getMessage() );
 			}
@@ -429,6 +437,7 @@ class RemoteDeliver implements FileCallable<Integer>
 			{
     			status.addToLog( logger.warning( id + "Could not get view for workspace. " + e.getMessage() ) );
     			hudsonOut.println( "[PUCM] Failed creating baseline " + ucmDeliver.baselineName + number );
+    			if( e.stdout != null ){	hudsonOut.println( e.stdout ); }
     			throw new IOException( "Could not create baseline: " + e.getMessage() );
 			}
 		}
@@ -499,6 +508,7 @@ class RemoteDeliver implements FileCallable<Integer>
 				catch ( UCMException ucmEe )
 				{
 					status.addToLog( logger.warning( id + "Could regenerate workspace." ) );
+					if( ucmEe.stdout != null ){	hudsonOut.println( ucmEe.stdout ); }
 					throw new ScmException( "Could not make workspace - could not regenerate view: " + ucmEe.getMessage() + " Type: " + "" );
 				}
 			}
@@ -512,6 +522,7 @@ class RemoteDeliver implements FileCallable<Integer>
 			catch ( UCMException e )
 			{
 				status.addToLog( logger.warning( id + "Could not get view for workspace. " + e.getMessage() ) );
+				if( e.stdout != null ){	hudsonOut.println( e.stdout ); }
 				throw new ScmException( "Could not get view for workspace. " + e.getMessage() );
 			}
 		}
@@ -528,6 +539,7 @@ class RemoteDeliver implements FileCallable<Integer>
 			{
 				status.addToLog( logger.warning( id + "The view could not be created" ) );
 				status.addToLog( logger.warning( e ) );
+				if( e.stdout != null ){	hudsonOut.println( e.stdout ); }
 				throw new ScmException( "View not found in this region, but view with viewtag '" + viewtag + "' might exists in the other regions. Try changing the region Hudson or the slave runs in." );
 			}
 		}
@@ -541,6 +553,7 @@ class RemoteDeliver implements FileCallable<Integer>
 		}
 		catch ( UCMException e )
 		{
+			if( e.stdout != null ){	hudsonOut.println( e.stdout ); }
 			throw new ScmException( "Could not update snapshot view. " + e.getMessage() );
 		}
 		

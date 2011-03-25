@@ -6,12 +6,14 @@ import hudson.model.Build;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
+import java.util.Iterator;
 import java.util.List;
 
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
+import net.praqma.hudson.scm.PucmState.State;
 import net.praqma.util.debug.PraqmaLogger;
 import net.praqma.util.debug.PraqmaLogger.Logger;
 
@@ -109,8 +111,12 @@ public class PucmState
 		
 		try
 		{
-			for( State s : states )
+			State s = null;
+			Iterator<State> it = states.iterator();
+			
+			while( it.hasNext() )
 			{
+				s = it.next();
 				Integer bnum = s.getJobNumber();
 				Object o = project.getBuildByNumber( bnum );
 				Build bld = (Build)o;
@@ -118,7 +124,7 @@ public class PucmState
 				/* The job is not running */
 				if( !bld.isLogUpdated() )
 				{
-					s.remove();
+					it.remove();
 					count++;
 				}
 			}
@@ -161,6 +167,7 @@ public class PucmState
 		private Integer   jobNumber;
 		
 		private boolean   addedByPoller = false;
+		private long      multiSiteFrequency = 0;
 		
 		private Logger logger;
 		
@@ -271,6 +278,7 @@ public class PucmState
 			sb.append( "Plevel        : " + ( this.plevel != null ? this.plevel.toString() : "Missing" ) + linesep );
 			sb.append( "Load Module   : " + this.loadModule + linesep );
 			sb.append( "Added by poll : " + ( this.addedByPoller ? "Yes" : "No" ) + linesep );
+			sb.append( "Multi site    : " + ( this.multiSiteFrequency > 0 ? StoredBaselines.milliToMinute( this.multiSiteFrequency ) : "N/A" ) + linesep );
 			sb.append( "postBuild     : " + this.doPostBuild + linesep );
 			
 			return sb.toString();
@@ -295,6 +303,19 @@ public class PucmState
 		public boolean isAddedByPoller()
 		{
 			return addedByPoller;
+		}
+		public void setMultiSiteFrquency( long multiSiteFrquency )
+		{
+			this.multiSiteFrequency = multiSiteFrquency;
+		}
+		public long getMultiSiteFrquency()
+		{
+			return multiSiteFrequency;
+		}
+		
+		public boolean isMultiSite()
+		{
+			return this.multiSiteFrequency > 0;
 		}
 	}
 	

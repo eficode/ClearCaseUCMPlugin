@@ -30,52 +30,43 @@ This should be the file that makes it possible to select our notifier in the "po
 				<f:nested>
 				
 					<table>
-					    <f:entry title="Alternate target" help="/plugin/PUCM/scm/help-buildProject.html">
+					    <f:entry title="Target stream" help="/plugin/PUCM/notifier/help-alternate.html">
 				      		<f:textbox name="Pucm.alternateTarget" value="${instance.alternateTarget}"/>
 				    	</f:entry>
 				    	
-					    <f:entry title="Baseline name" help="/plugin/PUCM/scm/help-buildProject.html">
+					    <f:entry title="New (target) baseline name" help="/plugin/PUCM/notifier/help-baselinename.html">
 				      		<f:textbox name="Pucm.baselineName" value="${instance.baselineName}"/>
 				    	</f:entry>
 				    	
-				    	<!--
-						<f:entry title="Apply four level version number to baseline" help="/plugin/PUCM/notifier/help-recommendBaseline.html">
-						    <f:checkbox name="Pucm.apply4level" checked="${h.defaultToTrue(instance.apply4level)}" />
-						</f:entry>
-						-->
-						
-						<f:entry title="Do not append version to baseline">
-							<f:radio name="Pucm.versionFrom" value="none" checked="${instance.versionFrom == 'none'}" /> 
-						</f:entry>
-												
-						<f:entry title="Get attributes from project and component">
+				    							
+						<f:entry title="Get build attributes from UCM project and Component" help="/plugin/PUCM/notifier/help-attrproject.html">
 							<f:radio name="Pucm.versionFrom" value="project" checked="${instance.versionFrom == 'project'}" /> 
 						</f:entry>
 						
-						<f:entry title="Get attributes from settings below">
+						<f:entry title="Get build attributes from settings" help="/plugin/PUCM/notifier/help-attrsettings.html">
 							<f:radio name="Pucm.versionFrom" value="settings" checked="${instance.versionFrom == 'settings'}" /> 
 						</f:entry>
 						
 						<f:nested>
 						
 							<table>
-							    <f:entry title="Major" help="/plugin/PUCM/scm/help-buildProject.html">
+							    <f:entry title="Major">
 						      		<f:textbox name="Pucm.buildnumberMajor" value="${instance.buildnumberMajor}"/>
 						    	</f:entry>
 						    	
-							    <f:entry title="Minor" help="/plugin/PUCM/scm/help-buildProject.html">
+							    <f:entry title="Minor">
 						      		<f:textbox name="Pucm.buildnumberMinor" value="${instance.buildnumberMinor}"/>
 						    	</f:entry>
 
-							    <f:entry title="Patch" help="/plugin/PUCM/scm/help-buildProject.html">
+							    <f:entry title="Patch">
 						      		<f:textbox name="Pucm.buildnumberPatch" value="${instance.buildnumberPatch}"/>
 						    	</f:entry>
 						    	
-								<f:entry title="Sequence from component">
+								<f:entry title="Sequence from component" help="/plugin/PUCM/notifier/help-sequencefromcomponent.html">
 									<f:radio name="Pucm.buildnumberSequenceSelector" value="component" checked="${instance.buildnumberSequenceSelector == 'component'}" /> 
 								</f:entry>
 								
-								<f:entry title="Current build number from jenkins">
+								<f:entry title="Sequence is the Job number">
 									<f:radio name="Pucm.buildnumberSequenceSelector" value="current" checked="${instance.buildnumberSequenceSelector == 'current'}" /> 
 								</f:entry>
 							</table>

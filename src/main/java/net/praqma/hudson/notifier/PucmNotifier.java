@@ -69,7 +69,7 @@ public class PucmNotifier extends Notifier
 {
 	private boolean promote;
 	private boolean recommended;
-	private Baseline baseline;
+	//private Baseline baseline;
 	private PrintStream hudsonOut;
 	private Stream st;
 	private boolean makeTag;
@@ -205,14 +205,12 @@ public class PucmNotifier extends Notifier
 		}
 
 		State pstate = null;
+		Baseline baseline = null;
+		
 		if( result )
 		{
-			// PucmScm scm = (PucmScm) scmTemp;
-			// PucmState state = scm.getPucmState(
-			// build.getParent().getDisplayName(), build.getNumber() );
 			pstate = PucmScm.pucm.getState( build.getParent().getDisplayName(), build.getNumber() );
 
-			// if ( scm.doPostbuild() )
 			if( pstate.doPostBuild() && pstate.getBaseline() != null )
 			{
 				logger.debug( id + "Post build" );
@@ -220,25 +218,22 @@ public class PucmNotifier extends Notifier
 				String bl = pstate.getBaseline().GetFQName();
 
 				/* If no baselines found bl will be null */
-				if ( bl != null )
+				if( bl != null )
 				{
 					try
 					{
 						baseline = UCMEntity.GetBaseline( bl );
 					}
-					catch ( UCMException e )
+					catch( UCMException e )
 					{
 						logger.warning( id + "Could not initialize baseline." );
 						baseline = null;
 					}
 
-					// st = scm.getStreamObject();
 					st = pstate.getStream();
-					if ( baseline == null )
+					if( baseline == null )
 					{
-						// If baseline is null, the user has already been
-						// notified
-						// in Console output from PucmScm.checkout()
+						/* If baseline is null, the user has already been notified in Console output from PucmScm.checkout() */
 						result = false;
 					}
 				}
@@ -255,7 +250,7 @@ public class PucmNotifier extends Notifier
 			}
 		}
 
-		if ( result )
+		if( result )
 		{
 			try
 			{
@@ -287,19 +282,16 @@ public class PucmNotifier extends Notifier
 			logger.debug( id + "Removing job " + build.getNumber() + " from collection: " + done2 );
 
 			logger.debug( "PUCM FINAL=" + PucmScm.pucm.stringify() );
+			
+			if( pstate.isMultiSite() )
+			{
+				/* Trying to store baseline */
+				logger.debug( id + "Trying to store baseline" );
+				PucmScm.storedBaselines.addBaseline( baseline );
+			}
 		}
 
 		logger.debug( id + "The final state:\n" + pstate.stringify() );
-		try
-		{
-			logger.debug( id + pstate.getBaseline().Stringify() );
-		}
-		catch( UCMException e )
-		{
-			logger.debug( id + "Could not print baseline" );
-		}
-		
-		/* Trying to store baseline */
 
 		return result;
 	}
@@ -398,6 +390,7 @@ public class PucmNotifier extends Notifier
 			hudsonOut.println( "[PUCM] Error: Post build failed: " + e.getMessage() );
 		}
 		
+		/* If the promotion level of the baseline was changed on the remote */
 		if( status.getPromotedLevel() != null )
 		{
 			pstate.getBaseline().setPromotionLevel( status.getPromotedLevel() );
