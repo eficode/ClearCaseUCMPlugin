@@ -207,7 +207,7 @@ public class PucmScm extends SCM
 		{
 			/* Get the time in milli seconds and store it to the state */
 			//state.setMultiSiteFrquency( ( (PucmScmDescriptor) PucmScm.this.getDescriptor() ).getMultiSiteFrequency() * 6000 );
-			state.setMultiSiteFrquency( ( (PucmScmDescriptor) getDescriptor() ).getMultiSiteFrequencyAsInt() * 6000 );
+			state.setMultiSiteFrquency( ( (PucmScmDescriptor) getDescriptor() ).getMultiSiteFrequencyAsInt() * 60000 );
 			logger.info( "My multi site frequency: " + state.getMultiSiteFrquency() );
 		}
 		else
@@ -367,10 +367,6 @@ public class PucmScm extends SCM
 			}
 		}
 
-		// pucm.add( new PucmState( build.getParent().getDisplayName(),
-		// build.getNumber(), bl, null, comp, doPostBuild ) );
-		// state.save();
-
 		logger.debug( id + "The CO state:\n" + state.stringify() );
 
 		return result;
@@ -385,20 +381,12 @@ public class PucmScm extends SCM
 
 	@Override
 	public PollingResult compareRemoteRevisionWith( AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState baseline ) throws IOException, InterruptedException
-	{
-		System.out.println( "POLLING....." );
-		
+	{		
 		logger = PraqmaLogger.getLogger();
 		this.id = "[" + project.getDisplayName() + "::" + project.getNextBuildNumber() + "]";
 		logger.subscribeAll();
 		
-		
-		
-		//JobProperty<?> test = project.getProperties().get( PUCM_LOGGER_STRING );
-		//String mytest = test.toString();
-		
 		logger.trace_function();
-		//logger.debug( id + "PucmSCM Pollingresult" );
 		
 		/* Make a state object, which is only temporary, only to determine if there's baselines to build this object will be stored in checkout  */
 		jobName   = project.getDisplayName().replace(' ','_');
@@ -406,12 +394,22 @@ public class PucmScm extends SCM
 		
 		State state = pucm.getState( jobName, jobNumber );
 		state.setAddedByPoller( true );
+		
+		if( this.multiSite )
+		{
+			/* Get the time in milli seconds and store it to the state */
+			state.setMultiSiteFrquency( ( (PucmScmDescriptor) getDescriptor() ).getMultiSiteFrequencyAsInt() * 60000 );
+			logger.info( "My multi site frequency: " + state.getMultiSiteFrquency() );
+		}
+		else
+		{
+			state.setMultiSiteFrquency( 0 );
+			logger.info( "This is not a multi site job" );
+		}
 
 		PollingResult p;
 		try
 		{
-			// baselinesToBuild( component, stream, project,
-			// project.getDisplayName(), project.getNextBuildNumber() );
 			baselinesToBuild( project, state );
 			compRevCalled = true;
 			logger.info( id + "Polling result = BUILD NOW" );
@@ -454,6 +452,7 @@ public class PucmScm extends SCM
 	private void baselinesToBuild( AbstractProject<?, ?> project, State state ) throws ScmException
 	{
 		logger.trace_function();
+		logger.subscribeAll();
 
 		/* Store the component to the state */
 		try
@@ -509,6 +508,10 @@ public class PucmScm extends SCM
 				int pruned = PucmScm.storedBaselines.prune( __PUCM_STORED_BASELINES_THRESHOLD );
 				logger.info( id + "I pruned " + pruned + " baselines from cache with threshold " + StoredBaselines.milliToMinute( __PUCM_STORED_BASELINES_THRESHOLD ) + "m" );
 				logger.debug( id + "My stored baselines:\n" + PucmScm.storedBaselines.toString() );
+			}
+			else
+			{
+				logger.debug( id + "THIS IS NOT A MULTI SITE????" );
 			}
 
 			try
