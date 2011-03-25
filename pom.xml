@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.jvnet.hudson.plugins</groupId>
@@ -14,7 +13,7 @@
 
 
 	<artifactId>PUCM</artifactId>
-	<version>0.3.12-SNAPSHOT</version>
+	<version>0.3.12</version>
 	<name>PUCM</name>
 	<description>Integrates Jenkins to ClearCase UCM</description>
 	<url>http://wiki.jenkins-ci.org/display/JENKINS/Pucm+plugin</url>
@@ -98,8 +97,7 @@
 
 			<!-- <plugin> <artifactId>maven-antrun-plugin</artifactId> <executions> 
 				<execution> <phase>package</phase> <goals> <goal>run</goal> </goals> <configuration> 
-				<tasks> <copy file="${project.basedir}/target/PUCM/META-INF/MANIFEST.MF" 
-				tofile="${project.basedir}/target/PUCM/specs.txt" /> </tasks> </configuration> 
+				<tasks> <copy file="${project.basedir}/target/PUCM/META-INF/MANIFEST.MF" tofile="${project.basedir}/target/PUCM/specs.txt" /> </tasks> </configuration> 
 				</execution> </executions> </plugin> -->
 
 		</plugins>
