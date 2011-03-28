@@ -9,6 +9,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.List;
@@ -122,6 +124,7 @@ public class PucmNotifier extends Notifier
 	 * @param makeTag
 	 *            if <code>true</code>, pucm will set a Tag() on the baseline in
 	 *            ClearCase.
+	 * @deprecated as of PUCM 0.3.8
 	 */
 	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag, boolean setDescription, boolean ucmDeliver/*, boolean defaultTarget*/, String alternateTarget/*, boolean createBaseline*/, String baselineName, boolean apply4level )
 	{
@@ -130,24 +133,28 @@ public class PucmNotifier extends Notifier
 		this.makeTag         = makeTag;
 		this.setDescription  = setDescription;
 		
-		/* Advanced */
-		/*
-		this.ucmDeliver      = ucmDeliver;
-		this.apply4level     = apply4level;
-		//this.defaultTarget   = defaultTarget;
-		this.alternateTarget = alternateTarget;
-		//this.createBaseline  = createBaseline;
-		this.baselineName    = baselineName;
-		*/
 		
 		ucmDeliverObj = new UCMDeliver();
 		
 		ucmDeliverObj.ucmDeliver       = ucmDeliver;
 		ucmDeliverObj.alternateTarget  = alternateTarget;
 		ucmDeliverObj.baselineName     = baselineName;
-		//ucmDeliverObj.apply4level      = apply4level;
 	}
 	
+	/**
+	 * This constructor is used in the inner class <code>DescriptorImpl</code>.
+	 * 
+	 * @param promote
+	 *            if <code>true</code>, the baseline will be promoted after the
+	 *            build.
+	 * @param recommended
+	 *            if <code>true</code>, the baseline will be marked
+	 *            'recommended' in ClearCase.
+	 * @param makeTag
+	 *            if <code>true</code>, pucm will set a Tag() on the baseline in
+	 *            ClearCase.
+	 * @param ucmDeliver The special deliver object, in which all the deliver parameters are encapsulated.
+	 */
 	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag, boolean setDescription, UCMDeliver ucmDeliver )
 	{
 		this.promote         = promote;
@@ -173,11 +180,12 @@ public class PucmNotifier extends Notifier
 	@Override
 	public boolean perform( AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener ) throws InterruptedException, IOException
 	{
+		/* Preparing the logger */
 		logger = PraqmaLogger.getLogger();
-		logger.trace_function();
 		boolean result = true;
 		hudsonOut = listener.getLogger();
 		
+		logger.unsubscribeAll();
 		if( build.getBuildVariables().get( "include_classes" ) != null )
 		{
 			String[] is = build.getBuildVariables().get( "include_classes" ).toString().split( "," );
@@ -207,19 +215,24 @@ public class PucmNotifier extends Notifier
 		State pstate = null;
 		Baseline baseline = null;
 		
+		/* Only do this part if a valid PucmScm build */
 		if( result )
 		{
+			/* Retrieve the pucm state */
 			pstate = PucmScm.pucm.getState( build.getParent().getDisplayName(), build.getNumber() );
 			
-			logger.debug( "NOTIFIER GOT: " + pstate.stringify() );
+			logger.debug( "The valid state: " + pstate.stringify() );
 
+			/* Validate the state */
 			if( pstate.doPostBuild() && pstate.getBaseline() != null )
 			{
 				logger.debug( id + "Post build" );
 
+				/* This shouldn't actually be necessary!?
+				 * TODO Maybe the baseline should be re-Load()ed instead of creating a new object?  */
 				String bl = pstate.getBaseline().GetFQName();
 
-				/* If no baselines found bl will be null */
+				/* If no baselines found bl will be null and the post build section will not proceed */
 				if( bl != null )
 				{
 					try
@@ -252,6 +265,7 @@ public class PucmNotifier extends Notifier
 			}
 		}
 
+		/* There's a valid baseline, lets process it */
 		if( result )
 		{
 			try
@@ -278,28 +292,38 @@ public class PucmNotifier extends Notifier
 		 * Removing baseline and job from collection, do this no matter what as
 		 * long as the SCM is pucm
 		 */
-		if ( ( scmTemp instanceof PucmScm ) && baseline != null )
+		if( ( scmTemp instanceof PucmScm ) && baseline != null )
 		{
 			boolean done2 = pstate.remove();
 			logger.debug( id + "Removing job " + build.getNumber() + " from collection: " + done2 );
 
-			logger.debug( "PUCM FINAL=" + PucmScm.pucm.stringify() );
+			//logger.debug( "PUCM FINAL=" + PucmScm.pucm.stringify() );
 			
 			if( pstate.isMultiSite() )
 			{
 				/* Trying to store baseline */
-				logger.debug( id + "Trying to store baseline" );
-				PucmScm.storedBaselines.addBaseline( baseline );
+				//logger.debug( id + "Trying to store baseline" );
+				if( !PucmScm.storedBaselines.addBaseline( pstate.getBaseline() ) )
+				{
+					logger.warning( id + "Storing baseline failed." );
+				}
 			}
 		}
-
-		//logger.debug( id + "The final state:\n" + pstate.stringify() );
 
 		return result;
 	}
 
 
 
+	/**
+	 * This is where all the meat is. When the baseline is validated, the actual post build steps are performed. <br>
+	 * First the baseline is delivered(if chosen), then tagged, promoted and recommended.
+	 * @param build The build object in which the post build action is selected 
+	 * @param launcher The launcher of the build
+	 * @param listener The listener of the build
+	 * @param pstate The {@link PucmState} of the build.
+	 * @throws NotifierException
+	 */
 	private void processBuild( AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, State pstate ) throws NotifierException
 	{
 		Result buildResult = build.getResult();
@@ -380,7 +404,42 @@ public class PucmNotifier extends Notifier
 		try
 		{
 			logger.debug( id + "Remote post build step" );
-			status = ch.call( new RemotePostBuild( buildResult, status, listener, makeTag, promote, recommended, pstate.getBaseline().GetFQName(), pstate.getStream().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), logger ) );
+			
+			final Pipe pipe = Pipe.createRemoteToLocal();
+						
+			Future<Status> f = null;
+			
+			/*
+			PipedInputStream pin = new PipedInputStream();
+			PipedOutputStream pout = new PipedOutputStream( pin );
+			*/
+
+			f = workspace.actAsync( new RemotePostBuild( buildResult, status, listener, makeTag, promote, recommended, pstate.getBaseline().GetFQName(), pstate.getStream().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), logger/*, pout*/, pipe ) );
+			
+			/*
+			BufferedReader br = new BufferedReader( new InputStreamReader( pin ) );
+			
+			String line = "";
+			String res = "";
+			while( ( line = br.readLine() ) != null )
+			{
+				res += line;
+			}
+			br.close();
+			*/
+			
+			/*
+			InputStream is = pipe.getIn();
+			
+			String res = net.praqma.util.io.IO.streamToString( is );
+			
+			is.close();
+			*/
+			
+			//hudsonOut.println( "I READ: " + res );
+			
+			
+			status = f.get();
 			
 			logger.empty( status.getLog() );
 		}

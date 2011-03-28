@@ -91,13 +91,7 @@ class RemoteDeliver implements FileCallable<Integer>
 
 		
 		this.ucmDeliver = ucmDeliver;
-		
-		/*
-		this.alternateTarget = alternateTarget;
-		this.baselineName    = baselineName;
-		this.apply4level     = apply4level;
-		*/
-		
+				
 		this.logger = logger;
 		this.pipe   = pipe;
 	}
@@ -133,7 +127,9 @@ class RemoteDeliver implements FileCallable<Integer>
 		{
 			hudsonOut.println( "What the...." );
 		}
+		*/
 		
+		/*
 		OutputStreamWriter osw = null;
 		try
 		{

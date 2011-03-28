@@ -9,7 +9,7 @@ import hudson.model.Result;
 public class Status implements Serializable
 {
 	private boolean pLevel = false;
-	private boolean recommended = false;
+	private boolean recommended = true;
 	private boolean tagPersisted = false;
 	private boolean tagAvailable = false;
 	private Result buildStatus;

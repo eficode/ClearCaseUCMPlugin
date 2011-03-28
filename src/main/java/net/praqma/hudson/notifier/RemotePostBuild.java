@@ -1,10 +1,18 @@
 package net.praqma.hudson.notifier;
 
+import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.remoting.Callable;
+import hudson.remoting.Pipe;
+import hudson.remoting.VirtualChannel;
 
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PipedOutputStream;
 import java.io.PrintStream;
 import java.io.Serializable;
 
@@ -24,7 +32,7 @@ import net.praqma.util.debug.PraqmaLogger.Logger;
  * @author wolfgang
  * 
  */
-class RemotePostBuild implements Callable<Status, IOException>, Serializable
+class RemotePostBuild implements FileCallable<Status>
 {
 	private static final long serialVersionUID = 1L;
 	private String displayName;
@@ -37,7 +45,7 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 
 	private boolean makeTag = false;
 	private boolean promote = false;
-	private boolean recommended = false;
+	private boolean recommend = false;
 	private Status status;
 	private BuildListener listener;
 
@@ -47,13 +55,18 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 	private PrintStream hudsonOut = null;
 	
 	
+	private Pipe pipe = null;
+	private BufferedWriter bw = null;
+	private PipedOutputStream pout = null;
+	
+	
 	public RemotePostBuild( Result result, Status status, BuildListener listener,
 			/* Values for  */
 			boolean makeTag, boolean promote, boolean recommended,
 			/* Common values */
 			String baseline, String stream, 
 			String displayName, String buildNumber, 
-			Logger logger )
+			Logger logger/*, PipedOutputStream pout*/, Pipe pipe )
 	{
 		this.displayName = displayName;
 		this.buildNumber = buildNumber;
@@ -67,16 +80,20 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 
 		this.makeTag = makeTag;
 		this.promote = promote;
-		this.recommended = recommended;
+		this.recommend = recommended;
 
 		this.status = status;
 		this.listener = listener;
 
 		this.logger = logger;
+		this.pipe = pipe;
+		/*
+		this.pout = pout;
+		*/
 	}
 	
 	
-	public Status call() throws IOException
+	public Status invoke( File workspace, VirtualChannel channel ) throws IOException
 	{
 		PraqmaLogger.getLogger( logger );
 		/* Make sure that the local log file is not written */
@@ -84,6 +101,43 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 		Cool.setLogger( logger );
 		hudsonOut = listener.getLogger();
 		UCM.SetContext( UCM.ContextType.CLEARTOOL );
+		
+		
+		
+		
+		//hudsonOut.println( "TESTING PIPE" );
+		
+		/*
+		bw = new BufferedWriter( new OutputStreamWriter( pout ) );
+		bw.write( "I were here" );
+		bw.close();
+		*/
+		
+		/*
+		boolean failed = false;
+		
+		OutputStream out = null;
+		try
+		{
+			out = pipe.getOut();
+		}
+		catch( Exception e )
+		{
+			hudsonOut.println( "I failed to get pipe " + e );
+			failed = true;
+		}
+		
+		if( out == null )
+		{
+			hudsonOut.println( "What the...." );
+		}
+		else
+		{
+			out.write( 112 );
+		}
+		*/
+		
+		
 
 		String newPLevel = "";
 		
@@ -117,7 +171,7 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 		
 		/* Create the Tag object */
 		Tag tag = null;
-		if ( makeTag )
+		if( makeTag )
 		{
 			try
 			{
@@ -155,9 +209,9 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 				{
 					status.setStable( false );
 					/* as it will not make sense to recommend if we cannot promote, we do this: */
-					if( recommended )
+					if( recommend )
 					{
-						recommended = false;
+						status.setRecommended( false );
 						hudsonOut.println( "[PUCM] Could not promote baseline and will not recommend. " + e.getMessage() );
 						status.addToLog( logger.warning( id + "Could not promote baseline and will not recommend. " + e.getMessage() ) );
 					}
@@ -170,20 +224,20 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 				}
 			}
 			/* Recommend the Baseline */
-			if ( recommended )
+			if( recommend )
 			{
 				try
 				{
 					if ( status.isPLevel() )
 					{
 						stream.RecommendBaseline( baseline );
-						status.setRecommended( true );
 						hudsonOut.println( "[PUCM] Baseline " + baseline.GetShortname() + " is now recommended." );
 					}
 				}
-				catch ( Exception e )
+				catch( Exception e )
 				{
 					status.setStable( false );
+					status.setRecommended( false );
 					hudsonOut.println( "[PUCM] Could not recommend baseline. Reason: " + e.getMessage() );
 					status.addToLog( logger.warning( id + "Could not recommend baseline. Reason: " + e.getMessage() ) );
 				}
@@ -192,6 +246,12 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 		/* The build failed or the deliver failed */
 		else
 		{
+			/* Do not set as recommended at all */
+			if( recommend )
+			{
+				status.setRecommended( false );
+			}
+			
 			/* The build failed */
 			if( result.equals( Result.FAILURE ) )
 			{
@@ -222,7 +282,7 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 					}
 				}
 			}
-			/* The build is unstable
+			/* The build is unstable, or something in the middle....
 			 * TODO Maybe not else if */
 			else if( !result.equals( Result.FAILURE ) )
 			{
@@ -283,7 +343,7 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 		{
 			newPLevel = baseline.getPromotionLevel( true ).toString();
 		}
-		catch(UCMException e)
+		catch( UCMException e )
 		{
 			logger.log( id + " Could not get promotionlevel." );
 			hudsonOut.println( "[PUCM] Could not get promotion level." );
@@ -292,6 +352,13 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 		status.setBuildDescr( setDisplaystatus( newPLevel, baseline.GetShortname() ) );
 		
 		status.addToLog( logger.warning( id + "Remote post build finished normally" ) );
+		
+		/*
+		if( out != null )
+		{
+			out.close();
+		}
+		*/
 
 		return status;
 	}
@@ -306,12 +373,16 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 		// Get plevel:
 		s += "<BR/><small>" + plevel + "</small>";
 
-		if ( recommended )
+		if( recommend )
 		{
 			if ( status.isRecommended() )
+			{
 				s += "<BR/<B><small>Recommended</small></B>";
+			}
 			else
+			{
 				s += "<BR/><B><small>Could not recommend</small></B>";
+			}
 		}
 		return s;
 	}

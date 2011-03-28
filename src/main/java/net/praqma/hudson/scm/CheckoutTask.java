@@ -108,7 +108,7 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 	
 	
     
-    private void makeWorkspace(File workspace) throws ScmException
+    private void makeWorkspace( File workspace ) throws ScmException
     {
     	// We know we have a stream (st), because it is set in
     	// baselinesToBuild()
@@ -128,10 +128,7 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 		else
 		{
 			log += logger.debug( id + "workspace must be null???" );
-		}
-		
-		StringBuffer notHudsonOut = new StringBuffer();
-		
+		}		
 
     	String viewtag = "pucm_" + System.getenv( "COMPUTERNAME" ) + "_" + jobname;
 

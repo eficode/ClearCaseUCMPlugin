@@ -23,7 +23,7 @@ This should be the file that makes it possible to select our notifier in the "po
 	
 		<f:advanced title="En lille test">
 	
-				<f:entry title="Use UCM Deliver">
+				<f:entry title="Use UCM Deliver" help="/plugin/PUCM/notifier/help-ucmdeliver.html">
 					<f:checkbox name="Pucm.ucmDeliver" checked="${instance.ucmDeliver}" />
 				</f:entry>
 				

@@ -52,9 +52,9 @@ public class StoredBaselines
 		baselines.add( new StoredBaseline( baseline, plevel ) );
 	}
 	
-	public void addBaseline( Baseline baseline )
+	public boolean addBaseline( Baseline baseline )
 	{
-		baselines.add( new StoredBaseline( baseline ) );
+		return baselines.add( new StoredBaseline( baseline ) );
 	}
 	
 	/**
