@@ -18,6 +18,11 @@ public class GetVersion
 		String version = pom.getVersion();
 		String[] vs = version.split( "\\." );
 		
+		for( int i = 0 ; i < vs.length ; i++ )
+		{
+			vs[i] = vs[i].replace( "SNAPSHOT", "dev-" + System.getenv( "COMPUTERNAME" ) );
+		}
+		
 		switch( vs.length )
 		{
 		case 1:

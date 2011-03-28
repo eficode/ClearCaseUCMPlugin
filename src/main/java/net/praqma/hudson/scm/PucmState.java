@@ -275,7 +275,7 @@ public class PucmState
 			sb.append( "Component     : " + this.component + linesep );
 			sb.append( "Stream        : " + this.stream + linesep );
 			sb.append( "Baseline      : " + this.baseline + linesep );
-			sb.append( "Plevel        : " + ( this.plevel != null ? this.plevel.toString() : "Missing" ) + linesep );
+			sb.append( "Poll level    : " + ( this.plevel != null ? this.plevel.toString() : "Missing" ) + linesep );
 			sb.append( "Load Module   : " + this.loadModule + linesep );
 			sb.append( "Added by poll : " + ( this.addedByPoller ? "Yes" : "No" ) + linesep );
 			sb.append( "Multi site    : " + ( this.multiSiteFrequency > 0 ? StoredBaselines.milliToMinute( this.multiSiteFrequency ) : "N/A" ) + linesep );

@@ -290,6 +290,8 @@ class RemotePostBuild implements Callable<Status, IOException>, Serializable
 		}
 		
 		status.setBuildDescr( setDisplaystatus( newPLevel, baseline.GetShortname() ) );
+		
+		status.addToLog( logger.warning( id + "Remote post build finished normally" ) );
 
 		return status;
 	}

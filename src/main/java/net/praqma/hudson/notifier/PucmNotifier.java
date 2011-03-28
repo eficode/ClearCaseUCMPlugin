@@ -210,6 +210,8 @@ public class PucmNotifier extends Notifier
 		if( result )
 		{
 			pstate = PucmScm.pucm.getState( build.getParent().getDisplayName(), build.getNumber() );
+			
+			logger.debug( "NOTIFIER GOT: " + pstate.stringify() );
 
 			if( pstate.doPostBuild() && pstate.getBaseline() != null )
 			{
@@ -291,7 +293,7 @@ public class PucmNotifier extends Notifier
 			}
 		}
 
-		logger.debug( id + "The final state:\n" + pstate.stringify() );
+		//logger.debug( id + "The final state:\n" + pstate.stringify() );
 
 		return result;
 	}

@@ -100,6 +100,8 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 			log += logger.debug( id + "Could not get changes. " + e.getMessage() );
 			hudsonOut.println( "[PUCM] Could not get changes. " + e.getMessage() );
 		}
+		
+		log += logger.info( "CheckoutTask finished normally" );
 
 		return new Tuple<String, String>( diff, log );
 	}

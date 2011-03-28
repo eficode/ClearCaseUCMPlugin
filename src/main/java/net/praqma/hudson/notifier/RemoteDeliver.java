@@ -445,6 +445,8 @@ class RemoteDeliver implements FileCallable<Integer>
 		/* End of deliver */
 		
 		//osw.close();
+		
+		status.addToLog( logger.warning( id + "Remote deliver finished normally" ) );
 
 		return 1;
 	}
