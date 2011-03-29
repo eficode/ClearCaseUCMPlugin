@@ -6,7 +6,7 @@ import net.praqma.util.debug.PraqmaLogger.Logger;
 
 /**
  * 
- * @author Troels Selch Sørensen
+ * @author Troels Selch
  * @author Margit Bennetzen
  * 
  */

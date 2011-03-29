@@ -49,7 +49,7 @@ import org.kohsuke.stapler.export.Exported;
  * ClearCase pre-build. This class defines all the files required by the user.
  * The information can be entered on the config page.
  * 
- * @author Troels Selch S�rensen
+ * @author Troels Selch
  * @author Margit Bennetzen
  * 
  */
@@ -328,6 +328,7 @@ public class PucmScm extends SCM
 					consoleOutput.println( "[PUCM] buildProject is null" );
 				}
 
+				build.setDescription("<small>"+state.getBaseline()+"</small>");
 				CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), state.getStream().GetFQName(), loadModule, state.getBaseline().GetFQName(), buildProject, logger );
 
 				Tuple<String, String> ctresult = workspace.act( ct );
@@ -682,7 +683,7 @@ public class PucmScm extends SCM
 	/**
 	 * This class is used to describe the plugin to Hudson
 	 * 
-	 * @author Troels Selch S�rensen
+	 * @author Troels Selch
 	 * @author Margit Bennetzen
 	 * 
 	 */

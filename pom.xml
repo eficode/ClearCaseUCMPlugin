@@ -35,15 +35,19 @@
 
 	<developers>
 		<developer>
+			<id>wolfgarnet</id>
 			<name>Christian Wolfgang</name>
 		</developer>
 		<developer>
+			<id>t4s</id>
 			<name>Troels Selch</name>
 		</developer>
 		<developer>
+			<id>MargitB</id>
 			<name>Margit Bennetzen</name>
 		</developer>
 		<developer>
+			<id>lak-praqma</id>
 			<name>Lars Kruse</name>
 			<email>pucm@praqma.net</email>
 		</developer>

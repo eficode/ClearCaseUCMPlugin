@@ -63,7 +63,7 @@ import net.sf.json.JSONObject;
 /**
  * PucmNotifier perfoms the user-chosen PUCM post-build actions
  * 
- * @author Troels Selch S�rensen
+ * @author Troels Selch
  * @author Margit Bennetzen
  * 
  */
@@ -589,7 +589,7 @@ public class PucmNotifier extends Notifier
 	/**
 	 * This class is used by Hudson to define the plugin.
 	 * 
-	 * @author Troels Selch S�rensen
+	 * @author Troels Selch
 	 * @author Margit Bennetzen
 	 * 
 	 */

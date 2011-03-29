@@ -13,7 +13,7 @@ import net.praqma.util.debug.PraqmaLogger.Logger;
  * A change set is a collection of changed entries. This classes represents one
  * entry, which is a user, a comment and a list of versions
  * 
- * @author Troels Selch Sørensen
+ * @author Troels Selch
  * @author Margit Bennetzen
  * 
  */

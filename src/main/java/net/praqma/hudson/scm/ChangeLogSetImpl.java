@@ -14,7 +14,7 @@ import hudson.scm.ChangeLogSet;
  * This class represents a ChangeLogSet. This is the accumulation of all the
  * entries on a baseline
  * 
- * @author Troels Selch Sørensen
+ * @author Troels Selch
  * @author Margit Bennetzen
  * 
  */
