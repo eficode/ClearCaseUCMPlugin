@@ -168,6 +168,8 @@ public class PucmState
 		private boolean   addedByPoller = false;
 		private long      multiSiteFrequency = 0;
 		
+		private List<Baseline> baselines = null;
+		
 		private Logger logger;
 		
 		
@@ -276,6 +278,7 @@ public class PucmState
 			sb.append( "Baseline      : " + this.baseline + linesep );
 			sb.append( "Poll level    : " + ( this.plevel != null ? this.plevel.toString() : "Missing" ) + linesep );
 			sb.append( "Load Module   : " + this.loadModule + linesep );
+			sb.append( "Baseline list : " + ( this.baseline != null ? this.baselines.size() : "0" ) + linesep );
 			sb.append( "Added by poll : " + ( this.addedByPoller ? "Yes" : "No" ) + linesep );
 			sb.append( "Multi site    : " + ( this.multiSiteFrequency > 0 ? StoredBaselines.milliToMinute( this.multiSiteFrequency ) : "N/A" ) + linesep );
 			sb.append( "postBuild     : " + this.doPostBuild + linesep );
@@ -315,6 +318,14 @@ public class PucmState
 		public boolean isMultiSite()
 		{
 			return this.multiSiteFrequency > 0;
+		}
+		public void setBaselines( List<Baseline> baselines )
+		{
+			this.baselines = baselines;
+		}
+		public List<Baseline> getBaselines()
+		{
+			return baselines;
 		}
 	}
 	

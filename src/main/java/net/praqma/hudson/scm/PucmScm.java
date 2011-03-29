@@ -262,17 +262,19 @@ public class PucmScm extends SCM
 				try
 				{
 					List<Baseline> baselines = getValidBaselines( build.getProject(), state, Project.GetPlevelFromString( levelToPoll ) );
+					state.setBaselines( baselines );
 					Baseline baseline = selectBaseline( baselines, newest );
 					logger.debug( id + "I chose " + baseline );
-					state.setBaseline( baseline );
-					printBaselines( baselines, consoleOutput );
-				
+					state.setBaseline( baseline );				
 				}
 				catch( ScmException e )
 				{
 					pollMsgs.append( "[PUCM] " + e.getMessage() );
 					result = false;
 				}
+				
+				/* Print the baselines to jenkins out */
+				printBaselines( state.getBaselines(), consoleOutput );
 			}
 		}
 
@@ -396,6 +398,7 @@ public class PucmScm extends SCM
 		try
 		{
 			List<Baseline> baselines = getValidBaselines( project, state, Project.GetPlevelFromString( levelToPoll ) );
+			state.setBaselines( baselines );
 			Baseline baseline = selectBaseline( baselines, newest );
 			logger.info( id + "Using " + baseline );
 			state.setBaseline( baseline );
