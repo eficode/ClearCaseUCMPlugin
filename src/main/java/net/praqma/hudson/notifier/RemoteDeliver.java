@@ -310,37 +310,6 @@ class RemoteDeliver implements FileCallable<Integer>
 			/* No op = none */
 		}
 		
-		/*
-		if( ucmDeliver.baselineName.length() > 0 )
-		{
-			if( ucmDeliver.versionFrom.equals( "project" ) )
-			{
-				
-				try
-				{
-					Project project = target.getProject();
-					int mask = BuildNumber.isValidUCMBuildNumber( project );
-					if( mask != BuildNumber.ALL_ATTRIBUTES )
-					{
-						String error = ( ( BuildNumber.ATTRIBUTE_MAJOR    & mask ) == 0 ? "Major missing. " : "" ) + 
-									   ( ( BuildNumber.ATTRIBUTE_MINOR    & mask ) == 0 ? "Minor missing. " : "" ) + 
-									   ( ( BuildNumber.ATTRIBUTE_PATCH    & mask ) == 0 ? "Patch missing. " : "" ) + 
-									   ( ( BuildNumber.ATTRIBUTE_SEQUENCE & mask ) == 0 ? "Sequence missing. " : "" );
-						status.addToLog( logger.debug( id + "The build number attributes does not exist: " + error ) );
-						throw new IOException( "The build number attributes do not exist: " + error );						
-					}
-				}
-				catch( UCMException e )
-				{
-					status.addToLog( logger.debug( id + "An exception occured" ) );
-					status.addToLog( logger.debug( e ) );
-					throw new IOException( "The build number attributes could not be fetched: " + e.getMessage() );
-				}
-				
-			}
-		}
-		*/
-		
 		
 		/* Make deliver view */
 		SnapshotView view;
@@ -450,10 +419,13 @@ class RemoteDeliver implements FileCallable<Integer>
 	
 	private SnapshotView makeDeliverView( Stream stream, File workspace ) throws ScmException
 	{
-		String viewtag = "pucm_deliver_" + System.getenv( "COMPUTERNAME" ) + "_" + jobName;
+		/* Replace evil characters with less evil characters */
+		String newJobName = jobName.replaceAll( "\\s", "_" );
+		
+		String viewtag = newJobName + System.getenv( "COMPUTERNAME" ) + "_" + stream.GetShortname();
 		hudsonOut.println( "[PUCM] Trying to make deliver view " + viewtag );
 		
-		File viewroot = new File( workspace.getPath() + File.separator + "deliverview" );
+		File viewroot = new File( workspace.getPath() + File.separator + "deliverview_" + stream.GetShortname() );
 		
 		status.addToLog( logger.debug( id + "Deliver: " + viewroot.getAbsolutePath() + ". Tag=" + viewtag ) );
 		status.addToLog( logger.debug( id + "Stream is " + stream.GetFQName() ) );
