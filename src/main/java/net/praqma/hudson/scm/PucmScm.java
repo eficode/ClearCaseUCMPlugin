@@ -252,6 +252,8 @@ public class PucmScm extends SCM
 		/* Default stream + component case */
 		else
 		{
+			
+			printParameters( consoleOutput );
 
 			// compRevCalled tells whether we have polled for baselines to build
 			// -
@@ -269,7 +271,7 @@ public class PucmScm extends SCM
 				}
 				catch( ScmException e )
 				{
-					pollMsgs.append( "[PUCM] " + e.getMessage() );
+					consoleOutput.println( "[PUCM] " + e.getMessage() );
 					result = false;
 				}
 				
@@ -393,11 +395,15 @@ public class PucmScm extends SCM
 		{
 			state.setMultiSiteFrquency( 0 );
 		}
+		
+		PrintStream consoleOut = listener.getLogger();
+		printParameters( consoleOut );
 
 		PollingResult p;
 		try
 		{
 			List<Baseline> baselines = getValidBaselines( project, state, Project.GetPlevelFromString( levelToPoll ) );
+			printBaselines( baselines, consoleOut );
 			state.setBaselines( baselines );
 			Baseline baseline = selectBaseline( baselines, newest );
 			logger.info( id + "Using " + baseline );
@@ -409,7 +415,7 @@ public class PucmScm extends SCM
 		catch ( ScmException e )
 		{
 			p = PollingResult.NO_CHANGES;
-			PrintStream consoleOut = listener.getLogger();
+
 			consoleOut.println( pollMsgs + "\n[PUCM] " + e.getMessage() );
 			pollMsgs = new StringBuffer();
 			logger.debug( id + "Removed job " + state.getJobNumber() + " from list" );
@@ -426,9 +432,6 @@ public class PucmScm extends SCM
 	@Override
 	public SCMRevisionState calcRevisionsFromBuild( AbstractBuild<?, ?> build, Launcher launcher, TaskListener listener ) throws IOException, InterruptedException
 	{
-		logger.trace_function();
-		logger.debug( id + "PucmSCM calcRevisionsFromBuild" );
-		// PrintStream hudsonOut = listener.getLogger();
 		SCMRevisionStateImpl scmRS = null;
 
 		if ( !( bl == null ) )
@@ -593,6 +596,14 @@ public class PucmScm extends SCM
 		return validBaselines;		
 	}
 
+	private void printParameters( PrintStream ps )
+	{
+		ps.println( "[PUCM] Getting baselines for :" );
+		ps.println( "[PUCM] * Stream:          " + stream );
+		ps.println( "[PUCM] * Component:       " + component );
+		ps.println( "[PUCM] * Promotion level: " + levelToPoll );
+		ps.println( "" );
+	}
 
 	private void printBaselines( List<Baseline> baselines, PrintStream ps )
 	{
@@ -607,13 +618,13 @@ public class PucmScm extends SCM
 		else
 		{
 			int i = baselines.size();
-			ps.println( "\n[PUCM] " + baselines.get( 0 ).GetShortname() + "\n[PUCM] " );
-			ps.println( baselines.get( 1 ).GetShortname() + "\n[PUCM] " );
-			ps.println( baselines.get( 2 ).GetShortname() + "\n[PUCM] " );
-			ps.println( "...("+ (i-6) +" baselines not shown)...\n[PUCM] " );
-			ps.println( baselines.get( i - 3 ).GetShortname() + "\n[PUCM] " );
-			ps.println( baselines.get( i - 2 ).GetShortname() + "\n[PUCM] " );
-			ps.println( baselines.get( i - 1 ).GetShortname() + "\n" );
+			ps.println( "[PUCM] " + baselines.get( 0 ).GetShortname() );
+			ps.println( "[PUCM] " + baselines.get( 1 ).GetShortname() );
+			ps.println( "[PUCM] " + baselines.get( 2 ).GetShortname() );
+			ps.println( "[PUCM] ...("+ (i-6) +" baselines not shown)..." );
+			ps.println( "[PUCM] " + baselines.get( i - 3 ).GetShortname() );
+			ps.println( "[PUCM] " + baselines.get( i - 2 ).GetShortname() );
+			ps.println( "[PUCM] " + baselines.get( i - 1 ).GetShortname() );
 		}
 	}
 
