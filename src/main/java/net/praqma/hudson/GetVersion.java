@@ -20,7 +20,7 @@ public class GetVersion
 		
 		for( int i = 0 ; i < vs.length ; i++ )
 		{
-			vs[i] = vs[i].replace( "SNAPSHOT", "dev-" + System.getenv( "COMPUTERNAME" ) );
+			vs[i] = vs[i].replace( "SNAPSHOT", Math.floor( System.currentTimeMillis() / 1000 ) + "" );
 		}
 		
 		switch( vs.length )
