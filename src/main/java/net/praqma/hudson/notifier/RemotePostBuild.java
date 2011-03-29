@@ -44,7 +44,8 @@ class RemotePostBuild implements FileCallable<Status>
 	private String stream;
 
 	private boolean makeTag = false;
-	private boolean promote = false;
+	private int promote = 0;
+	private boolean promoteUnstable = false;
 	private boolean recommend = false;
 	private Status status;
 	private BuildListener listener;
@@ -62,7 +63,7 @@ class RemotePostBuild implements FileCallable<Status>
 	
 	public RemotePostBuild( Result result, Status status, BuildListener listener,
 			/* Values for  */
-			boolean makeTag, boolean promote, boolean recommended,
+			boolean makeTag, int promote, boolean recommended,
 			/* Common values */
 			String baseline, String stream, 
 			String displayName, String buildNumber, 
@@ -186,8 +187,6 @@ class RemotePostBuild implements FileCallable<Status>
 			}
 		}
 
-		hudsonOut.println( "[PUCM] Build result: " + result );
-		
 		/* The build was a success and the deliver did not fail */
 		if( result.equals( Result.SUCCESS ) && status.isStable() )
 		{
@@ -196,7 +195,7 @@ class RemotePostBuild implements FileCallable<Status>
 				tag.SetEntry( "buildstatus", "SUCCESS" );
 			}
 
-			if( promote )
+			if( promote > 0 )
 			{
 				try
 				{
@@ -262,7 +261,7 @@ class RemotePostBuild implements FileCallable<Status>
 					tag.SetEntry( "buildstatus", "FAILURE" );
 				}
 				
-				if( promote )
+				if( promote > 0 )
 				{
 					try
 					{
@@ -286,16 +285,26 @@ class RemotePostBuild implements FileCallable<Status>
 			 * TODO Maybe not else if */
 			else if( !result.equals( Result.FAILURE ) )
 			{
-				if ( status.isTagAvailable() )
+				if( status.isTagAvailable() )
 				{
 					tag.SetEntry( "buildstatus", "UNSTABLE" );
 				}
 				
-				if ( promote )
+				if( promote > 0 )
 				{
 					try
 					{
-						Project.Plevel pl = baseline.demote();
+						Project.Plevel pl = Project.Plevel.INITIAL;
+						
+						if( promote == 2 )
+						{
+							pl = baseline.promote();
+							hudsonOut.println( "[PUCM] Baseline is promoted, even though the build is unstable." );
+						}
+						else
+						{
+							pl = baseline.demote();
+						}
 						status.setPromotedLevel( pl );
 						status.setPLevel( true );
 						hudsonOut.println( "[PUCM] Baseline is " + baseline.getPromotionLevel( true ).toString() + "." );

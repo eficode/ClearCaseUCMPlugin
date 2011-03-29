@@ -613,19 +613,19 @@ public class PucmScm extends SCM
 		{
 			for ( Baseline b : baselines )
 			{
-				ps.println( "[PUCM]  " + b.GetShortname() );
+				ps.println( "[PUCM] + " + b.GetShortname() );
 			}
 		}
 		else
 		{
 			int i = baselines.size();
-			ps.println( "[PUCM] " + baselines.get( 0 ).GetShortname() );
-			ps.println( "[PUCM] " + baselines.get( 1 ).GetShortname() );
-			ps.println( "[PUCM] " + baselines.get( 2 ).GetShortname() );
-			ps.println( "[PUCM] ...("+ (i-6) +" baselines not shown)..." );
-			ps.println( "[PUCM] " + baselines.get( i - 3 ).GetShortname() );
-			ps.println( "[PUCM] " + baselines.get( i - 2 ).GetShortname() );
-			ps.println( "[PUCM] " + baselines.get( i - 1 ).GetShortname() );
+			ps.println( "[PUCM] + " + baselines.get( 0 ).GetShortname() );
+			ps.println( "[PUCM] + " + baselines.get( 1 ).GetShortname() );
+			ps.println( "[PUCM] + " + baselines.get( 2 ).GetShortname() );
+			ps.println( "[PUCM]   ...("+ (i-6) +" baselines not shown)..." );
+			ps.println( "[PUCM] + " + baselines.get( i - 3 ).GetShortname() );
+			ps.println( "[PUCM] + " + baselines.get( i - 2 ).GetShortname() );
+			ps.println( "[PUCM] + " + baselines.get( i - 1 ).GetShortname() );
 		}
 	}
 

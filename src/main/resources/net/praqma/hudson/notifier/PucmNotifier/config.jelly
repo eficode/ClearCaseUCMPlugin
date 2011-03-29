@@ -5,15 +5,54 @@ This should be the file that makes it possible to select our notifier in the "po
 -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
+	<!--
 	<f:entry title="Promote" help="/plugin/PUCM/notifier/help-promoteToLevel.html">
 	    <f:checkbox name="Pucm.promote" checked="${h.defaultToTrue(instance.promote)}" />
 	</f:entry>
+	
+	<f:nested>
+		
+		<table>
+			<f:entry title="Promote unstable" help="/plugin/PUCM/notifier/help-promoteunstable.html">
+			    <f:checkbox name="Pucm.promoteUnstable" checked="${instance.promoteUnstable}" />
+			</f:entry>
+		</table>
+	</f:nested>
+	-->
+	
+	<!--
+	<f:entry title="Promote stable builds" help="/plugin/PUCM/notifier/help-promoteToLevel.html">
+		<f:radio name="Pucm.promote" value="stable" checked="${instance.promote == 'stable'}" /> 
+	</f:entry>
+	
+	<f:entry title="Promote unstable builds" help="/plugin/PUCM/notifier/help-promoteunstable.html">
+		<f:radio name="Pucm.promote" value="unstable" checked="${instance.promote == 'unstable'}" /> 
+	</f:entry>
+	
+	<f:entry title="Do not promote" help="/plugin/PUCM/notifier/help-attrproject.html">
+		<f:radio name="Pucm.promote" value="none" checked="${instance.promote == null}" /> 
+	</f:entry>
+	-->
+	
+	<f:entry title="Promote" help="/plugin/PUCM/notifier/help-promoteToLevel.html">
+		<select class="setting-input" name="Pucm.promote">
+			<f:option selected="${instance.promote == 0}" value="0">Do not promote</f:option>
+			<f:option selected="${instance.promote == l}" value="1">Promote stable builds</f:option>
+			<f:option selected="${instance.promote == 2}" value="2">Promote unstable builds</f:option>
+		</select>
+	</f:entry>
+	
+
+	
+	
 	<f:entry title="Recommend baseline" help="/plugin/PUCM/notifier/help-recommendBaseline.html">
 	    <f:checkbox name="Pucm.recommended" checked="${instance.recommended}" />
 	</f:entry>
+	
 	<f:entry title="Make tag" help="/plugin/PUCM/notifier/help-makeTag.html">
 	    <f:checkbox name="Pucm.makeTag" checked="${instance.makeTag}" />
 	</f:entry>
+	
 	<f:entry title="Set description" help="/plugin/PUCM/notifier/help-setDescription.html">
 	    <f:checkbox name="Pucm.setDescription" checked="${instance.setDescription}" />
 	</f:entry>

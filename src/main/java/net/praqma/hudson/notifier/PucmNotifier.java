@@ -69,7 +69,7 @@ import net.sf.json.JSONObject;
  */
 public class PucmNotifier extends Notifier
 {
-	private boolean promote;
+	private int promote;
 	private boolean recommended;
 	//private Baseline baseline;
 	private PrintStream hudsonOut;
@@ -79,13 +79,6 @@ public class PucmNotifier extends Notifier
 	private Status status;
 
 	private String id = "";
-	
-	//private boolean ucmDeliver  = false;
-	//private boolean apply4level = true;
-	//private boolean defaultTarget = true;
-	//private String alternateTarget;
-	//private boolean createBaseline = true;
-	//String baselineName;
 
 	private Logger logger = null;
 	
@@ -102,7 +95,7 @@ public class PucmNotifier extends Notifier
 	 */
 	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag, boolean setDescription )
 	{
-		this.promote = promote;
+		this.promote = promote ? 1 : 0;
 		this.recommended = recommended;
 		this.makeTag = makeTag;
 		this.setDescription = setDescription;
@@ -128,7 +121,7 @@ public class PucmNotifier extends Notifier
 	 */
 	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag, boolean setDescription, boolean ucmDeliver/*, boolean defaultTarget*/, String alternateTarget/*, boolean createBaseline*/, String baselineName, boolean apply4level )
 	{
-		this.promote         = promote;
+		this.promote         = promote ? 1 : 0;
 		this.recommended     = recommended;
 		this.makeTag         = makeTag;
 		this.setDescription  = setDescription;
@@ -154,8 +147,35 @@ public class PucmNotifier extends Notifier
 	 *            if <code>true</code>, pucm will set a Tag() on the baseline in
 	 *            ClearCase.
 	 * @param ucmDeliver The special deliver object, in which all the deliver parameters are encapsulated.
+	 * 
+	 * @deprecated as of 0.3.16
 	 */
 	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag, boolean setDescription, UCMDeliver ucmDeliver )
+	{
+		this.promote         = promote ? 1 : 0;
+		this.recommended     = recommended;
+		this.makeTag         = makeTag;
+		this.setDescription  = setDescription;
+		
+		/* Advanced */
+		this.ucmDeliverObj = ucmDeliver;
+	}
+	
+	/**
+	 * This constructor is used in the inner class <code>DescriptorImpl</code>.
+	 * 
+	 * @param promote <ol start="0"><li>Baseline will not be promoted after the build</li>
+	 * <li>Baseline will be promoted after the build if stable</li>
+	 * <li>Baseline will be promoted after the build if unstable</li></ol>
+	 * @param recommended
+	 *            if <code>true</code>, the baseline will be marked
+	 *            'recommended' in ClearCase.
+	 * @param makeTag
+	 *            if <code>true</code>, pucm will set a Tag() on the baseline in
+	 *            ClearCase.
+	 * @param ucmDeliver The special deliver object, in which all the deliver parameters are encapsulated.
+	 */
+	public PucmNotifier( int promote, boolean recommended, boolean makeTag, boolean setDescription, UCMDeliver ucmDeliver )
 	{
 		this.promote         = promote;
 		this.recommended     = recommended;
@@ -211,6 +231,8 @@ public class PucmNotifier extends Notifier
 				result = false;
 			}
 		}
+		
+		hudsonOut.println( "[WOLLE] promote=" + promote );
 
 		State pstate = null;
 		Baseline baseline = null;
@@ -343,6 +365,7 @@ public class PucmNotifier extends Notifier
 			throw new NotifierException( "Workspace is null" );
 		}
 		
+		hudsonOut.println( "[PUCM] Build result: " + buildResult );		
 
 		logger.debug( id + "Trying to run remote tasks" );
 		if( ucmDeliverObj != null && ucmDeliverObj.ucmDeliver )
@@ -466,7 +489,7 @@ public class PucmNotifier extends Notifier
 		}
 	}
 
-	public boolean isPromote()
+	public int getPromote()
 	{
 		return promote;
 	}
@@ -619,8 +642,16 @@ public class PucmNotifier extends Notifier
 		@Override
 		public Notifier newInstance( StaplerRequest req, JSONObject formData ) throws FormException
 		{
-			//logger.trace_function();
-			boolean promote         = req.getParameter( "Pucm.promote" ) != null;
+			int promote = 1;
+			try
+			{
+				promote = Integer.parseInt( req.getParameter( "Pucm.promote" ) );
+			}
+			catch( NumberFormatException e )
+			{
+				/* No op */
+			}
+			//boolean promoteUnstable = req.getParameter( "Pucm.promoteUnstable" ) != null;
 			boolean recommended     = req.getParameter( "Pucm.recommended" ) != null;
 			boolean makeTag         = req.getParameter( "Pucm.makeTag" ) != null;
 			boolean setDescription  = req.getParameter( "Pucm.setDescription" ) != null;

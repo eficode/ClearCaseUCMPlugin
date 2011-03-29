@@ -422,7 +422,7 @@ class RemoteDeliver implements FileCallable<Integer>
 		/* Replace evil characters with less evil characters */
 		String newJobName = jobName.replaceAll( "\\s", "_" );
 		
-		String viewtag = newJobName + System.getenv( "COMPUTERNAME" ) + "_" + stream.GetShortname();
+		String viewtag = newJobName + "_" + System.getenv( "COMPUTERNAME" ) + "_" + stream.GetShortname();
 		hudsonOut.println( "[PUCM] Trying to make deliver view " + viewtag );
 		
 		File viewroot = new File( workspace.getPath() + File.separator + "deliverview_" + stream.GetShortname() );
@@ -430,13 +430,13 @@ class RemoteDeliver implements FileCallable<Integer>
 		status.addToLog( logger.debug( id + "Deliver: " + viewroot.getAbsolutePath() + ". Tag=" + viewtag ) );
 		status.addToLog( logger.debug( id + "Stream is " + stream.GetFQName() ) );
 
-		hudsonOut.println( "[PUCM] viewtag " + viewtag );
+		hudsonOut.println( "[PUCM] viewtag: " + viewtag );
 		
 		SnapshotView sv = null;
 
 		try
 		{
-			if ( viewroot.exists() )
+			if( viewroot.exists() )
 			{
 				hudsonOut.println( "[PUCM] Reusing viewroot: " + viewroot.toString() );
 			}
@@ -453,14 +453,14 @@ class RemoteDeliver implements FileCallable<Integer>
 				}
 			}
 		}
-		catch ( Exception e )
+		catch( Exception e )
 		{
 			status.addToLog( logger.warning( id + "View root could not be initialized" ) );
 			throw new ScmException( "Could not make workspace (for viewroot " + viewroot.toString() + "). Cause: " + e.getMessage() );
 
 		}
 
-		if ( UCMView.ViewExists( viewtag ) )
+		if( UCMView.ViewExists( viewtag ) )
 		{
 			hudsonOut.println( "[PUCM] Reusing viewtag: " + viewtag + "\n" );
 			try
@@ -468,14 +468,14 @@ class RemoteDeliver implements FileCallable<Integer>
 				SnapshotView.ViewrootIsValid( viewroot );
 				hudsonOut.println( "[PUCM] Viewroot is valid in ClearCase" );
 			}
-			catch ( UCMException ucmE )
+			catch( UCMException ucmE )
 			{
 				try
 				{
 					hudsonOut.println( "[PUCM] Viewroot not valid - now regenerating.... " );
 					SnapshotView.RegenerateViewDotDat( viewroot, viewtag );
 				}
-				catch ( UCMException ucmEe )
+				catch( UCMException ucmEe )
 				{
 					status.addToLog( logger.warning( id + "Could regenerate workspace." ) );
 					if( ucmEe.stdout != null ){	hudsonOut.println( ucmEe.stdout ); }
@@ -489,7 +489,7 @@ class RemoteDeliver implements FileCallable<Integer>
 				sv = UCMView.GetSnapshotView( viewroot );
 				hudsonOut.println( " DONE" );
 			}
-			catch ( UCMException e )
+			catch( UCMException e )
 			{
 				status.addToLog( logger.warning( id + "Could not get view for workspace. " + e.getMessage() ) );
 				if( e.stdout != null ){	hudsonOut.println( e.stdout ); }
@@ -502,10 +502,10 @@ class RemoteDeliver implements FileCallable<Integer>
 			{
 				sv = SnapshotView.Create( stream, viewroot, viewtag );
 
-				hudsonOut.print( "[PUCM] View doesn't exist. Created new view in local workspace" );
+				hudsonOut.println( "[PUCM] View doesn't exist. Created new view in local workspace: " + viewroot.getAbsolutePath() );
 				status.addToLog( logger.log( "The view did not exist and created a new" ) );
 			}
-			catch ( UCMException e )
+			catch( UCMException e )
 			{
 				status.addToLog( logger.warning( id + "The view could not be created" ) );
 				status.addToLog( logger.warning( e ) );
@@ -521,7 +521,7 @@ class RemoteDeliver implements FileCallable<Integer>
 			sv.Update( true, true, true, false, COMP.valueOf( loadModule.toUpperCase() ), null );
 			hudsonOut.println( " DONE" );
 		}
-		catch ( UCMException e )
+		catch( UCMException e )
 		{
 			if( e.stdout != null ){	hudsonOut.println( e.stdout ); }
 			throw new ScmException( "Could not update snapshot view. " + e.getMessage() );
