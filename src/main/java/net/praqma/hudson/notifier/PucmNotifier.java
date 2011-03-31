@@ -69,6 +69,9 @@ import net.sf.json.JSONObject;
  */
 public class PucmNotifier extends Notifier
 {
+	/* Old skool promotion */
+	private boolean promote = false;
+	
 	private int promoteAction = __UNKNOWN_PROMOTE;
 	private boolean recommended;
 	//private Baseline baseline;
@@ -100,6 +103,7 @@ public class PucmNotifier extends Notifier
 	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag, boolean setDescription )
 	{
 		this.promoteAction  = promote ? 1 : 0;
+		this.promote        = promote;
 		this.recommended    = recommended;
 		this.makeTag        = makeTag;
 		this.setDescription = setDescription;
@@ -126,6 +130,7 @@ public class PucmNotifier extends Notifier
 	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag, boolean setDescription, boolean ucmDeliver/*, boolean defaultTarget*/, String alternateTarget/*, boolean createBaseline*/, String baselineName, boolean apply4level )
 	{
 		this.promoteAction   = promote ? 1 : 0;
+		this.promote         = promote;
 		this.recommended     = recommended;
 		this.makeTag         = makeTag;
 		this.setDescription  = setDescription;
@@ -157,6 +162,7 @@ public class PucmNotifier extends Notifier
 	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag, boolean setDescription, UCMDeliver ucmDeliver )
 	{
 		this.promoteAction   = promote ? 1 : 0;
+		this.promote         = promote;
 		this.recommended     = recommended;
 		this.makeTag         = makeTag;
 		this.setDescription  = setDescription;
@@ -181,6 +187,7 @@ public class PucmNotifier extends Notifier
 	 */
 	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag, boolean setDescription, UCMDeliver ucmDeliver, int promoteAction )
 	{
+		this.promote         = promote;
 		this.promoteAction   = promoteAction;
 		this.recommended     = recommended;
 		this.makeTag         = makeTag;
