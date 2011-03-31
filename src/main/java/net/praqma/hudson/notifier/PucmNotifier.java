@@ -84,6 +84,9 @@ public class PucmNotifier extends Notifier
 	
 	private UCMDeliver ucmDeliverObj = null;
 	
+	public static final int __NO_PROMOTE       = 100;
+	public static final int __PROMOTE_STABLE   = 101;
+	public static final int __PROMOTE_UNSTABLE = 102;	
 	
 	/**
 	 * Before version 0.2.5(I think)
@@ -187,11 +190,6 @@ public class PucmNotifier extends Notifier
 	}
 	
 	
-	public static final int __NO_PROMOTE       = 100;
-	public static final int __PROMOTE_STABLE   = 101;
-	public static final int __PROMOTE_UNSTABLE = 102;
-	
-
 	@Override
 	public boolean needsToRunAfterFinalized()
 	{
@@ -312,6 +310,10 @@ public class PucmNotifier extends Notifier
 			{
 				hudsonOut.println( "[PUCM] Couldn't set build description." );
 			}
+		}
+		else
+		{
+			build.setDescription( "Nothing to do" );
 		}
 
 		/*

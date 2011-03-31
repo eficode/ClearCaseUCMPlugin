@@ -2,6 +2,7 @@ package net.praqma.hudson.scm;
 
 import net.praqma.hudson.scm.PucmScm;
 
+import org.junit.Test;
 import org.jvnet.hudson.test.HudsonTestCase;
 import org.apache.commons.io.FileUtils;
 import hudson.model.*;
@@ -28,14 +29,14 @@ public class PucmScmTest extends HudsonTestCase
     public void testPrintBaselineWhenNull() throws Exception
     {
     	PucmScm scm = new PucmScm();
+
     	try
     	{
     		scm.printBaselines( null, System.out );
-    		assert( true );
     	}
     	catch( Exception e )
     	{
-    		assert( false );
+    		fail( "Could not handle baseline list when null" );
     	}
     }
 }
