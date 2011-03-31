@@ -36,9 +36,9 @@ This should be the file that makes it possible to select our notifier in the "po
 	
 	<f:entry title="Promote" help="/plugin/PUCM/notifier/help-promoteToLevel.html">
 		<select class="setting-input" name="Pucm.promote">
-			<f:option selected="${instance.promote == 0}" value="0">Do not promote</f:option>
-			<f:option selected="${instance.promote == l}" value="1">Promote stable builds</f:option>
-			<f:option selected="${instance.promote == 2}" value="2">Promote unstable builds</f:option>
+			<f:option selected="${instance.promote == 100}" value="100">Do not promote</f:option>
+			<f:option selected="${instance.promote == 101}" value="101">Promote stable builds</f:option>
+			<f:option selected="${instance.promote == 102}" value="102">Promote unstable builds</f:option>
 		</select>
 	</f:entry>
 	

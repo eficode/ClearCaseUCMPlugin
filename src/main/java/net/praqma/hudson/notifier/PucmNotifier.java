@@ -185,6 +185,12 @@ public class PucmNotifier extends Notifier
 		/* Advanced */
 		this.ucmDeliverObj = ucmDeliver;
 	}
+	
+	
+	public static final int __NO_PROMOTE       = 100;
+	public static final int __PROMOTE_STABLE   = 101;
+	public static final int __PROMOTE_UNSTABLE = 102;
+	
 
 	@Override
 	public boolean needsToRunAfterFinalized()
@@ -231,8 +237,6 @@ public class PucmNotifier extends Notifier
 				result = false;
 			}
 		}
-		
-		hudsonOut.println( "[WOLLE] promote=" + promote );
 
 		State pstate = null;
 		Baseline baseline = null;
@@ -642,13 +646,14 @@ public class PucmNotifier extends Notifier
 		@Override
 		public Notifier newInstance( StaplerRequest req, JSONObject formData ) throws FormException
 		{
-			int promote = 1;
+			int promote = 99;
 			try
 			{
 				promote = Integer.parseInt( req.getParameter( "Pucm.promote" ) );
 			}
 			catch( NumberFormatException e )
 			{
+				System.out.println( "Could not parse integer: " + e.getMessage() );
 				/* No op */
 			}
 			//boolean promoteUnstable = req.getParameter( "Pucm.promoteUnstable" ) != null;

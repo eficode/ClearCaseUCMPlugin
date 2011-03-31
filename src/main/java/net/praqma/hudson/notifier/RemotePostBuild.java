@@ -195,7 +195,7 @@ class RemotePostBuild implements FileCallable<Status>
 				tag.SetEntry( "buildstatus", "SUCCESS" );
 			}
 
-			if( promote > 0 )
+			if( promote > PucmNotifier.__NO_PROMOTE )
 			{
 				try
 				{
@@ -261,7 +261,7 @@ class RemotePostBuild implements FileCallable<Status>
 					tag.SetEntry( "buildstatus", "FAILURE" );
 				}
 				
-				if( promote > 0 )
+				if( promote > PucmNotifier.__NO_PROMOTE )
 				{
 					try
 					{
@@ -290,13 +290,13 @@ class RemotePostBuild implements FileCallable<Status>
 					tag.SetEntry( "buildstatus", "UNSTABLE" );
 				}
 				
-				if( promote > 0 )
+				if( promote > PucmNotifier.__NO_PROMOTE )
 				{
 					try
 					{
 						Project.Plevel pl = Project.Plevel.INITIAL;
 						
-						if( promote == 2 )
+						if( promote == PucmNotifier.__PROMOTE_UNSTABLE )
 						{
 							pl = baseline.promote();
 							hudsonOut.println( "[PUCM] Baseline is promoted, even though the build is unstable." );
