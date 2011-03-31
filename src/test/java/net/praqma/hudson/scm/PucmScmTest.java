@@ -1,3 +1,7 @@
+package net.praqma.hudson.scm;
+
+import net.praqma.hudson.scm.PucmScm;
+
 import org.jvnet.hudson.test.HudsonTestCase;
 import org.apache.commons.io.FileUtils;
 import hudson.model.*;
@@ -19,5 +23,19 @@ public class PucmScmTest extends HudsonTestCase
         assertTrue(s.contains("+ echo hello"));*/
 
     	assertTrue(true);
+    }
+    
+    public void testPrintBaselineWhenNull() throws Exception
+    {
+    	PucmScm scm = new PucmScm();
+    	try
+    	{
+    		scm.printBaselines( null, System.out );
+    		assert( true );
+    	}
+    	catch( Exception e )
+    	{
+    		assert( false );
+    	}
     }
 }

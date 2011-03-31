@@ -45,7 +45,7 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.export.Exported;
 
 /**
- * CC4HClass is responsible for everything regarding Hudsons connection to
+ * Pucm is responsible for everything regarding Hudsons connection to
  * ClearCase pre-build. This class defines all the files required by the user.
  * The information can be entered on the config page.
  * 
@@ -83,6 +83,14 @@ public class PucmScm extends SCM
 	public static StoredBaselines storedBaselines = new StoredBaselines();
 	
 	public static final String PUCM_LOGGER_STRING = "include_classes";
+	
+	/**
+	 * Default constructor, mainly used for unit tests.
+	 */
+	public PucmScm()
+	{
+		
+	}
 
 	/**
 	 * The constructor is used by Hudson to create the instance of the plugin
@@ -606,7 +614,7 @@ public class PucmScm extends SCM
 		ps.println( "" );
 	}
 
-	private void printBaselines( List<Baseline> baselines, PrintStream ps )
+	public void printBaselines( List<Baseline> baselines, PrintStream ps )
 	{
 		ps.println( "[PUCM] Retrieved baselines:" );
 		if( baselines != null )
