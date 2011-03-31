@@ -69,7 +69,7 @@ import net.sf.json.JSONObject;
  */
 public class PucmNotifier extends Notifier
 {
-	private int promote;
+	private int promoteAction;
 	private boolean recommended;
 	//private Baseline baseline;
 	private PrintStream hudsonOut;
@@ -98,9 +98,9 @@ public class PucmNotifier extends Notifier
 	 */
 	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag, boolean setDescription )
 	{
-		this.promote = promote ? 1 : 0;
-		this.recommended = recommended;
-		this.makeTag = makeTag;
+		this.promoteAction  = promote ? 1 : 0;
+		this.recommended    = recommended;
+		this.makeTag        = makeTag;
 		this.setDescription = setDescription;
 		
 		ucmDeliverObj = new UCMDeliver();
@@ -124,7 +124,7 @@ public class PucmNotifier extends Notifier
 	 */
 	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag, boolean setDescription, boolean ucmDeliver/*, boolean defaultTarget*/, String alternateTarget/*, boolean createBaseline*/, String baselineName, boolean apply4level )
 	{
-		this.promote         = promote ? 1 : 0;
+		this.promoteAction   = promote ? 1 : 0;
 		this.recommended     = recommended;
 		this.makeTag         = makeTag;
 		this.setDescription  = setDescription;
@@ -155,7 +155,7 @@ public class PucmNotifier extends Notifier
 	 */
 	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag, boolean setDescription, UCMDeliver ucmDeliver )
 	{
-		this.promote         = promote ? 1 : 0;
+		this.promoteAction   = promote ? 1 : 0;
 		this.recommended     = recommended;
 		this.makeTag         = makeTag;
 		this.setDescription  = setDescription;
@@ -178,9 +178,9 @@ public class PucmNotifier extends Notifier
 	 *            ClearCase.
 	 * @param ucmDeliver The special deliver object, in which all the deliver parameters are encapsulated.
 	 */
-	public PucmNotifier( int promote, boolean recommended, boolean makeTag, boolean setDescription, UCMDeliver ucmDeliver )
+	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag, boolean setDescription, UCMDeliver ucmDeliver, int promoteAction )
 	{
-		this.promote         = promote;
+		this.promoteAction   = promoteAction;
 		this.recommended     = recommended;
 		this.makeTag         = makeTag;
 		this.setDescription  = setDescription;
@@ -443,7 +443,7 @@ public class PucmNotifier extends Notifier
 			PipedOutputStream pout = new PipedOutputStream( pin );
 			*/
 
-			f = workspace.actAsync( new RemotePostBuild( buildResult, status, listener, makeTag, promote, recommended, pstate.getBaseline().GetFQName(), pstate.getStream().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), logger/*, pout*/, pipe ) );
+			f = workspace.actAsync( new RemotePostBuild( buildResult, status, listener, makeTag, promoteAction, recommended, pstate.getBaseline().GetFQName(), pstate.getStream().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), logger/*, pout*/, pipe ) );
 			
 			/*
 			BufferedReader br = new BufferedReader( new InputStreamReader( pin ) );
@@ -495,9 +495,14 @@ public class PucmNotifier extends Notifier
 		}
 	}
 
-	public int getPromote()
+	public boolean getPromote()
 	{
-		return promote;
+		return promoteAction > PucmNotifier.__NO_PROMOTE;
+	}
+	
+	public int getPromoteAction()
+	{
+		return promoteAction;
 	}
 
 	public boolean isRecommended()
@@ -648,17 +653,20 @@ public class PucmNotifier extends Notifier
 		@Override
 		public Notifier newInstance( StaplerRequest req, JSONObject formData ) throws FormException
 		{
-			int promote = 99;
+			int promoteAction = PucmNotifier.__NO_PROMOTE;
 			try
 			{
-				promote = Integer.parseInt( req.getParameter( "Pucm.promote" ) );
+				promoteAction = Integer.parseInt( req.getParameter( "Pucm.promoteAction" ) );
 			}
 			catch( NumberFormatException e )
 			{
 				System.out.println( "Could not parse integer: " + e.getMessage() );
 				/* No op */
 			}
-			//boolean promoteUnstable = req.getParameter( "Pucm.promoteUnstable" ) != null;
+			
+			/* Old promote field */
+			boolean promote         = req.getParameter( "Pucm.promote" ) != null;
+			
 			boolean recommended     = req.getParameter( "Pucm.recommended" ) != null;
 			boolean makeTag         = req.getParameter( "Pucm.makeTag" ) != null;
 			boolean setDescription  = req.getParameter( "Pucm.setDescription" ) != null;
@@ -690,7 +698,7 @@ public class PucmNotifier extends Notifier
 			
 			save();
 			
-			return new PucmNotifier( promote, recommended, makeTag, setDescription, d );
+			return new PucmNotifier( promote, recommended, makeTag, setDescription, d, promoteAction );
 		}
 
 		@Override
