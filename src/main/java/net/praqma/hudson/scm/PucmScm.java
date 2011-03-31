@@ -616,9 +616,9 @@ public class PucmScm extends SCM
 
 	public void printBaselines( List<Baseline> baselines, PrintStream ps )
 	{
-		ps.println( "[PUCM] Retrieved baselines:" );
 		if( baselines != null )
 		{
+			ps.println( "[PUCM] Retrieved baselines:" );
 			if( !( baselines.size() > 20 ) )
 			{
 				for( Baseline b : baselines )
@@ -637,10 +637,6 @@ public class PucmScm extends SCM
 				ps.println( "[PUCM] + " + baselines.get( i - 2 ).GetShortname() );
 				ps.println( "[PUCM] + " + baselines.get( i - 1 ).GetShortname() );
 			}
-		}
-		else
-		{
-			ps.println( "[PUCM] + No baselines found." );
 		}
 	}
 

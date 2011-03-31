@@ -69,7 +69,7 @@ import net.sf.json.JSONObject;
  */
 public class PucmNotifier extends Notifier
 {
-	private int promoteAction;
+	private int promoteAction = __UNKNOWN_PROMOTE;
 	private boolean recommended;
 	//private Baseline baseline;
 	private PrintStream hudsonOut;
@@ -84,6 +84,7 @@ public class PucmNotifier extends Notifier
 	
 	private UCMDeliver ucmDeliverObj = null;
 	
+	public static final int __UNKNOWN_PROMOTE  = 99;
 	public static final int __NO_PROMOTE       = 100;
 	public static final int __PROMOTE_STABLE   = 101;
 	public static final int __PROMOTE_UNSTABLE = 102;	
@@ -502,6 +503,16 @@ public class PucmNotifier extends Notifier
 	
 	public int getPromoteAction()
 	{
+		/*
+		if( promoteAction > PucmNotifier.__UNKNOWN_PROMOTE )
+		{
+			return promoteAction;
+		}
+		else
+		{
+			return this.pr ? 101 : 100;
+		}
+		*/
 		return promoteAction;
 	}
 
