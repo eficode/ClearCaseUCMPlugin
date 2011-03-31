@@ -609,23 +609,30 @@ public class PucmScm extends SCM
 	private void printBaselines( List<Baseline> baselines, PrintStream ps )
 	{
 		ps.println( "[PUCM] Retrieved baselines:" );
-		if ( !( baselines.size() > 20 ) )
+		if( baselines != null )
 		{
-			for ( Baseline b : baselines )
+			if( !( baselines.size() > 20 ) )
 			{
-				ps.println( "[PUCM] + " + b.GetShortname() );
+				for( Baseline b : baselines )
+				{
+					ps.println( "[PUCM] + " + b.GetShortname() );
+				}
+			}
+			else
+			{
+				int i = baselines.size();
+				ps.println( "[PUCM] + " + baselines.get( 0 ).GetShortname() );
+				ps.println( "[PUCM] + " + baselines.get( 1 ).GetShortname() );
+				ps.println( "[PUCM] + " + baselines.get( 2 ).GetShortname() );
+				ps.println( "[PUCM]   ...("+ (i-6) +" baselines not shown)..." );
+				ps.println( "[PUCM] + " + baselines.get( i - 3 ).GetShortname() );
+				ps.println( "[PUCM] + " + baselines.get( i - 2 ).GetShortname() );
+				ps.println( "[PUCM] + " + baselines.get( i - 1 ).GetShortname() );
 			}
 		}
 		else
 		{
-			int i = baselines.size();
-			ps.println( "[PUCM] + " + baselines.get( 0 ).GetShortname() );
-			ps.println( "[PUCM] + " + baselines.get( 1 ).GetShortname() );
-			ps.println( "[PUCM] + " + baselines.get( 2 ).GetShortname() );
-			ps.println( "[PUCM]   ...("+ (i-6) +" baselines not shown)..." );
-			ps.println( "[PUCM] + " + baselines.get( i - 3 ).GetShortname() );
-			ps.println( "[PUCM] + " + baselines.get( i - 2 ).GetShortname() );
-			ps.println( "[PUCM] + " + baselines.get( i - 1 ).GetShortname() );
+			ps.println( "[PUCM] + No baselines found." );
 		}
 	}
 
