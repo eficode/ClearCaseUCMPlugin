@@ -98,6 +98,7 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 		catch ( UCMException e )
 		{
 			log += logger.debug( id + "Could not get changes. " + e.getMessage() );
+			log += logger.info( e );
 			hudsonOut.println( "[PUCM] Could not get changes. " + e.getMessage() );
 		}
 		
