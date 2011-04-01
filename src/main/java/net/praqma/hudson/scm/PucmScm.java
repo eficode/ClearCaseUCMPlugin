@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Cool;
@@ -357,6 +358,7 @@ public class PucmScm extends SCM
 					logger.debug( id + "Could not write change log file" );
 					consoleOutput.println( "[PUCM] Could not write change log file" );
 				}
+				
 			}
 			catch ( Exception e )
 			{
@@ -379,6 +381,23 @@ public class PucmScm extends SCM
 	{
 		logger.trace_function();
 		return new ChangeLogParserImpl();
+	}
+	
+    @Override
+	public void buildEnvVars( AbstractBuild<?, ?> build, Map<String, String> env )
+	{
+		super.buildEnvVars( build, env );
+		
+		State state = pucm.getState( jobName, jobNumber );
+		
+		if( state.getBaseline() != null )
+		{
+			env.put( "CC_BASELINE", state.getBaseline().GetFQName() );
+		}
+		else
+		{
+			env.put( "CC_BASELINE", "" );
+		}
 	}
 
 	@Override

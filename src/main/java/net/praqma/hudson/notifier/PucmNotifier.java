@@ -227,6 +227,60 @@ public class PucmNotifier extends Notifier
 			}
 		}
 		
+		/*
+		//////// TEST
+		
+		
+		try
+		{
+			hudsonOut.println( "Starting" );
+			
+			final Pipe pipe = Pipe.createRemoteToLocal();
+			FilePath workspace = build.getExecutor().getCurrentWorkspace();
+						
+			Future<Integer> f = null;
+
+			hudsonOut.println( "a1" );
+			f = workspace.actAsync( new RemotePipe( listener, pipe ) );
+			hudsonOut.println( "a2" );
+		
+			
+			InputStream is = pipe.getIn();
+			hudsonOut.println( "a3" );
+			int a = 0;
+			while( ( a = is.available() ) == 0 )
+			{
+				
+			}
+			hudsonOut.println( "a3=" + a );
+			//String res = net.praqma.util.io.IO.streamToString( is );
+			int res = is.read();
+			hudsonOut.println( "a4" );
+			is.close();
+			hudsonOut.println( "a5" );
+			
+			hudsonOut.println( "I READ: " + res );
+			
+			
+			Integer i = f.get();
+			
+			hudsonOut.println( "I is " + i );
+			
+		}
+		catch ( Exception e )
+		{
+			hudsonOut.println( "[PUCM] Error: Post build failed: " + e.getMessage() );
+			hudsonOut.println( e );
+		}
+		
+		if( 1 == 1 )
+		{
+			return result;
+		}
+		
+		/////// TEST
+		*/
+		
 		Cool.setLogger( logger );
 
 		status = new Status();
