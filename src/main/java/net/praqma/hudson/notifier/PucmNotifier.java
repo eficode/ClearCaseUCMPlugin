@@ -208,6 +208,7 @@ public class PucmNotifier extends Notifier
 	{
 		return BuildStepMonitor.NONE;
 	}
+	
 
 	@Override
 	public boolean perform( AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener ) throws InterruptedException, IOException
@@ -227,21 +228,23 @@ public class PucmNotifier extends Notifier
 			}
 		}
 		
-		/*
-		//////// TEST
 		
+		/*
+		//////// TEST		
 		
 		try
 		{
 			hudsonOut.println( "Starting" );
 			
-			final Pipe pipe = Pipe.createRemoteToLocal();
+			Pipe pipe = Pipe.createRemoteToLocal();
 			FilePath workspace = build.getExecutor().getCurrentWorkspace();
 						
 			Future<Integer> f = null;
 
 			hudsonOut.println( "a1" );
-			f = workspace.actAsync( new RemotePipe( listener, pipe ) );
+			//f = workspace.actAsync( new RemotePipe( listener, pipe ) );
+			VirtualChannel c = launcher.getChannel();
+			c.callAsync( new RemotePipe( listener, pipe ) );
 			hudsonOut.println( "a2" );
 		
 			
@@ -375,7 +378,8 @@ public class PucmNotifier extends Notifier
 		}
 		else
 		{
-			build.setDescription( "Nothing to do" );
+			String d = build.getDescription();
+			build.setDescription( ( d.length() > 0 ? d + "<br/>" : "" ) + "Nothing to do" );
 		}
 
 		/*

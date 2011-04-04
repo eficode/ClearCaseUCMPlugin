@@ -339,7 +339,7 @@ public class PucmScm extends SCM
 					consoleOutput.println( "[PUCM] buildProject is null" );
 				}
 
-				build.setDescription("<small>"+state.getBaseline()+"</small>");
+				build.setDescription("<small>" + state.getBaseline() + "</small>");
 				CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), state.getStream().GetFQName(), loadModule, state.getBaseline().GetFQName(), buildProject, logger );
 
 				Tuple<String, String> ctresult = workspace.act( ct );

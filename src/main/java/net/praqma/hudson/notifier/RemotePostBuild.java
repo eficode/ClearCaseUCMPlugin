@@ -386,7 +386,7 @@ class RemotePostBuild implements FileCallable<Status>
 		{
 			if ( status.isRecommended() )
 			{
-				s += "<BR/<B><small>Recommended</small></B>";
+				s += "<BR/><B><small>Recommended</small></B>";
 			}
 			else
 			{
