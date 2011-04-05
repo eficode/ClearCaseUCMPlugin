@@ -89,6 +89,9 @@ public class PucmNotifier extends Notifier
 	
 	private UCMDeliver ucmDeliverObj = null;
 	
+	private String jobName    = "";
+	private Integer jobNumber = 0;
+	
 	public static final int __UNKNOWN_PROMOTE  = 99;
 	public static final int __NO_PROMOTE       = 100;
 	public static final int __PROMOTE_STABLE   = 101;
@@ -215,10 +218,15 @@ public class PucmNotifier extends Notifier
 	@Override
 	public boolean perform( AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener ) throws InterruptedException, IOException
 	{
+		//System.out.println( "[PUCM] Notifier" );
 		/* Preparing the logger */
 		logger = PraqmaLogger.getLogger();
 		boolean result = true;
 		hudsonOut = listener.getLogger();
+		
+		/* Prepare job variables */
+		jobName   = build.getParent().getDisplayName().replace( ' ', '_' );
+		jobNumber = build.getNumber();
 		
 		logger.unsubscribeAll();
 		if( build.getBuildVariables().get( "include_classes" ) != null )
@@ -290,14 +298,14 @@ public class PucmNotifier extends Notifier
 
 		status = new Status();
 
-		this.id = "[" + build.getParent().getDisplayName() + "::" + build.getNumber() + "]";
+		this.id = "[" + jobName + "::" +jobNumber + "]";
 		logger.debug( id + "SNADE" );
 
 		SCM scmTemp = null;
 		if( result )
 		{
 			scmTemp = build.getProject().getScm();
-			if ( !( scmTemp instanceof PucmScm ) )
+			if( !( scmTemp instanceof PucmScm ) )
 			{
 				listener.fatalError( "[PUCM] Not a PUCM scm. This Post build action can only be used when polling from ClearCase with PUCM plugin." );
 				result = false;
@@ -311,7 +319,7 @@ public class PucmNotifier extends Notifier
 		if( result )
 		{
 			/* Retrieve the pucm state */
-			pstate = PucmScm.pucm.getState( build.getParent().getDisplayName(), build.getNumber() );
+			pstate = PucmScm.pucm.getState( jobName, jobNumber );
 			
 			logger.debug( "The valid state: " + pstate.stringify() );
 

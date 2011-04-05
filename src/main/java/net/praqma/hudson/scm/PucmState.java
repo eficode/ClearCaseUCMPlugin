@@ -35,14 +35,18 @@ public class PucmState
 	 */
 	public State getState( String jobName, Integer jobNumber )
 	{
+		//System.out.println( "[PUCM] GETSTATE1='" + jobName + "::" + jobNumber + "'" );
 		for( State s : states )
 		{
-			if( s.getJobName().equals( jobName ) && s.getJobNumber() == jobNumber )
+			//System.out.println( "[PUCM] GETSTATE2='" + s.getJobName() + "::" + s.getJobNumber() + "'" );
+			if( s.getJobName().equals( jobName ) && s.getJobNumber().equals( jobNumber ) )
+			//if( s.getJobNumber().equals( jobNumber ) )
 			{
 				return s;
 			}
 		}
 		
+		//System.out.println( "[PUCM] creating new state '" + jobName + "::" + jobNumber + "'" );
 		State s = new State( jobName, jobNumber );
 		states.add( s );
 		return s;
@@ -290,6 +294,21 @@ public class PucmState
 		{
 			return "(" + jobName + ", " + jobNumber + ")";
 		}
+		
+		public boolean equals( Object other )
+		{
+			if( other instanceof State )
+			{
+				if( this.getJobName().equals( ( (State)other ).getJobName() ) && this.getJobNumber().equals( ( (State)other ).getJobNumber() ) )
+				{
+					return true;
+				}
+				
+			}
+				
+			return false;
+		}
+		
 		public void setLoadModule( String loadModule )
 		{
 			this.loadModule = loadModule;

@@ -167,6 +167,7 @@ public class PucmScm extends SCM
 	@Override
 	public boolean checkout( AbstractBuild<?, ?> build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile ) throws IOException, InterruptedException
 	{
+		//System.out.println( "[PUCM] Checkout" );
 		/* Prepare job variables */
 		jobName   = build.getParent().getDisplayName().replace( ' ', '_' );
 		jobNumber = build.getNumber();
@@ -403,6 +404,7 @@ public class PucmScm extends SCM
 	@Override
 	public PollingResult compareRemoteRevisionWith( AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState rstate ) throws IOException, InterruptedException
 	{		
+		//System.out.println( "[PUCM] POLL" );
 		logger = PraqmaLogger.getLogger();
 		this.id = "[" + project.getDisplayName() + "::" + project.getNextBuildNumber() + "]";
 				
@@ -470,9 +472,7 @@ public class PucmScm extends SCM
 	}
 	
 	private Baseline selectBaseline( List<Baseline> baselines, boolean newest )
-	{
-		logger.subscribeAll();
-		
+	{		
 		if( baselines.size() > 0 )
 		{
 			if( newest )
@@ -492,8 +492,6 @@ public class PucmScm extends SCM
 	
 	private List<Baseline> getValidBaselines( AbstractProject<?, ?> project, State state, Project.Plevel plevel ) throws ScmException
 	{
-		logger.subscribeAll();
-		
 		logger.debug( id + "Retrieving valid baselines." );
 
 		/* Store the component to the state */
