@@ -289,6 +289,7 @@ public class PucmNotifier extends Notifier
 		status = new Status();
 
 		this.id = "[" + build.getParent().getDisplayName() + "::" + build.getNumber() + "]";
+		logger.debug( id + "SNADE" );
 
 		SCM scmTemp = null;
 		if( result )
@@ -379,7 +380,10 @@ public class PucmNotifier extends Notifier
 		else
 		{
 			String d = build.getDescription();
-			build.setDescription( ( d.length() > 0 ? d + "<br/>" : "" ) + "Nothing to do" );
+			if( d != null )
+			{
+				build.setDescription( ( d.length() > 0 ? d + "<br/>" : "" ) + "Nothing to do" );
+			}
 		}
 
 		/*

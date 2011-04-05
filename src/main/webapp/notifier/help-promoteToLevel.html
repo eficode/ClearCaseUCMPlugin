@@ -1,11 +1,30 @@
 <div>
-If checked, your baseline will be promoted to the next logical level.<br />
+This option has three selections:
+<ol>
+	<li>Do not promote, does not tamper with the promotion level at all</li>
+	<li>Promote stable builds, does only promote if the everything went fine</li>
+	<li>Promote unstable builds, promotes everything, unless something failed</li>
+</ol>
+If (2) or (3), your baseline will be promoted to the next logical promotion level, as given below.<br />
+<table style="border-style:solid">
+	<tr>
+		<td style="font-weight:bold;padding-right:20px">Poll level</td>
+		<td style="font-weight:bold">Promoted to</td>
+	</tr>
+	<tr>
+		<td style="">INITIAL</td>
+		<td style="">BUILT</td>
+	</tr>
+	<tr>
+		<td style="">BUILT</td>
+		<td style="">TESTED</td>
+	</tr>
+	<tr>
+		<td style="">TESTED</td>
+		<td style="">RELEASED</td>
+	</tr>
+</table>
+
 If the build was unsuccessful, the baseline will be demoted to REJECTED.<br />
-Otherwise it will be promoted as follows:
-<ul>
-	<li>Poll level --> Promoted to</li>
-	<li>INITIAL    --> BUILT</li>
-	<li>BUILT      --> TESTED</li>
-	<li>TESTED     --> RELEASED</li>
-</ul>
+
 </div>
