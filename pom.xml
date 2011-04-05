@@ -13,7 +13,7 @@
 
 
 	<artifactId>PUCM</artifactId>
-	<version>0.3.20</version>
+	<version>0.3.21-SNAPSHOT</version>
 	<name>PUCM</name>
 	<description>Integrates Jenkins to ClearCase UCM</description>
 	<url>http://wiki.jenkins-ci.org/display/JENKINS/Pucm+plugin</url>
