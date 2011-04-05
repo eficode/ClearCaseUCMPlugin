@@ -39,12 +39,14 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
+import hudson.model.FreeStyleBuild;
 import hudson.model.Result;
 import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Hudson;
 import hudson.model.Hudson.MasterComputer;
+import hudson.model.Job;
 import hudson.model.Node;
 
 import hudson.remoting.Callable;
@@ -455,6 +457,29 @@ public class PucmNotifier extends Notifier
 			
 				Future<Integer> i = null;
 				//hudson.remoting.pi
+				
+				/*
+				@SuppressWarnings( "unchecked" )
+				List<FreeStyleBuild> builds = (List<FreeStyleBuild>) build.getProject().getBuilds();
+				
+				boolean me = false;
+				for( FreeStyleBuild b : builds )
+				{
+					if( !me )
+					{
+						if( b.getNumber() == pstate.getJobNumber() )
+						{
+							me = true;
+						}
+						continue;
+					}
+					
+					if()
+					{
+						
+					}
+				}
+				*/
 				
 				i = workspace.actAsync( new RemoteDeliver( buildResult, status, listener, pstate.getComponent().GetFQName(), pstate.getLoadModule(), pstate.getBaseline().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), ucmDeliverObj, logger, pipe ) );
 				InputStream is = pipe.getIn();
