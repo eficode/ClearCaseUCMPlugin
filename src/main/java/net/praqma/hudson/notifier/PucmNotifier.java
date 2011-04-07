@@ -78,7 +78,6 @@ public class PucmNotifier extends Notifier
 	private boolean recommended;
 	//private Baseline baseline;
 	private PrintStream hudsonOut;
-	private Stream st;
 	private boolean makeTag;
 	private boolean setDescription;
 	private Status status;
@@ -206,7 +205,7 @@ public class PucmNotifier extends Notifier
 	@Override
 	public boolean needsToRunAfterFinalized()
 	{
-		return true;
+		return false;
 	}
 
 	public BuildStepMonitor getRequiredMonitorService()
@@ -299,7 +298,6 @@ public class PucmNotifier extends Notifier
 		status = new Status();
 
 		this.id = "[" + jobName + "::" +jobNumber + "]";
-		logger.debug( id + "SNADE" );
 
 		SCM scmTemp = null;
 		if( result )
@@ -345,7 +343,6 @@ public class PucmNotifier extends Notifier
 						baseline = null;
 					}
 
-					st = pstate.getStream();
 					if( baseline == null )
 					{
 						/* If baseline is null, the user has already been notified in Console output from PucmScm.checkout() */
@@ -394,6 +391,8 @@ public class PucmNotifier extends Notifier
 			{
 				build.setDescription( ( d.length() > 0 ? d + "<br/>" : "" ) + "Nothing to do" );
 			}
+			
+			build.setResult( Result.NOT_BUILT );
 		}
 
 		/*
