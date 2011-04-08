@@ -72,26 +72,73 @@ public class Config
 		Project project = null;
 		
 
-
-		try
+		/* If the build project was not given as a parameter to the job, try to find
+		 * hudson, Hudson, jenkins or Jenkins */
+		if( buildProject == null )
 		{
-			project = UCMEntity.GetProject( buildProject + "@" + bl.GetPvob(), false );
-
-		}
-		catch ( Exception e )
-		{
-			//throw new ScmException( "Could not find project 'hudson' in " + pvob + ". You can install the Poject with: \"cleartool mkproject -c \"The special Hudson Project\" -in rootFolder@\\your_pvob hudson@\\your_pvob\"." );
-			logger.warning( "The build Project was not found." );
-			hudsonOut.println( "The build project was not found. You can create the project with: \"cleartool mkproject -c \"Your special build Project\" -in rootFolder@\\your_pvob yourBuildProject@\\your_pvob\"." +
-					"\nSince there's no build project in ClearCase, pucm have made an extra stream in your integration stream to build in" );
-			
 			try
 			{
-				project = bl.getStream().getProject();
+				project = UCMEntity.GetProject( "hudson@" + bl.GetPvob(), false );
 			}
-			catch ( UCMException ucme )
+			catch( UCMException eh )
 			{
-				throw new ScmException( "Could not get the Project." );
+				try
+				{
+					project = UCMEntity.GetProject( "Hudson@" + bl.GetPvob(), false );
+				}
+				catch( UCMException eH )
+				{
+					try
+					{
+						project = UCMEntity.GetProject( "jenkins@" + bl.GetPvob(), false );
+					}
+					catch( UCMException ej )
+					{
+						try
+						{
+							project = UCMEntity.GetProject( "Jenkins@" + bl.GetPvob(), false );
+						}
+						catch( UCMException eJ )
+						{
+							logger.warning( "The build Project was not found." );
+							hudsonOut.println( "The build project was not found. You can create the project with: \"cleartool mkproject -c \"Your special build Project\" -in rootFolder@\\your_pvob yourBuildProject@\\your_pvob\"." +
+									"\nSince there's no build project in ClearCase, pucm have made an extra stream in your integration stream to build in" );
+							
+							/* Use the integration stream */
+							try
+							{
+								project = bl.getStream().getProject();
+							}
+							catch ( UCMException ucme )
+							{
+								throw new ScmException( "Could not get the build Project." );
+							}	
+						}
+					}
+				}	
+			}
+		}
+		else
+		{
+			try
+			{
+				project = UCMEntity.GetProject( buildProject + "@" + bl.GetPvob(), false );
+			}
+			catch ( Exception e )
+			{
+				//throw new ScmException( "Could not find project 'hudson' in " + pvob + ". You can install the Poject with: \"cleartool mkproject -c \"The special Hudson Project\" -in rootFolder@\\your_pvob hudson@\\your_pvob\"." );
+				logger.warning( "The build Project was not found." );
+				hudsonOut.println( "The build project was not found. You can create the project with: \"cleartool mkproject -c \"Your special build Project\" -in rootFolder@\\your_pvob yourBuildProject@\\your_pvob\"." +
+						"\nSince there's no build project in ClearCase, pucm have made an extra stream in your integration stream to build in" );
+				
+				try
+				{
+					project = bl.getStream().getProject();
+				}
+				catch ( UCMException ucme )
+				{
+					throw new ScmException( "Could not get the Project." );
+				}
 			}
 		}
 		

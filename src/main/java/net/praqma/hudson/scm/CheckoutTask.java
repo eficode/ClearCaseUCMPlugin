@@ -262,7 +262,7 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
     		{
     			if ( buildProject.equals( "" ) )
     			{
-    				buildProject = "hudson";
+    				buildProject = null;
     			}
     			devstream = Stream.Create( Config.getIntegrationStream( bl, hudsonOut, buildProject ), streamname + pvob, true, bl );
     		}

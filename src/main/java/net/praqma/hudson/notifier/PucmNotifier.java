@@ -293,6 +293,7 @@ public class PucmNotifier extends Notifier
 		/////// TEST
 		*/
 		
+		
 		Cool.setLogger( logger );
 
 		status = new Status();
