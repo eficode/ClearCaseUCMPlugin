@@ -202,6 +202,9 @@ public class PucmNotifier extends Notifier
 	}
 	
 	
+	/**
+	 * This indicates whether to let pucm run after(true) the job is done or before(false)
+	 */
 	@Override
 	public boolean needsToRunAfterFinalized()
 	{
