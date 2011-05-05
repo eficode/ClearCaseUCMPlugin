@@ -749,7 +749,12 @@ public class PucmScm extends SCM
 		@Override
 		public boolean configure( org.kohsuke.stapler.StaplerRequest req, JSONObject json ) throws FormException
 		{
-			cleartool          = req.getParameter( "PUCM.cleartool" ).trim();
+			/* For backwards compatibility, check if cleartool is null */
+			cleartool = req.getParameter( "PUCM.cleartool" );
+			if( cleartool != null )
+			{
+				cleartool = cleartool.trim();
+			}
 			multiSiteFrequency = req.getParameter( "PUCM.multiSiteFrequency" ).trim();
 			save();
 			return true;

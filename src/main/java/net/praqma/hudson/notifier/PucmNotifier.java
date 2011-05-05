@@ -240,7 +240,6 @@ public class PucmNotifier extends Notifier
 			}
 		}
 		
-		
 		/*
 		//////// TEST		
 		
