@@ -1,35 +1,19 @@
 package net.praqma.hudson.notifier;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.io.PrintStream;
-import java.io.Serializable;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import org.kohsuke.stapler.StaplerRequest;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
-import net.praqma.clearcase.ucm.entities.Component;
-import net.praqma.clearcase.ucm.entities.Cool;
-import net.praqma.clearcase.ucm.entities.Stream;
-import net.praqma.clearcase.ucm.entities.Tag;
-import net.praqma.clearcase.ucm.entities.UCM;
+import net.praqma.clearcase.Cool;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
-import net.praqma.clearcase.ucm.view.SnapshotView;
-import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.hudson.exception.NotifierException;
-import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.scm.PucmScm;
 import net.praqma.hudson.scm.PucmState.State;
 import net.praqma.util.debug.PraqmaLogger;
@@ -37,11 +21,8 @@ import net.praqma.util.debug.PraqmaLogger.Logger;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
-import hudson.model.FreeStyleBuild;
 import hudson.model.Result;
-import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Hudson;

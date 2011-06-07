@@ -6,6 +6,7 @@ import java.util.List;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
+import net.praqma.clearcase.Cool;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCM;
@@ -42,7 +43,7 @@ public class Config
 			 * "STREAM_TEST1@\PDS_PVOB" component = "COMPONENT_TEST1@\PDS_PVOB"
 			 * Level to poll = "INITIAL"
 			 */
-			UCM.setContext( UCM.ContextType.XML );
+			Cool.setContext( UCM.ContextType.XML );
 			System.out.println( "PUCM is running on a testbase" );
 		}
 		else

@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.praqma.clearcase.ucm.UCMException;
-import net.praqma.clearcase.ucm.entities.Cool;
+import net.praqma.clearcase.Cool;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.utils.BaselineList;
