@@ -242,9 +242,9 @@ public class PucmScm extends SCM
 			String baselinename = (String) build.getBuildVariables().get( baselinevalue );
 			try
 			{
-				state.setBaseline( UCMEntity.GetBaseline( baselinename ) );
+				state.setBaseline( UCMEntity.getBaseline( baselinename ) );
 				state.setStream( state.getBaseline().getStream() );
-				consoleOutput.println( "[PUCM] Starting parameterized build with a pucm_baseline.\n[PUCM] Using baseline: " + baselinename + " from integrationstream " + state.getStream().GetShortname() );
+				consoleOutput.println( "[PUCM] Starting parameterized build with a pucm_baseline.\n[PUCM] Using baseline: " + baselinename + " from integrationstream " + state.getStream().getShortname() );
 				
 				/* The component could be used in the post build section */
 				state.setComponent( state.getBaseline().getComponent() );
@@ -273,7 +273,7 @@ public class PucmScm extends SCM
 			{
 				try
 				{
-					List<Baseline> baselines = getValidBaselines( build.getProject(), state, Project.GetPlevelFromString( levelToPoll ) );
+					List<Baseline> baselines = getValidBaselines( build.getProject(), state, Project.getPlevelFromString( levelToPoll ) );
 					state.setBaselines( baselines );
 					Baseline baseline = selectBaseline( baselines, newest );
 					logger.debug( id + "I chose " + baseline );
@@ -300,7 +300,7 @@ public class PucmScm extends SCM
 				/* Force the Baseline to be loaded */
 				try
 				{
-					state.getBaseline().Load();
+					state.getBaseline().load();
 				}
 				catch ( UCMException e )
 				{
@@ -341,7 +341,7 @@ public class PucmScm extends SCM
 				}
 
 				build.setDescription("<small>" + state.getBaseline() + "</small>");
-				CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), state.getStream().GetFQName(), loadModule, state.getBaseline().GetFQName(), buildProject, logger );
+				CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), state.getStream().getFullyQualifiedName(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, logger );
 
 				Tuple<String, String> ctresult = workspace.act( ct );
 				String changelog = ctresult.t1;
@@ -393,7 +393,7 @@ public class PucmScm extends SCM
 		
 		if( state.getBaseline() != null )
 		{
-			env.put( "CC_BASELINE", state.getBaseline().GetFQName() );
+			env.put( "CC_BASELINE", state.getBaseline().getFullyQualifiedName() );
 		}
 		else
 		{
@@ -432,7 +432,7 @@ public class PucmScm extends SCM
 		PollingResult p;
 		try
 		{
-			List<Baseline> baselines = getValidBaselines( project, state, Project.GetPlevelFromString( levelToPoll ) );
+			List<Baseline> baselines = getValidBaselines( project, state, Project.getPlevelFromString( levelToPoll ) );
 			printBaselines( baselines, consoleOut );
 			state.setBaselines( baselines );
 			Baseline baseline = selectBaseline( baselines, newest );
@@ -497,7 +497,7 @@ public class PucmScm extends SCM
 		/* Store the component to the state */
 		try
 		{
-			state.setComponent( UCMEntity.GetComponent( component, false ) );
+			state.setComponent( UCMEntity.getComponent( component, false ) );
 		}
 		catch ( UCMException e )
 		{
@@ -507,7 +507,7 @@ public class PucmScm extends SCM
 		/* Store the stream to the state */
 		try
 		{
-			state.setStream( UCMEntity.GetStream( stream, false ) );
+			state.setStream( UCMEntity.getStream( stream, false ) );
 		}
 		catch ( UCMException e )
 		{
@@ -523,7 +523,7 @@ public class PucmScm extends SCM
 
 		try
 		{
-			baselines = state.getComponent().GetBaselines( state.getStream(), plevel );
+			baselines = state.getComponent().getBaselines( state.getStream(), plevel );
 		}
 		catch ( UCMException e )
 		{
@@ -552,14 +552,14 @@ public class PucmScm extends SCM
 					//logger.debug( id + "Current baseline from list: \n" + b.Stringify() );
 
 					/* Get the state for the current baseline */
-					State cstate = pucm.getStateByBaseline( jobName, b.GetFQName() );
+					State cstate = pucm.getStateByBaseline( jobName, b.getFullyQualifiedName() );
 					
 					/* Find the stored baseline if multi site, null if not */
 					StoredBaseline sbl = null;
 					if( state.isMultiSite() )
 					{
 						/* Find the baseline if stored */
-						sbl = PucmScm.storedBaselines.getBaseline( b.GetFQName() );
+						sbl = PucmScm.storedBaselines.getBaseline( b.getFullyQualifiedName() );
 						logger.debug( id + "The found stored baseline: " + sbl );
 					}
 
@@ -587,7 +587,7 @@ public class PucmScm extends SCM
 						}
 						else
 						{
-							logger.debug( id + "Job " + bld.getNumber() + " is building " + cstate.getBaseline().GetFQName() );
+							logger.debug( id + "Job " + bld.getNumber() + " is building " + cstate.getBaseline().getFullyQualifiedName() );
 						}
 					}
 					/* The baseline is available */
@@ -640,19 +640,19 @@ public class PucmScm extends SCM
 			{
 				for( Baseline b : baselines )
 				{
-					ps.println( "[PUCM] + " + b.GetShortname() );
+					ps.println( "[PUCM] + " + b.getShortname() );
 				}
 			}
 			else
 			{
 				int i = baselines.size();
-				ps.println( "[PUCM] + " + baselines.get( 0 ).GetShortname() );
-				ps.println( "[PUCM] + " + baselines.get( 1 ).GetShortname() );
-				ps.println( "[PUCM] + " + baselines.get( 2 ).GetShortname() );
+				ps.println( "[PUCM] + " + baselines.get( 0 ).getShortname() );
+				ps.println( "[PUCM] + " + baselines.get( 1 ).getShortname() );
+				ps.println( "[PUCM] + " + baselines.get( 2 ).getShortname() );
 				ps.println( "[PUCM]   ...("+ (i-6) +" baselines not shown)..." );
-				ps.println( "[PUCM] + " + baselines.get( i - 3 ).GetShortname() );
-				ps.println( "[PUCM] + " + baselines.get( i - 2 ).GetShortname() );
-				ps.println( "[PUCM] + " + baselines.get( i - 1 ).GetShortname() );
+				ps.println( "[PUCM] + " + baselines.get( i - 3 ).getShortname() );
+				ps.println( "[PUCM] + " + baselines.get( i - 2 ).getShortname() );
+				ps.println( "[PUCM] + " + baselines.get( i - 1 ).getShortname() );
 			}
 		}
 	}

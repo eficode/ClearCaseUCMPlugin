@@ -331,14 +331,14 @@ public class PucmNotifier extends Notifier
 
 				/* This shouldn't actually be necessary!?
 				 * TODO Maybe the baseline should be re-Load()ed instead of creating a new object?  */
-				String bl = pstate.getBaseline().GetFQName();
+				String bl = pstate.getBaseline().getFullyQualifiedName();
 
 				/* If no baselines found bl will be null and the post build section will not proceed */
 				if( bl != null )
 				{
 					try
 					{
-						baseline = UCMEntity.GetBaseline( bl );
+						baseline = UCMEntity.getBaseline( bl );
 					}
 					catch( UCMException e )
 					{
@@ -491,7 +491,7 @@ public class PucmNotifier extends Notifier
 				}
 				*/
 				
-				i = workspace.actAsync( new RemoteDeliver( buildResult, status, listener, pstate.getComponent().GetFQName(), pstate.getLoadModule(), pstate.getBaseline().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), ucmDeliverObj, logger, pipe ) );
+				i = workspace.actAsync( new RemoteDeliver( buildResult, status, listener, pstate.getComponent().getFullyQualifiedName(), pstate.getLoadModule(), pstate.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), ucmDeliverObj, logger, pipe ) );
 				InputStream is = pipe.getIn();
 				InputStreamReader isr = new InputStreamReader( is );
 				BufferedReader br = new BufferedReader( isr );
@@ -548,7 +548,7 @@ public class PucmNotifier extends Notifier
 			PipedOutputStream pout = new PipedOutputStream( pin );
 			*/
 
-			f = workspace.actAsync( new RemotePostBuild( buildResult, status, listener, makeTag, promoteAction, recommended, pstate.getBaseline().GetFQName(), pstate.getStream().GetFQName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), logger/*, pout*/, pipe ) );
+			f = workspace.actAsync( new RemotePostBuild( buildResult, status, listener, makeTag, promoteAction, recommended, pstate.getBaseline().getFullyQualifiedName(), pstate.getStream().getFullyQualifiedName(), build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), logger/*, pout*/, pipe ) );
 			
 			/*
 			BufferedReader br = new BufferedReader( new InputStreamReader( pin ) );

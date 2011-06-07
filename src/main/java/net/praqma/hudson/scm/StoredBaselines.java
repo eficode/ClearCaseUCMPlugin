@@ -27,7 +27,7 @@ public class StoredBaselines
 		
 		StoredBaseline( Baseline baseline )
 		{
-			this.baseline = baseline.GetFQName();
+			this.baseline = baseline.getFullyQualifiedName();
 			this.time = System.currentTimeMillis();
 			try
 			{

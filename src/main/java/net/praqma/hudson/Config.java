@@ -42,12 +42,12 @@ public class Config
 			 * "STREAM_TEST1@\PDS_PVOB" component = "COMPONENT_TEST1@\PDS_PVOB"
 			 * Level to poll = "INITIAL"
 			 */
-			UCM.SetContext( UCM.ContextType.XML );
+			UCM.setContext( UCM.ContextType.XML );
 			System.out.println( "PUCM is running on a testbase" );
 		}
 		else
 		{
-			UCM.SetContext( UCM.ContextType.CLEARTOOL );
+			UCM.setContext( UCM.ContextType.CLEARTOOL );
 		}
 	}
 
@@ -78,25 +78,25 @@ public class Config
 		{
 			try
 			{
-				project = UCMEntity.GetProject( "hudson@" + bl.GetPvob(), false );
+				project = UCMEntity.getProject( "hudson@" + bl.getPvob(), false );
 			}
 			catch( UCMException eh )
 			{
 				try
 				{
-					project = UCMEntity.GetProject( "Hudson@" + bl.GetPvob(), false );
+					project = UCMEntity.getProject( "Hudson@" + bl.getPvob(), false );
 				}
 				catch( UCMException eH )
 				{
 					try
 					{
-						project = UCMEntity.GetProject( "jenkins@" + bl.GetPvob(), false );
+						project = UCMEntity.getProject( "jenkins@" + bl.getPvob(), false );
 					}
 					catch( UCMException ej )
 					{
 						try
 						{
-							project = UCMEntity.GetProject( "Jenkins@" + bl.GetPvob(), false );
+							project = UCMEntity.getProject( "Jenkins@" + bl.getPvob(), false );
 						}
 						catch( UCMException eJ )
 						{
@@ -122,7 +122,7 @@ public class Config
 		{
 			try
 			{
-				project = UCMEntity.GetProject( buildProject + "@" + bl.GetPvob(), false );
+				project = UCMEntity.getProject( buildProject + "@" + bl.getPvob(), false );
 			}
 			catch ( Exception e )
 			{
@@ -148,7 +148,7 @@ public class Config
 		}
 		catch ( Exception e )
 		{
-			throw new ScmException( "Could not get integration stream from " + project.GetShortname() );
+			throw new ScmException( "Could not get integration stream from " + project.getShortname() );
 		}
 
 		return stream;
@@ -157,7 +157,7 @@ public class Config
 	public static String getPvob( Stream stream )
 	{
 
-		return "@" + stream.GetPvob();
+		return "@" + stream.getPvob();
 	}
 
 }

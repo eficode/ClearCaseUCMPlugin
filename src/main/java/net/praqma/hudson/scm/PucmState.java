@@ -70,7 +70,7 @@ public class PucmState
 	{
 		for( State s : states )
 		{
-			if( s.getJobName().equals( jobName ) && s.getBaseline() != null && s.getBaseline().GetFQName().equals( baseline ) )
+			if( s.getJobName().equals( jobName ) && s.getBaseline() != null && s.getBaseline().getFullyQualifiedName().equals( baseline ) )
 			{
 				return s;
 			}

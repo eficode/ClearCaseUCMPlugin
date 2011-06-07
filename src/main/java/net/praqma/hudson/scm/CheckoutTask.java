@@ -84,9 +84,9 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 		
 		try
 		{
-			UCM.SetContext( UCM.ContextType.CLEARTOOL );
+			UCM.setContext( UCM.ContextType.CLEARTOOL );
 			makeWorkspace( workspace );
-			BaselineDiff bldiff = bl.getDiffs( sv );
+			BaselineDiff bldiff = bl.getDifferences( sv );
 			diff = createChangelog( bldiff, hudsonOut );
 			doPostBuild = true;
 		}
@@ -115,8 +115,8 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
     	// baselinesToBuild()
 		try
 		{
-			integrationstream = UCMEntity.GetStream( intStream, false );
-			bl = Baseline.GetBaseline( baselinefqname );
+			integrationstream = UCMEntity.getStream( intStream, false );
+			bl = Baseline.getBaseline( baselinefqname );
 		}
 		catch ( UCMException e )
 		{
@@ -233,17 +233,17 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 
     	// Now we have to rebase - if a rebase is in progress, the
     	// old one must be stopped and the new started instead
-    	if ( devstream.IsRebaseInProgress() )
+    	if ( devstream.isRebaseInProgress() )
     	{
     		hudsonOut.print( "[PUCM] Cancelling previous rebase..." );
-    		devstream.CancelRebase();
+    		devstream.cancelRebase();
     		hudsonOut.println( " DONE" );
     	}
     	// The last boolean, complete, must always be true from PUCM
     	// as we are always working on a read-only stream according
     	// to LAK
-    	hudsonOut.print( "[PUCM] Rebasing development stream (" + devstream.GetShortname() + ") against parent stream (" + integrationstream.GetShortname() + ")" );
-    	devstream.Rebase( sv, bl, true );
+    	hudsonOut.print( "[PUCM] Rebasing development stream (" + devstream.getShortname() + ") against parent stream (" + integrationstream.getShortname() + ")" );
+    	devstream.rebase( sv, bl, true );
     	hudsonOut.println( " DONE" );
     	hudsonOut.println( "[PUCM] Log written to " + logger.getPath() );
     }
@@ -254,9 +254,9 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 
     	try
     	{
-    		if ( Stream.StreamExists( streamname + pvob ) )
+    		if ( Stream.streamExists( streamname + pvob ) )
     		{
-    			devstream = Stream.GetStream( streamname + pvob, false );
+    			devstream = Stream.getStream( streamname + pvob, false );
     		}
     		else
     		{
@@ -264,7 +264,7 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
     			{
     				buildProject = null;
     			}
-    			devstream = Stream.Create( Config.getIntegrationStream( bl, hudsonOut, buildProject ), streamname + pvob, true, bl );
+    			devstream = Stream.create( Config.getIntegrationStream( bl, hudsonOut, buildProject ), streamname + pvob, true, bl );
     		}
     	}
     	/*
@@ -292,11 +292,11 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 		buffer.append( "<changelog>" );
 		buffer.append( "<changeset>" );
 		buffer.append( "<entry>" );
-		buffer.append( ( "<blName>" + bl.GetShortname() + "</blName>" ) );
+		buffer.append( ( "<blName>" + bl.getShortname() + "</blName>" ) );
 		for ( Activity act : changes )
 		{
 			buffer.append( "<activity>" );
-			buffer.append( ( "<actName>" + act.GetShortname() + "</actName>" ) );
+			buffer.append( ( "<actName>" + act.getShortname() + "</actName>" ) );
 			try
 			{
 				buffer.append( ( "<author>" + act.getUser() + "</author>" ) );
@@ -328,7 +328,7 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
     }
     
     public BaselineDiff getBaselineDiffs() throws UCMException{
-    	return bl.getDiffs( sv );
+    	return bl.getDifferences( sv );
     }
     
 

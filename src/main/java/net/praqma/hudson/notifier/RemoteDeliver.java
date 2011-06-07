@@ -104,7 +104,7 @@ class RemoteDeliver implements FileCallable<Integer>
 		logger.setLocalLog( null );
 		Cool.setLogger( logger );
 		hudsonOut = listener.getLogger();
-		UCM.SetContext( UCM.ContextType.CLEARTOOL );
+		UCM.setContext( UCM.ContextType.CLEARTOOL );
 		
 		
 		/*
@@ -166,7 +166,7 @@ class RemoteDeliver implements FileCallable<Integer>
 		Baseline baseline = null;
 		try
 		{
-			baseline = UCMEntity.GetBaseline( this.baseline );
+			baseline = UCMEntity.getBaseline( this.baseline );
 		}
 		catch ( UCMException e )
 		{
@@ -177,13 +177,13 @@ class RemoteDeliver implements FileCallable<Integer>
 		
 		/* Create the development stream object */
 		/* Append vob to dev stream */
-		this.stream = "pucm_" + System.getenv( "COMPUTERNAME" ) + "_" + jobName + "@" + baseline.GetPvob();
+		this.stream = "pucm_" + System.getenv( "COMPUTERNAME" ) + "_" + jobName + "@" + baseline.getPvob();
 		
 		Stream stream = null;
 		try
 		{
 			status.addToLog( logger.info( id + "Trying to create source Stream " + this.stream ) );
-			stream = UCMEntity.GetStream( this.stream );
+			stream = UCMEntity.getStream( this.stream );
 		}
 		catch ( UCMException e )
 		{
@@ -196,7 +196,7 @@ class RemoteDeliver implements FileCallable<Integer>
 		Component component = null;
 		try
 		{
-			component = UCMEntity.GetComponent( this.component );
+			component = UCMEntity.getComponent( this.component );
 		}
 		catch ( UCMException e )
 		{
@@ -212,7 +212,7 @@ class RemoteDeliver implements FileCallable<Integer>
 			try
 			{
 				status.addToLog( logger.info( id + "Trying to create target Stream " + ucmDeliver.alternateTarget ) );
-				target = UCMEntity.GetStream( ucmDeliver.alternateTarget );
+				target = UCMEntity.getStream( ucmDeliver.alternateTarget );
 			}
 			catch ( UCMException e )
 			{
@@ -235,7 +235,7 @@ class RemoteDeliver implements FileCallable<Integer>
 			}
 		}
 		
-		status.addToLog( logger.debug( id + "Target stream is " + target.GetFQName() ) );
+		status.addToLog( logger.debug( id + "Target stream is " + target.getFullyQualifiedName() ) );
 		
 		/* Trying to verify the build number attributes */
 		/* Four level version number */
@@ -329,7 +329,7 @@ class RemoteDeliver implements FileCallable<Integer>
 		/* Make the deliver */
 		try
 		{
-			status.addToLog( logger.info( id + "Trying to deliver the Baseline to " + target.GetFQName() ) );
+			status.addToLog( logger.info( id + "Trying to deliver the Baseline to " + target.getFullyQualifiedName() ) );
 			status.addToLog( logger.info( id + "The view is " + view.GetViewRoot().getAbsolutePath() + ". Tag=" + view.GetViewtag() ) );
 			if( stream.isReadOnly() )
 			{
@@ -422,13 +422,13 @@ class RemoteDeliver implements FileCallable<Integer>
 		/* Replace evil characters with less evil characters */
 		String newJobName = jobName.replaceAll( "\\s", "_" );
 		
-		String viewtag = newJobName + "_" + System.getenv( "COMPUTERNAME" ) + "_" + stream.GetShortname();
+		String viewtag = newJobName + "_" + System.getenv( "COMPUTERNAME" ) + "_" + stream.getShortname();
 		hudsonOut.println( "[PUCM] Trying to make deliver view " + viewtag );
 		
-		File viewroot = new File( workspace.getPath() + File.separator + "deliverview_" + stream.GetShortname() );
+		File viewroot = new File( workspace.getPath() + File.separator + "deliverview_" + stream.getShortname() );
 		
 		status.addToLog( logger.debug( id + "Deliver: " + viewroot.getAbsolutePath() + ". Tag=" + viewtag ) );
-		status.addToLog( logger.debug( id + "Stream is " + stream.GetFQName() ) );
+		status.addToLog( logger.debug( id + "Stream is " + stream.getFullyQualifiedName() ) );
 
 		hudsonOut.println( "[PUCM] viewtag: " + viewtag );
 		
