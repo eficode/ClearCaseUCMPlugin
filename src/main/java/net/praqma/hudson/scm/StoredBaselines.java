@@ -17,17 +17,17 @@ public class StoredBaselines
 		String baseline = "";
 		long time = 0;
 		Project.Plevel plevel;
-		
+
 		StoredBaseline( String baseline, Project.Plevel plevel )
 		{
 			this.baseline = baseline;
 			this.time = System.currentTimeMillis();
 			this.plevel = plevel;
 		}
-		
+
 		StoredBaseline( Baseline baseline )
 		{
-			this.baseline = baseline.GetFQName();
+			this.baseline = baseline.getFullyQualifiedName();
 			this.time = System.currentTimeMillis();
 			try
 			{
@@ -38,25 +38,25 @@ public class StoredBaselines
 				this.plevel = Project.Plevel.REJECTED;
 			}
 		}
-		
+
 		public String toString()
 		{
 			return this.baseline + "(" + this.plevel + ", " + StoredBaselines.milliToMinute( System.currentTimeMillis() - this.time ) + ")";
 		}
 	}
-	
+
 	List<StoredBaseline> baselines = Collections.synchronizedList( new ArrayList<StoredBaseline>() );
-	
+
 	public void addBaseline( String baseline, Project.Plevel plevel )
 	{
 		baselines.add( new StoredBaseline( baseline, plevel ) );
 	}
-	
+
 	public boolean addBaseline( Baseline baseline )
 	{
 		return baselines.add( new StoredBaseline( baseline ) );
 	}
-	
+
 	/**
 	 * Prunes the list of baselines and returns the number of baselines removed
 	 * @param threshold
@@ -66,13 +66,13 @@ public class StoredBaselines
 	{
 		long now = System.currentTimeMillis();
 		int c = 0;
-		
+
 		Iterator<StoredBaseline> it = baselines.iterator();
-		
+
 		while( it.hasNext() )
 		{
 			StoredBaseline bl = it.next();
-			
+
 			System.out.print( bl.toString() + ": THOLD=" + ( ( bl.time + threshold ) < now ) );
 			/* Remove baselines lower than threshold */
 			if( ( bl.time + threshold ) < now )
@@ -86,10 +86,10 @@ public class StoredBaselines
 				System.out.println( "[KEPT]" );
 			}
 		}
-		
+
 		return c;
 	}
-	
+
 	public StoredBaseline getBaseline( String baseline )
 	{
 		for( StoredBaseline bl : baselines )
@@ -99,25 +99,25 @@ public class StoredBaselines
 				return bl;
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 	public static float milliToMinute( long milli )
 	{
 		return ( (float)milli / 60000 );
 	}
-	
+
 	public String toString()
 	{
 		StringBuffer sb = new StringBuffer();
 		Long now = System.currentTimeMillis();
-		
+
 		for( StoredBaseline bl : baselines )
 		{
 			sb.append( "(" + bl.baseline + ", " + bl.plevel + ", " + milliToMinute( now - bl.time ) + ")\n" );
 		}
-		
+
 		return sb.toString();
 	}
 }

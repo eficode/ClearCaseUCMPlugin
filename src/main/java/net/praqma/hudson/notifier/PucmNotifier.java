@@ -34,6 +34,8 @@ import net.praqma.hudson.scm.PucmScm;
 import net.praqma.hudson.scm.PucmState.State;
 import net.praqma.util.debug.PraqmaLogger;
 import net.praqma.util.debug.PraqmaLogger.Logger;
+import net.sf.json.JSONObject;
+
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -60,7 +62,6 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
-import net.sf.json.JSONObject;
 
 /**
  * PucmNotifier perfoms the user-chosen PUCM post-build actions
@@ -188,6 +189,7 @@ public class PucmNotifier extends Notifier
 	 *            if <code>true</code>, pucm will set a Tag() on the baseline in
 	 *            ClearCase.
 	 * @param ucmDeliver The special deliver object, in which all the deliver parameters are encapsulated.
+	 
 	 */
 	public PucmNotifier( boolean promote, boolean recommended, boolean makeTag, boolean setDescription, UCMDeliver ucmDeliver, int promoteAction )
 	{

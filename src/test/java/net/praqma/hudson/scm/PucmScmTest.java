@@ -1,12 +1,9 @@
 package net.praqma.hudson.scm;
 
-import net.praqma.hudson.scm.PucmScm;
+import static org.junit.Assert.*;
 
-import org.junit.Test;
+import org.junit.*;
 import org.jvnet.hudson.test.HudsonTestCase;
-import org.apache.commons.io.FileUtils;
-import hudson.model.*;
-import hudson.tasks.Shell;
 
 public class PucmScmTest extends HudsonTestCase
 {

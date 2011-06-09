@@ -1,11 +1,11 @@
 package net.praqma.hudson;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.List;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
+import net.praqma.clearcase.Cool;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCM;
@@ -25,10 +25,7 @@ public class Config
 	public static List<String> getLevels()
 	{
 		logger.trace_function();
-		List<String> levels = new ArrayList<String>();
-		levels.add( "INITIAL" );
-		levels.add( "BUILT" );
-		levels.add( "TESTED" );
+		List<String> levels = Cool.getPromotionLevels();
 		return levels;
 	}
 

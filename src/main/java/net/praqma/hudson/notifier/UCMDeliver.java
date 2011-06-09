@@ -7,6 +7,8 @@ public class UCMDeliver implements Serializable
 	/* Determines whether to deliver or not */
 	public boolean ucmDeliver = false;
 	
+	
+	
 	/* If defined, this alternate stream is target. if not default target is used */
 	public String alternateTarget;
 	/* If defined, a baseline is created on the target stream */

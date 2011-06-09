@@ -1,7 +1,5 @@
 package net.praqma.hudson.scm;
 
-
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -32,8 +30,6 @@ import hudson.FilePath;
 import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
 import hudson.remoting.VirtualChannel;
-
-
 
 public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 	

@@ -55,7 +55,7 @@
 
 	<build>
 		<plugins>
-		
+
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
@@ -76,7 +76,7 @@
 					</systemProperties>
 				</configuration>
 			</plugin>
-		
+
 			<plugin>
 				<artifactId>maven-release-plugin</artifactId>
 				<configuration>
@@ -98,32 +98,21 @@
 					</archive>
 				</configuration>
 			</plugin>
-
-
-			<!-- <plugin> <artifactId>maven-antrun-plugin</artifactId> <executions> 
-				<execution> <phase>package</phase> <goals> <goal>run</goal> </goals> <configuration> 
-				<tasks> <copy file="${project.basedir}/target/PUCM/META-INF/MANIFEST.MF" tofile="${project.basedir}/target/PUCM/specs.txt" /> </tasks> </configuration> 
-				</execution> </executions> </plugin> -->
-
 		</plugins>
 	</build>
 
 	<dependencies>
-
 		<dependency>
 			<groupId>net.praqma</groupId>
 			<artifactId>COOL</artifactId>
-			<version>0.2.22</version>
+			<version>0.3.24</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
-
 	</dependencies>
-
 	<scm>
 		<connection>scm:git:ssh://github.com/Praqma/pucm.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/Praqma/pucm.git</developerConnection>
 		<url>https://github.com/Praqma/pucm</url>
 	</scm>
-
 </project>

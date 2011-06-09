@@ -103,43 +103,6 @@ class RemotePostBuild implements FileCallable<Status>
 		hudsonOut = listener.getLogger();
 		UCM.SetContext( UCM.ContextType.CLEARTOOL );
 		
-		
-		
-		
-		//hudsonOut.println( "TESTING PIPE" );
-		
-		/*
-		bw = new BufferedWriter( new OutputStreamWriter( pout ) );
-		bw.write( "I were here" );
-		bw.close();
-		*/
-		
-		/*
-		boolean failed = false;
-		
-		OutputStream out = null;
-		try
-		{
-			out = pipe.getOut();
-		}
-		catch( Exception e )
-		{
-			hudsonOut.println( "I failed to get pipe " + e );
-			failed = true;
-		}
-		
-		if( out == null )
-		{
-			hudsonOut.println( "What the...." );
-		}
-		else
-		{
-			out.write( 112 );
-		}
-		*/
-		
-		
-
 		String newPLevel = "";
 		
 		status.addToLog( logger.info( "Starting PostBuild task" ) );
