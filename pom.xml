@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.jvnet.hudson.plugins</groupId>
 		<artifactId>plugin</artifactId>
-		<version>1.373</version>
+		<version>1.386</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
@@ -13,7 +13,7 @@
 
 
 	<artifactId>PUCM</artifactId>
-	<version>0.3.23-SNAPSHOT</version>
+	<version>0.3.24-SNAPSHOT</version>
 	<name>PUCM</name>
 	<description>Integrates Jenkins to ClearCase UCM</description>
 	<url>http://wiki.jenkins-ci.org/display/JENKINS/Pucm+plugin</url>
@@ -34,6 +34,10 @@
 	</distributionManagement>
 
 	<developers>
+	<developer>
+			<id>jes-struck</id>
+			<name>Jes Struck</name>
+		</developer>
 		<developer>
 			<id>wolfgarnet</id>
 			<name>Christian Wolfgang</name>
@@ -113,7 +117,7 @@
 		<dependency>
 			<groupId>net.praqma</groupId>
 			<artifactId>COOL</artifactId>
-			<version>0.3.24</version>
+			<version>0.3.25</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
