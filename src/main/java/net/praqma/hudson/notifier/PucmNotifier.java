@@ -37,7 +37,6 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
-import net.praqma.clearcase.ucm.view.SnapshotView;
 
 /**
  * PucmNotifier perfoms the user-chosen PUCM post-build actions
@@ -295,11 +294,6 @@ public class PucmNotifier extends Notifier {
                 InputStreamReader isr = new InputStreamReader(is);
                 BufferedReader br = new BufferedReader(isr);
                 StringBuilder sb = new StringBuilder();
-                //TODO what the f-word should be done here ???
-                /* while (!i.isDone()) {
-                 *   //sb.append( br.readLine() );
-                 * }
-                 */
 
                 int j = i.get();
             } catch (IOException e) {
