@@ -4,6 +4,13 @@ import java.io.Serializable;
 
 public class UCMDeliver implements Serializable
 {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+
+
 	/* Determines whether to deliver or not */
 	public boolean ucmDeliver = false;
 	

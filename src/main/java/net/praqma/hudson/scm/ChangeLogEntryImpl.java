@@ -17,8 +17,7 @@ import net.praqma.util.debug.PraqmaLogger.Logger;
  * @author Margit Bennetzen
  * 
  */
-public class ChangeLogEntryImpl extends Entry
-{
+public class ChangeLogEntryImpl extends Entry {
 
 	private ChangeLogSetImpl parent;
 	private String actName;
@@ -96,4 +95,5 @@ public class ChangeLogEntryImpl extends Entry
 		logger.trace_function();
 		this.actName = actName;
 	}
+	
 }

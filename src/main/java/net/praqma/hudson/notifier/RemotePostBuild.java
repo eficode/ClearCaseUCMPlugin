@@ -3,22 +3,18 @@ package net.praqma.hudson.notifier;
 import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
 import hudson.model.Result;
-import hudson.remoting.Callable;
 import hudson.remoting.Pipe;
 import hudson.remoting.VirtualChannel;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.PipedOutputStream;
 import java.io.PrintStream;
-import java.io.Serializable;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
-import net.praqma.clearcase.ucm.entities.Cool;
+import net.praqma.clearcase.Cool;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Tag;
@@ -101,7 +97,7 @@ class RemotePostBuild implements FileCallable<Status>
 		logger.setLocalLog( null );
 		Cool.setLogger( logger );
 		hudsonOut = listener.getLogger();
-		UCM.SetContext( UCM.ContextType.CLEARTOOL );
+		UCM.setContext( UCM.ContextType.CLEARTOOL );
 		
 		String newPLevel = "";
 		
@@ -111,7 +107,7 @@ class RemotePostBuild implements FileCallable<Status>
 		Baseline baseline = null;
 		try
 		{
-			baseline = UCMEntity.GetBaseline( this.baseline );
+			baseline = UCMEntity.getBaseline( this.baseline );
 		}
 		catch ( UCMException e )
 		{
@@ -123,7 +119,7 @@ class RemotePostBuild implements FileCallable<Status>
 		Stream stream = null;
 		try
 		{
-			stream = UCMEntity.GetStream( this.stream );
+			stream = UCMEntity.getStream( this.stream );
 		}
 		catch ( UCMException e )
 		{
@@ -140,7 +136,7 @@ class RemotePostBuild implements FileCallable<Status>
 			try
 			{
 				// Getting tag to set buildstatus
-				tag = baseline.GetTag( this.displayName, this.buildNumber );
+				tag = baseline.getTag( this.displayName, this.buildNumber );
 				status.setTagAvailable( true );
 			}
 			catch ( UCMException e )
@@ -155,7 +151,7 @@ class RemotePostBuild implements FileCallable<Status>
 		{
 			if( status.isTagAvailable() )
 			{
-				tag.SetEntry( "buildstatus", "SUCCESS" );
+				tag.setEntry( "buildstatus", "SUCCESS" );
 			}
 
 			if( promote > PucmNotifier.__NO_PROMOTE )
@@ -192,8 +188,8 @@ class RemotePostBuild implements FileCallable<Status>
 				{
 					if ( status.isPLevel() )
 					{
-						stream.RecommendBaseline( baseline );
-						hudsonOut.println( "[PUCM] Baseline " + baseline.GetShortname() + " is now recommended." );
+						stream.recommendBaseline( baseline );
+						hudsonOut.println( "[PUCM] Baseline " + baseline.getShortname() + " is now recommended." );
 					}
 				}
 				catch( Exception e )
@@ -221,7 +217,7 @@ class RemotePostBuild implements FileCallable<Status>
 
 				if( status.isTagAvailable() )
 				{
-					tag.SetEntry( "buildstatus", "FAILURE" );
+					tag.setEntry( "buildstatus", "FAILURE" );
 				}
 				
 				if( promote > PucmNotifier.__NO_PROMOTE )
@@ -250,7 +246,7 @@ class RemotePostBuild implements FileCallable<Status>
 			{
 				if( status.isTagAvailable() )
 				{
-					tag.SetEntry( "buildstatus", "UNSTABLE" );
+					tag.setEntry( "buildstatus", "UNSTABLE" );
 				}
 				
 				if( promote > PucmNotifier.__NO_PROMOTE )
@@ -283,7 +279,7 @@ class RemotePostBuild implements FileCallable<Status>
 			/* Result not handled by PUCM */
 			else
 			{
-				tag.SetEntry( "buildstatus", result.toString() );
+				tag.setEntry( "buildstatus", result.toString() );
 				status.addToLog( logger.log( id + "Buildstatus (Result) was " + result + ". Not handled by plugin." ) );
 				hudsonOut.println( "[PUCM] Baseline not changed. Buildstatus: " + result );
 			}
@@ -296,8 +292,8 @@ class RemotePostBuild implements FileCallable<Status>
 			{
 				try
 				{
-					tag = tag.Persist();
-					hudsonOut.println( "[PUCM] Baseline now marked with tag: \n" + tag.Stringify() );
+					tag = tag.persist();
+					hudsonOut.println( "[PUCM] Baseline now marked with tag: \n" + tag.stringify() );
 				}
 				catch ( Exception e )
 				{
@@ -321,7 +317,7 @@ class RemotePostBuild implements FileCallable<Status>
 			hudsonOut.println( "[PUCM] Could not get promotion level." );
 		}
 		
-		status.setBuildDescr( setDisplaystatus( newPLevel, baseline.GetShortname() ) );
+		status.setBuildDescr( setDisplaystatus( newPLevel, baseline.getShortname() ) );
 		
 		status.addToLog( logger.warning( id + "Remote post build finished normally" ) );
 		

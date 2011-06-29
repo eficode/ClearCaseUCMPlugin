@@ -8,6 +8,7 @@ import java.util.List;
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project;
+
 import net.praqma.hudson.scm.StoredBaselines.StoredBaseline;
 
 public class StoredBaselines

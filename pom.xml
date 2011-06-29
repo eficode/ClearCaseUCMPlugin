@@ -1,10 +1,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<parent>
+	<!-- parent>
 		<groupId>org.jvnet.hudson.plugins</groupId>
 		<artifactId>plugin</artifactId>
-		<version>1.373</version>
+		<version>1.386</version>
 		<relativePath>../pom.xml</relativePath>
+	</parent-->
+	<parent>
+		<relativePath>../pom.xml</relativePath>
+		<groupId>org.jenkins-ci.plugins</groupId>
+		<artifactId>plugin</artifactId>
+		<version>1.417</version>
 	</parent>
 
 	<properties>
@@ -13,7 +19,7 @@
 
 
 	<artifactId>PUCM</artifactId>
-	<version>0.3.23-SNAPSHOT</version>
+	<version>0.3.26-SNAPSHOT</version>
 	<name>PUCM</name>
 	<description>Integrates Jenkins to ClearCase UCM</description>
 	<url>http://wiki.jenkins-ci.org/display/JENKINS/Pucm+plugin</url>
@@ -21,10 +27,22 @@
 
 	<repositories>
 		<repository>
+			<id>m.g.o-public</id>
+			<url>http://maven.glassfish.org/content/groups/public/</url>
+		</repository>
+
+		<repository>
 			<id>praqma-repo</id>
 			<url>http://code.praqma.net/repo/maven/</url>
 		</repository>
 	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>m.g.o-public</id>
+			<url>http://maven.glassfish.org/content/groups/public/</url>
+		</pluginRepository>
+	</pluginRepositories>
 
 	<distributionManagement>
 		<repository>
@@ -98,21 +116,32 @@
 					</archive>
 				</configuration>
 			</plugin>
+
+
+			<!-- <plugin> <artifactId>maven-antrun-plugin</artifactId> <executions> 
+				<execution> <phase>package</phase> <goals> <goal>run</goal> </goals> <configuration> 
+				<tasks> <copy file="${project.basedir}/target/PUCM/META-INF/MANIFEST.MF" tofile="${project.basedir}/target/PUCM/specs.txt" /> </tasks> </configuration> 
+				</execution> </executions> </plugin> -->
+
 		</plugins>
 	</build>
 
 	<dependencies>
+
 		<dependency>
 			<groupId>net.praqma</groupId>
 			<artifactId>COOL</artifactId>
-			<version>0.3.24</version>
+			<version>0.3.26-SNAPSHOT</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
+
 	</dependencies>
+
 	<scm>
 		<connection>scm:git:ssh://github.com/Praqma/pucm.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/Praqma/pucm.git</developerConnection>
 		<url>https://github.com/Praqma/pucm</url>
 	</scm>
+
 </project>
