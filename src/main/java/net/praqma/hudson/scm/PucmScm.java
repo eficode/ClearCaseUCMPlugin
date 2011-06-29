@@ -241,8 +241,10 @@ public class PucmScm extends SCM {
                         }
                     }
                     RemoteDeliver rmDeliver = new RemoteDeliver(UCMEntity.getStream(stream).getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
-                    state.setSnapView(rmDeliver.getSnapShotView());
+                    
                     int i = workspace.act(rmDeliver);
+                    /*Next line must be after the line above*/
+                    state.setSnapView(rmDeliver.getSnapShotView());
                     build.setDescription("<small>" + state.getBaseline() + "</small>");
                 } catch (IOException e) {
                     consoleOutput.println("[PUCM] " + e.getMessage());
@@ -550,7 +552,7 @@ public class PucmScm extends SCM {
         }
 
         /* Store the stream to the state */
-        state.setStream(stream);
+        //state.setStream(stream);
 
         state.setPlevel(plevel);
         logger.debug(id + "GetBaseline state:\n" + state.stringify());
@@ -559,7 +561,7 @@ public class PucmScm extends SCM {
         BaselineList baselines = null;
 
         try {
-            baselines = state.getComponent().getBaselines(state.getStream(), plevel);
+            baselines = state.getComponent().getBaselines(stream, plevel);
         } catch (UCMException e) {
             System.exit(-1);
             throw new ScmException("Could not retrieve baselines from repository. " + e.getMessage());
@@ -580,9 +582,6 @@ public class PucmScm extends SCM {
             try {
                 /* For each baseline in the list */
                 for (Baseline b : baselines) {
-                    // logger.debug( id + "Current baseline from list: \n" +
-                    // b.Stringify() );
-
                     /* Get the state for the current baseline */
                     State cstate = pucm.getStateByBaseline(jobName, b.getFullyQualifiedName());
 
