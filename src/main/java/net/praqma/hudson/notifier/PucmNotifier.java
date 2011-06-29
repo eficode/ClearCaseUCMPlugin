@@ -259,7 +259,8 @@ public class PucmNotifier extends Notifier {
                 hudsonOut.println("[PUCM] Completing deliver from: " + pstate.getBaseline().getStream() + " to: " + pstate.getStream());
 
                 pstate.getBaseline().deliver(pstate.getBaseline().getStream(), pstate.getStream(), pstate.getSnapView().GetViewRoot(), pstate.getSnapView().GetViewtag(), true, true, true);
-
+                Baseline childBase = pstate.getBaseline();
+                Baseline.create(childBase.getShortname(), childBase.getComponent(), pstate.getSnapView().GetViewRoot(), true, true);
                 return;
             } catch (UCMException ex) {
                 try {
