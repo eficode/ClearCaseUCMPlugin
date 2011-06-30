@@ -19,6 +19,7 @@
 
 
 	<artifactId>PUCM</artifactId>
+
 	<version>0.3.26-SNAPSHOT</version>
 	<name>PUCM</name>
 	<description>Integrates Jenkins to ClearCase UCM</description>
@@ -52,6 +53,10 @@
 	</distributionManagement>
 
 	<developers>
+	<developer>
+			<id>jes-struck</id>
+			<name>Jes Struck</name>
+		</developer>
 		<developer>
 			<id>wolfgarnet</id>
 			<name>Christian Wolfgang</name>
@@ -139,7 +144,11 @@
 		<dependency>
 			<groupId>net.praqma</groupId>
 			<artifactId>COOL</artifactId>
+<<<<<<< HEAD
 			<version>0.3.26-SNAPSHOT</version>
+=======
+			<version>0.3.25</version>
+>>>>>>> 1a7dc3f6d6c0cc48f558939c201d2eaa3c10dd7e
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>

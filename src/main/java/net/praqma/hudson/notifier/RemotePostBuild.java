@@ -275,6 +275,27 @@ class RemotePostBuild implements FileCallable<Status>
 						status.addToLog( logger.warning( id + "Could not demote baseline. " + e.getMessage() ) );
 					}
 				}
+				/* Recommend the Baseline */
+				if( recommend )
+				{
+					try
+					{
+						if ( status.isPLevel() )
+						{
+							stream.recommendBaseline( baseline );
+							hudsonOut.println( "[PUCM] Baseline " + baseline.getShortname() + " is now recommended." );
+						}
+					}
+					catch( Exception e )
+					{
+						status.setStable( false );
+						status.setRecommended( false );
+						hudsonOut.println( "[PUCM] Could not recommend baseline. Reason: " + e.getMessage() );
+						status.addToLog( logger.warning( id + "Could not recommend baseline. Reason: " + e.getMessage() ) );
+					}
+				}
+				
+				
 			}
 			/* Result not handled by PUCM */
 			else
