@@ -22,7 +22,7 @@ public class PucmScmTest extends HudsonTestCase
 
     	assertTrue(true);
     }
-    
+
     public void testPrintBaselineWhenNull() throws Exception
     {
     	PucmScm scm = new PucmScm();

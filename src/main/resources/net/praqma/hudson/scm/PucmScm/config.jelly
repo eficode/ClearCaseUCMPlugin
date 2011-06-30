@@ -1,10 +1,10 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-         
+
     <f:entry title="Stream" help="/plugin/PUCM/scm/help-stream.html">
       <f:textbox name="stream" value="${scm.stream}"/>
     </f:entry>
-   
+
     <f:entry title="Component" help="/plugin/PUCM/scm/help-component.html">
       <f:textbox name="component" value="${scm.component}"/>
     </f:entry>
@@ -22,7 +22,7 @@
 	At the moment only snapshot view is supported.
     </f:entry>
 
-    <f:entry title="Load modules" help="/plugin/PUCM/scm/help-loadModules.html"> 
+    <f:entry title="Load modules" help="/plugin/PUCM/scm/help-loadModules.html">
      <select class="setting-input" name="loadModule">
       <j:set var="modules" value="${descriptor.getLoadModules()}"/>
        <j:forEach var="lm" items="${modules}">
@@ -31,25 +31,25 @@
      </select>
     </f:entry>
 
-    <f:entry title="Poll child stream " >
+    <f:entry title="Poll child stream" help="/plugin/PUCM/scm/help-pollChild.html" >
       <f:checkbox name="PUCM.pollChild" checked="${instance.pollChild}" />
     </f:entry>
 
 	<f:entry title="Newest" help="/plugin/PUCM/scm/help-newest.html">
 	    <f:checkbox name="PUCM.newest" checked="${instance.newest}" />
 	</f:entry>
-	
-	
+
+
 	<f:entry title="Multi-site promotion level cache" help="/plugin/PUCM/scm/help-multisite.html">
 	    <f:checkbox name="PUCM.multiSite" checked="${instance.multiSite}" />
 	</f:entry>
-	
-	
+
+
 	<f:advanced>
-	
+
 	    <f:entry title="Build project" help="/plugin/PUCM/scm/help-buildProject.html">
       		<f:textbox name="buildProject" value="${scm.buildProject}"/>
     	</f:entry>
-    	
+
 	</f:advanced>
 </j:jelly>

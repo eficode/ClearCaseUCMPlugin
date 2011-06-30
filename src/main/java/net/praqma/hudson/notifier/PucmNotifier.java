@@ -5,9 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.io.File;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
 
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -40,10 +38,10 @@ import hudson.tasks.Publisher;
 
 /**
  * PucmNotifier perfoms the user-chosen PUCM post-build actions
- * 
+ *
  * @author Troels Selch
  * @author Margit Bennetzen
- * 
+ *
  */
 public class PucmNotifier extends Notifier {
     /* Old skool promotion */
@@ -68,7 +66,7 @@ public class PucmNotifier extends Notifier {
 
     /**
      * This constructor is used in the inner class <code>DescriptorImpl</code>.
-     * 
+     *
      * @param promote <ol start="0"><li>Baseline will not be promoted after the build</li>
      * <li>Baseline will be promoted after the build if stable</li>
      * <li>Baseline will be promoted after the build if unstable</li></ol>
@@ -79,7 +77,7 @@ public class PucmNotifier extends Notifier {
      *            if <code>true</code>, pucm will set a Tag() on the baseline in
      *            ClearCase.
      * @param ucmDeliver The special deliver object, in which all the deliver parameters are encapsulated.
-    
+
      */
     public PucmNotifier(boolean promote, boolean recommended, boolean makeTag, boolean setDescription, UCMDeliver ucmDeliver, int promoteAction) {
         this.promote = promote;
@@ -100,6 +98,7 @@ public class PucmNotifier extends Notifier {
         return false;
     }
 
+    @Override
     public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.NONE;
     }
@@ -227,7 +226,7 @@ public class PucmNotifier extends Notifier {
     /**
      * This is where all the meat is. When the baseline is validated, the actual post build steps are performed. <br>
      * First the baseline is delivered(if chosen), then tagged, promoted and recommended.
-     * @param build The build object in which the post build action is selected 
+     * @param build The build object in which the post build action is selected
      * @param launcher The launcher of the build
      * @param listener The listener of the build
      * @param pstate The {@link PucmState} of the build.
@@ -262,7 +261,7 @@ public class PucmNotifier extends Notifier {
                 Baseline.create(childBase.getShortname(), childBase.getComponent(), pstate.getSnapView().GetViewRoot(), true, true);
                 return;
             } catch (UCMException ex) {
-                try {
+                        try {
                     pstate.getBaseline().cancel(pstate.getSnapView().GetViewRoot());
                 } catch (UCMException ex1) {
                     hudsonOut.println(ex1.getMessage());
@@ -436,10 +435,10 @@ public class PucmNotifier extends Notifier {
 
     /**
      * This class is used by Hudson to define the plugin.
-     * 
+     *
      * @author Troels Selch
      * @author Margit Bennetzen
-     * 
+     *
      */
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {

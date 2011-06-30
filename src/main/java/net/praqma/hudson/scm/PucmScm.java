@@ -50,10 +50,10 @@ import org.kohsuke.stapler.export.Exported;
  * Pucm is responsible for everything regarding Hudsons connection to ClearCase
  * pre-build. This class defines all the files required by the user. The
  * information can be entered on the config page.
- * 
+ *
  * @author Troels Selch
  * @author Margit Bennetzen
- * 
+ *
  */
 public class PucmScm extends SCM {
 
@@ -88,7 +88,7 @@ public class PucmScm extends SCM {
     }
 
     /**
-     * 
+     *
      * @param component
      * @param levelToPoll
      * @param loadModule
@@ -219,13 +219,10 @@ public class PucmScm extends SCM {
                                         state.setBaselines(baselines);
                                     } else {
                                         for (Baseline b : baselines) {
-                                            consoleOutput.print(b);
                                             state.getBaselines().add(b);
                                         }
                                     }
                                 }
-
-                                consoleOutput.println("[PUCM] " + state.getBaselines().size());
                                 state.setBaseline(selectBaseline(state.getBaselines(), newest));
                                 state.setStream(UCMEntity.getStream(stream));
                             } catch (ScmException e) {
@@ -241,7 +238,7 @@ public class PucmScm extends SCM {
                         }
                     }
                     RemoteDeliver rmDeliver = new RemoteDeliver(UCMEntity.getStream(stream).getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
-                    
+
                     int i = workspace.act(rmDeliver);
                     /*Next line must be after the line above*/
                     state.setSnapView(rmDeliver.getSnapShotView());
@@ -413,7 +410,7 @@ public class PucmScm extends SCM {
     /**
      * This method polls the version control system to see if there are any
      * changes in the source code.
-     * 
+     *
      */
     @Override
     public PollingResult compareRemoteRevisionWith(AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener,
@@ -734,10 +731,10 @@ public class PucmScm extends SCM {
 
     /**
      * This class is used to describe the plugin to Hudson
-     * 
+     *
      * @author Troels Selch
      * @author Margit Bennetzen
-     * 
+     *
      */
     @Extension
     public static class PucmScmDescriptor extends SCMDescriptor<PucmScm> implements hudson.model.ModelObject {
@@ -786,7 +783,7 @@ public class PucmScm extends SCM {
         /**
          * This method is called by the scm/Pucm/global.jelly to validate the
          * input without reloading the global configuration page
-         * 
+         *
          * @param value
          * @return
          */
@@ -797,7 +794,7 @@ public class PucmScm extends SCM {
         /**
          * Called by Hudson. If the user does not input a command for Hudson to
          * use when polling, default value is returned
-         * 
+         *
          * @return
          */
         public String getCleartool() {
@@ -823,7 +820,7 @@ public class PucmScm extends SCM {
          * Used by Hudson to display a list of valid promotion levels to build
          * from. The list of promotion levels is hard coded in
          * net.praqma.hudson.Config.java
-         * 
+         *
          * @return
          */
         public List<String> getLevels() {
@@ -833,7 +830,7 @@ public class PucmScm extends SCM {
         /**
          * Used by Hudson to display a list of loadModules (whether to poll all
          * or only modifiable elements
-         * 
+         *
          * @return
          */
         public List<String> getLoadModules() {
