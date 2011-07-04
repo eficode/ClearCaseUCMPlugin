@@ -1,16 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<!-- parent>
-		<groupId>org.jvnet.hudson.plugins</groupId>
-		<artifactId>plugin</artifactId>
-		<version>1.386</version>
-		<relativePath>../pom.xml</relativePath>
-	</parent-->
 	<parent>
 		<relativePath>../pom.xml</relativePath>
 		<groupId>org.jenkins-ci.plugins</groupId>
 		<artifactId>plugin</artifactId>
-		<version>1.417</version>
+		<version>1.418</version>
 	</parent>
 
 	<properties>
@@ -82,10 +76,8 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.1</version>
 				<executions>
 					<execution>
-						<!-- <phase>initialize</phase> -->
 						<goals>
 							<goal>java</goal>
 						</goals>
@@ -103,11 +95,17 @@
 			<plugin>
 				<artifactId>maven-release-plugin</artifactId>
 				<configuration>
-					<goals>deploy</goals><!--because plugin is built against version before
-						1.387 -->
+					<goals>deploy</goals>
 				</configuration>
 			</plugin>
-
+ <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>1.0-alpha-3</version>
+        <configuration>
+           <skip>true</skip>
+        </configuration>
+      </plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -121,21 +119,14 @@
 					</archive>
 				</configuration>
 			</plugin>
-
-
-			<!-- <plugin> <artifactId>maven-antrun-plugin</artifactId> <executions>
-				<execution> <phase>package</phase> <goals> <goal>run</goal> </goals> <configuration>
-				<tasks> <copy file="${project.basedir}/target/PUCM/META-INF/MANIFEST.MF" tofile="${project.basedir}/target/PUCM/specs.txt" /> </tasks> </configuration>
-				</execution> </executions> </plugin> -->
-		 <plugin>
-		  <groupId>org.apache.maven.plugins</groupId>
-		  <artifactId>maven-compiler-plugin</artifactId>
-		  <version>2.3.2</version>
-		  <configuration>
-		   <source>1.6</source>
-		   <target>1.6</target>
-		  </configuration>
-		 </plugin>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-compiler-plugin</artifactId>
+                            <configuration>
+                                <source>1.6</source>
+                                <target>1.6</target>
+                            </configuration>
+                        </plugin >
 		</plugins>
 	</build>
 
@@ -144,15 +135,22 @@
 		<dependency>
 			<groupId>net.praqma</groupId>
 			<artifactId>COOL</artifactId>
-<<<<<<< HEAD
 			<version>0.3.26-SNAPSHOT</version>
-=======
-			<version>0.3.25</version>
->>>>>>> 1a7dc3f6d6c0cc48f558939c201d2eaa3c10dd7e
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
-
+	 <dependency>
+	  <groupId>org.kohsuke.stapler</groupId>
+	  <artifactId>stapler</artifactId>
+	  <version>1.155</version>
+	  <type>jar</type>
+	 </dependency>
+	 <dependency>
+	  <groupId>org.jenkins-ci.main</groupId>
+	  <artifactId>jenkins-test-harness</artifactId>
+	  <version>1.418</version>
+	  <type>jar</type>
+	 </dependency>
 	</dependencies>
 
 	<scm>

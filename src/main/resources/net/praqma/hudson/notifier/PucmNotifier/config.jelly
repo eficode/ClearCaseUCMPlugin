@@ -1,0 +1,122 @@
+<!--
+This should be the file that makes it possible to select our notifier in the "post build" section of hudson
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+	<!--
+	<f:entry title="Promote" help="/plugin/PUCM/notifier/help-promoteToLevel.html">
+	    <f:checkbox name="Pucm.promote" checked="${h.defaultToTrue(instance.promote)}" />
+	</f:entry>
+
+	<f:nested>
+
+		<table>
+			<f:entry title="Promote unstable" help="/plugin/PUCM/notifier/help-promoteunstable.html">
+			    <f:checkbox name="Pucm.promoteUnstable" checked="${instance.promoteUnstable}" />
+			</f:entry>
+		</table>
+	</f:nested>
+	-->
+
+	<!--
+	<f:entry title="Promote stable builds" help="/plugin/PUCM/notifier/help-promoteToLevel.html">
+		<f:radio name="Pucm.promote" value="stable" checked="${instance.promote == 'stable'}" />
+	</f:entry>
+
+	<f:entry title="Promote unstable builds" help="/plugin/PUCM/notifier/help-promoteunstable.html">
+		<f:radio name="Pucm.promote" value="unstable" checked="${instance.promote == 'unstable'}" />
+	</f:entry>
+
+	<f:entry title="Do not promote" help="/plugin/PUCM/notifier/help-attrproject.html">
+		<f:radio name="Pucm.promote" value="none" checked="${instance.promote == null}" />
+	</f:entry>
+	-->
+
+	<f:entry title="Promote" help="/plugin/PUCM/notifier/help-promoteToLevel.html">
+		<select class="setting-input" name="Pucm.promoteAction">
+			<f:option selected="${instance.promoteAction == 100}" value="100">Do not promote</f:option>
+			<f:option selected="${instance.promoteAction == 101}" value="101">Promote stable builds</f:option>
+			<f:option selected="${instance.promoteAction == 102}" value="102">Promote unstable builds</f:option>
+		</select>
+	</f:entry>
+
+
+
+
+	<f:entry title="Recommend baseline" help="/plugin/PUCM/notifier/help-recommendBaseline.html">
+	    <f:checkbox name="Pucm.recommended" checked="${instance.recommended}" />
+	</f:entry>
+
+	<f:entry title="Make tag" help="/plugin/PUCM/notifier/help-makeTag.html">
+	    <f:checkbox name="Pucm.makeTag" checked="${instance.makeTag}" />
+	</f:entry>
+
+	<f:entry title="Set description" help="/plugin/PUCM/notifier/help-setDescription.html">
+	    <f:checkbox name="Pucm.setDescription" checked="${instance.setDescription}" />
+	</f:entry>
+
+
+	<f:section title="UCM Deliver Options">
+
+		<f:advanced title="En lille test">
+
+				<f:entry title="Use UCM Deliver" help="/plugin/PUCM/notifier/help-ucmdeliver.html">
+					<f:checkbox name="Pucm.ucmDeliver" checked="${instance.ucmDeliver}" />
+				</f:entry>
+
+				<f:nested>
+
+					<table>
+					    <f:entry title="Target stream" help="/plugin/PUCM/notifier/help-alternate.html">
+				      		<f:textbox name="Pucm.alternateTarget" value="${instance.alternateTarget}"/>
+				    	</f:entry>
+
+					    <f:entry title="New (target) baseline name" help="/plugin/PUCM/notifier/help-baselinename.html">
+				      		<f:textbox name="Pucm.baselineName" value="${instance.baselineName}"/>
+				    	</f:entry>
+
+
+						<f:entry title="Get build attributes from UCM project and Component" help="/plugin/PUCM/notifier/help-attrproject.html">
+							<f:radio name="Pucm.versionFrom" value="project" checked="${instance.versionFrom == 'project'}" />
+						</f:entry>
+
+						<f:entry title="Get build attributes from settings" help="/plugin/PUCM/notifier/help-attrsettings.html">
+							<f:radio name="Pucm.versionFrom" value="settings" checked="${instance.versionFrom == 'settings'}" />
+						</f:entry>
+
+						<f:nested>
+
+							<table>
+							    <f:entry title="Major">
+						      		<f:textbox name="Pucm.buildnumberMajor" value="${instance.buildnumberMajor}"/>
+						    	</f:entry>
+
+							    <f:entry title="Minor">
+						      		<f:textbox name="Pucm.buildnumberMinor" value="${instance.buildnumberMinor}"/>
+						    	</f:entry>
+
+							    <f:entry title="Patch">
+						      		<f:textbox name="Pucm.buildnumberPatch" value="${instance.buildnumberPatch}"/>
+						    	</f:entry>
+
+								<f:entry title="Sequence from component" help="/plugin/PUCM/notifier/help-sequencefromcomponent.html">
+									<f:radio name="Pucm.buildnumberSequenceSelector" value="component" checked="${instance.buildnumberSequenceSelector == 'component'}" />
+								</f:entry>
+
+								<f:entry title="Sequence is the Job number">
+									<f:radio name="Pucm.buildnumberSequenceSelector" value="current" checked="${instance.buildnumberSequenceSelector == 'current'}" />
+								</f:entry>
+							</table>
+
+						</f:nested>
+
+					</table>
+
+				</f:nested>
+
+		</f:advanced>
+
+	</f:section>
+
+
+</j:jelly>
