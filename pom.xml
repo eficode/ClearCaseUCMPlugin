@@ -140,16 +140,20 @@
 			<scope>compile</scope>
 		</dependency>
 	 <dependency>
-	  <groupId>org.kohsuke.stapler</groupId>
-	  <artifactId>stapler</artifactId>
-	  <version>1.155</version>
-	  <type>jar</type>
-	 </dependency>
-	 <dependency>
 	  <groupId>org.jenkins-ci.main</groupId>
 	  <artifactId>jenkins-test-harness</artifactId>
 	  <version>1.418</version>
 	  <type>jar</type>
+	 </dependency>
+	 <dependency>
+	  <groupId>org.jenkins-ci.main</groupId>
+	  <artifactId>maven-plugin</artifactId>
+	  <version>1.418</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>org.kohsuke.stapler</groupId>
+	  <artifactId>stapler</artifactId>
+	  <version>1.169</version>
 	 </dependency>
 	</dependencies>
 
