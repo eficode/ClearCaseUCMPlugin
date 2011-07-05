@@ -278,8 +278,10 @@ public class PucmNotifier extends Notifier {
                 status.setBuildStatus(buildResult);
                 status.setBuildDescr("Building baseline:" + pstate.getBaseline().getFullyQualifiedName() + " failed we are cancelling the deliver");
                 pstate.getBaseline().cancel(pstate.getSnapView().GetViewRoot());
+                return;
             } catch (UCMException ex) {
                 hudsonOut.println(ex.getMessage());
+                return;
             }
         }
 
