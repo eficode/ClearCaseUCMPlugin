@@ -211,10 +211,15 @@ public class PucmScm extends SCM {
                         if (!state.isAddedByPoller()) {
                             try {
                                 List<Stream> streams = UCMEntity.getStream(stream).getChildStreams();
+                                List<Baseline> baselines = null;
                                 for (Stream s : streams) {
-                                    consoleOutput.println("[PUCM] " + s.getFullyQualifiedName());
-
-                                    List<Baseline> baselines = getValidBaselines(build.getProject(), state, Project.getPlevelFromString(levelToPoll), s);
+                                    try {
+                                        baselines = getValidBaselines(build.getProject(), state, Project.getPlevelFromString(levelToPoll), s);
+                                    } catch (ScmException e) {
+                                        //We won't throw exceptions just because there are no baselines on this particulare stream
+                                        //we are moving forward...
+                                        ;
+                                    }
                                     if (state.getBaselines() == null) {
                                         state.setBaselines(baselines);
                                     } else {
@@ -225,11 +230,13 @@ public class PucmScm extends SCM {
                                 }
                                 state.setBaseline(selectBaseline(state.getBaselines(), newest));
                                 state.setStream(UCMEntity.getStream(stream));
-                            } catch (ScmException e) {
-                                consoleOutput.println("[PUCM] " + e.getMessage());
-                                result = false;
                             } catch (UCMException e) {
                                 consoleOutput.println("[PUCM] " + e.getMessage());
+                                result = false;
+                            }
+
+                            /* if we did not find any baselines we should return false */
+                            if (state.getBaselines().size() < 1) {
                                 result = false;
                             }
 
