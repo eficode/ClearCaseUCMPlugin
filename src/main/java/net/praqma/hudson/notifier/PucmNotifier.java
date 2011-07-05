@@ -129,6 +129,9 @@ public class PucmNotifier extends Notifier {
         this.id = "[" + jobName + "::" + jobNumber + "]";
 
         SCM scmTemp = null;
+        /*TODO result is always true!!!!...
+         * so we could move the if blok unless it should not always be true
+         */
         if (result) {
             scmTemp = build.getProject().getScm();
             if (!(scmTemp instanceof PucmScm)) {
@@ -184,7 +187,7 @@ public class PucmNotifier extends Notifier {
                 processBuild(build, launcher, listener, pstate);
                 if (setDescription) {
                     build.setDescription(status.getBuildDescr());
-                    hudsonOut.println("[PUCM] Description set.");
+                    hudsonOut.println("[PUCM] Description set to - " + status.getBuildDescr());
                 }
 
             } catch (NotifierException ne) {
@@ -259,17 +262,21 @@ public class PucmNotifier extends Notifier {
                 pstate.getBaseline().deliver(pstate.getBaseline().getStream(), pstate.getStream(), pstate.getSnapView().GetViewRoot(), pstate.getSnapView().GetViewtag(), true, true, true);
                 Baseline childBase = pstate.getBaseline();
                 Baseline.create(childBase.getShortname(), childBase.getComponent(), pstate.getSnapView().GetViewRoot(), true, true);
-                return;
             } catch (UCMException ex) {
-                        try {
+                try {
                     pstate.getBaseline().cancel(pstate.getSnapView().GetViewRoot());
                 } catch (UCMException ex1) {
                     hudsonOut.println(ex1.getMessage());
                 }
                 hudsonOut.println(ex.getMessage());
             }
+            status.setBuildStatus(buildResult);
+            status.setBuildDescr("Building " + pstate.getBaseline().getFullyQualifiedName() + " went good deliver has been completed");
+            return;
         } else if ((pstate.getPollChild() && buildResult.equals(Result.FAILURE))) {
             try {
+                status.setBuildStatus(buildResult);
+                status.setBuildDescr("Building baseline:" + pstate.getBaseline().getFullyQualifiedName() + " failed we are cancelling the deliver");
                 pstate.getBaseline().cancel(pstate.getSnapView().GetViewRoot());
             } catch (UCMException ex) {
                 hudsonOut.println(ex.getMessage());
