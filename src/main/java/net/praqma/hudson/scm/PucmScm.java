@@ -455,8 +455,8 @@ public class PucmScm extends SCM {
                 // Finds all child stream this integration stream..
                 List<Stream> cStreams = UCMEntity.getStream(this.stream).getChildStreams();
 
-                for (Stream stream : cStreams) {
-                    state.setStream(stream);
+                for (Stream s : cStreams) {
+                    state.setStream(s);
                     PollingResult tempP = getPossibleBaselines(project, state, listener);
 
                     if (p == null || p == PollingResult.NO_CHANGES) {
