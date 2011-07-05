@@ -211,23 +211,20 @@ public class PucmScm extends SCM {
                         if (!state.isAddedByPoller()) {
                             try {
                                 List<Stream> streams = UCMEntity.getStream(stream).getChildStreams();
-                                List<Baseline> baselines = null;
+                                List<Baseline> baselines = new ArrayList<Baseline>();
                                 for (Stream s : streams) {
                                     try {
-                                        baselines = getValidBaselines(build.getProject(), state, Project.getPlevelFromString(levelToPoll), s);
+                                        for (Baseline b : getValidBaselines(build.getProject(), state, Project.getPlevelFromString(levelToPoll), s)) {
+                                            baselines.add(b);
+                                        }
                                     } catch (ScmException e) {
                                         //We won't throw exceptions just because there are no baselines on this particulare stream
                                         //we are moving forward...
-                                        ;
-                                    }
-                                    if (state.getBaselines() == null) {
-                                        state.setBaselines(baselines);
-                                    } else {
-                                        for (Baseline b : baselines) {
-                                            state.getBaselines().add(b);
-                                        }
+                                        consoleOutput.println("[PUCM] the stream " + s.getFullyQualifiedName() + " has no baselines we will keep searching on the next stream");
                                     }
                                 }
+
+                                state.setBaselines(baselines);
                                 state.setBaseline(selectBaseline(state.getBaselines(), newest));
                                 state.setStream(UCMEntity.getStream(stream));
                             } catch (UCMException e) {
@@ -249,7 +246,6 @@ public class PucmScm extends SCM {
                     int i = workspace.act(rmDeliver);
                     /*Next line must be after the line above*/
                     state.setSnapView(rmDeliver.getSnapShotView());
-                    build.setDescription("<small>" + state.getBaseline() + "</small>");
                 } catch (IOException e) {
                     consoleOutput.println("[PUCM] " + e.getMessage());
                     result = false;
