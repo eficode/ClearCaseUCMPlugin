@@ -563,7 +563,6 @@ public class PucmScm extends SCM {
         try {
             baselines = state.getComponent().getBaselines(stream, plevel);
         } catch (UCMException e) {
-            System.exit(-1);
             throw new ScmException("Could not retrieve baselines from repository. " + e.getMessage());
         }
         logger.debug(id + "GetBaseline state:\n" + state.stringify());
