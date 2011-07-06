@@ -211,25 +211,29 @@ public class PucmScm extends SCM {
                         if (!state.isAddedByPoller()) {
                             try {
                                 List<Stream> streams = UCMEntity.getStream(stream).getChildStreams();
+                                List<Baseline> baselines = new ArrayList<Baseline>();
                                 for (Stream s : streams) {
-                                    consoleOutput.println("[PUCM] " + s.getFullyQualifiedName());
-
-                                    List<Baseline> baselines = getValidBaselines(build.getProject(), state, Project.getPlevelFromString(levelToPoll), s);
-                                    if (state.getBaselines() == null) {
-                                        state.setBaselines(baselines);
-                                    } else {
-                                        for (Baseline b : baselines) {
-                                            state.getBaselines().add(b);
+                                    try {
+                                        for (Baseline b : getValidBaselines(build.getProject(), state, Project.getPlevelFromString(levelToPoll), s)) {
+                                            baselines.add(b);
                                         }
+                                    } catch (ScmException e) {
+                                        //We won't throw exceptions just because there are no baselines on this particulare stream
+                                        //we are moving forward...
+                                        consoleOutput.println("[PUCM] the stream " + s.getFullyQualifiedName() + " has no baselines we will keep searching on the next stream");
                                     }
                                 }
+
+                                state.setBaselines(baselines);
                                 state.setBaseline(selectBaseline(state.getBaselines(), newest));
                                 state.setStream(UCMEntity.getStream(stream));
-                            } catch (ScmException e) {
-                                consoleOutput.println("[PUCM] " + e.getMessage());
-                                result = false;
                             } catch (UCMException e) {
                                 consoleOutput.println("[PUCM] " + e.getMessage());
+                                result = false;
+                            }
+
+                            /* if we did not find any baselines we should return false */
+                            if (state.getBaselines().size() < 1) {
                                 result = false;
                             }
 
@@ -242,7 +246,6 @@ public class PucmScm extends SCM {
                     int i = workspace.act(rmDeliver);
                     /*Next line must be after the line above*/
                     state.setSnapView(rmDeliver.getSnapShotView());
-                    build.setDescription("<small>" + state.getBaseline() + "</small>");
                 } catch (IOException e) {
                     consoleOutput.println("[PUCM] " + e.getMessage());
                     result = false;
@@ -452,8 +455,8 @@ public class PucmScm extends SCM {
                 // Finds all child stream this integration stream..
                 List<Stream> cStreams = UCMEntity.getStream(this.stream).getChildStreams();
 
-                for (Stream stream : cStreams) {
-                    state.setStream(stream);
+                for (Stream s : cStreams) {
+                    state.setStream(s);
                     PollingResult tempP = getPossibleBaselines(project, state, listener);
 
                     if (p == null || p == PollingResult.NO_CHANGES) {
@@ -560,7 +563,6 @@ public class PucmScm extends SCM {
         try {
             baselines = state.getComponent().getBaselines(stream, plevel);
         } catch (UCMException e) {
-            System.exit(-1);
             throw new ScmException("Could not retrieve baselines from repository. " + e.getMessage());
         }
         logger.debug(id + "GetBaseline state:\n" + state.stringify());
