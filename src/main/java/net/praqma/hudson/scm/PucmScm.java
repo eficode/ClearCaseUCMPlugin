@@ -339,16 +339,17 @@ public class PucmScm extends SCM {
                     state.setBaselines(baselines);
                     state.setBaseline(selectBaseline(state.getBaselines(), newest));
 
-
                     /* if we did not find any baselines we should return false */
                     if (baselines.size() < 1) {
-                        result = false;
+                        //result = false;
+                        return false;
                     }
 
-                    /* Print the baselines to jenkins out */
-                    printBaselines(state.getBaselines(), consoleOutput);
-                    consoleOutput.println( "" );
                 }
+                
+                /* Print the baselines to jenkins out */
+                printBaselines(state.getBaselines(), consoleOutput);
+                consoleOutput.println( "" );
                 
                 consoleOutput.println( "[PUCM] Building " + state.getBaseline().getFullyQualifiedName() );
 
@@ -507,26 +508,16 @@ public class PucmScm extends SCM {
         PollingResult p = null;
         consoleOut.println("[PUCM] polling on child streams: " + pollChild);
         if (this.pollChild) {
+            
             consoleOut.println("[PUCM] we wont poll on the integration stream insted we are looking for all new baselines on all stream that has the defined int stream as there default deliver target");
-            try {
-                
-                //List<Baseline> baselines = getChildStreamBaselines( project, consoleOut, state, state.getStream(), state.getComponent());
-                // Finds all child stream this integration stream..
-                List<Stream> cStreams = UCMEntity.getStream(this.stream).getChildStreams();
+            List<Baseline> baselines = getChildStreamBaselines( project, consoleOut, state, state.getStream(), state.getComponent());
 
-                for (Stream s : cStreams) {
-                    state.setStream(s);
-                    PollingResult tempP = getPossibleBaselines(project, listener, state, state.getStream(), state.getComponent());
-
-                    if (p == null || p == PollingResult.NO_CHANGES) {
-                        p = tempP;
-                    } else {
-                        p = tempP;
-                    }
-                }
-                state.setStream(UCMEntity.getStream(this.stream));
-            } catch (UCMException e) {
-                consoleOut.println(e.getMessage());
+            if (baselines.size() > 0) {
+                p = PollingResult.BUILD_NOW;
+                state.setBaselines(baselines);
+                state.setBaseline(selectBaseline(state.getBaselines(), newest));
+            } else {
+                p = PollingResult.NO_CHANGES;
             }
 
             logger.debug(id + "FINAL Polling result = " + p.change.toString());
