@@ -178,122 +178,23 @@ public class PucmScm extends SCM {
         } else {
             state.setMultiSiteFrquency(0);
         }
+        
 
         logger.debug(id + "The initial state:\n" + state.stringify());
+        
+        
+        /* Call pollChild if necessary */
         if (this.pollChild) {
-            try {
-                /* Make deliver view */
-                state.setPollChild(pollChild);
-                String baselinevalue = "";
-                try {
-                    /* Determining the pucm_baseline modifier */
-                    if (build.getBuildVariables().get(baselinevalue) != null) {
-                        String baselinename = (String) build.getBuildVariables().get(baselinevalue);
-                        try {
-                            state.setBaseline(UCMEntity.getBaseline(baselinename));
-                            consoleOutput.println("[PUCM] Starting parameterized build with a pucm_baseline.\n[PUCM] Using baseline: " + baselinename
-                                    + " from integrationstream " + state.getBaseline().getStream().getShortname());
-
-                            /* The component could be used in the post build section */
-                            state.setComponent(state.getBaseline().getComponent());
-                            state.setStream(UCMEntity.getStream(stream));
-                            logger.debug(id + "Saving the component for later use");
-                        } catch (UCMException e) {
-                            consoleOutput.println("[PUCM] Could not find baseline from parameter '" + baselinename + "'.");
-                            state.setPostBuild(false);
-                            result = false;
-                            state.setBaseline(null);
-                        }
-                    } else {
-
-                        printParameters(consoleOutput);
-                        state.setStream(UCMEntity.getStream(stream));
-                        if (!state.isAddedByPoller()) {
-                            try {
-                                List<Stream> streams = UCMEntity.getStream(stream).getChildStreams();
-                                List<Baseline> baselines = new ArrayList<Baseline>();
-                                for (Stream s : streams) {
-                                    try {
-                                        for (Baseline b : getValidBaselines(build.getProject(), state, Project.getPlevelFromString(levelToPoll), s)) {
-                                            baselines.add(b);
-                                        }
-                                    } catch (ScmException e) {
-                                        //We won't throw exceptions just because there are no baselines on this particulare stream
-                                        //we are moving forward...
-                                        consoleOutput.println("[PUCM] the stream " + s.getFullyQualifiedName() + " has no baselines we will keep searching on the next stream");
-                                    }
-                                }
-
-                                state.setBaselines(baselines);
-                                state.setBaseline(selectBaseline(state.getBaselines(), newest));
-                                state.setStream(UCMEntity.getStream(stream));
-                            } catch (UCMException e) {
-                                consoleOutput.println("[PUCM] " + e.getMessage());
-                                result = false;
-                            }
-
-                            /* if we did not find any baselines we should return false */
-                            if (state.getBaselines().size() < 1) {
-                                result = false;
-                            }
-
-                            /* Print the baselines to jenkins out */
-                            printBaselines(state.getBaselines(), consoleOutput);
-                        }
-                    }
-                    RemoteDeliver rmDeliver = new RemoteDeliver(UCMEntity.getStream(stream).getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
-
-                    int i = workspace.act(rmDeliver);
-                    /*Next line must be after the line above*/
-                    state.setSnapView(rmDeliver.getSnapShotView());
-                } catch (IOException e) {
-                    consoleOutput.println("[PUCM] " + e.getMessage());
-                    result = false;
-                } catch (UCMException e) {
-                    consoleOutput.println("[PUCM] " + e.getMessage());
-                    result = false;
-                }
-                state.setStream(UCMEntity.getStream(stream));
-                return result;
-            } catch (UCMException ex) {
-                java.util.logging.Logger.getLogger(PucmScm.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            result = pollChild( build, state, listener );
         }
 
-        logger.debug(id + "The initial state:\n" + state.stringify());
 
         /* Determining the pucm_baseline modifier */
-        String baselinevalue = "";
-        Collection<?> c = build.getBuildVariables().keySet();
-        Iterator<?> i = c.iterator();
-
-        while (i.hasNext()) {
-            String next = i.next().toString();
-            if (next.equalsIgnoreCase("pucm_baseline")) {
-                baselinevalue = next;
-            }
-        }
+        String baselinevalue = getBaselineValue( build );
 
         /* The special pucm_baseline case */
-
         if (build.getBuildVariables().get(baselinevalue) != null) {
-            String baselinename = (String) build.getBuildVariables().get(baselinevalue);
-            try {
-                state.setBaseline(UCMEntity.getBaseline(baselinename));
-                state.setStream(state.getBaseline().getStream());
-                consoleOutput.println("[PUCM] Starting parameterized build with a pucm_baseline.\n[PUCM] Using baseline: " + baselinename
-                        + " from integrationstream " + state.getStream().getShortname());
-
-                /* The component could be used in the post build section */
-                state.setComponent(state.getBaseline().getComponent());
-                state.setStream(state.getBaseline().getStream());
-                logger.debug(id + "Saving the component for later use");
-            } catch (UCMException e) {
-                consoleOutput.println("[PUCM] Could not find baseline from parameter '" + baselinename + "'.");
-                state.setPostBuild(false);
-                result = false;
-                state.setBaseline(null);
-            }
+            result = doBaseline( build, baselinevalue, state, listener );
         } /* Default stream + component case */ else {
 
             printParameters(consoleOutput);
@@ -334,32 +235,6 @@ public class PucmScm extends SCM {
                     consoleOutput.println("[PUCM] Could not load Baseline.");
                 }
 
-                /*
-                 * Check parameters TODO This should be deleted....
-                 */
-                if (listener == null) {
-                    consoleOutput.println("[PUCM] Listener is null");
-                }
-
-                if (jobName == null) {
-                    consoleOutput.println("[PUCM] jobname is null");
-                }
-
-                if (build == null) {
-                    consoleOutput.println("[PUCM] BUILD is null");
-                }
-
-                if (stream == null) {
-                    consoleOutput.println("[PUCM] stream is null");
-                }
-
-                if (loadModule == null) {
-                    consoleOutput.println("[PUCM] loadModule is null");
-                }
-
-                if (buildProject == null) {
-                    consoleOutput.println("[PUCM] buildProject is null");
-                }
 
                 build.setDescription("<small>" + state.getBaseline() + "</small>");
                 CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream().getFullyQualifiedName(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, logger);
@@ -388,6 +263,135 @@ public class PucmScm extends SCM {
             }
         }
 
+        return result;
+    }
+    
+    public boolean doBaseline( AbstractBuild<?, ?> build, String baselinevalue, State state, BuildListener listener ) {
+        
+        PrintStream consoleOutput = listener.getLogger();
+        boolean result = true;
+        
+        String baselinename = (String) build.getBuildVariables().get(baselinevalue);
+        try {
+            state.setBaseline(UCMEntity.getBaseline(baselinename));
+            state.setStream(state.getBaseline().getStream());
+            consoleOutput.println("[PUCM] Starting parameterized build with a pucm_baseline.\n[PUCM] Using baseline: " + baselinename
+                    + " from integrationstream " + state.getStream().getShortname());
+
+            /* The component could be used in the post build section */
+            state.setComponent(state.getBaseline().getComponent());
+            state.setStream(state.getBaseline().getStream());
+            logger.debug(id + "Saving the component for later use");
+        } catch (UCMException e) {
+            consoleOutput.println("[PUCM] Could not find baseline from parameter '" + baselinename + "'.");
+            state.setPostBuild(false);
+            result = false;
+            state.setBaseline(null);
+        }
+        
+        return result;
+    }
+    
+    public String getBaselineValue( AbstractBuild<?, ?> build ) {
+        Collection<?> c = build.getBuildVariables().keySet();
+        Iterator<?> i = c.iterator();
+
+        while (i.hasNext()) {
+            String next = i.next().toString();
+            if (next.equalsIgnoreCase("pucm_baseline")) {
+                return next;
+            }
+        }
+        
+        return null;
+    }
+    
+    private boolean pollChild( AbstractBuild<?, ?> build, State state, BuildListener listener ) {
+        boolean result = true;
+        FilePath workspace = build.getWorkspace();
+        PrintStream consoleOutput = listener.getLogger();
+        
+        try {
+            /* Make deliver view */
+            state.setPollChild(pollChild);
+            String baselinevalue = "";
+            try {
+                /* Determining the pucm_baseline modifier */
+                if (build.getBuildVariables().get(baselinevalue) != null) {
+                    String baselinename = (String) build.getBuildVariables().get(baselinevalue);
+                    try {
+                        state.setBaseline(UCMEntity.getBaseline(baselinename));
+                        consoleOutput.println("[PUCM] Starting parameterized build with a pucm_baseline.\n[PUCM] Using baseline: " + baselinename
+                                + " from integrationstream " + state.getBaseline().getStream().getShortname());
+
+                        /* The component could be used in the post build section */
+                        state.setComponent(state.getBaseline().getComponent());
+                        state.setStream(UCMEntity.getStream(stream));
+                        logger.debug(id + "Saving the component for later use");
+                    } catch (UCMException e) {
+                        consoleOutput.println("[PUCM] Could not find baseline from parameter '" + baselinename + "'.");
+                        state.setPostBuild(false);
+                        result = false;
+                        state.setBaseline(null);
+                    }
+                } else {
+
+                    printParameters(consoleOutput);
+                    state.setStream(UCMEntity.getStream(stream));
+                    if (!state.isAddedByPoller()) {
+                        try {
+                            List<Stream> streams = UCMEntity.getStream(stream).getChildStreams();
+                            List<Baseline> baselines = new ArrayList<Baseline>();
+                            for (Stream s : streams) {
+                                try {
+                                    for (Baseline b : getValidBaselines(build.getProject(), state, Project.getPlevelFromString(levelToPoll), s)) {
+                                        baselines.add(b);
+                                    }
+                                } catch (ScmException e) {
+                                    //We won't throw exceptions just because there are no baselines on this particulare stream
+                                    //we are moving forward...
+                                    consoleOutput.println("[PUCM] the stream " + s.getFullyQualifiedName() + " has no baselines we will keep searching on the next stream");
+                                }
+                            }
+
+                            state.setBaselines(baselines);
+                            state.setBaseline(selectBaseline(state.getBaselines(), newest));
+                            state.setStream(UCMEntity.getStream(stream));
+                        } catch (UCMException e) {
+                            consoleOutput.println("[PUCM] " + e.getMessage());
+                            result = false;
+                        }
+
+                        /* if we did not find any baselines we should return false */
+                        if (state.getBaselines().size() < 1) {
+                            result = false;
+                        }
+
+                        /* Print the baselines to jenkins out */
+                        printBaselines(state.getBaselines(), consoleOutput);
+                    }
+                }
+                RemoteDeliver rmDeliver = new RemoteDeliver(UCMEntity.getStream(stream).getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
+
+                int i = workspace.act(rmDeliver);
+                /*Next line must be after the line above*/
+                state.setSnapView(rmDeliver.getSnapShotView());
+            } catch (IOException e) {
+                consoleOutput.println("[PUCM] " + e.getMessage());
+                result = false;
+            } catch (UCMException e) {
+                consoleOutput.println("[PUCM] " + e.getMessage());
+                result = false;
+            } catch( InterruptedException e ) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            state.setStream(UCMEntity.getStream(stream));
+            return result;
+        } catch (UCMException ex) {
+            java.util.logging.Logger.getLogger(PucmScm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         return result;
     }
 
