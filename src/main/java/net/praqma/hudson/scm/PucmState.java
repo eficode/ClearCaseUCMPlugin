@@ -144,6 +144,7 @@ public class PucmState {
         private long multiSiteFrequency = 0;
         private List<Baseline> baselines = null;
         private boolean pollChild;
+        private boolean needsToBeCompleted = true;
         private Logger logger;
         //private boolean pollChild;
         private SnapshotView snapView;
@@ -324,6 +325,14 @@ public class PucmState {
         
         public void setSnapView(SnapshotView snapView) {
             this.snapView = snapView;
+        }
+        
+        public void setNeedsToBeCompleted( boolean s ) {
+            this.needsToBeCompleted = s;
+        }
+        
+        public boolean needsToBeCompleted() {
+            return this.needsToBeCompleted;
         }
     }
 }

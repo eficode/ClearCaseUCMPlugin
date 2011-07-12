@@ -1,6 +1,7 @@
 package net.praqma.hudson.notifier;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -14,6 +15,8 @@ import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.Cool;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.hudson.exception.NotifierException;
+import net.praqma.hudson.remoting.RemoteDeliverComplete;
+import net.praqma.hudson.remoting.Util;
 import net.praqma.hudson.scm.PucmScm;
 import net.praqma.hudson.scm.PucmState.State;
 import net.praqma.util.debug.PraqmaLogger;
@@ -105,15 +108,21 @@ public class PucmNotifier extends Notifier {
 
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        /* Preparing the logger */
-        logger = PraqmaLogger.getLogger();
+        
         boolean result = true;
         hudsonOut = listener.getLogger();
+        
+        /* Preparing the logger */
+        logger = PraqmaLogger.getLogger();
+        logger.subscribeAll();
+        File rdir = new File(logger.getPath());
+        logger.setLocalLog(new File(rdir + System.getProperty("file.separator") + "log.log"));
 
         /* Prepare job variables */
         jobName = build.getParent().getDisplayName().replace(' ', '_');
         jobNumber = build.getNumber();
 
+        /*
         logger.unsubscribeAll();
         if (build.getBuildVariables().get("include_classes") != null) {
             String[] is = build.getBuildVariables().get("include_classes").toString().split(",");
@@ -121,6 +130,7 @@ public class PucmNotifier extends Notifier {
                 logger.subscribe(i.trim());
             }
         }
+        */
 
         Cool.setLogger(logger);
 
@@ -183,6 +193,7 @@ public class PucmNotifier extends Notifier {
 
         /* There's a valid baseline, lets process it */
         if (result) {
+
             try {
                 processBuild(build, launcher, listener, pstate);
                 if (setDescription) {
@@ -222,6 +233,8 @@ public class PucmNotifier extends Notifier {
                 }
             }
         }
+        
+        hudsonOut.println( "[PUCM] Post build steps done" );
 
         return result;
     }
@@ -253,80 +266,100 @@ public class PucmNotifier extends Notifier {
 
         hudsonOut.println("[PUCM] Build result: " + buildResult);
 
-
-        /* Completes the deliver proces from the PucmSCM*/
-        if (pstate.getPollChild() && buildResult.isBetterThan(Result.FAILURE)) {
-            try {
-                hudsonOut.println("[PUCM] Completing deliver from: " + pstate.getBaseline().getStream() + " to: " + pstate.getStream());
-
-                pstate.getBaseline().deliver(pstate.getBaseline().getStream(), pstate.getStream(), pstate.getSnapView().GetViewRoot(), pstate.getSnapView().GetViewtag(), true, true, true);
-                Baseline childBase = pstate.getBaseline();
-                Baseline.create(childBase.getShortname(), childBase.getComponent(), pstate.getSnapView().GetViewRoot(), true, true);
-            } catch (UCMException ex) {
-                try {
-                    pstate.getBaseline().cancel(pstate.getSnapView().GetViewRoot());
-                } catch (UCMException ex1) {
-                    hudsonOut.println(ex1.getMessage());
-                }
-                hudsonOut.println(ex.getMessage());
-            }
+        /* Poll child feature */
+        if( pstate.getPollChild() && pstate.needsToBeCompleted() ) {
             status.setBuildStatus(buildResult);
-            status.setBuildDescr("Building " + pstate.getBaseline().getFullyQualifiedName() + " went good deliver has been completed");
-            return;
-        } else if ((pstate.getPollChild() && buildResult.equals(Result.FAILURE))) {
-            try {
+            
+            boolean complete = buildResult.isBetterThan(Result.FAILURE);
+            
+            try {                
+                hudsonOut.print("[PUCM] Trying to " + ( complete ? "complete" : "cancel" ) + " the deliver. ");
+                Util.completeRemoteDeliver( workspace, listener, pstate, complete );
+                hudsonOut.println("Success.");
+                
+                /* If deliver was completed, create the baseline */
+                if( complete ) {
+                    Baseline childBase = pstate.getBaseline();
+                    try {
+                        hudsonOut.print("[PUCM] Creating baseline on stream. ");
+                        Baseline.create(childBase.getShortname(), childBase.getComponent(), pstate.getSnapView().GetViewRoot(), true, true);
+                        hudsonOut.println(" Success.");
+                    } catch( UCMException e ) {
+                        hudsonOut.println(" Failed.");
+                        logger.warning( "Failed to create baseline on stream" );
+                        logger.warning( e );
+                    }
+                }
+                
+            } catch( Exception e ) {
                 status.setBuildStatus(buildResult);
-                status.setBuildDescr("Building baseline:" + pstate.getBaseline().getFullyQualifiedName() + " failed we are cancelling the deliver");
-                pstate.getBaseline().cancel(pstate.getSnapView().GetViewRoot());
-                return;
-            } catch (UCMException ex) {
-                hudsonOut.println(ex.getMessage());
-                return;
+                status.setStable(false);
+                hudsonOut.println("Failed.");
+                logger.warning(e);
+                
+                /* If trying to complete and it failed, try to cancel it */
+                if( complete ) {
+                    try{
+                        hudsonOut.print("[PUCM] Trying to cancel the deliver. ");
+                        Util.completeRemoteDeliver( workspace, listener, pstate, false );
+                        hudsonOut.println("Success.");
+                    } catch( Exception e1 ) {
+                        hudsonOut.println(" Failed.");
+                        logger.warning( "Failed to cancel deliver" );
+                        logger.warning( e );
+                    }
+                } else {
+                    logger.warning( "Failed to cancel deliver" );
+                    logger.warning( e );
+                }
+            }
+            
+        /* Regular PUCM */
+        } else {
+                
+            logger.debug(id + "Trying to run remote tasks");
+            if (ucmDeliverObj != null && ucmDeliverObj.ucmDeliver) {
+                logger.debug(id + "UCM deliver");
+    
+    
+                try {
+                    final Pipe pipe = Pipe.createRemoteToLocal();
+    
+                    Future<Integer> i = null;
+    
+                    i = workspace.actAsync(new RemoteDeliver(buildResult, status, listener, pstate.getComponent().getFullyQualifiedName(),
+                            pstate.getLoadModule(), pstate.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), Integer.toString(build.getNumber()), ucmDeliverObj, logger, pipe));
+                    InputStream is = pipe.getIn();
+                    InputStreamReader isr = new InputStreamReader(is);
+                    BufferedReader br = new BufferedReader(isr);
+                    StringBuilder sb = new StringBuilder();
+    
+                    int j = i.get();
+                } catch (IOException e) {
+                    status.setStable(false);
+                    logger.warning("COULD NOT DELIVER: " + e.getMessage());
+                    logger.warning(e);
+                    hudsonOut.println("[PUCM] Error: The deliver failed: " + e.getMessage());
+                } catch (InterruptedException e) {
+                    status.setStable(false);
+                    logger.warning("COULD NOT DELIVER111: " + e.getMessage());
+                    logger.warning(e);
+                    hudsonOut.println("[PUCM] Error: The deliver failed: " + e.getMessage());
+                } catch (ExecutionException e) {
+                    status.setStable(false);
+                    logger.warning("COULD NOT DELIVER(Excecution): " + e.getMessage());
+                    logger.warning(e);
+                    hudsonOut.println("[PUCM] Error: The deliver failed: " + e.getMessage());
+                }
+    
+                logger.debug(id + "UCM deliver DONE");
             }
         }
-
-
-        logger.debug(id + "Trying to run remote tasks");
-        if (ucmDeliverObj != null && ucmDeliverObj.ucmDeliver) {
-            logger.debug(id + "UCM deliver");
-
-
-            try {
-                final Pipe pipe = Pipe.createRemoteToLocal();
-
-                Future<Integer> i = null;
-
-                i = workspace.actAsync(new RemoteDeliver(buildResult, status, listener, pstate.getComponent().getFullyQualifiedName(),
-                        pstate.getLoadModule(), pstate.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), Integer.toString(build.getNumber()), ucmDeliverObj, logger, pipe));
-                InputStream is = pipe.getIn();
-                InputStreamReader isr = new InputStreamReader(is);
-                BufferedReader br = new BufferedReader(isr);
-                StringBuilder sb = new StringBuilder();
-
-                int j = i.get();
-            } catch (IOException e) {
-                status.setStable(false);
-                logger.warning("COULD NOT DELIVER: " + e.getMessage());
-                logger.warning(e);
-                hudsonOut.println("[PUCM] Error: The deliver failed: " + e.getMessage());
-            } catch (InterruptedException e) {
-                status.setStable(false);
-                logger.warning("COULD NOT DELIVER111: " + e.getMessage());
-                logger.warning(e);
-                hudsonOut.println("[PUCM] Error: The deliver failed: " + e.getMessage());
-            } catch (ExecutionException e) {
-                status.setStable(false);
-                logger.warning("COULD NOT DELIVER(Excecution): " + e.getMessage());
-                logger.warning(e);
-                hudsonOut.println("[PUCM] Error: The deliver failed: " + e.getMessage());
-            }
-
-            logger.debug(id + "UCM deliver DONE");
-        }
-
-
+    
+        /* Remote post build step, common to all types */
         try {
             logger.debug(id + "Remote post build step");
+            hudsonOut.println("[PUCM] Performing common post build steps");
 
             final Pipe pipe = Pipe.createRemoteToLocal();
 
@@ -349,9 +382,9 @@ public class PucmNotifier extends Notifier {
             pstate.getBaseline().setPromotionLevel(status.getPromotedLevel());
             logger.debug(id + "Baselines promotion level sat to " + status.getPromotedLevel().toString());
         }
-
+        
         status.setBuildStatus(buildResult);
-
+        
         if (!status.isStable()) {
             build.setResult(Result.UNSTABLE);
         }

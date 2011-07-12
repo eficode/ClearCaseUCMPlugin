@@ -61,10 +61,12 @@ class RemoteDeliver implements FileCallable<Integer> {
     }
 
     public Integer invoke(File workspace, VirtualChannel channel) throws IOException {
-        /* Make sure that the local log file is not written */
+        
         hudsonOut = listener.getLogger();
+        
+        hudsonOut.println( "[PUCM] Remote delivering" );
 
-        //TODO this should not be neccesary cause its done in the Config.java file ????.
+        //TODO this should not be necessary cause its done in the Config.java file ????.
         UCM.setContext(UCM.ContextType.CLEARTOOL);
 
         /* Create the baseline object */
@@ -117,11 +119,11 @@ class RemoteDeliver implements FileCallable<Integer> {
         try {
             snapview = makeDeliverView(target, workspace);
             baseline.deliver(baseline.getStream(), stream, snapview.GetViewRoot(), snapview.GetViewtag(), true, false, true);
-            baseline.promote();
+            //baseline.promote();
         } catch (UCMException e) {
             throw new IOException(e.getMessage());
         } catch (ScmException e) {
-            throw new IOException("[PUCM] Could not create deliver view: " + e.getMessage());
+            throw new IOException("Could not create deliver view: " + e.getMessage());
         }
 
         /* End of deliver */
