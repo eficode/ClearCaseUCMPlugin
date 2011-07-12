@@ -1,166 +1,156 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<relativePath>../pom.xml</relativePath>
-		<groupId>org.jenkins-ci.plugins</groupId>
-		<artifactId>plugin</artifactId>
-		<version>1.418</version>
-	</parent>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.jvnet.hudson.plugins</groupId>
+        <artifactId>plugin</artifactId>
+        <version>1.373</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
 
-	<artifactId>PUCM</artifactId>
+    <artifactId>PUCM</artifactId>
+    <version>0.3.26-SNAPSHOT</version>
+    <name>PUCM</name>
+    <description>Integrates Jenkins to ClearCase UCM</description>
+    <url>http://wiki.jenkins-ci.org/display/JENKINS/Pucm+plugin</url>
+    <packaging>hpi</packaging>
 
-	<version>0.3.26-SNAPSHOT</version>
-	<name>PUCM</name>
-	<description>Integrates Jenkins to ClearCase UCM</description>
-	<url>http://wiki.jenkins-ci.org/display/JENKINS/Pucm+plugin</url>
-	<packaging>hpi</packaging>
+    <repositories>
+        <repository>
+            <id>m.g.o-public</id>
+            <url>http://maven.glassfish.org/content/groups/public/</url>
+        </repository>
 
-	<repositories>
-		<repository>
-			<id>m.g.o-public</id>
-			<url>http://maven.glassfish.org/content/groups/public/</url>
-		</repository>
+        <repository>
+            <id>praqma-repo</id>
+            <url>http://code.praqma.net/repo/maven/</url>
+        </repository>
+    </repositories>
 
-		<repository>
-			<id>praqma-repo</id>
-			<url>http://code.praqma.net/repo/maven/</url>
-		</repository>
-	</repositories>
+    <!-- 
+    <pluginRepositories>
+        <pluginRepository>
+            <id>m.g.o-public</id>
+            <url>http://maven.glassfish.org/content/groups/public/</url>
+        </pluginRepository>
+    </pluginRepositories>
+     -->
 
-	<pluginRepositories>
-		<pluginRepository>
-			<id>m.g.o-public</id>
-			<url>http://maven.glassfish.org/content/groups/public/</url>
-		</pluginRepository>
-	</pluginRepositories>
+    <distributionManagement>
+        <repository>
+            <id>maven.jenkins-ci.org</id>
+            <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
+        </repository>
+    </distributionManagement>
 
-	<distributionManagement>
-		<repository>
-			<id>maven.jenkins-ci.org</id>
-			<url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
-		</repository>
-	</distributionManagement>
+    <developers>
+        <developer>
+            <id>jes-struck</id>
+            <name>Jes Struck</name>
+        </developer>
+        <developer>
+            <id>wolfgarnet</id>
+            <name>Christian Wolfgang</name>
+        </developer>
+        <developer>
+            <id>t4s</id>
+            <name>Troels Selch</name>
+        </developer>
+        <developer>
+            <id>MargitB</id>
+            <name>Margit Bennetzen</name>
+        </developer>
+        <developer>
+            <id>lak-praqma</id>
+            <name>Lars Kruse</name>
+            <email>pucm@praqma.net</email>
+        </developer>
+    </developers>
 
-	<developers>
-	<developer>
-			<id>jes-struck</id>
-			<name>Jes Struck</name>
-		</developer>
-		<developer>
-			<id>wolfgarnet</id>
-			<name>Christian Wolfgang</name>
-		</developer>
-		<developer>
-			<id>t4s</id>
-			<name>Troels Selch</name>
-		</developer>
-		<developer>
-			<id>MargitB</id>
-			<name>Margit Bennetzen</name>
-		</developer>
-		<developer>
-			<id>lak-praqma</id>
-			<name>Lars Kruse</name>
-			<email>pucm@praqma.net</email>
-		</developer>
-	</developers>
+    <build>
+        <plugins>
 
-	<build>
-		<plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <mainClass>net.praqma.hudson.GetVersion</mainClass>
+                    <arguments>
+                    </arguments>
+                    <systemProperties>
+                    </systemProperties>
+                </configuration>
+            </plugin>
 
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<goals>
-							<goal>java</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<mainClass>net.praqma.hudson.GetVersion</mainClass>
-					<arguments>
-					</arguments>
-					<systemProperties>
-					</systemProperties>
-				</configuration>
-			</plugin>
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <goals>deploy</goals>
+                </configuration>
+                </plugin>
+    
+                <plugin>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <configuration>
+                        <goals>deploy</goals><!--because plugin is built against version before 
+                            1.387 -->
+                    </configuration>
+                </plugin>
 
-			<plugin>
-				<artifactId>maven-release-plugin</artifactId>
-				<configuration>
-					<goals>deploy</goals>
-				</configuration>
-			</plugin>
- <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <version>1.0-alpha-3</version>
-        <configuration>
-           <skip>true</skip>
-        </configuration>
-      </plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<inherited>true</inherited>
-				<configuration>
-					<archive>
-						<manifest>
-							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-						</manifest>
-					</archive>
-				</configuration>
-			</plugin>
-                        <plugin>
-                            <groupId>org.apache.maven.plugins</groupId>
-                            <artifactId>maven-compiler-plugin</artifactId>
-                            <configuration>
-                                <source>1.6</source>
-                                <target>1.6</target>
-                            </configuration>
-                        </plugin >
-		</plugins>
-	</build>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <inherited>true</inherited>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            
+        </plugins>
+    </build>
 
-	<dependencies>
+    <dependencies>
 
-		<dependency>
-			<groupId>net.praqma</groupId>
-			<artifactId>COOL</artifactId>
-			<version>0.3.26-SNAPSHOT</version>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
-	 <dependency>
-	  <groupId>org.jenkins-ci.main</groupId>
-	  <artifactId>jenkins-test-harness</artifactId>
-	  <version>1.418</version>
-	  <type>jar</type>
-	 </dependency>
-	 <dependency>
-	  <groupId>org.jenkins-ci.main</groupId>
-	  <artifactId>maven-plugin</artifactId>
-	  <version>1.418</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>org.kohsuke.stapler</groupId>
-	  <artifactId>stapler</artifactId>
-	  <version>1.169</version>
-	 </dependency>
-	</dependencies>
+        <dependency>
+            <groupId>net.praqma</groupId>
+            <artifactId>COOL</artifactId>
+            <version>0.3.26-SNAPSHOT</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
 
-	<scm>
-		<connection>scm:git:ssh://github.com/Praqma/pucm.git</connection>
-		<developerConnection>scm:git:ssh://git@github.com/Praqma/pucm.git</developerConnection>
-		<url>https://github.com/Praqma/pucm</url>
-	</scm>
+    </dependencies>
+
+    <scm>
+        <connection>scm:git:ssh://github.com/Praqma/pucm.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/Praqma/pucm.git</developerConnection>
+        <url>https://github.com/Praqma/pucm</url>
+    </scm>
 
 </project>
