@@ -181,10 +181,10 @@ public class PucmScm extends SCM {
 
         if (this.multiSite) {
             /* Get the time in milli seconds and store it to the state */
-            state.setMultiSiteFrquency(((PucmScmDescriptor) getDescriptor()).getMultiSiteFrequencyAsInt() * 60000);
+            state.setMultiSiteFrequency(((PucmScmDescriptor) getDescriptor()).getMultiSiteFrequencyAsInt() * 60000);
             logger.info(id + "Multi site frequency: " + state.getMultiSiteFrquency());
         } else {
-            state.setMultiSiteFrquency(0);
+            state.setMultiSiteFrequency(0);
         }
         
 
@@ -207,10 +207,6 @@ public class PucmScm extends SCM {
             
             logger.debug(id + "The PRE ACT state:\n" + state.stringify());
 
-            // compRevCalled tells whether we have polled for baselines to build
-            // -
-            // so if we haven't polled, we do it now
-            // if( !compRevCalled )
             if (!state.isAddedByPoller()) {
                 try {
                     List<Baseline> baselines = getValidBaselines(build.getProject(), state, Project.getPlevelFromString(levelToPoll), state.getStream(), state.getComponent());
@@ -230,8 +226,6 @@ public class PucmScm extends SCM {
                 logger.debug(id + "I chose " + state.getBaseline());
             }
         }
-        
-        logger.debug(id + "The POST ACT state:\n" + state.stringify());
 
         /* If a baseline is found AND NOT a poll child*/
         if (state.getBaseline() != null && !state.getPollChild() ) {
@@ -332,6 +326,7 @@ public class PucmScm extends SCM {
 
                 printParameters(consoleOutput);
                 state.setStream(UCMEntity.getStream(stream));
+                
                 if (!state.isAddedByPoller()) {
                     /* Find the Baselines and store them */
                     List<Baseline> baselines = getChildStreamBaselines( build.getProject(), consoleOutput, state, state.getStream(), state.getComponent() );
@@ -341,10 +336,13 @@ public class PucmScm extends SCM {
 
                     /* if we did not find any baselines we should return false */
                     if (baselines.size() < 1) {
-                        //result = false;
                         return false;
                     }
 
+                }
+                
+                if(state.getBaselines().size() < 1) {
+                    return false;
                 }
                 
                 /* Print the baselines to jenkins out */
@@ -371,7 +369,7 @@ public class PucmScm extends SCM {
                 result = false;
             }
             
-            consoleOutput.println("[PUCM] Deliver done");
+            consoleOutput.println("[PUCM] Deliver " + (result ? "succeeded" : "failed"));
             /* If failed, cancel the deliver */
             
             if( !result ) {
@@ -495,10 +493,10 @@ public class PucmScm extends SCM {
         
         if (this.multiSite) {
             /* Get the time in milli seconds and store it to the state */
-            state.setMultiSiteFrquency(((PucmScmDescriptor) getDescriptor()).getMultiSiteFrequencyAsInt() * 60000);
+            state.setMultiSiteFrequency(((PucmScmDescriptor) getDescriptor()).getMultiSiteFrequencyAsInt() * 60000);
             logger.info(id + "Multi site frequency: " + state.getMultiSiteFrquency());
         } else {
-            state.setMultiSiteFrquency(0);
+            state.setMultiSiteFrequency(0);
         }
 
         PrintStream consoleOut = listener.getLogger();
@@ -526,12 +524,20 @@ public class PucmScm extends SCM {
             
             logger.debug(id + "The POLL state:\n" + state.stringify());
 
-            return p;
+            
+        } else {
+        
+            logger.debug(id + "The POLL state:\n" + state.stringify());
+    
+            p = getPossibleBaselines(project, listener, state, state.getStream(), state.getComponent());
+        }
+
+        /* Remove state if not being built */
+        if( p == PollingResult.NO_CHANGES ) {
+            state.remove();
         }
         
-        logger.debug(id + "The POLL state:\n" + state.stringify());
-
-        return getPossibleBaselines(project, listener, state, state.getStream(), state.getComponent());
+        return p;
     }
     
     /**

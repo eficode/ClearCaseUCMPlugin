@@ -299,7 +299,7 @@ public class PucmState {
             return addedByPoller;
         }
 
-        public void setMultiSiteFrquency(long multiSiteFrquency) {
+        public void setMultiSiteFrequency(long multiSiteFrquency) {
             this.multiSiteFrequency = multiSiteFrquency;
         }
 

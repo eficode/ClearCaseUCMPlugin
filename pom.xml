@@ -140,7 +140,7 @@
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>COOL</artifactId>
-            <version>0.3.26-SNAPSHOT</version>
+            <version>0.3.28-SNAPSHOT</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
