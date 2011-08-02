@@ -79,63 +79,78 @@ public class PucmScm extends SCM {
     private String id = "";
     private Logger logger = null;
     public static PucmState pucm = new PucmState();
+    
+    
+    private String versionFrom;
+    private String buildnumberMajor;
+    private String buildnumberMinor;
+    private String buildnumberPatch;
+    private String buildnumberSequenceSelector;
 
     /* Threshold in milliseconds */
     public static final long __PUCM_STORED_BASELINES_THRESHOLD = 5 * 60 * 1000;
     public static StoredBaselines storedBaselines = new StoredBaselines();
     public static final String PUCM_LOGGER_STRING = "include_classes";
-    private boolean pollChild;
+    private Polling polling;
 
     /**
      * Default constructor, mainly used for unit tests.
      */
     public PucmScm() {
     }
+    
 
     /**
-     *
+     * 
      * @param component
      * @param levelToPoll
      * @param loadModule
-     * @param stream
      * @param newest
-     * @param multiSite
-     * @param testing
+     * @param polling
+     * @param stream
+     * @param versionFrom
+     * @param buildnumberMajor
+     * @param buildnumberMinor
+     * @param buildnumberPatch
+     * @param buildnumberSequenceSelector
      * @param buildProject
+     * @param multiSite
      */
-    @DataBoundConstructor
-    public PucmScm(String buildProject, String component, String levelToPoll, String loadModule, boolean multiSite, boolean newest,
-            boolean pollChild, String stream) {
+   @DataBoundConstructor
+   public PucmScm(String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream
+		   /* Baseline creation */, String versionFrom, String buildnumberMajor, String buildnumberMinor, String buildnumberPatch, String buildnumberSequenceSelector
+		   /* Build options     */, String buildProject, boolean multiSite  ) {
 
-        /* Preparing the logger */
-        logger = PraqmaLogger.getLogger();
-        logger.subscribeAll();
-        File rdir = new File(logger.getPath());
-        logger.setLocalLog(new File(rdir + System.getProperty("file.separator") + "log.log"));
+       /* Preparing the logger */
+       logger = PraqmaLogger.getLogger();
+       logger.subscribeAll();
+       File rdir = new File(logger.getPath());
+       logger.setLocalLog(new File(rdir + System.getProperty("file.separator") + "log.log"));
 
-        /* Make sure the cool library is also affected */
-        Cool.setLogger(logger);
+       /* Make sure the cool library is also affected */
+       Cool.setLogger(logger);
 
-        this.logger = PraqmaLogger.getLogger();
-        logger.trace_function();
-        logger.debug("PucmSCM constructor");
-        this.component = component;
-        this.levelToPoll = levelToPoll;
-        this.loadModule = loadModule;
-        this.stream = stream;
-        this.newest = newest;
-        this.buildProject = buildProject;
-        this.multiSite = multiSite;
+       this.logger = PraqmaLogger.getLogger();
+       logger.trace_function();
+       logger.debug("PucmSCM constructor");
+       this.component = component;
+       this.levelToPoll = levelToPoll;
+       this.loadModule = loadModule;
+       this.stream = stream;
+       this.newest = newest;
+       this.buildProject = buildProject;
+       this.multiSite = multiSite;
 
-        /* Poll child streams */
-        this.pollChild = pollChild;
+       this.polling = new Polling(polling);
+       
+       this.versionFrom = versionFrom;
+       this.buildnumberMajor = buildnumberMajor;
+       this.buildnumberMinor = buildnumberMinor;
+       this.buildnumberPatch = buildnumberPatch;
+       this.buildnumberSequenceSelector = buildnumberSequenceSelector;
 
-    }
+   }
 
-    /**
-     * This methond handles all functionallity about creating the rigth
-     * workspace folder for the job..
-     */
     @Override
     public boolean checkout(AbstractBuild<?, ?> build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile)
             throws IOException, InterruptedException {
@@ -162,7 +177,7 @@ public class PucmScm extends SCM {
 
         PrintStream consoleOutput = listener.getLogger();
         consoleOutput.println("[PUCM] Praqmatic UCM v. " + net.praqma.hudson.Version.version + " - SCM section started");
-        consoleOutput.println("[PUCM] Polling childs streams: " + pollChild);
+        consoleOutput.println("[PUCM] Polling streams: " + polling.toString());
 
         /* Recalculate the states */
         int count = pucm.recalculate(build.getProject());
@@ -187,6 +202,16 @@ public class PucmScm extends SCM {
             state.setMultiSiteFrequency(0);
         }
         
+        /* Store baseline creation information */
+        BaselineInformation bi = new BaselineInformation();
+        bi.buildnumberMajor = buildnumberMajor;
+        bi.buildnumberMinor = buildnumberMinor;
+        bi.buildnumberPatch = buildnumberPatch;
+        bi.versionFrom = versionFrom;
+        bi.buildnumberSequenceSelector = buildnumberSequenceSelector;
+        
+        state.setBaselineInformation(bi);
+        
 
         /* Determining the pucm_baseline modifier */
         String baselinevalue = getBaselineValue( build );
@@ -197,7 +222,7 @@ public class PucmScm extends SCM {
             result = doBaseline( build, baselinevalue, state, listener );
         }
         /* Call pollChild if necessary */
-        else if (this.pollChild) {
+        else if (this.polling.isPollingChilds()) {
             logger.debug( "POLLCHILD" );
             result = pollChild( build, state, listener );
         /* Default stream + component case */
@@ -228,7 +253,7 @@ public class PucmScm extends SCM {
         }
 
         /* If a baseline is found AND NOT a poll child*/
-        if (state.getBaseline() != null && !state.getPollChild() ) {
+        if (state.getBaseline() != null && !state.getPolling().isPollingChilds() ) {
             consoleOutput.println("[PUCM] building baseline " + state.getBaseline());
 
             try {
@@ -320,7 +345,7 @@ public class PucmScm extends SCM {
         
         try {
             /* Make deliver view */
-            state.setPollChild(pollChild);
+            state.setPolling(polling);
 
             try {
 
@@ -504,8 +529,8 @@ public class PucmScm extends SCM {
         
 
         PollingResult p = null;
-        consoleOut.println("[PUCM] polling on child streams: " + pollChild);
-        if (this.pollChild) {
+        consoleOut.println("[PUCM] polling streams: " + polling);
+        if (this.polling.isPollingChilds()) {
             
             consoleOut.println("[PUCM] we wont poll on the integration stream insted we are looking for all new baselines on all stream that has the defined int stream as there default deliver target");
             List<Baseline> baselines = getChildStreamBaselines( project, consoleOut, state, state.getStream(), state.getComponent());
@@ -809,8 +834,8 @@ public class PucmScm extends SCM {
     }
 
     @Exported
-    public boolean getPollChild() {
-        return pollChild;
+    public String getPolling() {
+        return polling.toString();
     }
 
     @Exported
@@ -826,6 +851,31 @@ public class PucmScm extends SCM {
     public String getBuildProject() {
         return buildProject;
     }
+    
+    
+    
+    public String getVersionFrom() {
+    	return this.versionFrom;
+    }
+    
+    public String getBuildnumberMajor() {
+    	return this.buildnumberMajor;
+    }
+    
+    public String getBuildnumberMinor() {
+    	return this.buildnumberMinor;
+    }
+    
+    public String getBuildnumberPatch() {
+    	return this.buildnumberPatch;
+    }
+    
+    public String getBuildnumberSequenceSelector() {
+    	return this.buildnumberSequenceSelector;
+    }
+
+    
+    
 
     /**
      * This class is used to describe the plugin to Hudson

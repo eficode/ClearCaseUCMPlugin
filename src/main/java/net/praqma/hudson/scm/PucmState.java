@@ -143,10 +143,10 @@ public class PucmState {
         private boolean addedByPoller = false;
         private long multiSiteFrequency = 0;
         private List<Baseline> baselines = null;
-        private boolean pollChild;
+        private Polling polling;
         private boolean needsToBeCompleted = true;
         private Logger logger;
-        //private boolean pollChild;
+        private BaselineInformation bi;
         private SnapshotView snapView;
 
         public State() {
@@ -188,12 +188,12 @@ public class PucmState {
             return stream;
         }
 
-        public boolean getPollChild() {
-            return pollChild;
+        public Polling getPolling() {
+            return polling;
         }
 
-        public void setPollChild(boolean pollChild) {
-            this.pollChild = pollChild;
+        public void setPolling(Polling polling) {
+            this.polling = polling;
         }
 
         public void setStream(Stream stream) {
@@ -333,6 +333,14 @@ public class PucmState {
         
         public boolean needsToBeCompleted() {
             return this.needsToBeCompleted;
+        }
+        
+        public void setBaselineInformation( BaselineInformation bi ) {
+        	this.bi = bi;
+        }
+        
+        public BaselineInformation getBaselineInformation() {
+        	return this.bi;
         }
     }
 }

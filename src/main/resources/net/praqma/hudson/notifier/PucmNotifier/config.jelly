@@ -56,6 +56,7 @@ This should be the file that makes it possible to select our notifier in the "po
 	</f:entry>
 
 
+<!--
 	<f:section title="UCM Deliver Options">
 
 		<f:advanced title="En lille test">
@@ -117,6 +118,6 @@ This should be the file that makes it possible to select our notifier in the "po
 		</f:advanced>
 
 	</f:section>
-
+-->
 
 </j:jelly>

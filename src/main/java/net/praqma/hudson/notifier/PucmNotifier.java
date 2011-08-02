@@ -267,7 +267,7 @@ public class PucmNotifier extends Notifier {
         hudsonOut.println("[PUCM] Build result: " + buildResult);
 
         /* Poll child feature */
-        if( pstate.getPollChild() && pstate.needsToBeCompleted() ) {
+        if( pstate.getPolling().isPollingChilds() && pstate.needsToBeCompleted() ) {
             status.setBuildStatus(buildResult);
             
             boolean complete = buildResult.isBetterThan(Result.FAILURE);
