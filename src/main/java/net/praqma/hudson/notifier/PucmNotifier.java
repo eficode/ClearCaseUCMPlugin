@@ -8,6 +8,8 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.concurrent.ExecutionException;
 
+import jcifs.dcerpc.msrpc.netdfs;
+
 import org.kohsuke.stapler.StaplerRequest;
 
 import net.praqma.clearcase.ucm.UCMException;
@@ -282,7 +284,11 @@ public class PucmNotifier extends Notifier {
                     Baseline childBase = pstate.getBaseline();
                     try {
                         hudsonOut.print("[PUCM] Creating baseline on stream. ");
-                        Baseline.create(childBase.getShortname(), childBase.getComponent(), pstate.getSnapView().GetViewRoot(), true, true);
+                        //Baseline.create(childBase.getShortname(), childBase.getComponent(), pstate.getSnapView().GetViewRoot(), true, true);
+                        net.praqma.hudson.Util.CreateNumber(listener, build.getNumber(), pstate.getBaselineInformation().versionFrom, 
+                        		pstate.getBaselineInformation().buildnumberMajor, pstate.getBaselineInformation().buildnumberMinor, 
+                        		pstate.getBaselineInformation().buildnumberPatch, pstate.getBaselineInformation().buildnumberSequenceSelector, 
+                        		pstate.getStream().getDefaultTarget(), pstate.getComponent());
                         hudsonOut.println(" Success.");
                     } catch( UCMException e ) {
                         hudsonOut.println(" Failed.");
@@ -313,6 +319,7 @@ public class PucmNotifier extends Notifier {
                     logger.warning( e );
                 }
             }
+
             
         /* Regular PUCM */
         } else {
