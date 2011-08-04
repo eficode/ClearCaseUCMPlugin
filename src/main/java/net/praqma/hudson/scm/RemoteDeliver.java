@@ -64,11 +64,13 @@ class RemoteDeliver implements FileCallable<Integer> {
         
         hudsonOut = listener.getLogger();
         
-        hudsonOut.println( "[PUCM] Remote delivering" );
+        hudsonOut.print( "[PUCM] Setting up remote. " );
 
         //TODO this should not be necessary cause its done in the Config.java file ????.
         UCM.setContext(UCM.ContextType.CLEARTOOL);
 
+        hudsonOut.print( "Baseline " );
+        
         /* Create the baseline object */
         Baseline baseline = null;
         try {
@@ -79,6 +81,8 @@ class RemoteDeliver implements FileCallable<Integer> {
             }
             throw new IOException("[PUCM] Could not create Baseline object: " + e.getMessage());
         }
+        
+        hudsonOut.print( "done. Stream " );
 
         /* Create the development stream object */
         /* Append vob to dev stream */
@@ -92,6 +96,8 @@ class RemoteDeliver implements FileCallable<Integer> {
             }
             throw new IOException("[PUCM] Could not create Stream object: " + e.getMessage());
         }
+        
+        hudsonOut.print( "done. Component " );
 
         /* Create the component object */
         Component component = null;
@@ -103,6 +109,8 @@ class RemoteDeliver implements FileCallable<Integer> {
             }
             throw new IOException("[PUCM] Could not create Component object: " + e.getMessage());
         }
+        
+        hudsonOut.print( "done. Target " );
 
         /* Get the target Stream */
         Stream target = null;
@@ -114,6 +122,10 @@ class RemoteDeliver implements FileCallable<Integer> {
             }
             throw new IOException("[PUCM] The Stream did not have a default target: " + e.getMessage());
         }
+        
+        hudsonOut.println( "done. View " );
+        
+        hudsonOut.println( "STREAM = " + stream );
 
         /* Make deliver view */
         try {
@@ -125,6 +137,8 @@ class RemoteDeliver implements FileCallable<Integer> {
         } catch (ScmException e) {
             throw new IOException("Could not create deliver view: " + e.getMessage());
         }
+        
+        hudsonOut.println( "done. " );
 
         /* End of deliver */
         return 1;

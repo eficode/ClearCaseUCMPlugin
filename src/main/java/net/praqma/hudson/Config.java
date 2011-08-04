@@ -61,7 +61,7 @@ public class Config {
         return devStream;
     }
 
-    public static Stream getIntegrationStream(Baseline bl, PrintStream hudsonOut, String buildProject) throws ScmException {
+    public static Stream getIntegrationStream(Baseline bl, String buildProject) throws ScmException {
         Stream stream = null;
         Project project = null;
 
@@ -82,8 +82,8 @@ public class Config {
                             project = UCMEntity.getProject("Jenkins@" + bl.getPvob(), false);
                         } catch (UCMException eJ) {
                             logger.warning("The build Project was not found.");
-                            hudsonOut.println("The build project was not found. You can create the project with: \"cleartool mkproject -c \"Your special build Project\" -in rootFolder@\\your_pvob yourBuildProject@\\your_pvob\"."
-                                    + "\nSince there's no build project in ClearCase, pucm have made an extra stream in your integration stream to build in");
+                            //hudsonOut.println("The build project was not found. You can create the project with: \"cleartool mkproject -c \"Your special build Project\" -in rootFolder@\\your_pvob yourBuildProject@\\your_pvob\"."
+                            //        + "\nSince there's no build project in ClearCase, pucm have made an extra stream in your integration stream to build in");
 
                             /* Use the integration stream */
                             try {
@@ -101,8 +101,8 @@ public class Config {
             } catch (Exception e) {
                 //throw new ScmException( "Could not find project 'hudson' in " + pvob + ". You can install the Poject with: \"cleartool mkproject -c \"The special Hudson Project\" -in rootFolder@\\your_pvob hudson@\\your_pvob\"." );
                 logger.warning("The build Project was not found.");
-                hudsonOut.println("The build project was not found. You can create the project with: \"cleartool mkproject -c \"Your special build Project\" -in rootFolder@\\your_pvob yourBuildProject@\\your_pvob\"."
-                        + "\nSince there's no build project in ClearCase, pucm have made an extra stream in your integration stream to build in");
+                //hudsonOut.println("The build project was not found. You can create the project with: \"cleartool mkproject -c \"Your special build Project\" -in rootFolder@\\your_pvob yourBuildProject@\\your_pvob\"."
+                //        + "\nSince there's no build project in ClearCase, pucm have made an extra stream in your integration stream to build in");
 
                 try {
                     project = bl.getStream().getProject();

@@ -80,7 +80,7 @@ public class PucmScm extends SCM {
     private Logger logger = null;
     public static PucmState pucm = new PucmState();
     
-    
+    private boolean createBaseline;
     private String versionFrom;
     private String buildnumberMajor;
     private String buildnumberMinor;
@@ -118,7 +118,7 @@ public class PucmScm extends SCM {
      */
    @DataBoundConstructor
    public PucmScm(String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream
-		   /* Baseline creation */, String versionFrom, String buildnumberMajor, String buildnumberMinor, String buildnumberPatch, String buildnumberSequenceSelector
+		   /* Baseline creation */, boolean createBaseline, String versionFrom, String buildnumberMajor, String buildnumberMinor, String buildnumberPatch, String buildnumberSequenceSelector
 		   /* Build options     */, String buildProject, boolean multiSite  ) {
 
        /* Preparing the logger */
@@ -143,6 +143,7 @@ public class PucmScm extends SCM {
 
        this.polling = new Polling(polling);
        
+       this.createBaseline = createBaseline;
        this.versionFrom = versionFrom;
        this.buildnumberMajor = buildnumberMajor;
        this.buildnumberMinor = buildnumberMinor;
@@ -203,12 +204,13 @@ public class PucmScm extends SCM {
         }
         
         /* Store baseline creation information */
-        BaselineInformation bi = new BaselineInformation();
-        bi.buildnumberMajor = buildnumberMajor;
-        bi.buildnumberMinor = buildnumberMinor;
-        bi.buildnumberPatch = buildnumberPatch;
-        bi.versionFrom = versionFrom;
-        bi.buildnumberSequenceSelector = buildnumberSequenceSelector;
+        BaselineInformation bi         = new BaselineInformation();
+        bi.createBaseline              = this.createBaseline;
+        bi.buildnumberMajor            = this.buildnumberMajor;
+        bi.buildnumberMinor            = this.buildnumberMinor;
+        bi.buildnumberPatch            = this.buildnumberPatch;
+        bi.versionFrom                 = this.versionFrom;
+        bi.buildnumberSequenceSelector = this.buildnumberSequenceSelector;
         
         state.setBaselineInformation(bi);
         
@@ -222,38 +224,12 @@ public class PucmScm extends SCM {
             result = doBaseline( build, baselinevalue, state, listener );
         }
         /* Call pollChild if necessary */
-        else if (this.polling.isPollingChilds()) {
-            logger.debug( "POLLCHILD" );
+        else {
             result = pollChild( build, state, listener );
-        /* Default stream + component case */
-        } else {
-            logger.debug( "REGULAR" );
-            printParameters(consoleOutput);
-            
-            logger.debug(id + "The PRE ACT state:\n" + state.stringify());
-
-            if (!state.isAddedByPoller()) {
-                try {
-                    List<Baseline> baselines = getValidBaselines(build.getProject(), state, Project.getPlevelFromString(levelToPoll), state.getStream(), state.getComponent());
-                    consoleOutput.println( "BASELINES=" + baselines );
-                    state.setBaselines(baselines);
-                    Baseline baseline = selectBaseline(baselines, newest);
-                    logger.debug(id + "I chose " + baseline);
-                    state.setBaseline(baseline);
-                } catch (ScmException e) {
-                    consoleOutput.println("[PUCM] " + e.getMessage());
-                    result = false;
-                }
-
-                /* Print the baselines to jenkins out */
-                printBaselines(state.getBaselines(), consoleOutput);
-            } else {
-                logger.debug(id + "I chose " + state.getBaseline());
-            }
         }
 
-        /* If a baseline is found AND NOT a poll child*/
-        if (state.getBaseline() != null && !state.getPolling().isPollingChilds() ) {
+        /* If a baseline is found */
+        if (state.getBaseline() != null && result ) {
             consoleOutput.println("[PUCM] building baseline " + state.getBaseline());
 
             try {
@@ -344,7 +320,6 @@ public class PucmScm extends SCM {
         PrintStream consoleOutput = listener.getLogger();
         
         try {
-            /* Make deliver view */
             state.setPolling(polling);
 
             try {
@@ -354,7 +329,7 @@ public class PucmScm extends SCM {
                 
                 if (!state.isAddedByPoller()) {
                     /* Find the Baselines and store them */
-                    List<Baseline> baselines = getChildStreamBaselines( build.getProject(), consoleOutput, state, state.getStream(), state.getComponent() );
+                    List<Baseline> baselines = getChildStreamBaselines( build.getProject(), consoleOutput, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
 
                     state.setBaselines(baselines);
                     state.setBaseline(selectBaseline(state.getBaselines(), newest));
@@ -377,7 +352,8 @@ public class PucmScm extends SCM {
                 consoleOutput.println( "[PUCM] Building " + state.getBaseline().getFullyQualifiedName() );
 
                 logger.debug( "Remote delivering...." );
-                RemoteDeliver rmDeliver = new RemoteDeliver(UCMEntity.getStream(stream).getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
+                //RemoteDeliver rmDeliver = new RemoteDeliver(UCMEntity.getStream(stream).getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
+                RemoteDeliver rmDeliver = new RemoteDeliver(state.getBaseline().getStream().getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
 
                 int i = workspace.act(rmDeliver);
                 /*Next line must be after the line above*/
@@ -429,13 +405,17 @@ public class PucmScm extends SCM {
      * @param state
      * @return
      */
-    private List<Baseline> getChildStreamBaselines( AbstractProject<?, ?> project, PrintStream consoleOutput, State state, Stream stream, Component component ) {
+    private List<Baseline> getChildStreamBaselines( AbstractProject<?, ?> project, PrintStream consoleOutput, State state, Stream stream, Component component, boolean pollingChildStreams ) {
         
         List<Stream> streams = null;
         List<Baseline> baselines = new ArrayList<Baseline>();
         
         try {
-            streams = stream.getChildStreams();
+        	if( pollingChildStreams ) {
+        		streams = stream.getChildStreams();
+        	} else {
+        		streams = stream.getSiblingStreams();
+        	}
         } catch( UCMException e1 ) {
             logger.warning( "Could not retrieve streams: " + e1.getMessage() );
         }
@@ -457,9 +437,6 @@ public class PucmScm extends SCM {
                 }
                 consoleOutput.println( found.size() + " baseline" + ( found.size() == 1 ? "" : "s" ) + " found" );
             } catch (ScmException e) {
-                //We won't throw exceptions just because there are no baselines on this particulare stream
-                //we are moving forward...
-                //consoleOutput.println("[PUCM] The stream " + s.getFullyQualifiedName() + " has no baselines we will keep searching on the next stream");
                 consoleOutput.println("No baselines found");
             }
         }
@@ -530,32 +507,22 @@ public class PucmScm extends SCM {
 
         PollingResult p = null;
         consoleOut.println("[PUCM] polling streams: " + polling);
-        if (this.polling.isPollingChilds()) {
             
-            consoleOut.println("[PUCM] we wont poll on the integration stream insted we are looking for all new baselines on all stream that has the defined int stream as there default deliver target");
-            List<Baseline> baselines = getChildStreamBaselines( project, consoleOut, state, state.getStream(), state.getComponent());
+        List<Baseline> baselines = getChildStreamBaselines( project, consoleOut, state, state.getStream(), state.getComponent(), this.polling.isPollingChilds());
 
-            if (baselines.size() > 0) {
-                p = PollingResult.BUILD_NOW;
-                state.setBaselines(baselines);
-                state.setBaseline(selectBaseline(state.getBaselines(), newest));
-            } else {
-                p = PollingResult.NO_CHANGES;
-            }
-
-            logger.debug(id + "FINAL Polling result = " + p.change.toString());
-
-            logger.unsubscribeAll();
-            
-            logger.debug(id + "The POLL state:\n" + state.stringify());
-
-            
+        if (baselines.size() > 0) {
+            p = PollingResult.BUILD_NOW;
+            state.setBaselines(baselines);
+            state.setBaseline(selectBaseline(state.getBaselines(), newest));
         } else {
-        
-            logger.debug(id + "The POLL state:\n" + state.stringify());
-    
-            p = getPossibleBaselines(project, listener, state, state.getStream(), state.getComponent());
+            p = PollingResult.NO_CHANGES;
         }
+
+        logger.debug(id + "FINAL Polling result = " + p.change.toString());
+
+        logger.unsubscribeAll();
+        
+        logger.debug(id + "The POLL state:\n" + state.stringify());
 
         /* Remove state if not being built */
         if( p == PollingResult.NO_CHANGES ) {
@@ -853,6 +820,11 @@ public class PucmScm extends SCM {
     }
     
     
+    
+    
+    public boolean isCreateBaseline() {
+        return this.createBaseline;
+    }
     
     public String getVersionFrom() {
     	return this.versionFrom;

@@ -7,11 +7,13 @@ import java.io.PrintStream;
 
 import net.praqma.clearcase.Cool;
 import net.praqma.clearcase.ucm.UCMException;
+import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.utils.BuildNumber;
+import net.praqma.hudson.exception.ScmException;
 import net.praqma.util.debug.PraqmaLogger;
 import net.praqma.util.debug.PraqmaLogger.Logger;
 
@@ -104,5 +106,21 @@ public abstract class Util {
 		}
 		
 		return number;
+	}
+	
+	public Stream getDeveloperStream(String streamname, String pvob, Stream buildIntegrationStream, Baseline foundationBaseline) throws ScmException {
+		Stream devstream = null;
+
+		try {
+			if (Stream.streamExists(streamname + pvob)) {
+				devstream = Stream.getStream(streamname + pvob, false);
+			} else {
+				devstream = Stream.create(buildIntegrationStream, streamname + pvob, true, foundationBaseline);
+			}
+		} catch (Exception e) {
+			throw new ScmException("Could not get stream: " + e.getMessage());
+		}
+
+		return devstream;
 	}
 }

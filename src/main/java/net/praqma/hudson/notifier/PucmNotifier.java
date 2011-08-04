@@ -268,8 +268,8 @@ public class PucmNotifier extends Notifier {
 
         hudsonOut.println("[PUCM] Build result: " + buildResult);
 
-        /* Poll child feature */
-        if( pstate.getPolling().isPollingChilds() && pstate.needsToBeCompleted() ) {
+        /* Finalize PUCM, deliver + baseline */
+        if( pstate.needsToBeCompleted() ) {
             status.setBuildStatus(buildResult);
             
             boolean complete = buildResult.isBetterThan(Result.FAILURE);
@@ -280,7 +280,7 @@ public class PucmNotifier extends Notifier {
                 hudsonOut.println("Success.");
                 
                 /* If deliver was completed, create the baseline */
-                if( complete ) {
+                if( complete && pstate.getBaselineInformation().createBaseline ) {
                     Baseline childBase = pstate.getBaseline();
                     try {
                         hudsonOut.print("[PUCM] Creating baseline on stream. ");
@@ -322,46 +322,7 @@ public class PucmNotifier extends Notifier {
 
             
         /* Regular PUCM */
-        } else {
-                
-            logger.debug(id + "Trying to run remote tasks");
-            if (ucmDeliverObj != null && ucmDeliverObj.ucmDeliver) {
-                logger.debug(id + "UCM deliver");
-    
-    
-                try {
-                    final Pipe pipe = Pipe.createRemoteToLocal();
-    
-                    Future<Integer> i = null;
-    
-                    i = workspace.actAsync(new RemoteDeliver(buildResult, status, listener, pstate.getComponent().getFullyQualifiedName(),
-                            pstate.getLoadModule(), pstate.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), Integer.toString(build.getNumber()), ucmDeliverObj, logger, pipe));
-                    InputStream is = pipe.getIn();
-                    InputStreamReader isr = new InputStreamReader(is);
-                    BufferedReader br = new BufferedReader(isr);
-                    StringBuilder sb = new StringBuilder();
-    
-                    int j = i.get();
-                } catch (IOException e) {
-                    status.setStable(false);
-                    logger.warning("COULD NOT DELIVER: " + e.getMessage());
-                    logger.warning(e);
-                    hudsonOut.println("[PUCM] Error: The deliver failed: " + e.getMessage());
-                } catch (InterruptedException e) {
-                    status.setStable(false);
-                    logger.warning("COULD NOT DELIVER111: " + e.getMessage());
-                    logger.warning(e);
-                    hudsonOut.println("[PUCM] Error: The deliver failed: " + e.getMessage());
-                } catch (ExecutionException e) {
-                    status.setStable(false);
-                    logger.warning("COULD NOT DELIVER(Excecution): " + e.getMessage());
-                    logger.warning(e);
-                    hudsonOut.println("[PUCM] Error: The deliver failed: " + e.getMessage());
-                }
-    
-                logger.debug(id + "UCM deliver DONE");
-            }
-        }
+        } 
     
         /* Remote post build step, common to all types */
         try {

@@ -24,74 +24,71 @@
     </f:entry>
 
     <f:entry title="Load modules" help="/plugin/PUCM/scm/help-loadModules.html">
-     <select class="setting-input" name="loadModule">
-      <j:set var="modules" value="${descriptor.getLoadModules()}"/>
-       <j:forEach var="lm" items="${modules}">
-        <f:option selected="${scm.loadModule==lm}" value="${lm}">${lm}</f:option>
-          </j:forEach>
-     </select>
+        <select class="setting-input" name="loadModule">
+            <j:set var="modules" value="${descriptor.getLoadModules()}"/>
+            <j:forEach var="lm" items="${modules}">
+                <f:option selected="${scm.loadModule==lm}" value="${lm}">${lm}</f:option>
+            </j:forEach>
+        </select>
     </f:entry>
     
 	<f:entry title="Polling" help="/plugin/PUCM/notifier/help-polling.html">
 		<select class="setting-input" name="Pucm.polling">
-			<f:option selected="${instance.polling == "childs"}" value="child">Poll child streams</f:option>
-			<f:option selected="${instance.polling == "siblings"}" value="sibling">Poll sibling streams</f:option>
+			<f:option selected="${instance.polling == 'childs'}" value="child">Poll child streams</f:option>
+			<f:option selected="${instance.polling == 'siblings'}" value="sibling">Poll sibling streams</f:option>
 		</select>
 	</f:entry>
 
+<!--
     <f:entry title="Poll child stream" help="/plugin/PUCM/scm/help-pollChild.html" >
       <f:checkbox name="PUCM.pollChild" checked="${instance.pollChild}" />
     </f:entry>
+-->
 
 	<f:entry title="Newest" help="/plugin/PUCM/scm/help-newest.html">
 	    <f:checkbox name="PUCM.newest" checked="${instance.newest}" />
 	</f:entry>
-
+	
+    <f:entry title="Create baseline" help="/plugin/PUCM/scm/help-newest.html">
+        <f:checkbox name="PUCM.createBaseline" checked="${instance.createBaseline}" />
+    </f:entry>
 
 	<f:section title="Baseline Creation Options">
 
-		<f:advanced title="En lille test">
-
+		<f:advanced title="">
+	
+				<f:entry title="Get build attributes from UCM project and Component" help="/plugin/PUCM/scm/help-attrproject.html">
+					<f:radio name="Pucm.versionFrom" value="project" checked="${instance.versionFrom == 'project'}" />
+				</f:entry>
+	
+				<f:entry title="Get build attributes from settings" help="/plugin/PUCM/scm/help-attrsettings.html">
+					<f:radio name="Pucm.versionFrom" value="settings" checked="${instance.versionFrom == 'settings'}" />
+				</f:entry>
+	
 				<f:nested>
-
+	
 					<table>
-
-						<f:entry title="Get build attributes from UCM project and Component" help="/plugin/PUCM/scm/help-attrproject.html">
-							<f:radio name="Pucm.versionFrom" value="project" checked="${instance.versionFrom == 'project'}" />
+					    <f:entry title="Major">
+				      		<f:textbox name="Pucm.buildnumberMajor" value="${instance.buildnumberMajor}"/>
+				    	</f:entry>
+	
+					    <f:entry title="Minor">
+				      		<f:textbox name="Pucm.buildnumberMinor" value="${instance.buildnumberMinor}"/>
+				    	</f:entry>
+	
+					    <f:entry title="Patch">
+				      		<f:textbox name="Pucm.buildnumberPatch" value="${instance.buildnumberPatch}"/>
+				    	</f:entry>
+	
+						<f:entry title="Sequence from component" help="/plugin/PUCM/scm/help-sequencefromcomponent.html">
+							<f:radio name="Pucm.buildnumberSequenceSelector" value="component" checked="${instance.buildnumberSequenceSelector == 'component'}" />
 						</f:entry>
-
-						<f:entry title="Get build attributes from settings" help="/plugin/PUCM/scm/help-attrsettings.html">
-							<f:radio name="Pucm.versionFrom" value="settings" checked="${instance.versionFrom == 'settings'}" />
+	
+						<f:entry title="Sequence is the Job number">
+							<f:radio name="Pucm.buildnumberSequenceSelector" value="current" checked="${instance.buildnumberSequenceSelector == 'current'}" />
 						</f:entry>
-
-						<f:nested>
-
-							<table>
-							    <f:entry title="Major">
-						      		<f:textbox name="Pucm.buildnumberMajor" value="${instance.buildnumberMajor}"/>
-						    	</f:entry>
-
-							    <f:entry title="Minor">
-						      		<f:textbox name="Pucm.buildnumberMinor" value="${instance.buildnumberMinor}"/>
-						    	</f:entry>
-
-							    <f:entry title="Patch">
-						      		<f:textbox name="Pucm.buildnumberPatch" value="${instance.buildnumberPatch}"/>
-						    	</f:entry>
-
-								<f:entry title="Sequence from component" help="/plugin/PUCM/scm/help-sequencefromcomponent.html">
-									<f:radio name="Pucm.buildnumberSequenceSelector" value="component" checked="${instance.buildnumberSequenceSelector == 'component'}" />
-								</f:entry>
-
-								<f:entry title="Sequence is the Job number">
-									<f:radio name="Pucm.buildnumberSequenceSelector" value="current" checked="${instance.buildnumberSequenceSelector == 'current'}" />
-								</f:entry>
-							</table>
-
-						</f:nested>
-
 					</table>
-
+	
 				</f:nested>
 
 		</f:advanced>
