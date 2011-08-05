@@ -116,7 +116,7 @@ class RemoteDeliver implements FileCallable<Integer>
 		
 		/* Create the development stream object */
 		/* Append vob to dev stream */
-		this.stream = "pucm_" + System.getenv( "COMPUTERNAME" ) + "_" + jobName + "@" + baseline.getPvob();
+		this.stream = "pucm_" + System.getenv( "COMPUTERNAME" ) + "_" + jobName + "@" + baseline.getPvobString();
 		
 		Stream stream = null;
 		try

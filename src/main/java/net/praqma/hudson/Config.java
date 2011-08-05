@@ -70,16 +70,16 @@ public class Config {
          * hudson, Hudson, jenkins or Jenkins */
         if (buildProject == null) {
             try {
-                project = UCMEntity.getProject("hudson@" + bl.getPvob(), false);
+                project = UCMEntity.getProject("hudson@" + bl.getPvobString(), false);
             } catch (UCMException eh) {
                 try {
-                    project = UCMEntity.getProject("Hudson@" + bl.getPvob(), false);
+                    project = UCMEntity.getProject("Hudson@" + bl.getPvobString(), false);
                 } catch (UCMException eH) {
                     try {
-                        project = UCMEntity.getProject("jenkins@" + bl.getPvob(), false);
+                        project = UCMEntity.getProject("jenkins@" + bl.getPvobString(), false);
                     } catch (UCMException ej) {
                         try {
-                            project = UCMEntity.getProject("Jenkins@" + bl.getPvob(), false);
+                            project = UCMEntity.getProject("Jenkins@" + bl.getPvobString(), false);
                         } catch (UCMException eJ) {
                             logger.warning("The build Project was not found.");
                             //hudsonOut.println("The build project was not found. You can create the project with: \"cleartool mkproject -c \"Your special build Project\" -in rootFolder@\\your_pvob yourBuildProject@\\your_pvob\"."
@@ -97,7 +97,7 @@ public class Config {
             }
         } else {
             try {
-                project = UCMEntity.getProject(buildProject + "@" + bl.getPvob(), false);
+                project = UCMEntity.getProject(buildProject + "@" + bl.getPvobString(), false);
             } catch (Exception e) {
                 //throw new ScmException( "Could not find project 'hudson' in " + pvob + ". You can install the Poject with: \"cleartool mkproject -c \"The special Hudson Project\" -in rootFolder@\\your_pvob hudson@\\your_pvob\"." );
                 logger.warning("The build Project was not found.");
@@ -123,6 +123,6 @@ public class Config {
 
     public static String getPvob(Stream stream) {
 
-        return "@" + stream.getPvob();
+        return "@" + stream.getPvobString();
     }
 }
