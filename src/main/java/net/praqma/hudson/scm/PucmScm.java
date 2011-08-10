@@ -526,6 +526,10 @@ public class PucmScm extends SCM {
 
         if (baselines.size() > 0) {
             p = PollingResult.BUILD_NOW;
+            
+            /* Sort by date */
+            Collections.sort( baselines, new NaturalDateSort() );
+            
             state.setBaselines(baselines);
             state.setBaseline(selectBaseline(state.getBaselines(), newest));
         } else {
