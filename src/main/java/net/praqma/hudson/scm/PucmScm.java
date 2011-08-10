@@ -316,10 +316,16 @@ public class PucmScm extends SCM {
         return null;
     }
     
-    private class NaturalDateSort implements Comparator<Baseline>{
+    public class AscendingDateSort implements Comparator<Baseline>{
 
 		@Override
 		public int compare( Baseline bl1, Baseline bl2 ) {
+			if( bl2.getDate() == null ){
+				return 1;
+			}
+			if( bl1.getDate() == null ){
+				return -1;
+			}
 			return (int) ( ( bl1.getDate().getTime() / 1000 ) - ( bl2.getDate().getTime() / 1000 ) );
 		}
     	
@@ -342,17 +348,16 @@ public class PucmScm extends SCM {
                     /* Find the Baselines and store them */
                     List<Baseline> baselines = getChildStreamBaselines( build.getProject(), consoleOutput, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
 
-                    /* Sort by date */
-                    Collections.sort( baselines, new NaturalDateSort() );
-                    
-                    state.setBaselines(baselines);
-                    state.setBaseline(selectBaseline(state.getBaselines(), newest));
-
                     /* if we did not find any baselines we should return false */
                     if (baselines.size() < 1) {
                         return false;
                     }
-
+                    
+                    /* Sort by date */
+                    Collections.sort( baselines, new AscendingDateSort() );
+                    
+                    state.setBaselines(baselines);
+                    state.setBaseline(selectBaseline(state.getBaselines(), newest));
                 }
                 
                 if(state.getBaselines().size() < 1) {
@@ -528,7 +533,7 @@ public class PucmScm extends SCM {
             p = PollingResult.BUILD_NOW;
             
             /* Sort by date */
-            Collections.sort( baselines, new NaturalDateSort() );
+            Collections.sort( baselines, new AscendingDateSort() );
             
             state.setBaselines(baselines);
             state.setBaseline(selectBaseline(state.getBaselines(), newest));
