@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -314,6 +316,15 @@ public class PucmScm extends SCM {
         return null;
     }
     
+    private class NaturalDateSort implements Comparator<Baseline>{
+
+		@Override
+		public int compare( Baseline bl1, Baseline bl2 ) {
+			return (int) ( ( bl1.getDate().getTime() / 1000 ) - ( bl2.getDate().getTime() / 1000 ) );
+		}
+    	
+    }
+    
     private boolean pollChild( AbstractBuild<?, ?> build, State state, BuildListener listener ) {
         boolean result = true;
         FilePath workspace = build.getWorkspace();
@@ -331,6 +342,9 @@ public class PucmScm extends SCM {
                     /* Find the Baselines and store them */
                     List<Baseline> baselines = getChildStreamBaselines( build.getProject(), consoleOutput, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
 
+                    /* Sort by date */
+                    Collections.sort( baselines, new NaturalDateSort() );
+                    
                     state.setBaselines(baselines);
                     state.setBaseline(selectBaseline(state.getBaselines(), newest));
 
