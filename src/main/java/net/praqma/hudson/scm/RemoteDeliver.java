@@ -15,6 +15,7 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.view.SnapshotView;
+import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.util.debug.PraqmaLogger.Logger;
@@ -130,7 +131,7 @@ class RemoteDeliver implements FileCallable<Integer> {
         /* Make deliver view */
         try {
             snapview = makeDeliverView(target, workspace);
-            baseline.deliver(baseline.getStream(), stream, snapview.GetViewRoot(), snapview.GetViewtag(), true, false, true);
+            baseline.deliver(baseline.getStream(), stream.getDefaultTarget(), snapview.GetViewRoot(), snapview.GetViewtag(), true, false, true);
             //baseline.promote();
         } catch (UCMException e) {
             throw new IOException(e.getMessage());
@@ -151,7 +152,7 @@ class RemoteDeliver implements FileCallable<Integer> {
         String viewtag = newJobName + "_" + System.getenv("COMPUTERNAME") + "_" + stream.getShortname();
         hudsonOut.println("[PUCM] Trying to make deliver view " + viewtag);
 
-        File viewroot = new File(workspace.getPath() + File.separator + "view");
+        File viewroot = new File(workspace.getPath() + File.separator + "deliver_view");
 
         hudsonOut.println("[PUCM] viewtag: " + viewtag);
 
@@ -205,14 +206,14 @@ class RemoteDeliver implements FileCallable<Integer> {
                 if (e.stdout != null) {
                     hudsonOut.println(e.stdout);
                 }
-                throw new ScmException("View not found in this region, but view with viewtag '" + viewtag
-                        + "' might exists in the other regions. Try changing the region Hudson or the slave runs in.");
+                throw new ScmException("View not found in this region, but views with viewtag '" + viewtag
+                        + "' might exist in the other regions. Try changing the region Hudson or the slave runs in.");
             }
         }
 
         try {
             hudsonOut.println("[PUCM] Updating deliver view using " + loadModule.toLowerCase() + " modules...");
-            snapview.Update(true, true, true, false, null, loadModule);
+            snapview.Update(true, true, true, false, COMP.valueOf(loadModule.toUpperCase()), null);
         } catch (UCMException e) {
             if (e.stdout != null) {
                 hudsonOut.println(e.stdout);

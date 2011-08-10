@@ -148,6 +148,7 @@ public class PucmState {
         private Logger logger;
         private BaselineInformation bi;
         private SnapshotView snapView;
+        private SnapshotView deliverView;
 
         public State() {
         }
@@ -325,6 +326,14 @@ public class PucmState {
         
         public void setSnapView(SnapshotView snapView) {
             this.snapView = snapView;
+        }
+        
+        public SnapshotView getDeliverView() {
+            return this.deliverView;
+        }
+        
+        public void setDeliverView(SnapshotView deliverView) {
+            this.deliverView = deliverView;
         }
         
         public void setNeedsToBeCompleted( boolean s ) {

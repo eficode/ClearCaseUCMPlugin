@@ -145,21 +145,18 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 		devstream = getDeveloperStream("stream:" + viewtag,
 				Config.getPvob(integrationstream), hudsonOut);
 
-		if (UCMView.ViewExists(viewtag)) {
-			hudsonOut.println("[PUCM] Reusing viewtag: " + viewtag + "\n");
+		if( UCMView.ViewExists( viewtag ) ) {
+			hudsonOut.println( "[PUCM] Reusing viewtag: " + viewtag + "\n" );
 			try {
-				SnapshotView.ViewrootIsValid(viewroot);
-				hudsonOut.println("[PUCM] Viewroot is valid in ClearCase");
+				SnapshotView.ViewrootIsValid( viewroot );
+				hudsonOut.println( "[PUCM] Viewroot is valid in ClearCase" );
 			} catch (UCMException ucmE) {
 				try {
-					hudsonOut
-							.println("[PUCM] Viewroot not valid - now regenerating.... ");
-					SnapshotView.RegenerateViewDotDat(viewroot, viewtag);
+					hudsonOut.println( "[PUCM] Viewroot not valid - now regenerating.... " );
+					SnapshotView.RegenerateViewDotDat( viewroot, viewtag );
 				} catch (UCMException ucmEe) {
-					log += logger.warning(id + "Could regenerate workspace.");
-					throw new ScmException(
-							"Could not make workspace - could not regenerate view: "
-									+ ucmEe.getMessage() + " Type: " + "");
+					log += logger.warning( id + "Could regenerate workspace." );
+					throw new ScmException( "Could not make workspace - could not regenerate view: " + ucmEe.getMessage() + " Type: " + "" );
 				}
 			}
 
@@ -202,8 +199,7 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 			hudsonOut.print("[PUCM] Updating view using "
 					+ loadModule.toLowerCase() + " modules...");
 
-			sv.Update(true, true, true, false,
-					COMP.valueOf(loadModule.toUpperCase()), null);
+			sv.Update(true, true, true, false, COMP.valueOf(loadModule.toUpperCase()), null);
 			hudsonOut.println(" DONE");
 		} catch (UCMException e) {
 			throw new ScmException("Could not update snapshot view. "
