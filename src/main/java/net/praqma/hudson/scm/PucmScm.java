@@ -767,17 +767,17 @@ public class PucmScm extends SCM {
             ps.println("[PUCM] Retrieved baselines:");
             if (!(baselines.size() > 20)) {
                 for (Baseline b : baselines) {
-                    ps.println("[PUCM] + " + b.getShortname());
+                    ps.println("[PUCM] + " + b.getShortname() + "(" + b.getDate() + ")");
                 }
             } else {
                 int i = baselines.size();
-                ps.println("[PUCM] + " + baselines.get(0).getShortname());
-                ps.println("[PUCM] + " + baselines.get(1).getShortname());
-                ps.println("[PUCM] + " + baselines.get(2).getShortname());
+                ps.println("[PUCM] + " + baselines.get(0).getShortname() + "(" + baselines.get(0).getDate() + ")");
+                ps.println("[PUCM] + " + baselines.get(1).getShortname() + "(" + baselines.get(1).getDate() + ")");
+                ps.println("[PUCM] + " + baselines.get(2).getShortname() + "(" + baselines.get(2).getDate() + ")");
                 ps.println("[PUCM]   ...(" + (i - 6) + " baselines not shown)...");
-                ps.println("[PUCM] + " + baselines.get(i - 3).getShortname());
-                ps.println("[PUCM] + " + baselines.get(i - 2).getShortname());
-                ps.println("[PUCM] + " + baselines.get(i - 1).getShortname());
+                ps.println("[PUCM] + " + baselines.get(i - 3).getShortname() + "(" + baselines.get(i-3).getDate() + ")");
+                ps.println("[PUCM] + " + baselines.get(i - 2).getShortname() + "(" + baselines.get(i-2).getDate() + ")");
+                ps.println("[PUCM] + " + baselines.get(i - 1).getShortname() + "(" + baselines.get(i-1).getDate() + ")");
             }
         }
     }
