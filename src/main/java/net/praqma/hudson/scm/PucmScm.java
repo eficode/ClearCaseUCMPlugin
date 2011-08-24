@@ -228,10 +228,15 @@ public class PucmScm extends SCM {
         } else {
        		result = pollStream( build, state, listener );
         }
+        
+        /* Only start deliver when NOT polling self */
+        if( !polling.isPollingSelf() ) {
+        	result = beginDeliver( build, state, listener );
+        }
 
         /* If a baseline is found */
         if (state.getBaseline() != null && result ) {
-            consoleOutput.println("[PUCM] building baseline " + state.getBaseline());
+            consoleOutput.println("[PUCM] building " + state.getBaseline());
 
             try {
                 /* Force the Baseline to be loaded */
@@ -333,7 +338,6 @@ public class PucmScm extends SCM {
     
     private boolean pollStream( AbstractBuild<?, ?> build, State state, BuildListener listener ) {
         boolean result = true;
-        FilePath workspace = build.getWorkspace();
         PrintStream consoleOutput = listener.getLogger();
         
         state.setPolling(polling);
@@ -376,66 +380,66 @@ public class PucmScm extends SCM {
             printBaselines(state.getBaselines(), consoleOutput);
             consoleOutput.println( "" );
             
-            consoleOutput.println( "[PUCM] Building " + state.getBaseline().getFullyQualifiedName() );
-
         } catch( Exception e ) {
             consoleOutput.println("[PUCM] " + e.getMessage());
             logger.warning( e );
             return false;
         }
         
-        /* Only deliver when NOT polling self */
-        if( !polling.isPollingSelf() ) {
-            try {
-                logger.debug( "Remote delivering...." );
-                //RemoteDeliver rmDeliver = new RemoteDeliver(UCMEntity.getStream(stream).getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
-                RemoteDeliver rmDeliver = new RemoteDeliver(state.getBaseline().getStream().getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
+        return result;
+    }
+    
+    public boolean beginDeliver( AbstractBuild<?, ?> build, State state, BuildListener listener ) {
+        FilePath workspace = build.getWorkspace();
+        PrintStream consoleOutput = listener.getLogger();
+        boolean result = true;
+    	
+        try {
+            logger.debug( "Remote delivering...." );
+            //RemoteDeliver rmDeliver = new RemoteDeliver(UCMEntity.getStream(stream).getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
+            RemoteDeliver rmDeliver = new RemoteDeliver(state.getBaseline().getStream().getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
 
-                int i = workspace.act(rmDeliver);
-                /*Next line must be after the line above*/
-                state.setSnapView(rmDeliver.getSnapShotView());
-            } catch (IOException e) {
-                consoleOutput.println("[PUCM] " + e.getMessage());
-                result = false;
-            } catch (UCMException e) {
-                consoleOutput.println("[PUCM] " + e.getMessage());
-                result = false;
-            } catch( InterruptedException e ) {
-                consoleOutput.println("[PUCM] " + e.getMessage());
-                logger.warning( e );
-                result = false;
-            }
-            
-            consoleOutput.println("[PUCM] Deliver " + (result ? "succeeded" : "failed"));
-            /* If failed, cancel the deliver */
-            
-            if( !result ) {
-                try {
-                    consoleOutput.print("[PUCM] Trying to cancel. ");
-                    Util.completeRemoteDeliver( workspace, listener, state, false );
-                    consoleOutput.println("Done");
-                    
-                    /* Make sure, that the post step is not run */
-                    state.setNeedsToBeCompleted( false );
-                    
-                } catch( Exception e ) {
-                    consoleOutput.println("Failed");
-                    logger.warning(e);
-                    consoleOutput.println("[PUCM] " + e.getMessage());
-                }
-            }
-            
-            try {
-				state.setStream(UCMEntity.getStream(stream));
-			} catch (UCMException e) {
-                consoleOutput.println("[PUCM] " + e.getMessage());
-                logger.warning( e );
-                result = false;
-			}
-            return result;
+            int i = workspace.act(rmDeliver);
+            /*Next line must be after the line above*/
+            state.setSnapView(rmDeliver.getSnapShotView());
+        } catch (IOException e) {
+            consoleOutput.println("[PUCM] " + e.getMessage());
+            result = false;
+        } catch (UCMException e) {
+            consoleOutput.println("[PUCM] " + e.getMessage());
+            result = false;
+        } catch( InterruptedException e ) {
+            consoleOutput.println("[PUCM] " + e.getMessage());
+            logger.warning( e );
+            result = false;
         }
-            
-
+        
+        consoleOutput.println("[PUCM] Deliver " + (result ? "succeeded" : "failed"));
+        /* If failed, cancel the deliver */
+        
+        if( !result ) {
+            try {
+                consoleOutput.print("[PUCM] Trying to cancel. ");
+                Util.completeRemoteDeliver( workspace, listener, state, false );
+                consoleOutput.println("Done");
+                
+                /* Make sure, that the post step is not run */
+                state.setNeedsToBeCompleted( false );
+                
+            } catch( Exception e ) {
+                consoleOutput.println("Failed");
+                logger.warning(e);
+                consoleOutput.println("[PUCM] " + e.getMessage());
+            }
+        }
+        
+        try {
+			state.setStream(UCMEntity.getStream(stream));
+		} catch (UCMException e) {
+            consoleOutput.println("[PUCM] " + e.getMessage());
+            logger.warning( e );
+            result = false;
+		}
         
         return result;
     }
