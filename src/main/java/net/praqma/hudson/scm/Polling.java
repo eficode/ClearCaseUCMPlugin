@@ -3,6 +3,7 @@ package net.praqma.hudson.scm;
 public class Polling {
 	
 	enum PollingType {
+		self,
 		childs,
 		siblings
 	}
@@ -12,6 +13,8 @@ public class Polling {
 	public Polling( String polling ) {
 		if( polling.equals("child") ) {
 			this.type = PollingType.childs;
+		} else if( polling.equals("self") ) {
+			this.type = PollingType.self;			
 		} else {
 			this.type = PollingType.siblings;
 		}
@@ -27,6 +30,14 @@ public class Polling {
 	
 	public boolean isPollingSiblings() {
 		if( this.type.equals(PollingType.siblings) ) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public boolean isPollingSelf() {
+		if( this.type.equals(PollingType.self) ) {
 			return true;
 		} else {
 			return false;

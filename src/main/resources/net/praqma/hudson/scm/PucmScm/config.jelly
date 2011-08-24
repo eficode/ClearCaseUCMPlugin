@@ -34,6 +34,7 @@
     
 	<f:entry title="Polling" help="/plugin/PUCM/notifier/help-polling.html">
 		<select class="setting-input" name="Pucm.polling">
+		    <f:option selected="${instance.polling == 'self'}" value="self">Poll self</f:option>
 			<f:option selected="${instance.polling == 'childs'}" value="child">Poll child streams</f:option>
 			<f:option selected="${instance.polling == 'siblings'}" value="sibling">Poll sibling streams</f:option>
 		</select>

@@ -224,10 +224,8 @@ public class PucmScm extends SCM {
         if (build.getBuildVariables().get(baselinevalue) != null) {
             logger.debug( "BASELINE: " + baselinevalue );
             result = doBaseline( build, baselinevalue, state, listener );
-        }
-        /* Call pollChild if necessary */
-        else {
-            result = pollChild( build, state, listener );
+        } else {
+       		result = pollStream( build, state, listener );
         }
 
         /* If a baseline is found */
@@ -301,6 +299,7 @@ public class PucmScm extends SCM {
         
         return result;
     }
+
     
     public String getBaselineValue( AbstractBuild<?, ?> build ) {
         Collection<?> c = build.getBuildVariables().keySet();
@@ -331,45 +330,60 @@ public class PucmScm extends SCM {
     	
     }
     
-    private boolean pollChild( AbstractBuild<?, ?> build, State state, BuildListener listener ) {
+    private boolean pollStream( AbstractBuild<?, ?> build, State state, BuildListener listener ) {
         boolean result = true;
         FilePath workspace = build.getWorkspace();
         PrintStream consoleOutput = listener.getLogger();
         
+        state.setPolling(polling);
+
         try {
-            state.setPolling(polling);
 
-            try {
-
-                printParameters(consoleOutput);
-                state.setStream(UCMEntity.getStream(stream));
-                
-                if (!state.isAddedByPoller()) {
+            printParameters(consoleOutput);
+            state.setStream(UCMEntity.getStream(stream));
+            
+            if (!state.isAddedByPoller()) {
+            	
+            	List<Baseline> baselines = null;
+            	/* Old skool self polling */
+            	if( polling.isPollingSelf() ) {
+            		baselines = getValidBaselines(build.getProject(), state, Project.getPlevelFromString(levelToPoll), state.getStream(), state.getComponent());
+            	} else {
                     /* Find the Baselines and store them */
-                    List<Baseline> baselines = getChildStreamBaselines( build.getProject(), consoleOutput, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
+                    baselines = getChildStreamBaselines( build.getProject(), consoleOutput, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
+            	}
 
-                    /* if we did not find any baselines we should return false */
-                    if (baselines.size() < 1) {
-                        return false;
-                    }
-                    
-                    /* Sort by date */
-                    Collections.sort( baselines, new AscendingDateSort() );
-                    
-                    state.setBaselines(baselines);
-                    state.setBaseline(selectBaseline(state.getBaselines(), newest));
-                }
-                
-                if(state.getBaselines().size() < 1) {
+                /* if we did not find any baselines we should return false */
+                if (baselines.size() < 1) {
                     return false;
                 }
                 
-                /* Print the baselines to jenkins out */
-                printBaselines(state.getBaselines(), consoleOutput);
-                consoleOutput.println( "" );
+                /* Sort by date */
+                Collections.sort( baselines, new AscendingDateSort() );
                 
-                consoleOutput.println( "[PUCM] Building " + state.getBaseline().getFullyQualifiedName() );
+                state.setBaselines(baselines);
+                state.setBaseline(selectBaseline(state.getBaselines(), newest));
+            }
+            
+            if(state.getBaselines().size() < 1) {
+                return false;
+            }
+            
+            /* Print the baselines to jenkins out */
+            printBaselines(state.getBaselines(), consoleOutput);
+            consoleOutput.println( "" );
+            
+            consoleOutput.println( "[PUCM] Building " + state.getBaseline().getFullyQualifiedName() );
 
+        } catch( Exception e ) {
+            consoleOutput.println("[PUCM] " + e.getMessage());
+            logger.warning( e );
+            return false;
+        }
+        
+        /* Only deliver when NOT polling self */
+        if( !polling.isPollingSelf() ) {
+            try {
                 logger.debug( "Remote delivering...." );
                 //RemoteDeliver rmDeliver = new RemoteDeliver(UCMEntity.getStream(stream).getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
                 RemoteDeliver rmDeliver = new RemoteDeliver(state.getBaseline().getStream().getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
@@ -408,11 +422,17 @@ public class PucmScm extends SCM {
                 }
             }
             
-            state.setStream(UCMEntity.getStream(stream));
+            try {
+				state.setStream(UCMEntity.getStream(stream));
+			} catch (UCMException e) {
+                consoleOutput.println("[PUCM] " + e.getMessage());
+                logger.warning( e );
+                result = false;
+			}
             return result;
-        } catch (UCMException ex) {
-            java.util.logging.Logger.getLogger(PucmScm.class.getName()).log(Level.SEVERE, null, ex);
         }
+            
+
         
         return result;
     }

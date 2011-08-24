@@ -268,8 +268,9 @@ public class PucmNotifier extends Notifier {
 
         hudsonOut.println("[PUCM] Build result: " + buildResult);
 
-        /* Finalize PUCM, deliver + baseline */
-        if( pstate.needsToBeCompleted() ) {
+        /* Finalize PUCM, deliver + baseline 
+         * Only do this for child and sibling polling */
+        if( pstate.needsToBeCompleted() && !pstate.getPolling().isPollingSelf() ) {
             status.setBuildStatus(buildResult);
             
             boolean complete = buildResult.isBetterThan(Result.FAILURE);
@@ -319,9 +320,6 @@ public class PucmNotifier extends Notifier {
                     logger.warning( e );
                 }
             }
-
-            
-        /* Regular PUCM */
         } 
     
         /* Remote post build step, common to all types */

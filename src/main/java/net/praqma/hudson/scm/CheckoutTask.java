@@ -269,10 +269,13 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 				buffer.append(("<author>Unknown</author>"));
 			}
 			List<Version> versions = act.changeset.versions;
-			String temp;
+			String temp = null;
 			for (Version v : versions) {
-				temp = "<file>" + v.getSFile() + " (" + v.getRevision()
-						+ ") user: " + v.blame() + "</file>";
+				try {
+					temp = "<file>" + v.getSFile() + " (" + v.getRevision() + ") user: " + v.blame() + "</file>";
+				} catch (UCMException e) {
+					logger.warning( "Could not generate log" );
+				}
 				buffer.append(temp);
 			}
 			buffer.append("</activity>");
