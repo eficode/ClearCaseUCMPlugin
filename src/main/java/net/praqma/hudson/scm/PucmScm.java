@@ -38,6 +38,7 @@ import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Project.Plevel;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
+import net.praqma.clearcase.ucm.entities.UCMEntity.LabelStatus;
 import net.praqma.clearcase.ucm.utils.BaselineList;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.ScmException;
@@ -352,6 +353,8 @@ public class PucmScm extends SCM {
                     /* Find the Baselines and store them */
                     baselines = getChildStreamBaselines( build.getProject(), consoleOutput, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
             	}
+            	
+            	filterBaselines( baselines );
 
                 /* if we did not find any baselines we should return false */
                 if (baselines.size() < 1) {
@@ -547,39 +550,47 @@ public class PucmScm extends SCM {
         PollingResult p = null;
         consoleOut.println("[PUCM] polling streams: " + polling);
         
-        List<Baseline> baselines = null;
-    	/* Old skool self polling */
-    	if( polling.isPollingSelf() ) {
-    		try {
+        try {
+	        List<Baseline> baselines = null;
+	    	/* Old skool self polling */
+	    	if( polling.isPollingSelf() ) {
+	    		
 				baselines = getValidBaselines(project, state, Project.getPlevelFromString(levelToPoll), state.getStream(), state.getComponent());
-			} catch (ScmException e) {
-				logger.warning( "Could not get any baselines: " + e.getMessage() );
-			}
-    	} else {
-            /* Find the Baselines and store them */
-            baselines = getChildStreamBaselines( project, consoleOut, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
-    	}
-            
-        //List<Baseline> baselines = getChildStreamBaselines( project, consoleOut, state, state.getStream(), state.getComponent(), this.polling.isPollingChilds());
 
-        if( baselines != null && baselines.size() > 0 ) {
-            p = PollingResult.BUILD_NOW;
-            
-            /* Sort by date */
-            Collections.sort( baselines, new AscendingDateSort() );
-            
-            state.setBaselines(baselines);
-            state.setBaseline(selectBaseline(state.getBaselines(), newest));
-        } else {
-            p = PollingResult.NO_CHANGES;
-        }
-
-        logger.debug(id + "FINAL Polling result = " + p.change.toString());
-
-        logger.unsubscribeAll();
+	    	} else {
+	            /* Find the Baselines and store them */
+	            baselines = getChildStreamBaselines( project, consoleOut, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
+	    	}
+	            
+	        filterBaselines( baselines );
+	
+	        if( baselines.size() > 0 ) {
+	            p = PollingResult.BUILD_NOW;
+	            
+	            /* Sort by date */
+	            Collections.sort( baselines, new AscendingDateSort() );
+	            
+	            state.setBaselines(baselines);
+	            state.setBaseline(selectBaseline(state.getBaselines(), newest));
+	        } else {
+	            p = PollingResult.NO_CHANGES;
+	        }
+	
+	        logger.debug(id + "FINAL Polling result = " + p.change.toString());
+	
+	        logger.unsubscribeAll();
+	        
+	        logger.debug(id + "The POLL state:\n" + state.stringify());
+	
+	        /* Remove state if not being built */
+	        if( p == PollingResult.NO_CHANGES ) {
+	            state.remove();
+	        }
+	    } catch (ScmException e) {
+			logger.warning( "Could not get any baselines: " + e.getMessage() );
+			p = PollingResult.NO_CHANGES;
+		}
         
-        logger.debug(id + "The POLL state:\n" + state.stringify());
-
         /* Remove state if not being built */
         if( p == PollingResult.NO_CHANGES ) {
             state.remove();
@@ -785,6 +796,33 @@ public class PucmScm extends SCM {
         }
 
         return validBaselines;
+    }
+    
+    
+    /**
+     * Filter out baselines that is involved in a deliver or
+     * does not have a label
+     * @param baselines
+     */
+    private void filterBaselines( List<Baseline> baselines ) {
+    	
+    	/* Remove deliver baselines */
+    	Iterator<Baseline> it = baselines.iterator();
+    	while( it.hasNext() ) {
+    		Baseline bl = it.next();
+    		if( bl.getShortname().startsWith( "deliverbl." ) ) {
+    			it.remove();
+    		}
+    	}
+    	
+    	/* Remove unlabeled baselines */
+    	Iterator<Baseline> it2 = baselines.iterator();
+    	while( it2.hasNext() ) {
+    		Baseline bl = it2.next();
+    		if( bl.getLabelStatus().equals( LabelStatus.UNLABLED ) ) {
+    			it.remove();
+    		}
+    	}
     }
 
     private void printParameters(PrintStream ps) {
