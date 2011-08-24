@@ -546,10 +546,23 @@ public class PucmScm extends SCM {
 
         PollingResult p = null;
         consoleOut.println("[PUCM] polling streams: " + polling);
+        
+        List<Baseline> baselines = null;
+    	/* Old skool self polling */
+    	if( polling.isPollingSelf() ) {
+    		try {
+				baselines = getValidBaselines(project, state, Project.getPlevelFromString(levelToPoll), state.getStream(), state.getComponent());
+			} catch (ScmException e) {
+				logger.warning( "Could not get any baselines: " + e.getMessage() );
+			}
+    	} else {
+            /* Find the Baselines and store them */
+            baselines = getChildStreamBaselines( project, consoleOut, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
+    	}
             
-        List<Baseline> baselines = getChildStreamBaselines( project, consoleOut, state, state.getStream(), state.getComponent(), this.polling.isPollingChilds());
+        //List<Baseline> baselines = getChildStreamBaselines( project, consoleOut, state, state.getStream(), state.getComponent(), this.polling.isPollingChilds());
 
-        if (baselines.size() > 0) {
+        if( baselines != null && baselines.size() > 0 ) {
             p = PollingResult.BUILD_NOW;
             
             /* Sort by date */
