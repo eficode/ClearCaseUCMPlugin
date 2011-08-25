@@ -17,6 +17,7 @@ import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
 import net.praqma.clearcase.ucm.view.UCMView;
+import net.praqma.hudson.Util;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.util.debug.PraqmaLogger.Logger;
 
@@ -64,13 +65,9 @@ class RemoteDeliver implements FileCallable<Integer> {
     public Integer invoke(File workspace, VirtualChannel channel) throws IOException {
         
         hudsonOut = listener.getLogger();
-        
-        hudsonOut.print( "[PUCM] Setting up remote. " );
 
         //TODO this should not be necessary cause its done in the Config.java file ????.
         UCM.setContext(UCM.ContextType.CLEARTOOL);
-
-        hudsonOut.print( "Baseline " );
         
         /* Create the baseline object */
         Baseline baseline = null;
@@ -80,10 +77,8 @@ class RemoteDeliver implements FileCallable<Integer> {
             if (e.stdout != null) {
                 hudsonOut.println(e.stdout);
             }
-            throw new IOException("[PUCM] Could not create Baseline object: " + e.getMessage());
+            throw new IOException("Could not create Baseline object: " + e.getMessage());
         }
-        
-        hudsonOut.print( "done. Stream " );
 
         /* Create the development stream object */
         /* Append vob to dev stream */
@@ -95,23 +90,8 @@ class RemoteDeliver implements FileCallable<Integer> {
             if (e.stdout != null) {
                 hudsonOut.println(e.stdout);
             }
-            throw new IOException("[PUCM] Could not create Stream object: " + e.getMessage());
+            throw new IOException("Could not create Stream object: " + e.getMessage());
         }
-        
-        hudsonOut.print( "done. Component " );
-
-        /* Create the component object */
-        Component component = null;
-        try {
-            component = UCMEntity.getComponent(this.component);
-        } catch (UCMException e) {
-            if (e.stdout != null) {
-                hudsonOut.println(e.stdout);
-            }
-            throw new IOException("[PUCM] Could not create Component object: " + e.getMessage());
-        }
-        
-        hudsonOut.print( "done. Target " );
 
         /* Get the target Stream */
         Stream target = null;
@@ -121,16 +101,13 @@ class RemoteDeliver implements FileCallable<Integer> {
             if (e.stdout != null) {
                 hudsonOut.println(e.stdout);
             }
-            throw new IOException("[PUCM] The Stream did not have a default target: " + e.getMessage());
+            throw new IOException("The Stream did not have a default target: " + e.getMessage());
         }
-        
-        hudsonOut.println( "done. View " );
-        
-        hudsonOut.println( "STREAM = " + stream );
 
         /* Make deliver view */
         try {
             snapview = makeDeliverView(target, workspace);
+        	//snapview = Util.makeView(target, workspace, listener, loadModule, jobName, "view");
             baseline.deliver(baseline.getStream(), stream.getDefaultTarget(), snapview.GetViewRoot(), snapview.GetViewtag(), true, false, true);
             //baseline.promote();
         } catch (UCMException e) {
@@ -138,8 +115,6 @@ class RemoteDeliver implements FileCallable<Integer> {
         } catch (ScmException e) {
             throw new IOException("Could not create deliver view: " + e.getMessage());
         }
-        
-        hudsonOut.println( "done. " );
 
         /* End of deliver */
         return 1;
@@ -150,20 +125,19 @@ class RemoteDeliver implements FileCallable<Integer> {
         String newJobName = jobName.replaceAll("\\s", "_");
 
         String viewtag = newJobName + "_" + System.getenv("COMPUTERNAME") + "_" + stream.getShortname();
-        hudsonOut.println("[PUCM] Trying to make deliver view " + viewtag);
-
+        
         File viewroot = new File(workspace.getPath() + File.separator + "deliver_view");
 
-        hudsonOut.println("[PUCM] viewtag: " + viewtag);
+        hudsonOut.println("[PUCM] View root: " + viewroot.getAbsolutePath());
+        hudsonOut.println("[PUCM] View tag : " + viewtag);        
 
         try {
             if (viewroot.exists()) {
-                hudsonOut.println("[PUCM] Reusing viewroot: " + viewroot.toString());
+                hudsonOut.println("[PUCM] Reusing view root");
             } else {
                 if (viewroot.mkdir()) {
-                    hudsonOut.println("[PUCM] Created folder for viewroot:  " + viewroot.toString());
                 } else {
-                    throw new ScmException("Could not create folder for viewroot:  " + viewroot.toString());
+                    throw new ScmException("Could not create folder for view root:  " + viewroot.toString());
                 }
             }
         } catch (Exception e) {
@@ -172,13 +146,12 @@ class RemoteDeliver implements FileCallable<Integer> {
         }
 
         if (UCMView.ViewExists(viewtag)) {
-            hudsonOut.println("[PUCM] Reusing viewtag: " + viewtag + "\n");
+            hudsonOut.println("[PUCM] Reusing view tag");
             try {
                 SnapshotView.ViewrootIsValid(viewroot);
-                hudsonOut.println("[PUCM] Viewroot is valid in ClearCase");
             } catch (UCMException ucmE) {
                 try {
-                    hudsonOut.println("[PUCM] Viewroot not valid - now regenerating.... ");
+                    hudsonOut.println("[PUCM] Regenerating invalid view root");
                     SnapshotView.RegenerateViewDotDat(viewroot, viewtag);
                 } catch (UCMException ucmEx) {
                     if (ucmEx.stdout != null) {
@@ -201,7 +174,7 @@ class RemoteDeliver implements FileCallable<Integer> {
             try {
                 snapview = SnapshotView.Create(stream, viewroot, viewtag);
 
-                hudsonOut.println("[PUCM] View doesn't exist. Created new view in local workspace: " + viewroot.getAbsolutePath());
+                hudsonOut.println("[PUCM] Created new view in local workspace: " + viewroot.getAbsolutePath());
             } catch (UCMException e) {
                 if (e.stdout != null) {
                     hudsonOut.println(e.stdout);

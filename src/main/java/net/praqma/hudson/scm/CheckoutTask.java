@@ -79,17 +79,15 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 			UCM.setContext(UCM.ContextType.CLEARTOOL);
 			makeWorkspace(workspace);
 			BaselineDiff bldiff = bl.getDifferences(sv);
-			diff = createChangelog(bldiff, hudsonOut);
+			diff = Util.createChangelog(bldiff, bl);
 			doPostBuild = true;
 		} catch (net.praqma.hudson.exception.ScmException e) {
 			log += logger.debug(id + "SCM exception: " + e.getMessage());
 			hudsonOut.println("[PUCM] SCM exception: " + e.getMessage());
 		} catch (UCMException e) {
-			log += logger
-					.debug(id + "Could not get changes. " + e.getMessage());
+			log += logger.debug(id + "Could not get changes. " + e.getMessage());
 			log += logger.info(e);
-			hudsonOut
-					.println("[PUCM] Could not get changes. " + e.getMessage());
+			hudsonOut.println("[PUCM] Could not get changes. " + e.getMessage());
 		}
 
 		log += logger.info("CheckoutTask finished normally");
@@ -104,13 +102,10 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 			integrationstream = UCMEntity.getStream(intStream, false);
 			bl = Baseline.getBaseline(baselinefqname);
 		} catch (UCMException e) {
-			throw new ScmException(
-					"Could not get stream. Job might run on machine with different region. "
-							+ e.getMessage());
+			throw new ScmException(	"Could not get stream. Job might run on machine with different region. " + e.getMessage());
 		}
 		if (workspace != null) {
-			log += logger.debug(id + "workspace: "
-					+ workspace.getAbsolutePath());
+			log += logger.debug(id + "workspace: " + workspace.getAbsolutePath());
 		} else {
 			log += logger.debug(id + "workspace must be null???");
 		}
@@ -252,41 +247,7 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 		return devstream;
 	}
 
-	private String createChangelog(BaselineDiff changes, PrintStream hudsonOut) {
-		StringBuffer buffer = new StringBuffer();
 
-		buffer.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-		buffer.append("<changelog>");
-		buffer.append("<changeset>");
-		buffer.append("<entry>");
-		buffer.append(("<blName>" + bl.getShortname() + "</blName>"));
-		for (Activity act : changes) {
-			buffer.append("<activity>");
-			buffer.append(("<actName>" + act.getShortname() + "</actName>"));
-			try {
-				buffer.append(("<author>" + act.getUser() + "</author>"));
-			} catch (UCMException e) {
-				buffer.append(("<author>Unknown</author>"));
-			}
-			List<Version> versions = act.changeset.versions;
-			String temp = null;
-			for (Version v : versions) {
-				try {
-					temp = "<file>" + v.getSFile() + " (" + v.getRevision() + ") user: " + v.blame() + "</file>";
-				} catch (UCMException e) {
-					logger.warning( "Could not generate log" );
-				}
-				buffer.append(temp);
-			}
-			buffer.append("</activity>");
-		}
-		buffer.append("</entry>");
-		buffer.append("</changeset>");
-
-		buffer.append("</changelog>");
-
-		return buffer.toString();
-	}
 
 	public SnapshotView getSnapshotView() {
 		return sv;

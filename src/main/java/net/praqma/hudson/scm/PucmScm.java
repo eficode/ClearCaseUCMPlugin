@@ -231,55 +231,65 @@ public class PucmScm extends SCM {
        		result = pollStream( build, state, listener );
         }
         
-        /* Only start deliver when NOT polling self */
-        if( !polling.isPollingSelf() ) {
-        	result = beginDeliver( build, state, listener );
-        }
-
         /* If a baseline is found */
         if (state.getBaseline() != null && result ) {
-            consoleOutput.println("[PUCM] building " + state.getBaseline());
-
-            try {
-                /* Force the Baseline to be loaded */
-                try {
-                    state.getBaseline().load();
-                } catch (UCMException e) {
-                    logger.debug(id + "Could not load Baseline");
-                    consoleOutput.println("[PUCM] Could not load Baseline.");
-                }
-
-
-                build.setDescription("<small>" + state.getBaseline() + "</small>");
-                CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream().getFullyQualifiedName(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, logger);
-
-                Tuple<String, String> ctresult = workspace.act(ct);
-                String changelog = ctresult.t1;
-                logger.empty(ctresult.t2);
-
-                /* Write change log */
-                try {
-                    FileOutputStream fos = new FileOutputStream(changelogFile);
-                    fos.write(changelog.getBytes());
-                    fos.close();
-                } catch (IOException e) {
-                    logger.debug(id + "Could not write change log file");
-                    consoleOutput.println("[PUCM] Could not write change log file");
-                }
-
-            } catch (Exception e) {
-                consoleOutput.println("[PUCM] An unknown error occured: " + e.getMessage());
-                logger.warning(e);
-                e.printStackTrace(consoleOutput);
-                doPostBuild = false;
-                state.setPostBuild(false);
-                result = false;
+        	consoleOutput.println("[PUCM] Using " + state.getBaseline());
+        	build.setDescription("<small>" + state.getBaseline() + "</small>");
+        	
+            if( polling.isPollingSelf() ) {
+            	result = bla( build, workspace, changelogFile, listener, state );
+            } else {
+            /* Only start deliver when NOT polling self */
+            	result = beginDeliver( build, state, listener );
             }
+            
         }
         
         consoleOutput.println( "[PUCM] Pre build steps done" );
 
         return result;
+    }
+    
+    private boolean bla( AbstractBuild<?, ?> build, FilePath workspace, File changelogFile, BuildListener listener, State state ) {
+
+    	PrintStream consoleOutput = listener.getLogger();
+        try {
+            /* Force the Baseline to be loaded */
+            try {
+                state.getBaseline().load();
+            } catch (UCMException e) {
+                logger.debug(id + "Could not load Baseline");
+                consoleOutput.println("[PUCM] Could not load Baseline.");
+            }
+
+
+            
+            CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream().getFullyQualifiedName(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, logger);
+
+            Tuple<String, String> ctresult = workspace.act(ct);
+            String changelog = ctresult.t1;
+            logger.empty(ctresult.t2);
+
+            /* Write change log */
+            try {
+                FileOutputStream fos = new FileOutputStream(changelogFile);
+                fos.write(changelog.getBytes());
+                fos.close();
+            } catch (IOException e) {
+                logger.debug(id + "Could not write change log file");
+                consoleOutput.println("[PUCM] Could not write change log file");
+            }
+
+        } catch (Exception e) {
+            consoleOutput.println("[PUCM] An unknown error occured: " + e.getMessage());
+            logger.warning(e);
+            e.printStackTrace(consoleOutput);
+            doPostBuild = false;
+            state.setPostBuild(false);
+            return false;
+        }
+        
+        return true;
     }
     
     public boolean doBaseline( AbstractBuild<?, ?> build, String baselinevalue, State state, BuildListener listener ) {
@@ -398,6 +408,7 @@ public class PucmScm extends SCM {
     	
         try {
             logger.debug( "Remote delivering...." );
+            consoleOutput.println("[PUCM] Starting delivery");
             //RemoteDeliver rmDeliver = new RemoteDeliver(UCMEntity.getStream(stream).getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
             RemoteDeliver rmDeliver = new RemoteDeliver(state.getBaseline().getStream().getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
 
