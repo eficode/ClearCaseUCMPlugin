@@ -44,6 +44,7 @@ import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.remoting.RemoteDeliverComplete;
 import net.praqma.hudson.remoting.Util;
+import net.praqma.hudson.scm.Polling.PollingType;
 import net.praqma.hudson.scm.PucmState.State;
 import net.praqma.hudson.scm.StoredBaselines.StoredBaseline;
 import net.praqma.util.debug.PraqmaLogger;
@@ -224,6 +225,7 @@ public class PucmScm extends SCM {
         /* The special pucm_baseline case */
         if (build.getBuildVariables().get(baselinevalue) != null) {
             logger.debug( "BASELINE: " + baselinevalue );
+            state.setPolling( new Polling( PollingType.none ) );
             result = doBaseline( build, baselinevalue, state, listener );
         } else {
        		result = pollStream( build, state, listener );

@@ -270,7 +270,7 @@ public class PucmNotifier extends Notifier {
 
         /* Finalize PUCM, deliver + baseline 
          * Only do this for child and sibling polling */
-        if( pstate.needsToBeCompleted() && !pstate.getPolling().isPollingSelf() ) {
+        if( pstate.needsToBeCompleted() && pstate.getPolling().isPollingOther() ) {
             status.setBuildStatus(buildResult);
             
             boolean complete = buildResult.isBetterThan(Result.FAILURE);
