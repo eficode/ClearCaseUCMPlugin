@@ -28,8 +28,7 @@ import net.praqma.util.debug.PraqmaLogger.Logger;
  * @author wolfgang
  * 
  */
-class RemotePostBuild implements FileCallable<Status>
-{
+class RemotePostBuild implements FileCallable<Status> {
 	private static final long serialVersionUID = 1L;
 	private String displayName;
 	private String buildNumber;
@@ -47,24 +46,23 @@ class RemotePostBuild implements FileCallable<Status>
 	private BuildListener listener;
 
 	private String id = "";
-		
+
 	private Logger logger = null;
 	private PrintStream hudsonOut = null;
-	
-	
+
 	private Pipe pipe = null;
 	private BufferedWriter bw = null;
 	private PipedOutputStream pout = null;
-	
-	
+
 	public RemotePostBuild( Result result, Status status, BuildListener listener,
-			/* Values for  */
-			boolean makeTag, int promote, boolean recommended,
-			/* Common values */
-			String baseline, String stream, 
-			String displayName, String buildNumber, 
-			Logger logger/*, PipedOutputStream pout*/, Pipe pipe )
-	{
+							/* Values for */
+							boolean makeTag, int promote, boolean recommended,
+							/* Common values */
+							String baseline, String stream, String displayName, String buildNumber, Logger logger/*
+																												 * ,
+																												 * PipedOutputStream
+																												 * pout
+																												 */, Pipe pipe ) {
 		this.displayName = displayName;
 		this.buildNumber = buildNumber;
 
@@ -85,153 +83,125 @@ class RemotePostBuild implements FileCallable<Status>
 		this.logger = logger;
 		this.pipe = pipe;
 		/*
-		this.pout = pout;
-		*/
+		 * this.pout = pout;
+		 */
 	}
-	
-	
-	public Status invoke( File workspace, VirtualChannel channel ) throws IOException
-	{
+
+	public Status invoke( File workspace, VirtualChannel channel ) throws IOException {
 		PraqmaLogger.getLogger( logger );
 		/* Make sure that the local log file is not written */
 		logger.setLocalLog( null );
 		Cool.setLogger( logger );
 		hudsonOut = listener.getLogger();
 		UCM.setContext( UCM.ContextType.CLEARTOOL );
-		
+
 		String newPLevel = "";
-		
+
 		status.addToLog( logger.info( "Starting PostBuild task" ) );
-		
+
 		/* Create the baseline object */
 		Baseline baseline = null;
-		try
-		{
+		try {
 			baseline = UCMEntity.getBaseline( this.baseline );
-		}
-		catch ( UCMException e )
-		{
+		} catch (UCMException e) {
 			status.addToLog( logger.debug( id + "could not create Baseline object:" + e.getMessage() ) );
 			throw new IOException( "[PUCM] Could not create Baseline object: " + e.getMessage() );
 		}
-		
+
 		/* Create the stream object */
 		Stream stream = null;
-		try
-		{
+		try {
 			stream = UCMEntity.getStream( this.stream );
-		}
-		catch ( UCMException e )
-		{
+		} catch (UCMException e) {
 			status.addToLog( logger.debug( id + "could not create Stream object:" + e.getMessage() ) );
 			throw new IOException( "[PUCM] Could not create Stream object: " + e.getMessage() );
 		}
-		
+
 		status.addToLog( logger.warning( id + "Stream and component created" ) );
-		
+
 		/* Create the Tag object */
 		Tag tag = null;
-		if( makeTag )
-		{
-			try
-			{
+		if( makeTag ) {
+			try {
 				// Getting tag to set buildstatus
 				tag = baseline.getTag( this.displayName, this.buildNumber );
 				status.setTagAvailable( true );
-			}
-			catch ( UCMException e )
-			{
+			} catch (UCMException e) {
 				hudsonOut.println( "[PUCM] Could not get Tag: " + e.getMessage() );
 				status.addToLog( logger.warning( id + "Could not get Tag: " + e.getMessage() ) );
 			}
 		}
 
 		/* The build was a success and the deliver did not fail */
-		if( result.equals( Result.SUCCESS ) && status.isStable() )
-		{
-			if( status.isTagAvailable() )
-			{
+		if( result.equals( Result.SUCCESS ) && status.isStable() ) {
+			if( status.isTagAvailable() ) {
 				tag.setEntry( "buildstatus", "SUCCESS" );
 			}
 
-			if( promote > PucmNotifier.__NO_PROMOTE )
-			{
-				try
-				{
+			if( promote > PucmNotifier.__NO_PROMOTE ) {
+				try {
 					Project.Plevel pl = baseline.promote();
 					status.setPromotedLevel( pl );
 					status.setPLevel( true );
 					hudsonOut.println( "[PUCM] Baseline promoted to " + baseline.getPromotionLevel( true ).toString() + "." );
-				}
-				catch( UCMException e )
-				{
+				} catch (UCMException e) {
 					status.setStable( false );
-					/* as it will not make sense to recommend if we cannot promote, we do this: */
-					if( recommend )
-					{
+					/*
+					 * as it will not make sense to recommend if we cannot
+					 * promote, we do this:
+					 */
+					if( recommend ) {
 						status.setRecommended( false );
 						hudsonOut.println( "[PUCM] Could not promote baseline and will not recommend. " + e.getMessage() );
 						status.addToLog( logger.warning( id + "Could not promote baseline and will not recommend. " + e.getMessage() ) );
-					}
-					else
-					{
-						/* As we will not recommend if we cannot promote, it's ok to break method here */
+					} else {
+						/*
+						 * As we will not recommend if we cannot promote, it's
+						 * ok to break method here
+						 */
 						hudsonOut.println( "[PUCM] Could not promote baseline. " + e.getMessage() );
 						status.addToLog( logger.warning( id + "Could not promote baseline. " + e.getMessage() ) );
 					}
 				}
 			}
 			/* Recommend the Baseline */
-			if( recommend )
-			{
-				try
-				{
-					if ( status.isPLevel() )
-					{
+			if( recommend ) {
+				try {
+					if( status.isPLevel() ) {
 						stream.recommendBaseline( baseline );
 						hudsonOut.println( "[PUCM] Baseline " + baseline.getShortname() + " is now recommended." );
 					}
-				}
-				catch( Exception e )
-				{
+				} catch ( UCMException e ) {
 					status.setStable( false );
 					status.setRecommended( false );
-					hudsonOut.println( "[PUCM] Could not recommend baseline. Reason: " + e.getMessage() );
-					status.addToLog( logger.warning( id + "Could not recommend baseline. Reason: " + e.getMessage() ) );
+					hudsonOut.println( "[PUCM] Could not recommend Baseline: " + e.getMessage() );
+					status.addToLog( logger.warning( id + "Could not recommend baseline: " + e.getMessage() ) );
 				}
 			}
 		}
 		/* The build failed or the deliver failed */
-		else
-		{
+		else {
 			/* Do not set as recommended at all */
-			if( recommend )
-			{
+			if( recommend ) {
 				status.setRecommended( false );
 			}
-			
+
 			/* The build failed */
-			if( result.equals( Result.FAILURE ) )
-			{
+			if( result.equals( Result.FAILURE ) ) {
 				hudsonOut.println( "[PUCM] Build failed." );
 
-				if( status.isTagAvailable() )
-				{
+				if( status.isTagAvailable() ) {
 					tag.setEntry( "buildstatus", "FAILURE" );
 				}
-				
-				if( promote > PucmNotifier.__NO_PROMOTE )
-				{
-					try
-					{
+
+				if( promote > PucmNotifier.__NO_PROMOTE ) {
+					try {
 						status.addToLog( logger.warning( id + "Demoting baseline" ) );
 						Project.Plevel pl = baseline.demote();
 						status.setPromotedLevel( pl );
 						status.setPLevel( true );
 						hudsonOut.println( "[PUCM] Baseline is " + baseline.getPromotionLevel( true ).toString() + "." );
-					}
-					catch( Exception e )
-					{
+					} catch (Exception e) {
 						status.setStable( false );
 						// throw new NotifierException(
 						// "Could not demote baseline. " + e.getMessage() );
@@ -240,120 +210,92 @@ class RemotePostBuild implements FileCallable<Status>
 					}
 				}
 			}
-			/* The build is unstable, or something in the middle....
-			 * TODO Maybe not else if */
-			else if( !result.equals( Result.FAILURE ) )
-			{
-				if( status.isTagAvailable() )
-				{
+			/*
+			 * The build is unstable, or something in the middle.... TODO Maybe
+			 * not else if
+			 */
+			else if( !result.equals( Result.FAILURE ) ) {
+				if( status.isTagAvailable() ) {
 					tag.setEntry( "buildstatus", "UNSTABLE" );
 				}
-				
-				if( promote > PucmNotifier.__NO_PROMOTE )
-				{
-					try
-					{
+
+				if( promote > PucmNotifier.__NO_PROMOTE ) {
+					try {
 						Project.Plevel pl = Project.Plevel.INITIAL;
-						
-						if( promote == PucmNotifier.__PROMOTE_UNSTABLE )
-						{
+
+						if( promote == PucmNotifier.__PROMOTE_UNSTABLE ) {
 							pl = baseline.promote();
 							hudsonOut.println( "[PUCM] Baseline is promoted, even though the build is unstable." );
-						}
-						else
-						{
+						} else {
 							pl = baseline.demote();
 						}
 						status.setPromotedLevel( pl );
 						status.setPLevel( true );
 						hudsonOut.println( "[PUCM] Baseline is " + baseline.getPromotionLevel( true ).toString() + "." );
-					}
-					catch ( Exception e )
-					{
+					} catch (Exception e) {
 						status.setStable( false );
 						hudsonOut.println( "[PUCM] Could not demote baseline. " + e.getMessage() );
 						status.addToLog( logger.warning( id + "Could not demote baseline. " + e.getMessage() ) );
 					}
 				}
 				/* Recommend the Baseline */
-				if( recommend )
-				{
-					try
-					{
-						if ( status.isPLevel() )
-						{
+				if( recommend ) {
+					try {
+						if( status.isPLevel() ) {
 							stream.recommendBaseline( baseline );
 							hudsonOut.println( "[PUCM] Baseline " + baseline.getShortname() + " is now recommended." );
 						}
-					}
-					catch( Exception e )
-					{
+					} catch (Exception e) {
 						status.setStable( false );
 						status.setRecommended( false );
 						hudsonOut.println( "[PUCM] Could not recommend baseline. Reason: " + e.getMessage() );
 						status.addToLog( logger.warning( id + "Could not recommend baseline. Reason: " + e.getMessage() ) );
 					}
 				}
-				
-				
+
 			}
 			/* Result not handled by PUCM */
-			else
-			{
+			else {
 				tag.setEntry( "buildstatus", result.toString() );
 				status.addToLog( logger.log( id + "Buildstatus (Result) was " + result + ". Not handled by plugin." ) );
 				hudsonOut.println( "[PUCM] Baseline not changed. Buildstatus: " + result );
 			}
 		}
-		
+
 		/* Persist the Tag */
-		if( makeTag )
-		{
-			if( tag != null )
-			{
-				try
-				{
+		if( makeTag ) {
+			if( tag != null ) {
+				try {
 					tag = tag.persist();
 					hudsonOut.println( "[PUCM] Baseline now marked with tag: \n" + tag.stringify() );
-				}
-				catch ( Exception e )
-				{
+				} catch (Exception e) {
 					hudsonOut.println( "[PUCM] Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
 				}
-			}
-			else
-			{
+			} else {
 				logger.warning( id + "Tag object was null" );
 				hudsonOut.println( "[PUCM] Tag object was null, tag not set." );
 			}
 		}
 
-		try
-		{
+		try {
 			newPLevel = baseline.getPromotionLevel( true ).toString();
-		}
-		catch( UCMException e )
-		{
+		} catch (UCMException e) {
 			logger.log( id + " Could not get promotionlevel." );
 			hudsonOut.println( "[PUCM] Could not get promotion level." );
 		}
-		
+
 		status.setBuildDescr( setDisplaystatus( newPLevel, baseline.getShortname() ) );
-		
+
 		status.addToLog( logger.warning( id + "Remote post build finished normally" ) );
-		
+
 		/*
-		if( out != null )
-		{
-			out.close();
-		}
-		*/
+		 * if( out != null ) { out.close(); }
+		 */
 
 		return status;
 	}
 
-	private String setDisplaystatus( String plevel, String fqn )
-	{
+	private String setDisplaystatus( String plevel, String fqn ) {
 		String s = "";
 
 		// Get shortname
@@ -362,14 +304,10 @@ class RemotePostBuild implements FileCallable<Status>
 		// Get plevel:
 		s += "<BR/><small>" + plevel + "</small>";
 
-		if( recommend )
-		{
-			if ( status.isRecommended() )
-			{
+		if( recommend ) {
+			if( status.isRecommended() ) {
 				s += "<BR/><B><small>Recommended</small></B>";
-			}
-			else
-			{
+			} else {
 				s += "<BR/><B><small>Could not recommend</small></B>";
 			}
 		}

@@ -2,14 +2,12 @@ package net.praqma.hudson.remoting;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.hudson.scm.PucmState.State;
 
 import hudson.FilePath.FileCallable;
-import hudson.model.BuildListener;
 import hudson.remoting.VirtualChannel;
 
 public class RemoteDeliverComplete implements FileCallable<Boolean> {
@@ -32,8 +30,6 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
             try {
 
                 state.getBaseline().deliver(state.getBaseline().getStream(), state.getStream(), state.getSnapView().GetViewRoot(), state.getSnapView().GetViewtag(), true, true, true);
-                Baseline childBase = state.getBaseline();
-                Baseline.create(childBase.getShortname(), childBase.getComponent(), state.getSnapView().GetViewRoot(), true, true);
             } catch (UCMException ex) {
                 
                 try {

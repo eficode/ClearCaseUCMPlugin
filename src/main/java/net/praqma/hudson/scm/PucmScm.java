@@ -370,7 +370,10 @@ public class PucmScm extends SCM {
                     baselines = getChildStreamBaselines( build.getProject(), consoleOutput, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
             	}
             	
-            	filterBaselines( baselines );
+            	int total = baselines.size();
+            	int pruned = filterBaselines( baselines );
+            	
+            	consoleOutput.println( "[PUCM] Removed " + pruned + " of " + total + " Baselines." );
 
                 /* if we did not find any baselines we should return false */
                 if (baselines.size() < 1) {
@@ -821,7 +824,9 @@ public class PucmScm extends SCM {
      * does not have a label
      * @param baselines
      */
-    private void filterBaselines( List<Baseline> baselines ) {
+    private int filterBaselines( List<Baseline> baselines ) {
+    	
+    	int pruned = 0;
     	
     	/* Remove deliver baselines */
     	Iterator<Baseline> it = baselines.iterator();
@@ -829,6 +834,7 @@ public class PucmScm extends SCM {
     		Baseline bl = it.next();
     		if( bl.getShortname().startsWith( "deliverbl." ) ) {
     			it.remove();
+    			pruned++;
     		}
     	}
     	
@@ -838,8 +844,11 @@ public class PucmScm extends SCM {
     		Baseline bl = it2.next();
     		if( bl.getLabelStatus().equals( LabelStatus.UNLABLED ) ) {
     			it.remove();
+    			pruned++;
     		}
     	}
+    	
+    	return pruned;
     }
 
     private void printParameters(PrintStream ps) {

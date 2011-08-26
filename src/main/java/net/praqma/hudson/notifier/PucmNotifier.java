@@ -284,14 +284,17 @@ public class PucmNotifier extends Notifier {
                 if( complete && pstate.getBaselineInformation().createBaseline ) {
                     Baseline childBase = pstate.getBaseline();
                     try {
-                        hudsonOut.print("[PUCM] Creating baseline on stream. ");
+                        hudsonOut.print("[PUCM] Creating baseline on Integration stream. ");
                         //Baseline.create(childBase.getShortname(), childBase.getComponent(), pstate.getSnapView().GetViewRoot(), true, true);
-                        net.praqma.hudson.Util.CreateNumber(listener, build.getNumber(), pstate.getBaselineInformation().versionFrom, 
-                        		pstate.getBaselineInformation().buildnumberMajor, pstate.getBaselineInformation().buildnumberMinor, 
-                        		pstate.getBaselineInformation().buildnumberPatch, pstate.getBaselineInformation().buildnumberSequenceSelector, 
-                        		pstate.getStream().getDefaultTarget(), pstate.getComponent());
+                        String number = net.praqma.hudson.Util.CreateNumber(listener, build.getNumber(), pstate.getBaselineInformation().versionFrom, 
+                        													pstate.getBaselineInformation().buildnumberMajor, pstate.getBaselineInformation().buildnumberMinor, 
+                        													pstate.getBaselineInformation().buildnumberPatch, pstate.getBaselineInformation().buildnumberSequenceSelector, 
+                        													pstate.getStream().getDefaultTarget(), pstate.getComponent());
+                        
+                        Util.createRemoteBaseline( workspace, listener, pstate.getBaseline().getShortname() + "_" + number, pstate.getBaseline().getComponent().getFullyQualifiedName(), pstate.getSnapView().GetViewRoot() );
+                        
                         hudsonOut.println(" Success.");
-                    } catch( UCMException e ) {
+                    } catch( Exception e ) {
                         hudsonOut.println(" Failed.");
                         logger.warning( "Failed to create baseline on stream" );
                         logger.warning( e );
@@ -330,8 +333,9 @@ public class PucmNotifier extends Notifier {
             final Pipe pipe = Pipe.createRemoteToLocal();
 
             Future<Status> f = null;
-
-            f = workspace.actAsync(new RemotePostBuild(buildResult, status, listener, makeTag, promoteAction, recommended, pstate.getBaseline().getFullyQualifiedName(), pstate.getStream().getFullyQualifiedName(), build.getParent().getDisplayName(), Integer.toString(build.getNumber()), logger/*, pout*/, pipe));
+            
+            String streamName = pstate.getPolling().isPollingOther() ? pstate.getBaseline().getStream().getFullyQualifiedName() : pstate.getStream().getFullyQualifiedName();
+            f = workspace.actAsync(new RemotePostBuild(buildResult, status, listener, makeTag, promoteAction, recommended, pstate.getBaseline().getFullyQualifiedName(), streamName, build.getParent().getDisplayName(), Integer.toString(build.getNumber()), logger/*, pout*/, pipe));
 
             status = f.get();
 

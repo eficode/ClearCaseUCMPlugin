@@ -45,7 +45,6 @@ public abstract class Util {
 		/* Get version number from project+component */
 		if (versionFrom.equals("project")) {
 			logger.debug("Using project setting");
-			out.println("[PUCM] Using project");
 
 			try {
 				Project project = target.getProject();
@@ -63,11 +62,12 @@ public abstract class Util {
 		/* Get version number from project+component */
 		else if (versionFrom.equals("settings")) {
 			logger.debug("Using settings");
-			out.println("[PUCM] Using settings");
 
 			/* Verify settings */
-			if (buildnumberMajor.length() > 0 && buildnumberMinor.length() > 0
-					&& buildnumberPatch.length() > 0) {
+			if(buildnumberMajor.length() > 0 && 
+			   buildnumberMinor.length() > 0 &&
+			   buildnumberPatch.length() > 0) {
+				
 				number = "__" + buildnumberMajor + "_" + buildnumberMinor + "_"
 						+ buildnumberPatch + "_";
 
