@@ -230,7 +230,7 @@ public abstract class Util {
         }
 
         try {
-            hudsonOut.println("[PUCM] Updating deliver view using " + loadModule.toLowerCase() + " modules...");
+            hudsonOut.println("[PUCM] Updating view using " + loadModule.toLowerCase() + " modules...");
             snapview.Update(true, true, true, false, COMP.valueOf(loadModule.toUpperCase()), null);
         } catch (UCMException e) {
             if (e.stdout != null) {

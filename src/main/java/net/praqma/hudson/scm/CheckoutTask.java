@@ -111,78 +111,13 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 		String viewtag = newJobName + "_" + System.getenv("COMPUTERNAME") + "_" + integrationstream.getShortname();
 
 		File viewroot = new File( workspace, viewtag );
-
-		hudsonOut.println("[PUCM] View root: " + viewroot.getAbsolutePath());
-		hudsonOut.println( "[PUCM] viewtag " + viewtag );
-
-		try {
-			if( viewroot.exists() ) {
-				hudsonOut.println( "[PUCM] Reusing viewroot: " + viewroot.toString() );
-			} else if( viewroot.mkdir() ) {
-			} else {
-				throw new ScmException( "Could not create folder for viewroot:  " + viewroot.toString() );
-			}
-		} catch (Exception e) {
-			throw new ScmException( "Could not make workspace (for viewroot " + viewroot.toString() + "). Cause: " + e.getMessage() );
-
-		}
-
+		
 		Stream devstream = null;
 
 		devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( integrationstream ), hudsonOut );
 
-		if( UCMView.ViewExists( viewtag ) ) {
-			hudsonOut.println( "[PUCM] Reusing viewtag: " + viewtag + "\n" );
-			try {
-				SnapshotView.ViewrootIsValid( viewroot );
-				hudsonOut.println( "[PUCM] Viewroot is valid in ClearCase" );
-			} catch (UCMException ucmE) {
-				try {
-					hudsonOut.println( "[PUCM] Viewroot not valid - now regenerating.... " );
-					SnapshotView.RegenerateViewDotDat( viewroot, viewtag );
-				} catch (UCMException ucmEe) {
-					log += logger.warning( id + "Could regenerate workspace." );
-					throw new ScmException( "Could not make workspace - could not regenerate view: " + ucmEe.getMessage() + " Type: " + "" );
-				}
-			}
-
-			hudsonOut.print( "[PUCM] Getting snapshotview..." );
-			try {
-				sv = UCMView.GetSnapshotView( viewroot );
-				hudsonOut.println( " DONE" );
-			} catch (UCMException e) {
-				log += logger.warning( id + "Could not get view for workspace. " + e.getMessage() );
-				throw new ScmException( "Could not get view for workspace. " + e.getMessage() );
-			}
-		} else {
-			try {
-				// View APPARENTLY doesn't exist. Test to see if it exists in
-				// other regions using SnapshotView.getRegionWithView(String
-				// view);
-				sv = SnapshotView.Create( devstream, viewroot, viewtag );
-
-				hudsonOut.print( "[PUCM] View doesn't exist. Created new view in local workspace" );
-				log += logger.log( "The view did not exist and created a new" );
-			} catch (UCMException e) {
-				// View couldn't be created or found. Hudson slave might be set
-				// in different region.
-				log += logger.warning( id + "The view could not be created" );
-				log += logger.warning( e );
-				throw new ScmException( "View not found in this region, but view with viewtag '" + viewtag + "' might exists in the other regions. Try changing the region Hudson or the slave runs in." );
-			}
-		}
-
-		// All below parameters according to LAK and CHW -components
-		// corresponds to pucms loadmodules, loadrules must always be
-		// null from pucm
-		try {
-			hudsonOut.print( "[PUCM] Updating view using " + loadModule.toLowerCase() + " modules..." );
-
-			sv.Update( true, true, true, false, COMP.valueOf( loadModule.toUpperCase() ), null );
-			hudsonOut.println( " DONE" );
-		} catch (UCMException e) {
-			throw new ScmException( "Could not update snapshot view. " + e.getMessage() );
-		}
+		sv = Util.makeView( devstream, workspace, listener, loadModule, viewroot, viewtag );
+		
 
 		// Now we have to rebase - if a rebase is in progress, the
 		// old one must be stopped and the new started instead

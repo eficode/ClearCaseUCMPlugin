@@ -128,73 +128,7 @@ class RemoteDeliver implements FileCallable<Integer> {
         
         File viewroot = new File(workspace, viewtag);
 
-        hudsonOut.println("[PUCM] View root: " + viewroot.getAbsolutePath());
-        hudsonOut.println("[PUCM] View tag : " + viewtag);        
-
-        try {
-            if (viewroot.exists()) {
-                hudsonOut.println("[PUCM] Reusing view root");
-            } else {
-                if (viewroot.mkdir()) {
-                } else {
-                    throw new ScmException("Could not create folder for view root:  " + viewroot.toString());
-                }
-            }
-        } catch (Exception e) {
-            throw new ScmException("Could not make workspace (for viewroot " + viewroot.toString() + "). Cause: " + e.getMessage());
-
-        }
-
-        if (UCMView.ViewExists(viewtag)) {
-            hudsonOut.println("[PUCM] Reusing view tag");
-            try {
-                SnapshotView.ViewrootIsValid(viewroot);
-            } catch (UCMException ucmE) {
-                try {
-                    hudsonOut.println("[PUCM] Regenerating invalid view root");
-                    SnapshotView.RegenerateViewDotDat(viewroot, viewtag);
-                } catch (UCMException ucmEx) {
-                    if (ucmEx.stdout != null) {
-                        hudsonOut.println(ucmEx.stdout);
-                    }
-                    throw new ScmException("Could not make workspace - could not regenerate view: " + ucmEx.getMessage() + " Type: " + "");
-                }
-            }
-
-            hudsonOut.println("[PUCM] Getting snapshotview...");
-            try {
-                snapview = UCMView.GetSnapshotView(viewroot);
-            } catch (UCMException e) {
-                if (e.stdout != null) {
-                    hudsonOut.println(e.stdout);
-                }
-                throw new ScmException("Could not get view for workspace. " + e.getMessage());
-            }
-        } else {
-            try {
-                snapview = SnapshotView.Create(stream, viewroot, viewtag);
-
-                hudsonOut.println("[PUCM] Created new view in local workspace: " + viewroot.getAbsolutePath());
-            } catch (UCMException e) {
-                if (e.stdout != null) {
-                    hudsonOut.println(e.stdout);
-                }
-                throw new ScmException("View not found in this region, but views with viewtag '" + viewtag
-                        + "' might exist in the other regions. Try changing the region Hudson or the slave runs in.");
-            }
-        }
-
-        try {
-            hudsonOut.println("[PUCM] Updating deliver view using " + loadModule.toLowerCase() + " modules...");
-            snapview.Update(true, true, true, false, COMP.valueOf(loadModule.toUpperCase()), null);
-        } catch (UCMException e) {
-            if (e.stdout != null) {
-                hudsonOut.println(e.stdout);
-            }
-            throw new ScmException("Could not update snapshot view. " + e.getMessage());
-        }
-
-        return snapview;
+        return Util.makeView( stream, workspace, listener, loadModule, viewroot, viewtag );
     }
 
     public SnapshotView getSnapShotView() {
