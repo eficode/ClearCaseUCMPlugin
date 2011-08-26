@@ -46,9 +46,7 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 
 	private String log = "";
 
-	public CheckoutTask(BuildListener listener, String jobname,
-			Integer jobNumber, String intStream, String loadModule,
-			String baselinefqname, String buildProject, Logger logger) {
+	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, String intStream, String loadModule, String baselinefqname, String buildProject, Logger logger ) {
 		this.jobname = jobname;
 		this.jobNumber = jobNumber;
 		this.intStream = intStream;
@@ -62,83 +60,76 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 	}
 
 	@Override
-	public Tuple<String, String> invoke(File workspace, VirtualChannel channel)
-			throws IOException {
-		PraqmaLogger.getLogger(logger);
+	public Tuple<String, String> invoke( File workspace, VirtualChannel channel ) throws IOException {
+		PraqmaLogger.getLogger( logger );
 		/* Make sure that the local log file is not written */
-		logger.setLocalLog(null);
-		Cool.setLogger(logger);
+		logger.setLocalLog( null );
+		Cool.setLogger( logger );
 		hudsonOut = listener.getLogger();
 
-		log += logger.info("Starting CheckoutTask");
+		log += logger.info( "Starting CheckoutTask" );
 
 		boolean doPostBuild = true;
 		String diff = "";
 
 		try {
-			UCM.setContext(UCM.ContextType.CLEARTOOL);
-			makeWorkspace(workspace);
-			BaselineDiff bldiff = bl.getDifferences(sv);
-			diff = Util.createChangelog(bldiff, bl);
+			UCM.setContext( UCM.ContextType.CLEARTOOL );
+			makeWorkspace( workspace );
+			BaselineDiff bldiff = bl.getDifferences( sv );
+			diff = Util.createChangelog( bldiff, bl );
 			doPostBuild = true;
 		} catch (net.praqma.hudson.exception.ScmException e) {
-			log += logger.debug(id + "SCM exception: " + e.getMessage());
-			hudsonOut.println("[PUCM] SCM exception: " + e.getMessage());
+			log += logger.debug( id + "SCM exception: " + e.getMessage() );
+			hudsonOut.println( "[PUCM] SCM exception: " + e.getMessage() );
 		} catch (UCMException e) {
-			log += logger.debug(id + "Could not get changes. " + e.getMessage());
-			log += logger.info(e);
-			hudsonOut.println("[PUCM] Could not get changes. " + e.getMessage());
+			log += logger.debug( id + "Could not get changes. " + e.getMessage() );
+			log += logger.info( e );
+			hudsonOut.println( "[PUCM] Could not get changes. " + e.getMessage() );
 		}
 
-		log += logger.info("CheckoutTask finished normally");
+		log += logger.info( "CheckoutTask finished normally" );
 
-		return new Tuple<String, String>(diff, log);
+		return new Tuple<String, String>( diff, log );
 	}
 
-	private void makeWorkspace(File workspace) throws ScmException {
+	private void makeWorkspace( File workspace ) throws ScmException {
 		// We know we have a stream (st), because it is set in
 		// baselinesToBuild()
 		try {
-			integrationstream = UCMEntity.getStream(intStream, false);
-			bl = Baseline.getBaseline(baselinefqname);
+			integrationstream = UCMEntity.getStream( intStream, false );
+			bl = Baseline.getBaseline( baselinefqname );
 		} catch (UCMException e) {
-			throw new ScmException(	"Could not get stream. Job might run on machine with different region. " + e.getMessage());
+			throw new ScmException( "Could not get stream. Job might run on machine with different region. " + e.getMessage() );
 		}
-		if (workspace != null) {
-			log += logger.debug(id + "workspace: " + workspace.getAbsolutePath());
+		if( workspace != null ) {
+			log += logger.debug( id + "workspace: " + workspace.getAbsolutePath() );
 		} else {
-			log += logger.debug(id + "workspace must be null???");
+			log += logger.debug( id + "workspace must be null???" );
 		}
 
-		String viewtag = "pucm_" + System.getenv("COMPUTERNAME") + "_"
-				+ jobname;
+		String newJobName = jobname.replaceAll("\\s", "_");
+		String viewtag = newJobName + "_" + System.getenv("COMPUTERNAME") + "_" + integrationstream.getShortname();
 
-		File viewroot = new File(workspace.getPath() + "\\view");
+		File viewroot = new File( workspace, viewtag );
 
-		hudsonOut.println("[PUCM] viewtag " + viewtag);
+		hudsonOut.println("[PUCM] View root: " + viewroot.getAbsolutePath());
+		hudsonOut.println( "[PUCM] viewtag " + viewtag );
 
 		try {
-			if (viewroot.exists()) {
-				hudsonOut.println("[PUCM] Reusing viewroot: "
-						+ viewroot.toString());
-			} else if (viewroot.mkdir()) {
-				hudsonOut.println("[PUCM] Created folder for viewroot:  "
-						+ viewroot.toString());
+			if( viewroot.exists() ) {
+				hudsonOut.println( "[PUCM] Reusing viewroot: " + viewroot.toString() );
+			} else if( viewroot.mkdir() ) {
 			} else {
-				throw new ScmException(
-						"Could not create folder for viewroot:  "
-								+ viewroot.toString());
+				throw new ScmException( "Could not create folder for viewroot:  " + viewroot.toString() );
 			}
 		} catch (Exception e) {
-			throw new ScmException("Could not make workspace (for viewroot "
-					+ viewroot.toString() + "). Cause: " + e.getMessage());
+			throw new ScmException( "Could not make workspace (for viewroot " + viewroot.toString() + "). Cause: " + e.getMessage() );
 
 		}
 
 		Stream devstream = null;
 
-		devstream = getDeveloperStream("stream:" + viewtag,
-				Config.getPvob(integrationstream), hudsonOut);
+		devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( integrationstream ), hudsonOut );
 
 		if( UCMView.ViewExists( viewtag ) ) {
 			hudsonOut.println( "[PUCM] Reusing viewtag: " + viewtag + "\n" );
@@ -155,35 +146,29 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 				}
 			}
 
-			hudsonOut.print("[PUCM] Getting snapshotview...");
+			hudsonOut.print( "[PUCM] Getting snapshotview..." );
 			try {
-				sv = UCMView.GetSnapshotView(viewroot);
-				hudsonOut.println(" DONE");
+				sv = UCMView.GetSnapshotView( viewroot );
+				hudsonOut.println( " DONE" );
 			} catch (UCMException e) {
-				log += logger.warning(id + "Could not get view for workspace. "
-						+ e.getMessage());
-				throw new ScmException("Could not get view for workspace. "
-						+ e.getMessage());
+				log += logger.warning( id + "Could not get view for workspace. " + e.getMessage() );
+				throw new ScmException( "Could not get view for workspace. " + e.getMessage() );
 			}
 		} else {
 			try {
 				// View APPARENTLY doesn't exist. Test to see if it exists in
 				// other regions using SnapshotView.getRegionWithView(String
 				// view);
-				sv = SnapshotView.Create(devstream, viewroot, viewtag);
+				sv = SnapshotView.Create( devstream, viewroot, viewtag );
 
-				hudsonOut
-						.print("[PUCM] View doesn't exist. Created new view in local workspace");
-				log += logger.log("The view did not exist and created a new");
+				hudsonOut.print( "[PUCM] View doesn't exist. Created new view in local workspace" );
+				log += logger.log( "The view did not exist and created a new" );
 			} catch (UCMException e) {
 				// View couldn't be created or found. Hudson slave might be set
 				// in different region.
-				log += logger.warning(id + "The view could not be created");
-				log += logger.warning(e);
-				throw new ScmException(
-						"View not found in this region, but view with viewtag '"
-								+ viewtag
-								+ "' might exists in the other regions. Try changing the region Hudson or the slave runs in.");
+				log += logger.warning( id + "The view could not be created" );
+				log += logger.warning( e );
+				throw new ScmException( "View not found in this region, but view with viewtag '" + viewtag + "' might exists in the other regions. Try changing the region Hudson or the slave runs in." );
 			}
 		}
 
@@ -191,46 +176,41 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 		// corresponds to pucms loadmodules, loadrules must always be
 		// null from pucm
 		try {
-			hudsonOut.print("[PUCM] Updating view using "
-					+ loadModule.toLowerCase() + " modules...");
+			hudsonOut.print( "[PUCM] Updating view using " + loadModule.toLowerCase() + " modules..." );
 
-			sv.Update(true, true, true, false, COMP.valueOf(loadModule.toUpperCase()), null);
-			hudsonOut.println(" DONE");
+			sv.Update( true, true, true, false, COMP.valueOf( loadModule.toUpperCase() ), null );
+			hudsonOut.println( " DONE" );
 		} catch (UCMException e) {
-			throw new ScmException("Could not update snapshot view. "
-					+ e.getMessage());
+			throw new ScmException( "Could not update snapshot view. " + e.getMessage() );
 		}
 
 		// Now we have to rebase - if a rebase is in progress, the
 		// old one must be stopped and the new started instead
-		if (devstream.isRebaseInProgress()) {
-			hudsonOut.print("[PUCM] Cancelling previous rebase...");
+		if( devstream.isRebaseInProgress() ) {
+			hudsonOut.print( "[PUCM] Cancelling previous rebase..." );
 			devstream.cancelRebase();
-			hudsonOut.println(" DONE");
+			hudsonOut.println( " DONE" );
 		}
 		// The last boolean, complete, must always be true from PUCM
 		// as we are always working on a read-only stream according
 		// to LAK
-		hudsonOut.print("[PUCM] Rebasing development stream ("
-				+ devstream.getShortname() + ") against parent stream ("
-				+ integrationstream.getShortname() + ")");
-		devstream.rebase(sv, bl, true);
-		hudsonOut.println(" DONE");
-		hudsonOut.println("[PUCM] Log written to " + logger.getPath());
+		hudsonOut.print( "[PUCM] Rebasing development stream (" + devstream.getShortname() + ") against parent stream (" + integrationstream.getShortname() + ")" );
+		devstream.rebase( sv, bl, true );
+		hudsonOut.println( " DONE" );
+		hudsonOut.println( "[PUCM] Log written to " + logger.getPath() );
 	}
 
-	private Stream getDeveloperStream(String streamname, String pvob,
-			PrintStream hudsonOut) throws ScmException {
+	private Stream getDeveloperStream( String streamname, String pvob, PrintStream hudsonOut ) throws ScmException {
 		Stream devstream = null;
 
 		try {
-			if (Stream.streamExists(streamname + pvob)) {
-				devstream = Stream.getStream(streamname + pvob, false);
+			if( Stream.streamExists( streamname + pvob ) ) {
+				devstream = Stream.getStream( streamname + pvob, false );
 			} else {
-				if (buildProject.equals("")) {
+				if( buildProject.equals( "" ) ) {
 					buildProject = null;
 				}
-				devstream = Stream.create(Config.getIntegrationStream(bl, buildProject), streamname + pvob, true, bl);
+				devstream = Stream.create( Config.getIntegrationStream( bl, buildProject ), streamname + pvob, true, bl );
 			}
 		}
 		/*
@@ -241,20 +221,18 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 			throw se;
 
 		} catch (Exception e) {
-			throw new ScmException("Could not get stream: " + e.getMessage());
+			throw new ScmException( "Could not get stream: " + e.getMessage() );
 		}
 
 		return devstream;
 	}
-
-
 
 	public SnapshotView getSnapshotView() {
 		return sv;
 	}
 
 	public BaselineDiff getBaselineDiffs() throws UCMException {
-		return bl.getDifferences(sv);
+		return bl.getDifferences( sv );
 	}
 
 }

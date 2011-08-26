@@ -168,18 +168,11 @@ public abstract class Util {
 		return buffer.toString();
 	}
 	
-	public static SnapshotView makeView(Stream stream, File workspace, BuildListener listener, String loadModule, String jobName, String wFolder) throws ScmException {
+	public static SnapshotView makeView(Stream stream, File workspace, BuildListener listener, String loadModule, File viewroot, String viewtag) throws ScmException {
 		
 		PrintStream hudsonOut = listener.getLogger();
 		SnapshotView snapview = null;
 		
-        /* Replace evil characters with less evil characters */
-        String newJobName = jobName.replaceAll("\\s", "_");
-
-        String viewtag = newJobName + "_" + System.getenv("COMPUTERNAME") + "_" + stream.getShortname();
-        
-        File viewroot = new File(workspace.getPath() + File.separator + wFolder);
-
         hudsonOut.println("[PUCM] View root: " + viewroot.getAbsolutePath());
         hudsonOut.println("[PUCM] View tag : " + viewtag);        
 
@@ -237,7 +230,7 @@ public abstract class Util {
         }
 
         try {
-            hudsonOut.println("[PUCM] Updating deliver view using " + loadModule.toLowerCase() + " modules");
+            hudsonOut.println("[PUCM] Updating deliver view using " + loadModule.toLowerCase() + " modules...");
             snapview.Update(true, true, true, false, COMP.valueOf(loadModule.toUpperCase()), null);
         } catch (UCMException e) {
             if (e.stdout != null) {

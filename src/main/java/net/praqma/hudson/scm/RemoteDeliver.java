@@ -126,7 +126,7 @@ class RemoteDeliver implements FileCallable<Integer> {
 
         String viewtag = newJobName + "_" + System.getenv("COMPUTERNAME") + "_" + stream.getShortname();
         
-        File viewroot = new File(workspace.getPath() + File.separator + "deliver_view");
+        File viewroot = new File(workspace, viewtag);
 
         hudsonOut.println("[PUCM] View root: " + viewroot.getAbsolutePath());
         hudsonOut.println("[PUCM] View tag : " + viewtag);        
