@@ -18,7 +18,7 @@ public class GetVersion
 		String version = pom.getVersion();
 		String[] vs = version.split( "\\." );
 
-		boolean release = System.getProperty( "pucmRelease" ) != null ? true : false;
+		boolean release = System.getProperty( Config.nameShort + "Release" ) != null ? true : false;
 
 		for( int i = 0 ; i < vs.length ; i++ )
 		{

@@ -45,7 +45,7 @@ import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.remoting.RemoteDeliverComplete;
 import net.praqma.hudson.remoting.Util;
 import net.praqma.hudson.scm.Polling.PollingType;
-import net.praqma.hudson.scm.PucmState.State;
+import net.praqma.hudson.scm.CCUCMState.State;
 import net.praqma.hudson.scm.StoredBaselines.StoredBaseline;
 import net.praqma.util.debug.PraqmaLogger;
 import net.praqma.util.debug.PraqmaLogger.Logger;
@@ -57,7 +57,7 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.export.Exported;
 
 /**
- * Pucm is responsible for everything regarding Hudsons connection to ClearCase
+ *  is responsible for everything regarding Hudsons connection to ClearCase
  * pre-build. This class defines all the files required by the user. The
  * information can be entered on the config page.
  *
@@ -65,7 +65,7 @@ import org.kohsuke.stapler.export.Exported;
  * @author Margit Bennetzen
  *
  */
-public class PucmScm extends SCM {
+public class CCUCMScm extends SCM {
 
     private String levelToPoll;
     private String loadModule;
@@ -82,7 +82,7 @@ public class PucmScm extends SCM {
     private Integer jobNumber;
     private String id = "";
     private Logger logger = null;
-    public static PucmState pucm = new PucmState();
+    public static CCUCMState ccucm = new CCUCMState();
     
     private boolean createBaseline;
     private String versionFrom;
@@ -92,15 +92,15 @@ public class PucmScm extends SCM {
     private String buildnumberSequenceSelector;
 
     /* Threshold in milliseconds */
-    public static final long __PUCM_STORED_BASELINES_THRESHOLD = 5 * 60 * 1000;
+    public static final long __CCUCM_STORED_BASELINES_THRESHOLD = 5 * 60 * 1000;
     public static StoredBaselines storedBaselines = new StoredBaselines();
-    public static final String PUCM_LOGGER_STRING = "include_classes";
+    public static final String CCUCM_LOGGER_STRING = "include_classes";
     private Polling polling;
 
     /**
      * Default constructor, mainly used for unit tests.
      */
-    public PucmScm() {
+    public CCUCMScm() {
     }
     
 
@@ -121,7 +121,7 @@ public class PucmScm extends SCM {
      * @param multiSite
      */
    @DataBoundConstructor
-   public PucmScm(String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream
+   public CCUCMScm(String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream
 		   /* Baseline creation */, boolean createBaseline, String versionFrom, String buildnumberMajor, String buildnumberMinor, String buildnumberPatch, String buildnumberSequenceSelector
 		   /* Build options     */, String buildProject, boolean multiSite  ) {
 
@@ -136,7 +136,7 @@ public class PucmScm extends SCM {
 
        this.logger = PraqmaLogger.getLogger();
        logger.trace_function();
-       logger.debug("PucmSCM constructor");
+       logger.debug("CCUCMSCM constructor");
        this.component = component;
        this.levelToPoll = levelToPoll;
        this.loadModule = loadModule;
@@ -177,21 +177,21 @@ public class PucmScm extends SCM {
 
         // logger.print(bl.getFullyQualifiedName());
 
-        logger.info(id + "PucmSCM checkout v. " + net.praqma.hudson.Version.version);
+        logger.info(id + "CCUCMSCM checkout v. " + net.praqma.hudson.Version.version);
         boolean result = true;
 
         PrintStream consoleOutput = listener.getLogger();
-        consoleOutput.println("[PUCM] Praqmatic UCM v. " + net.praqma.hudson.Version.version + " - SCM section started");
-        consoleOutput.println("[PUCM] Polling streams: " + polling.toString());
+        consoleOutput.println("[" + Config.nameShort + "] Praqmatic UCM v. " + net.praqma.hudson.Version.version + " - SCM section started");
+        consoleOutput.println("[" + Config.nameShort + "] Polling streams: " + polling.toString());
 
         /* Recalculate the states */
-        int count = pucm.recalculate(build.getProject());
+        int count = ccucm.recalculate(build.getProject());
         logger.info(id + "Removed " + count + " from states.");
 
         doPostBuild = true;
 
         /* If we polled, we should get the same object created at that point */
-        State state = pucm.getState(jobName, jobNumber);
+        State state = ccucm.getState(jobName, jobNumber);
         state.setLoadModule(loadModule);
         storeStateParameters( state );
         
@@ -201,7 +201,7 @@ public class PucmScm extends SCM {
 
         if (this.multiSite) {
             /* Get the time in milli seconds and store it to the state */
-            state.setMultiSiteFrequency(((PucmScmDescriptor) getDescriptor()).getMultiSiteFrequencyAsInt() * 60000);
+            state.setMultiSiteFrequency(((CCUCMScmDescriptor) getDescriptor()).getMultiSiteFrequencyAsInt() * 60000);
             logger.info(id + "Multi site frequency: " + state.getMultiSiteFrquency());
         } else {
             state.setMultiSiteFrequency(0);
@@ -219,10 +219,10 @@ public class PucmScm extends SCM {
         state.setBaselineInformation(bi);
         
 
-        /* Determining the pucm_baseline modifier */
+        /* Determining the CCUCM_baseline modifier */
         String baselinevalue = getBaselineValue( build );
 
-        /* The special pucm_baseline case */
+        /* The special CCUCM_baseline case */
         if (build.getBuildVariables().get(baselinevalue) != null) {
             logger.debug( "BASELINE: " + baselinevalue );
             state.setPolling( new Polling( PollingType.none ) );
@@ -233,7 +233,7 @@ public class PucmScm extends SCM {
         
         /* If a baseline is found */
         if (state.getBaseline() != null && result ) {
-        	consoleOutput.println("[PUCM] Using " + state.getBaseline());
+        	consoleOutput.println("[" + Config.nameShort + "] Using " + state.getBaseline());
         	build.setDescription("<small>" + state.getBaseline() + "</small>");
         	
             if( polling.isPollingSelf() ) {
@@ -245,7 +245,7 @@ public class PucmScm extends SCM {
             
         }
         
-        consoleOutput.println( "[PUCM] Pre build steps done" );
+        consoleOutput.println( "[" + Config.nameShort + "] Pre build steps done" );
 
         return result;
     }
@@ -259,7 +259,7 @@ public class PucmScm extends SCM {
                 state.getBaseline().load();
             } catch (UCMException e) {
                 logger.debug(id + "Could not load Baseline");
-                consoleOutput.println("[PUCM] Could not load Baseline.");
+                consoleOutput.println("[" + Config.nameShort + "] Could not load Baseline.");
             }
 
 
@@ -277,11 +277,11 @@ public class PucmScm extends SCM {
                 fos.close();
             } catch (IOException e) {
                 logger.debug(id + "Could not write change log file");
-                consoleOutput.println("[PUCM] Could not write change log file");
+                consoleOutput.println("[" + Config.nameShort + "] Could not write change log file");
             }
 
         } catch (Exception e) {
-            consoleOutput.println("[PUCM] An unknown error occured: " + e.getMessage());
+            consoleOutput.println("[" + Config.nameShort + "] An unknown error occured: " + e.getMessage());
             logger.warning(e);
             e.printStackTrace(consoleOutput);
             doPostBuild = false;
@@ -301,7 +301,7 @@ public class PucmScm extends SCM {
         try {
             state.setBaseline(UCMEntity.getBaseline(baselinename));
             state.setStream(state.getBaseline().getStream());
-            consoleOutput.println("[PUCM] Starting parameterized build with a pucm_baseline.\n[PUCM] Using baseline: " + baselinename
+            consoleOutput.println("[" + Config.nameShort + "] Starting parameterized build with a CCUCM_baseline.\n[" + Config.nameShort + "] Using baseline: " + baselinename
                     + " from integrationstream " + state.getStream().getShortname());
 
             /* The component could be used in the post build section */
@@ -309,7 +309,7 @@ public class PucmScm extends SCM {
             state.setStream(state.getBaseline().getStream());
             logger.debug(id + "Saving the component for later use");
         } catch (UCMException e) {
-            consoleOutput.println("[PUCM] Could not find baseline from parameter '" + baselinename + "'.");
+            consoleOutput.println("[" + Config.nameShort + "] Could not find baseline from parameter '" + baselinename + "'.");
             state.setPostBuild(false);
             result = false;
             state.setBaseline(null);
@@ -325,7 +325,7 @@ public class PucmScm extends SCM {
 
         while (i.hasNext()) {
             String next = i.next().toString();
-            if (next.equalsIgnoreCase("pucm_baseline")) {
+            if (next.equalsIgnoreCase("CCUCM_baseline")) {
                 return next;
             }
         }
@@ -373,7 +373,7 @@ public class PucmScm extends SCM {
             	int total = baselines.size();
             	int pruned = filterBaselines( baselines );
             	
-            	consoleOutput.println( "[PUCM] Removed " + pruned + " of " + total + " Baselines." );
+            	consoleOutput.println( "[" + Config.nameShort + "] Removed " + pruned + " of " + total + " Baselines." );
 
                 /* if we did not find any baselines we should return false */
                 if (baselines.size() < 1) {
@@ -396,7 +396,7 @@ public class PucmScm extends SCM {
             consoleOutput.println( "" );
             
         } catch( Exception e ) {
-            consoleOutput.println("[PUCM] " + e.getMessage());
+            consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
             logger.warning( e );
             return false;
         }
@@ -411,7 +411,7 @@ public class PucmScm extends SCM {
     	
         try {
             logger.debug( "Remote delivering...." );
-            consoleOutput.println("[PUCM] Starting delivery");
+            consoleOutput.println("[" + Config.nameShort + "] Starting delivery");
             //RemoteDeliver rmDeliver = new RemoteDeliver(UCMEntity.getStream(stream).getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
             RemoteDeliver rmDeliver = new RemoteDeliver(state.getBaseline().getStream().getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
 
@@ -419,23 +419,23 @@ public class PucmScm extends SCM {
             /*Next line must be after the line above*/
             state.setSnapView(rmDeliver.getSnapShotView());
         } catch (IOException e) {
-            consoleOutput.println("[PUCM] " + e.getMessage());
+            consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
             result = false;
         } catch (UCMException e) {
-            consoleOutput.println("[PUCM] " + e.getMessage());
+            consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
             result = false;
         } catch( InterruptedException e ) {
-            consoleOutput.println("[PUCM] " + e.getMessage());
+            consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
             logger.warning( e );
             result = false;
         }
         
-        consoleOutput.println("[PUCM] Deliver " + (result ? "succeeded" : "failed"));
+        consoleOutput.println("[" + Config.nameShort + "] Deliver " + (result ? "succeeded" : "failed"));
         /* If failed, cancel the deliver */
         
         if( !result ) {
             try {
-                consoleOutput.print("[PUCM] Trying to cancel. ");
+                consoleOutput.print("[" + Config.nameShort + "] Trying to cancel. ");
                 Util.completeRemoteDeliver( workspace, listener, state, false );
                 consoleOutput.println("Done");
                 
@@ -445,14 +445,14 @@ public class PucmScm extends SCM {
             } catch( Exception e ) {
                 consoleOutput.println("Failed");
                 logger.warning(e);
-                consoleOutput.println("[PUCM] " + e.getMessage());
+                consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
             }
         }
         
         try {
 			state.setStream(UCMEntity.getStream(stream));
 		} catch (UCMException e) {
-            consoleOutput.println("[PUCM] " + e.getMessage());
+            consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
             logger.warning( e );
             result = false;
 		}
@@ -482,7 +482,7 @@ public class PucmScm extends SCM {
             logger.warning( "Could not retrieve streams: " + e1.getMessage() );
         }
         
-        consoleOutput.println("[PUCM] Scanning " + streams.size() + " child stream" + ( streams.size() == 1 ? "" : "s" ) + " for baselines." );
+        consoleOutput.println("[" + Config.nameShort + "] Scanning " + streams.size() + " child stream" + ( streams.size() == 1 ? "" : "s" ) + " for baselines." );
         
         int c = 1;
         for (Stream s : streams) {
@@ -490,8 +490,8 @@ public class PucmScm extends SCM {
                 String name = s.getShortname().substring( 0, Math.min( 20, s.getShortname().length() ) );
                 int left = 20 - name.length();
                 name = name + new String(new char[left]).replace("\0", " ");
-                //consoleOutput.print("[PUCM]  [" + c + "] " + name + new String(new char[left]).replace("\0", " ") + " " );
-                consoleOutput.printf( "[PUCM] [%02d] %s ", c, name );
+                //consoleOutput.print("[" + Config.nameShort + "]  [" + c + "] " + name + new String(new char[left]).replace("\0", " ") + " " );
+                consoleOutput.printf( "[" + Config.nameShort + "] [%02d] %s ", c, name );
                 c++;
                 List<Baseline> found = getValidBaselines(project, state, Project.getPlevelFromString(levelToPoll), s, component);
                 for (Baseline b : found ) {
@@ -518,7 +518,7 @@ public class PucmScm extends SCM {
     public void buildEnvVars(AbstractBuild<?, ?> build, Map<String, String> env) {
         super.buildEnvVars(build, env);
 
-        State state = pucm.getState(jobName, jobNumber);
+        State state = ccucm.getState(jobName, jobNumber);
 
         if (state.getBaseline() != null) {
             env.put("CC_BASELINE", state.getBaseline().getFullyQualifiedName());
@@ -551,13 +551,13 @@ public class PucmScm extends SCM {
          * final job number
          */
 
-        State state = pucm.getState(jobName, jobNumber);
+        State state = ccucm.getState(jobName, jobNumber);
         state.setAddedByPoller(true);
         storeStateParameters( state );
         
         if (this.multiSite) {
             /* Get the time in milli seconds and store it to the state */
-            state.setMultiSiteFrequency(((PucmScmDescriptor) getDescriptor()).getMultiSiteFrequencyAsInt() * 60000);
+            state.setMultiSiteFrequency(((CCUCMScmDescriptor) getDescriptor()).getMultiSiteFrequencyAsInt() * 60000);
             logger.info(id + "Multi site frequency: " + state.getMultiSiteFrquency());
         } else {
             state.setMultiSiteFrequency(0);
@@ -568,7 +568,7 @@ public class PucmScm extends SCM {
         
 
         PollingResult p = null;
-        consoleOut.println("[PUCM] polling streams: " + polling);
+        consoleOut.println("[" + Config.nameShort + "] polling streams: " + polling);
         
         try {
 	        List<Baseline> baselines = null;
@@ -676,7 +676,7 @@ public class PucmScm extends SCM {
 
         } catch (ScmException e) {
             e.printStackTrace(consoleOut);
-            consoleOut.println(pollMsgs + "\n[PUCM] " + e.getMessage());
+            consoleOut.println(pollMsgs + "\n[" + Config.nameShort + "] " + e.getMessage());
             pollMsgs = new StringBuffer();
             logger.debug(id + "Removed job " + state.getJobNumber() + " from list");
             state.remove();
@@ -722,7 +722,7 @@ public class PucmScm extends SCM {
     /**
      * Given the {@link Stream}, {@link Component} and {@link Plevel} a list of valid {@link Baseline}s is returned.
      * @param project The jenkins project
-     * @param state The PUCM {@link State}
+     * @param state The CCUCM {@link State}
      * @param plevel The {@link Plevel}
      * @param stream {@link Stream}
      * @param component {@link Component}
@@ -743,27 +743,27 @@ public class PucmScm extends SCM {
         logger.debug(id + "GetBaseline state:\n" + state.stringify());
         List<Baseline> validBaselines = new ArrayList<Baseline>();
         if (baselines.size() >= 1) {
-            logger.debug(id + "PUCM=" + pucm.stringify());
+            logger.debug(id + "CCUCM=" + ccucm.stringify());
 
             if (state.isMultiSite()) {
                 /* Prune the stored baselines */
-                int pruned = PucmScm.storedBaselines.prune(state.getMultiSiteFrquency());
+                int pruned = CCUCMScm.storedBaselines.prune(state.getMultiSiteFrquency());
                 logger.info(id + "I pruned " + pruned + " baselines from cache with threshold "
                         + StoredBaselines.milliToMinute(state.getMultiSiteFrquency()) + "m");
-                logger.debug(id + "My stored baselines:\n" + PucmScm.storedBaselines.toString());
+                logger.debug(id + "My stored baselines:\n" + CCUCMScm.storedBaselines.toString());
             }
 
             try {
                 /* For each baseline in the list */
                 for (Baseline b : baselines) {
                     /* Get the state for the current baseline */
-                    State cstate = pucm.getStateByBaseline(jobName, b.getFullyQualifiedName());
+                    State cstate = ccucm.getStateByBaseline(jobName, b.getFullyQualifiedName());
 
                     /* Find the stored baseline if multi site, null if not */
                     StoredBaseline sbl = null;
                     if (state.isMultiSite()) {
                         /* Find the baseline if stored */
-                        sbl = PucmScm.storedBaselines.getBaseline(b.getFullyQualifiedName());
+                        sbl = CCUCMScm.storedBaselines.getBaseline(b.getFullyQualifiedName());
                         logger.debug(id + "The found stored baseline: " + sbl);
                     }
 
@@ -852,29 +852,29 @@ public class PucmScm extends SCM {
     }
 
     private void printParameters(PrintStream ps) {
-        ps.println("[PUCM] Getting baselines for :");
-        ps.println("[PUCM] * Stream:          " + stream);
-        ps.println("[PUCM] * Component:       " + component);
-        ps.println("[PUCM] * Promotion level: " + levelToPoll);
+        ps.println("[" + Config.nameShort + "] Getting baselines for :");
+        ps.println("[" + Config.nameShort + "] * Stream:          " + stream);
+        ps.println("[" + Config.nameShort + "] * Component:       " + component);
+        ps.println("[" + Config.nameShort + "] * Promotion level: " + levelToPoll);
         ps.println("");
     }
 
     public void printBaselines(List<Baseline> baselines, PrintStream ps) {
         if (baselines != null) {
-            ps.println("[PUCM] Retrieved baselines:");
+            ps.println("[" + Config.nameShort + "] Retrieved baselines:");
             if (!(baselines.size() > 20)) {
                 for (Baseline b : baselines) {
-                    ps.println("[PUCM] + " + b.getShortname() + "(" + b.getDate() + ")");
+                    ps.println("[" + Config.nameShort + "] + " + b.getShortname() + "(" + b.getDate() + ")");
                 }
             } else {
                 int i = baselines.size();
-                ps.println("[PUCM] + " + baselines.get(0).getShortname() + "(" + baselines.get(0).getDate() + ")");
-                ps.println("[PUCM] + " + baselines.get(1).getShortname() + "(" + baselines.get(1).getDate() + ")");
-                ps.println("[PUCM] + " + baselines.get(2).getShortname() + "(" + baselines.get(2).getDate() + ")");
-                ps.println("[PUCM]   ...(" + (i - 6) + " baselines not shown)...");
-                ps.println("[PUCM] + " + baselines.get(i - 3).getShortname() + "(" + baselines.get(i-3).getDate() + ")");
-                ps.println("[PUCM] + " + baselines.get(i - 2).getShortname() + "(" + baselines.get(i-2).getDate() + ")");
-                ps.println("[PUCM] + " + baselines.get(i - 1).getShortname() + "(" + baselines.get(i-1).getDate() + ")");
+                ps.println("[" + Config.nameShort + "] + " + baselines.get(0).getShortname() + "(" + baselines.get(0).getDate() + ")");
+                ps.println("[" + Config.nameShort + "] + " + baselines.get(1).getShortname() + "(" + baselines.get(1).getDate() + ")");
+                ps.println("[" + Config.nameShort + "] + " + baselines.get(2).getShortname() + "(" + baselines.get(2).getDate() + ")");
+                ps.println("[" + Config.nameShort + "]   ...(" + (i - 6) + " baselines not shown)...");
+                ps.println("[" + Config.nameShort + "] + " + baselines.get(i - 3).getShortname() + "(" + baselines.get(i-3).getDate() + ")");
+                ps.println("[" + Config.nameShort + "] + " + baselines.get(i - 2).getShortname() + "(" + baselines.get(i-2).getDate() + ")");
+                ps.println("[" + Config.nameShort + "] + " + baselines.get(i - 1).getShortname() + "(" + baselines.get(i-1).getDate() + ")");
             }
         }
     }
@@ -908,7 +908,7 @@ public class PucmScm extends SCM {
     }
 
     /*
-     * getStreamObject() and getBaseline() are used by PucmNotifier to get the
+     * getStreamObject() and getBaseline() are used by CCUCMNotifier to get the
      * Baseline and Stream in use, but does not work with concurrent builds!!!
      */
     public Stream getStreamObject() {
@@ -977,14 +977,14 @@ public class PucmScm extends SCM {
      *
      */
     @Extension
-    public static class PucmScmDescriptor extends SCMDescriptor<PucmScm> implements hudson.model.ModelObject {
+    public static class CCUCMScmDescriptor extends SCMDescriptor<CCUCMScm> implements hudson.model.ModelObject {
 
         private String cleartool;
         private String multiSiteFrequency;
         private List<String> loadModules;
 
-        public PucmScmDescriptor() {
-            super(PucmScm.class, null);
+        public CCUCMScmDescriptor() {
+            super(CCUCMScm.class, null);
             loadModules = getLoadModules();
             load();
             Config.setContext();
@@ -998,12 +998,12 @@ public class PucmScm extends SCM {
         public boolean configure(org.kohsuke.stapler.StaplerRequest req, JSONObject json) throws FormException {
             /* For backwards compatibility, check if parameters are null */
 
-            cleartool = json.getString("PUCM.cleartool");
+            cleartool = json.getString("CCUCM.cleartool");
             if (cleartool != null) {
                 cleartool = cleartool.trim();
             }
 
-            multiSiteFrequency = json.getString("PUCM.multiSiteFrequency");
+            multiSiteFrequency = json.getString("CCUCM.multiSiteFrequency");
             if (multiSiteFrequency != null) {
                 multiSiteFrequency = multiSiteFrequency.trim();
             }
@@ -1021,7 +1021,7 @@ public class PucmScm extends SCM {
         }
 
         /**
-         * This method is called by the scm/Pucm/global.jelly to validate the
+         * This method is called by the scm/CCUCM/global.jelly to validate the
          * input without reloading the global configuration page
          *
          * @param value

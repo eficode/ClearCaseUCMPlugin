@@ -13,9 +13,9 @@
     </properties>
 
 
-    <artifactId>PUCM</artifactId>
+    <artifactId>CCUCM-Plugin</artifactId>
     <version>1.0.0-RC1</version>
-    <name>PUCM</name>
+    <name>ClearCase UCM Plugin</name>
     <description>Integrates Jenkins to ClearCase UCM</description>
     <url>http://wiki.jenkins-ci.org/display/JENKINS/Pucm+plugin</url>
     <packaging>hpi</packaging>

@@ -80,11 +80,11 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 			doPostBuild = true;
 		} catch (net.praqma.hudson.exception.ScmException e) {
 			log += logger.debug( id + "SCM exception: " + e.getMessage() );
-			hudsonOut.println( "[PUCM] SCM exception: " + e.getMessage() );
+			hudsonOut.println( "[" + Config.nameShort + "] SCM exception: " + e.getMessage() );
 		} catch (UCMException e) {
 			log += logger.debug( id + "Could not get changes. " + e.getMessage() );
 			log += logger.info( e );
-			hudsonOut.println( "[PUCM] Could not get changes. " + e.getMessage() );
+			hudsonOut.println( "[" + Config.nameShort + "] Could not get changes. " + e.getMessage() );
 		}
 
 		log += logger.info( "CheckoutTask finished normally" );
@@ -122,17 +122,17 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 		// Now we have to rebase - if a rebase is in progress, the
 		// old one must be stopped and the new started instead
 		if( devstream.isRebaseInProgress() ) {
-			hudsonOut.print( "[PUCM] Cancelling previous rebase..." );
+			hudsonOut.print( "[" + Config.nameShort + "] Cancelling previous rebase..." );
 			devstream.cancelRebase();
 			hudsonOut.println( " DONE" );
 		}
-		// The last boolean, complete, must always be true from PUCM
+		// The last boolean, complete, must always be true from CCUCM
 		// as we are always working on a read-only stream according
 		// to LAK
-		hudsonOut.print( "[PUCM] Rebasing development stream (" + devstream.getShortname() + ") against parent stream (" + integrationstream.getShortname() + ")" );
+		hudsonOut.print( "[" + Config.nameShort + "] Rebasing development stream (" + devstream.getShortname() + ") against parent stream (" + integrationstream.getShortname() + ")" );
 		devstream.rebase( sv, bl, true );
 		hudsonOut.println( " DONE" );
-		hudsonOut.println( "[PUCM] Log written to " + logger.getPath() );
+		hudsonOut.println( "[" + Config.nameShort + "] Log written to " + logger.getPath() );
 	}
 
 	private Stream getDeveloperStream( String streamname, String pvob, PrintStream hudsonOut ) throws ScmException {

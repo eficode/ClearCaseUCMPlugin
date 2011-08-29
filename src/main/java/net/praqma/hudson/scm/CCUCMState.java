@@ -19,12 +19,12 @@ import net.praqma.util.debug.PraqmaLogger;
 import net.praqma.util.debug.PraqmaLogger.Logger;
 
 /**
- * This is the state object for the Pucm jobs
+ * This is the state object for the CCUCM jobs
  * 
  * @author wolfgang
  * 
  */
-public class PucmState {
+public class CCUCMState {
 
     private List<State> states = Collections.synchronizedList(new ArrayList<State>());
     private static final String linesep = System.getProperty("line.separator");
@@ -115,7 +115,7 @@ public class PucmState {
                 }
             }
         } catch (ConcurrentModificationException e) {
-            logger.warning("Concurrency warning in PucmState");
+            logger.warning("Concurrency warning in CCUCMState");
         } catch (NullPointerException e) {
             logger.warning("This should not happen");
         }
@@ -171,11 +171,11 @@ public class PucmState {
 
         @Deprecated
         public void save() {
-            PucmState.this.addState(this);
+            CCUCMState.this.addState(this);
         }
 
         public boolean remove() {
-            return PucmState.this.removeState(this);
+            return CCUCMState.this.removeState(this);
         }
 
         public Baseline getBaseline() {

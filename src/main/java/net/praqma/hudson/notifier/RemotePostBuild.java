@@ -20,6 +20,7 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Tag;
 import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
+import net.praqma.hudson.Config;
 import net.praqma.util.debug.PraqmaLogger;
 import net.praqma.util.debug.PraqmaLogger.Logger;
 
@@ -105,7 +106,7 @@ class RemotePostBuild implements FileCallable<Status> {
 			baseline = UCMEntity.getBaseline( this.baseline );
 		} catch (UCMException e) {
 			status.addToLog( logger.debug( id + "could not create Baseline object:" + e.getMessage() ) );
-			throw new IOException( "[PUCM] Could not create Baseline object: " + e.getMessage() );
+			throw new IOException( "[" + Config.nameShort + "] Could not create Baseline object: " + e.getMessage() );
 		}
 
 		/* Create the stream object */
@@ -114,7 +115,7 @@ class RemotePostBuild implements FileCallable<Status> {
 			stream = UCMEntity.getStream( this.stream );
 		} catch (UCMException e) {
 			status.addToLog( logger.debug( id + "could not create Stream object:" + e.getMessage() ) );
-			throw new IOException( "[PUCM] Could not create Stream object: " + e.getMessage() );
+			throw new IOException( "[" + Config.nameShort + "] Could not create Stream object: " + e.getMessage() );
 		}
 
 		status.addToLog( logger.warning( id + "Stream and component created" ) );
@@ -127,7 +128,7 @@ class RemotePostBuild implements FileCallable<Status> {
 				tag = baseline.getTag( this.displayName, this.buildNumber );
 				status.setTagAvailable( true );
 			} catch (UCMException e) {
-				hudsonOut.println( "[PUCM] Could not get Tag: " + e.getMessage() );
+				hudsonOut.println( "[" + Config.nameShort + "] Could not get Tag: " + e.getMessage() );
 				status.addToLog( logger.warning( id + "Could not get Tag: " + e.getMessage() ) );
 			}
 		}
@@ -138,12 +139,12 @@ class RemotePostBuild implements FileCallable<Status> {
 				tag.setEntry( "buildstatus", "SUCCESS" );
 			}
 
-			if( promote > PucmNotifier.__NO_PROMOTE ) {
+			if( promote > CCUCMNotifier.__NO_PROMOTE ) {
 				try {
 					Project.Plevel pl = baseline.promote();
 					status.setPromotedLevel( pl );
 					status.setPLevel( true );
-					hudsonOut.println( "[PUCM] Baseline promoted to " + baseline.getPromotionLevel( true ).toString() + "." );
+					hudsonOut.println( "[" + Config.nameShort + "] Baseline promoted to " + baseline.getPromotionLevel( true ).toString() + "." );
 				} catch (UCMException e) {
 					status.setStable( false );
 					/*
@@ -152,14 +153,14 @@ class RemotePostBuild implements FileCallable<Status> {
 					 */
 					if( recommend ) {
 						status.setRecommended( false );
-						hudsonOut.println( "[PUCM] Could not promote baseline and will not recommend. " + e.getMessage() );
+						hudsonOut.println( "[" + Config.nameShort + "] Could not promote baseline and will not recommend. " + e.getMessage() );
 						status.addToLog( logger.warning( id + "Could not promote baseline and will not recommend. " + e.getMessage() ) );
 					} else {
 						/*
 						 * As we will not recommend if we cannot promote, it's
 						 * ok to break method here
 						 */
-						hudsonOut.println( "[PUCM] Could not promote baseline. " + e.getMessage() );
+						hudsonOut.println( "[" + Config.nameShort + "] Could not promote baseline. " + e.getMessage() );
 						status.addToLog( logger.warning( id + "Could not promote baseline. " + e.getMessage() ) );
 					}
 				}
@@ -169,12 +170,12 @@ class RemotePostBuild implements FileCallable<Status> {
 				try {
 					if( status.isPLevel() ) {
 						stream.recommendBaseline( baseline );
-						hudsonOut.println( "[PUCM] Baseline " + baseline.getShortname() + " is now recommended." );
+						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + baseline.getShortname() + " is now recommended." );
 					}
 				} catch ( UCMException e ) {
 					status.setStable( false );
 					status.setRecommended( false );
-					hudsonOut.println( "[PUCM] Could not recommend Baseline: " + e.getMessage() );
+					hudsonOut.println( "[" + Config.nameShort + "] Could not recommend Baseline: " + e.getMessage() );
 					status.addToLog( logger.warning( id + "Could not recommend baseline: " + e.getMessage() ) );
 				}
 			}
@@ -188,24 +189,24 @@ class RemotePostBuild implements FileCallable<Status> {
 
 			/* The build failed */
 			if( result.equals( Result.FAILURE ) ) {
-				hudsonOut.println( "[PUCM] Build failed." );
+				hudsonOut.println( "[" + Config.nameShort + "] Build failed." );
 
 				if( status.isTagAvailable() ) {
 					tag.setEntry( "buildstatus", "FAILURE" );
 				}
 
-				if( promote > PucmNotifier.__NO_PROMOTE ) {
+				if( promote > CCUCMNotifier.__NO_PROMOTE ) {
 					try {
 						status.addToLog( logger.warning( id + "Demoting baseline" ) );
 						Project.Plevel pl = baseline.demote();
 						status.setPromotedLevel( pl );
 						status.setPLevel( true );
-						hudsonOut.println( "[PUCM] Baseline is " + baseline.getPromotionLevel( true ).toString() + "." );
+						hudsonOut.println( "[" + Config.nameShort + "] Baseline is " + baseline.getPromotionLevel( true ).toString() + "." );
 					} catch (Exception e) {
 						status.setStable( false );
 						// throw new NotifierException(
 						// "Could not demote baseline. " + e.getMessage() );
-						hudsonOut.println( "[PUCM] Could not demote baseline. " + e.getMessage() );
+						hudsonOut.println( "[" + Config.nameShort + "] Could not demote baseline. " + e.getMessage() );
 						status.addToLog( logger.warning( id + "Could not demote baseline. " + e.getMessage() ) );
 					}
 				}
@@ -219,22 +220,22 @@ class RemotePostBuild implements FileCallable<Status> {
 					tag.setEntry( "buildstatus", "UNSTABLE" );
 				}
 
-				if( promote > PucmNotifier.__NO_PROMOTE ) {
+				if( promote > CCUCMNotifier.__NO_PROMOTE ) {
 					try {
 						Project.Plevel pl = Project.Plevel.INITIAL;
 
-						if( promote == PucmNotifier.__PROMOTE_UNSTABLE ) {
+						if( promote == CCUCMNotifier.__PROMOTE_UNSTABLE ) {
 							pl = baseline.promote();
-							hudsonOut.println( "[PUCM] Baseline is promoted, even though the build is unstable." );
+							hudsonOut.println( "[" + Config.nameShort + "] Baseline is promoted, even though the build is unstable." );
 						} else {
 							pl = baseline.demote();
 						}
 						status.setPromotedLevel( pl );
 						status.setPLevel( true );
-						hudsonOut.println( "[PUCM] Baseline is " + baseline.getPromotionLevel( true ).toString() + "." );
+						hudsonOut.println( "[" + Config.nameShort + "] Baseline is " + baseline.getPromotionLevel( true ).toString() + "." );
 					} catch (Exception e) {
 						status.setStable( false );
-						hudsonOut.println( "[PUCM] Could not demote baseline. " + e.getMessage() );
+						hudsonOut.println( "[" + Config.nameShort + "] Could not demote baseline. " + e.getMessage() );
 						status.addToLog( logger.warning( id + "Could not demote baseline. " + e.getMessage() ) );
 					}
 				}
@@ -243,22 +244,22 @@ class RemotePostBuild implements FileCallable<Status> {
 					try {
 						if( status.isPLevel() ) {
 							stream.recommendBaseline( baseline );
-							hudsonOut.println( "[PUCM] Baseline " + baseline.getShortname() + " is now recommended." );
+							hudsonOut.println( "[" + Config.nameShort + "] Baseline " + baseline.getShortname() + " is now recommended." );
 						}
 					} catch (Exception e) {
 						status.setStable( false );
 						status.setRecommended( false );
-						hudsonOut.println( "[PUCM] Could not recommend baseline. Reason: " + e.getMessage() );
+						hudsonOut.println( "[" + Config.nameShort + "] Could not recommend baseline. Reason: " + e.getMessage() );
 						status.addToLog( logger.warning( id + "Could not recommend baseline. Reason: " + e.getMessage() ) );
 					}
 				}
 
 			}
-			/* Result not handled by PUCM */
+			/* Result not handled by CCUCM */
 			else {
 				tag.setEntry( "buildstatus", result.toString() );
 				status.addToLog( logger.log( id + "Buildstatus (Result) was " + result + ". Not handled by plugin." ) );
-				hudsonOut.println( "[PUCM] Baseline not changed. Buildstatus: " + result );
+				hudsonOut.println( "[" + Config.nameShort + "] Baseline not changed. Buildstatus: " + result );
 			}
 		}
 
@@ -267,13 +268,13 @@ class RemotePostBuild implements FileCallable<Status> {
 			if( tag != null ) {
 				try {
 					tag = tag.persist();
-					hudsonOut.println( "[PUCM] Baseline now marked with tag: \n" + tag.stringify() );
+					hudsonOut.println( "[" + Config.nameShort + "] Baseline now marked with tag: \n" + tag.stringify() );
 				} catch (Exception e) {
-					hudsonOut.println( "[PUCM] Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
+					hudsonOut.println( "[" + Config.nameShort + "] Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
 				}
 			} else {
 				logger.warning( id + "Tag object was null" );
-				hudsonOut.println( "[PUCM] Tag object was null, tag not set." );
+				hudsonOut.println( "[" + Config.nameShort + "] Tag object was null, tag not set." );
 			}
 		}
 
@@ -281,7 +282,7 @@ class RemotePostBuild implements FileCallable<Status> {
 			newPLevel = baseline.getPromotionLevel( true ).toString();
 		} catch (UCMException e) {
 			logger.log( id + " Could not get promotionlevel." );
-			hudsonOut.println( "[PUCM] Could not get promotion level." );
+			hudsonOut.println( "[" + Config.nameShort + "] Could not get promotion level." );
 		}
 
 		status.setBuildDescr( setDisplaystatus( newPLevel, baseline.getShortname() ) );

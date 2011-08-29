@@ -16,11 +16,12 @@ import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.Cool;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
+import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.NotifierException;
 import net.praqma.hudson.remoting.RemoteDeliverComplete;
 import net.praqma.hudson.remoting.Util;
-import net.praqma.hudson.scm.PucmScm;
-import net.praqma.hudson.scm.PucmState.State;
+import net.praqma.hudson.scm.CCUCMScm;
+import net.praqma.hudson.scm.CCUCMState.State;
 import net.praqma.util.debug.PraqmaLogger;
 import net.praqma.util.debug.PraqmaLogger.Logger;
 import net.sf.json.JSONObject;
@@ -42,13 +43,13 @@ import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 
 /**
- * PucmNotifier perfoms the user-chosen PUCM post-build actions
+ * CCUCMNotifier perfoms the user-chosen CCUCM post-build actions
  *
  * @author Troels Selch
  * @author Margit Bennetzen
  *
  */
-public class PucmNotifier extends Notifier {
+public class CCUCMNotifier extends Notifier {
     /* Old skool promotion */
 
     private boolean promote = false;
@@ -79,12 +80,12 @@ public class PucmNotifier extends Notifier {
      *            if <code>true</code>, the baseline will be marked
      *            'recommended' in ClearCase.
      * @param makeTag
-     *            if <code>true</code>, pucm will set a Tag() on the baseline in
+     *            if <code>true</code>, CCUCM will set a Tag() on the baseline in
      *            ClearCase.
      * @param ucmDeliver The special deliver object, in which all the deliver parameters are encapsulated.
 
      */
-    public PucmNotifier(boolean promote, boolean recommended, boolean makeTag, boolean setDescription, UCMDeliver ucmDeliver, int promoteAction) {
+    public CCUCMNotifier(boolean promote, boolean recommended, boolean makeTag, boolean setDescription, UCMDeliver ucmDeliver, int promoteAction) {
         this.promote = promote;
         this.promoteAction = promoteAction;
         this.recommended = recommended;
@@ -96,7 +97,7 @@ public class PucmNotifier extends Notifier {
     }
 
     /**
-     * This indicates whether to let pucm run after(true) the job is done or before(false)
+     * This indicates whether to let CCUCM run after(true) the job is done or before(false)
      */
     @Override
     public boolean needsToRunAfterFinalized() {
@@ -146,8 +147,8 @@ public class PucmNotifier extends Notifier {
          */
         if (result) {
             scmTemp = build.getProject().getScm();
-            if (!(scmTemp instanceof PucmScm)) {
-                listener.fatalError("[PUCM] Not a PUCM scm. This Post build action can only be used when polling from ClearCase with PUCM plugin.");
+            if (!(scmTemp instanceof CCUCMScm)) {
+                listener.fatalError("[" + Config.nameShort + "] Not a CCUCM scm. This Post build action can only be used when polling from ClearCase with CCUCM plugin.");
                 result = false;
             }
             scmTemp.toString();
@@ -156,10 +157,10 @@ public class PucmNotifier extends Notifier {
         State pstate = null;
         Baseline baseline = null;
 
-        /* Only do this part if a valid PucmScm build */
+        /* Only do this part if a valid CCUCMScm build */
         if (result) {
-            /* Retrieve the pucm state */
-            pstate = PucmScm.pucm.getState(jobName, jobNumber);
+            /* Retrieve the CCUCM state */
+            pstate = CCUCMScm.ccucm.getState(jobName, jobNumber);
             pstate.getLogger().debug("The valid state: " + pstate.stringify());
 
             /* Validate the state */
@@ -180,7 +181,7 @@ public class PucmNotifier extends Notifier {
                     }
 
                     if (baseline == null) {
-                        /* If baseline is null, the user has already been notified in Console output from PucmScm.checkout() */
+                        /* If baseline is null, the user has already been notified in Console output from CCUCMScm.checkout() */
                         result = false;
                     }
                 } else {
@@ -200,13 +201,13 @@ public class PucmNotifier extends Notifier {
                 processBuild(build, launcher, listener, pstate);
                 if (setDescription) {
                     build.setDescription(status.getBuildDescr());
-                    hudsonOut.println("[PUCM] Description set to - " + status.getBuildDescr());
+                    hudsonOut.println("[" + Config.nameShort + "] Description set to - " + status.getBuildDescr());
                 }
 
             } catch (NotifierException ne) {
                 hudsonOut.println(ne.getMessage());
             } catch (IOException e) {
-                hudsonOut.println("[PUCM] Couldn't set build description.");
+                hudsonOut.println("[" + Config.nameShort + "] Couldn't set build description.");
             }
         } else {
             String d = build.getDescription();
@@ -219,24 +220,24 @@ public class PucmNotifier extends Notifier {
 
         /*
          * Removing baseline and job from collection, do this no matter what as
-         * long as the SCM is pucm
+         * long as the SCM is CCUCM
          */
-        if ((scmTemp instanceof PucmScm) && baseline != null) {
+        if ((scmTemp instanceof CCUCMScm) && baseline != null) {
             boolean done2 = pstate.remove();
             logger.debug(id + "Removing job " + build.getNumber() + " from collection: " + done2);
 
-            //logger.debug( "PUCM FINAL=" + PucmScm.pucm.stringify() );
+            //logger.debug( "CCUCM FINAL=" + CCUCMScm.CCUCM.stringify() );
 
             if (pstate.isMultiSite()) {
                 /* Trying to store baseline */
                 //logger.debug( id + "Trying to store baseline" );
-                if (!PucmScm.storedBaselines.addBaseline(pstate.getBaseline())) {
+                if (!CCUCMScm.storedBaselines.addBaseline(pstate.getBaseline())) {
                     logger.warning(id + "Storing baseline failed.");
                 }
             }
         }
         
-        hudsonOut.println( "[PUCM] Post build steps done" );
+        hudsonOut.println( "[" + Config.nameShort + "] Post build steps done" );
 
         return result;
     }
@@ -247,7 +248,7 @@ public class PucmNotifier extends Notifier {
      * @param build The build object in which the post build action is selected
      * @param launcher The launcher of the build
      * @param listener The listener of the build
-     * @param pstate The {@link PucmState} of the build.
+     * @param pstate The {@link CCUCMState} of the build.
      * @throws NotifierException
      */
     private void processBuild(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, State pstate) throws NotifierException {
@@ -266,9 +267,9 @@ public class PucmNotifier extends Notifier {
             throw new NotifierException("Workspace is null");
         }
 
-        hudsonOut.println("[PUCM] Build result: " + buildResult);
+        hudsonOut.println("[" + Config.nameShort + "] Build result: " + buildResult);
 
-        /* Finalize PUCM, deliver + baseline 
+        /* Finalize CCUCM, deliver + baseline 
          * Only do this for child and sibling polling */
         if( pstate.needsToBeCompleted() && pstate.getPolling().isPollingOther() ) {
             status.setBuildStatus(buildResult);
@@ -276,7 +277,7 @@ public class PucmNotifier extends Notifier {
             boolean complete = buildResult.isBetterThan(Result.FAILURE);
             
             try {                
-                hudsonOut.print("[PUCM] Trying to " + ( complete ? "complete" : "cancel" ) + " the deliver. ");
+                hudsonOut.print("[" + Config.nameShort + "] Trying to " + ( complete ? "complete" : "cancel" ) + " the deliver. ");
                 Util.completeRemoteDeliver( workspace, listener, pstate, complete );
                 hudsonOut.println("Success.");
                 
@@ -284,7 +285,7 @@ public class PucmNotifier extends Notifier {
                 if( complete && pstate.getBaselineInformation().createBaseline ) {
                     Baseline childBase = pstate.getBaseline();
                     try {
-                        hudsonOut.print("[PUCM] Creating baseline on Integration stream. ");
+                        hudsonOut.print("[" + Config.nameShort + "] Creating baseline on Integration stream. ");
                         //Baseline.create(childBase.getShortname(), childBase.getComponent(), pstate.getSnapView().GetViewRoot(), true, true);
                         String number = net.praqma.hudson.Util.CreateNumber(listener, build.getNumber(), pstate.getBaselineInformation().versionFrom, 
                         													pstate.getBaselineInformation().buildnumberMajor, pstate.getBaselineInformation().buildnumberMinor, 
@@ -310,7 +311,7 @@ public class PucmNotifier extends Notifier {
                 /* If trying to complete and it failed, try to cancel it */
                 if( complete ) {
                     try{
-                        hudsonOut.print("[PUCM] Trying to cancel the deliver. ");
+                        hudsonOut.print("[" + Config.nameShort + "] Trying to cancel the deliver. ");
                         Util.completeRemoteDeliver( workspace, listener, pstate, false );
                         hudsonOut.println("Success.");
                     } catch( Exception e1 ) {
@@ -328,7 +329,7 @@ public class PucmNotifier extends Notifier {
         /* Remote post build step, common to all types */
         try {
             logger.debug(id + "Remote post build step");
-            hudsonOut.println("[PUCM] Performing common post build steps");
+            hudsonOut.println("[" + Config.nameShort + "] Performing common post build steps");
 
             final Pipe pipe = Pipe.createRemoteToLocal();
 
@@ -344,7 +345,7 @@ public class PucmNotifier extends Notifier {
             status.setStable(false);
             logger.debug(id + "Something went wrong: " + e.getMessage());
             logger.warning(e);
-            hudsonOut.println("[PUCM] Error: Post build failed: " + e.getMessage());
+            hudsonOut.println("[" + Config.nameShort + "] Error: Post build failed: " + e.getMessage());
         }
 
         /* If the promotion level of the baseline was changed on the remote */
@@ -361,7 +362,7 @@ public class PucmNotifier extends Notifier {
     }
 
     public boolean getPromote() {
-        return promoteAction > PucmNotifier.__NO_PROMOTE;
+        return promoteAction > CCUCMNotifier.__NO_PROMOTE;
     }
 
     public int getPromoteAction() {
@@ -456,7 +457,7 @@ public class PucmNotifier extends Notifier {
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
         public DescriptorImpl() {
-            super(PucmNotifier.class);
+            super(CCUCMNotifier.class);
             //logger.trace_function();
             load();
         }
@@ -469,37 +470,37 @@ public class PucmNotifier extends Notifier {
 
         /**
          * Hudson uses this method to create a new instance of
-         * <code>PucmNotifier</code>. The method gets information from Hudson
+         * <code>CCUCMNotifier</code>. The method gets information from Hudson
          * config page. This information is about the configuration, which
          * Hudson saves.
          */
         @Override
         public Notifier newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-            int promoteAction = PucmNotifier.__NO_PROMOTE;
+            int promoteAction = CCUCMNotifier.__NO_PROMOTE;
             try {
-                promoteAction = Integer.parseInt(req.getParameter("Pucm.promoteAction"));
+                promoteAction = Integer.parseInt(req.getParameter("CCUCM.promoteAction"));
             } catch (NumberFormatException e) {
-                throw new FormException("Could not parse integer: " + e.getMessage(), "Pucm.promotedAction");
+                throw new FormException("Could not parse integer: " + e.getMessage(), "CCUCM.promotedAction");
                 /* No op */
             }
 
             /* Old promote field */
-            boolean promote = req.getParameter("Pucm.promote") != null;
+            boolean promote = req.getParameter("CCUCM.promote") != null;
 
-            boolean recommended = req.getParameter("Pucm.recommended") != null;
-            boolean makeTag = req.getParameter("Pucm.makeTag") != null;
-            boolean setDescription = req.getParameter("Pucm.setDescription") != null;
+            boolean recommended = req.getParameter("CCUCM.recommended") != null;
+            boolean makeTag = req.getParameter("CCUCM.makeTag") != null;
+            boolean setDescription = req.getParameter("CCUCM.setDescription") != null;
 
-            boolean ucmDeliver = req.getParameter("Pucm.ucmDeliver") != null;
-            String alternateTarget = req.getParameter("Pucm.alternateTarget");
-            String baselineName = req.getParameter("Pucm.baselineName");
-            //      boolean apply4level = req.getParameter("Pucm.apply4level") != null;
-            String versionFrom = req.getParameter("Pucm.versionFrom");
-            String buildnumberSequenceSelector = req.getParameter("Pucm.buildnumberSequenceSelector");
+            boolean ucmDeliver = req.getParameter("CCUCM.ucmDeliver") != null;
+            String alternateTarget = req.getParameter("CCUCM.alternateTarget");
+            String baselineName = req.getParameter("CCUCM.baselineName");
+            //      boolean apply4level = req.getParameter("CCUCM.apply4level") != null;
+            String versionFrom = req.getParameter("CCUCM.versionFrom");
+            String buildnumberSequenceSelector = req.getParameter("CCUCM.buildnumberSequenceSelector");
 
-            String buildnumberMajor = req.getParameter("Pucm.buildnumberMajor");
-            String buildnumberMinor = req.getParameter("Pucm.buildnumberMinor");
-            String buildnumberPatch = req.getParameter("Pucm.buildnumberPatch");
+            String buildnumberMajor = req.getParameter("CCUCM.buildnumberMajor");
+            String buildnumberMinor = req.getParameter("CCUCM.buildnumberMinor");
+            String buildnumberPatch = req.getParameter("CCUCM.buildnumberPatch");
 
             UCMDeliver d = new UCMDeliver();
 
@@ -515,7 +516,7 @@ public class PucmNotifier extends Notifier {
 
             save();
 
-            return new PucmNotifier(promote, recommended, makeTag, setDescription, d, promoteAction);
+            return new CCUCMNotifier(promote, recommended, makeTag, setDescription, d, promoteAction);
         }
 
         @Override

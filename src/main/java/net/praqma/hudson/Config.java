@@ -15,6 +15,9 @@ import net.praqma.util.debug.PraqmaLogger;
 import net.praqma.util.debug.PraqmaLogger.Logger;
 
 public class Config {
+	
+	public static String nameShort = "CCUCM";
+	public static String nameLong = "ClearCase UCM";
 
     /*public static final int __UNKNOWN_PROMOTE = 99;
     public static final int __NO_PROMOTE = 100;
@@ -41,7 +44,7 @@ public class Config {
              * Level to poll = "INITIAL"
              */
             Cool.setContext(UCM.ContextType.XML);
-            System.out.println("PUCM is running on a testbase");
+            System.out.println( Config.nameShort + " is running on a testbase");
         } else {
             UCM.setContext(UCM.ContextType.CLEARTOOL);
         }
@@ -82,8 +85,6 @@ public class Config {
                             project = UCMEntity.getProject("Jenkins@" + bl.getPvobString(), false);
                         } catch (UCMException eJ) {
                             logger.warning("The build Project was not found.");
-                            //hudsonOut.println("The build project was not found. You can create the project with: \"cleartool mkproject -c \"Your special build Project\" -in rootFolder@\\your_pvob yourBuildProject@\\your_pvob\"."
-                            //        + "\nSince there's no build project in ClearCase, pucm have made an extra stream in your integration stream to build in");
 
                             /* Use the integration stream */
                             try {
@@ -101,8 +102,6 @@ public class Config {
             } catch (Exception e) {
                 //throw new ScmException( "Could not find project 'hudson' in " + pvob + ". You can install the Poject with: \"cleartool mkproject -c \"The special Hudson Project\" -in rootFolder@\\your_pvob hudson@\\your_pvob\"." );
                 logger.warning("The build Project was not found.");
-                //hudsonOut.println("The build project was not found. You can create the project with: \"cleartool mkproject -c \"Your special build Project\" -in rootFolder@\\your_pvob yourBuildProject@\\your_pvob\"."
-                //        + "\nSince there's no build project in ClearCase, pucm have made an extra stream in your integration stream to build in");
 
                 try {
                     project = bl.getStream().getProject();

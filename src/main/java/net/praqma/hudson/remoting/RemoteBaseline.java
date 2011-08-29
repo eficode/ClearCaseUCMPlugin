@@ -17,6 +17,7 @@ import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.utils.BuildNumber;
 import net.praqma.clearcase.ucm.view.SnapshotView;
+import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.util.debug.PraqmaLogger;
 import net.praqma.util.debug.PraqmaLogger.Logger;
@@ -67,7 +68,7 @@ public class RemoteBaseline {
 		PrintStream out = listener.getLogger();
 		UCM.setContext(UCM.ContextType.CLEARTOOL);
 		
-		out.println("[PUCM] Starting remote baseline");
+		out.println("[" + Config.nameShort + "] Starting remote baseline");
 
 		Stream target = null;
 		try {
@@ -80,7 +81,7 @@ public class RemoteBaseline {
 				out.println(e.stdout);
 			}
 			throw new IOException(
-					"[PUCM] Could not create target Stream object: "
+					"[" + Config.nameShort + "] Could not create target Stream object: "
 							+ e.getMessage());
 		}
 
@@ -92,11 +93,11 @@ public class RemoteBaseline {
 			if (e.stdout != null) {
 				out.println(e.stdout);
 			}
-			throw new IOException("[PUCM] Could not create Component object: "
+			throw new IOException("[" + Config.nameShort + "] Could not create Component object: "
 					+ e.getMessage());
 		}
 		
-		out.println("[PUCM] Created target stream + component");
+		out.println("[" + Config.nameShort + "] Created target stream + component");
 
 		/* Trying to verify the build number attributes */
 		/* Four level version number */
@@ -104,7 +105,7 @@ public class RemoteBaseline {
 		/* Get version number from project+component */
 		if (versionFrom.equals("project")) {
 			logger.debug("Using project setting");
-			out.println("[PUCM] Using project");
+			out.println("[" + Config.nameShort + "] Using project");
 
 			try {
 				Project project = target.getProject();
@@ -122,7 +123,7 @@ public class RemoteBaseline {
 		/* Get version number from project+component */
 		else if (versionFrom.equals("settings")) {
 			logger.debug("Using settings");
-			out.println("[PUCM] Using settings");
+			out.println("[" + Config.nameShort + "] Using settings");
 
 			/* Verify settings */
 			if (buildnumberMajor.length() > 0 && buildnumberMinor.length() > 0
@@ -172,7 +173,7 @@ public class RemoteBaseline {
 			/* No op = none */
 		}
 		
-		out.println("[PUCM] Create the baseline");
+		out.println("[" + Config.nameShort + "] Create the baseline");
 
 		/* Create the baseline */
 		Baseline newbl = null;
@@ -181,11 +182,11 @@ public class RemoteBaseline {
 			logger.info("Creating new baseline " + baselineName + number);
 			newbl = Baseline.create(baselineName + number, component, new File(
 					viewroot), false, false);
-			out.println("[PUCM] Created baseline " + baselineName + number);
+			out.println("[" + Config.nameShort + "] Created baseline " + baselineName + number);
 		} catch (UCMException e) {
 			logger.warning("Could not get view for workspace. "
 					+ e.getMessage());
-			out.println("[PUCM] Failed creating baseline " + baselineName
+			out.println("[" + Config.nameShort + "] Failed creating baseline " + baselineName
 					+ number);
 			if (e.stdout != null) {
 				out.println(e.stdout);
@@ -194,7 +195,7 @@ public class RemoteBaseline {
 					+ e.getMessage());
 		}
 		
-		out.println("[PUCM] DONE");
+		out.println("[" + Config.nameShort + "] DONE");
 
 		return null;
 	}

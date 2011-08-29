@@ -9,7 +9,7 @@ import hudson.model.ParameterDefinition;
 import hudson.model.ParametersDefinitionProperty;
 import hudson.model.StringParameterDefinition;
 
-import net.praqma.hudson.notifier.PucmNotifier;
+import net.praqma.hudson.notifier.CCUCMNotifier;
 
 import org.jvnet.hudson.test.HudsonTestCase;
 
@@ -31,7 +31,7 @@ public class PucmScmTest extends HudsonTestCase {
 	// }
 
 	public void testPrintBaselineWhenNull() throws Exception {
-		PucmScm scm = new PucmScm();
+		CCUCMScm scm = new CCUCMScm();
 
 		try {
 			scm.printBaselines( null, System.out );
@@ -43,7 +43,7 @@ public class PucmScmTest extends HudsonTestCase {
 	
 	public void testSpecificBaselineTest() throws IOException {
 		FreeStyleProject proj = createFreeStyleProject();
-		proj.getPublishersList().add( new PucmNotifier(false, false, false, false, null, 0) );
+		proj.getPublishersList().add( new CCUCMNotifier(false, false, false, false, null, 0) );
         List<ParameterDefinition> list = new ArrayList<ParameterDefinition>();
         list.add(new StringParameterDefinition("pucm_baseline", "empty"));
         ParametersDefinitionProperty pdp = new ParametersDefinitionProperty(list);

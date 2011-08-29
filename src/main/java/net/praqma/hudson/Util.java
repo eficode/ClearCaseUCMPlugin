@@ -173,12 +173,12 @@ public abstract class Util {
 		PrintStream hudsonOut = listener.getLogger();
 		SnapshotView snapview = null;
 		
-        hudsonOut.println("[PUCM] View root: " + viewroot.getAbsolutePath());
-        hudsonOut.println("[PUCM] View tag : " + viewtag);        
+        hudsonOut.println("[" + Config.nameShort + "] View root: " + viewroot.getAbsolutePath());
+        hudsonOut.println("[" + Config.nameShort + "] View tag : " + viewtag);        
 
         try {
             if (viewroot.exists()) {
-                hudsonOut.println("[PUCM] Reusing view root");
+                hudsonOut.println("[" + Config.nameShort + "] Reusing view root");
             } else {
                 if (viewroot.mkdir()) {
                 } else {
@@ -191,12 +191,12 @@ public abstract class Util {
         }
 
         if (UCMView.ViewExists(viewtag)) {
-            hudsonOut.println("[PUCM] Reusing view tag");
+            hudsonOut.println("[" + Config.nameShort + "] Reusing view tag");
             try {
                 SnapshotView.ViewrootIsValid(viewroot);
             } catch (UCMException ucmE) {
                 try {
-                    hudsonOut.println("[PUCM] Regenerating invalid view root");
+                    hudsonOut.println("[" + Config.nameShort + "] Regenerating invalid view root");
                     SnapshotView.RegenerateViewDotDat(viewroot, viewtag);
                 } catch (UCMException ucmEx) {
                     if (ucmEx.stdout != null) {
@@ -206,7 +206,7 @@ public abstract class Util {
                 }
             }
 
-            hudsonOut.println("[PUCM] Getting snapshotview...");
+            hudsonOut.println("[" + Config.nameShort + "] Getting snapshotview...");
             try {
                 snapview = UCMView.GetSnapshotView(viewroot);
             } catch (UCMException e) {
@@ -219,7 +219,7 @@ public abstract class Util {
             try {
                 snapview = SnapshotView.Create(stream, viewroot, viewtag);
 
-                hudsonOut.println("[PUCM] Created new view in local workspace: " + viewroot.getAbsolutePath());
+                hudsonOut.println("[" + Config.nameShort + "] Created new view in local workspace: " + viewroot.getAbsolutePath());
             } catch (UCMException e) {
                 if (e.stdout != null) {
                     hudsonOut.println(e.stdout);
@@ -230,7 +230,7 @@ public abstract class Util {
         }
 
         try {
-            hudsonOut.println("[PUCM] Updating view using " + loadModule.toLowerCase() + " modules...");
+            hudsonOut.println("[" + Config.nameShort + "] Updating view using " + loadModule.toLowerCase() + " modules...");
             snapview.Update(true, true, true, false, COMP.valueOf(loadModule.toUpperCase()), null);
         } catch (UCMException e) {
             if (e.stdout != null) {

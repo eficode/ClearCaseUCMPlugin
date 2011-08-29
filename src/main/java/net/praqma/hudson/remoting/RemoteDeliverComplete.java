@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
-import net.praqma.hudson.scm.PucmState.State;
+import net.praqma.hudson.scm.CCUCMState.State;
 
 import hudson.FilePath.FileCallable;
 import hudson.remoting.VirtualChannel;

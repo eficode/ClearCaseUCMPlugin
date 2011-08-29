@@ -22,6 +22,7 @@ import net.praqma.clearcase.ucm.utils.BuildNumber;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
+import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.util.debug.PraqmaLogger;
 import net.praqma.util.debug.PraqmaLogger.Logger;
@@ -111,12 +112,12 @@ class RemoteDeliver implements FileCallable<Integer>
 		{
 			status.addToLog( logger.debug( id + "could not create Baseline object:" + e.getMessage() ) );
 			if( e.stdout != null ){	hudsonOut.println( e.stdout ); }
-			throw new IOException( "[PUCM] Could not create Baseline object: " + e.getMessage() );
+			throw new IOException( "[" + Config.nameShort + "] Could not create Baseline object: " + e.getMessage() );
 		}
 		
 		/* Create the development stream object */
 		/* Append vob to dev stream */
-		this.stream = "pucm_" + System.getenv( "COMPUTERNAME" ) + "_" + jobName + "@" + baseline.getPvobString();
+		this.stream = Config.nameShort + "_" + System.getenv( "COMPUTERNAME" ) + "_" + jobName + "@" + baseline.getPvobString();
 		
 		Stream stream = null;
 		try
@@ -128,7 +129,7 @@ class RemoteDeliver implements FileCallable<Integer>
 		{
 			status.addToLog( logger.debug( id + "could not create Stream object:" + e.getMessage() ) );
 			if( e.stdout != null ){	hudsonOut.println( e.stdout ); }
-			throw new IOException( "[PUCM] Could not create Stream object: " + e.getMessage() );
+			throw new IOException( "[" + Config.nameShort + "] Could not create Stream object: " + e.getMessage() );
 		}
 				
 		/* Create the component object */
@@ -141,7 +142,7 @@ class RemoteDeliver implements FileCallable<Integer>
 		{
 			status.addToLog( logger.debug( id + "could not create Component object:" + e.getMessage() ) );
 			if( e.stdout != null ){	hudsonOut.println( e.stdout ); }
-			throw new IOException( "[PUCM] Could not create Component object: " + e.getMessage() );
+			throw new IOException( "[" + Config.nameShort + "] Could not create Component object: " + e.getMessage() );
 		}
 		
 		/* Get the target Stream */
@@ -157,7 +158,7 @@ class RemoteDeliver implements FileCallable<Integer>
 			{
 				status.addToLog( logger.debug( id + "could not create target Stream object: " + e.getMessage() ) );
 				if( e.stdout != null ){	hudsonOut.println( e.stdout ); }
-				throw new IOException( "[PUCM] Could not create target Stream object: " + e.getMessage() );
+				throw new IOException( "[" + Config.nameShort + "] Could not create target Stream object: " + e.getMessage() );
 			}
 		}
 		else
@@ -170,7 +171,7 @@ class RemoteDeliver implements FileCallable<Integer>
 			{
 				status.addToLog( logger.debug( id + "The Stream did not have a default target: " + e.getMessage() ) );
 				if( e.stdout != null ){	hudsonOut.println( e.stdout ); }
-				throw new IOException( "[PUCM] The Stream did not have a default target: " + e.getMessage() );
+				throw new IOException( "[" + Config.nameShort + "] The Stream did not have a default target: " + e.getMessage() );
 			}
 		}
 		
@@ -260,7 +261,7 @@ class RemoteDeliver implements FileCallable<Integer>
 		{
 			status.addToLog( logger.warning( id + "could not create deliver view: " + e.getMessage() ) );
 			status.addToLog( logger.warning( e ) );
-			throw new IOException( "[PUCM] Could not create deliver view: " + e.getMessage() );
+			throw new IOException( "[" + Config.nameShort + "] Could not create deliver view: " + e.getMessage() );
 		}
 		
 		boolean makebl = true;
@@ -291,7 +292,7 @@ class RemoteDeliver implements FileCallable<Integer>
 		}
 		catch ( UCMException e )
 		{
-			hudsonOut.print( "[PUCM] Deliver operation failed. " );
+			hudsonOut.print( "[" + Config.nameShort + "] Deliver operation failed. " );
 			if( e.stdout != null ){	hudsonOut.println( e.stdout ); }
 			status.addToLog( logger.warning( id + "The baseline could not be delivered" + e.getMessage() ) );
 			status.addToLog( logger.warning( e ) );
@@ -335,12 +336,12 @@ class RemoteDeliver implements FileCallable<Integer>
 			{
 				status.addToLog( logger.info( id + "Creating new baseline " + ucmDeliver.baselineName + number ) );
 				newbl = Baseline.create( ucmDeliver.baselineName + number, component, view.GetViewRoot(), false, false );
-				hudsonOut.println( "[PUCM] Created baseline " + ucmDeliver.baselineName + number );
+				hudsonOut.println( "[" + Config.nameShort + "] Created baseline " + ucmDeliver.baselineName + number );
 			}
 			catch ( UCMException e )
 			{
     			status.addToLog( logger.warning( id + "Could not get view for workspace. " + e.getMessage() ) );
-    			hudsonOut.println( "[PUCM] Failed creating baseline " + ucmDeliver.baselineName + number );
+    			hudsonOut.println( "[" + Config.nameShort + "] Failed creating baseline " + ucmDeliver.baselineName + number );
     			if( e.stdout != null ){	hudsonOut.println( e.stdout ); }
     			throw new IOException( "Could not create baseline: " + e.getMessage() );
 			}
@@ -362,14 +363,14 @@ class RemoteDeliver implements FileCallable<Integer>
 		String newJobName = jobName.replaceAll( "\\s", "_" );
 		
 		String viewtag = newJobName + "_" + System.getenv( "COMPUTERNAME" ) + "_" + stream.getShortname();
-		hudsonOut.println( "[PUCM] Trying to make deliver view " + viewtag );
+		hudsonOut.println( "[" + Config.nameShort + "] Trying to make deliver view " + viewtag );
 		
 		File viewroot = new File( workspace.getPath() + File.separator + "deliverview_" + stream.getShortname() );
 		
 		status.addToLog( logger.debug( id + "Deliver: " + viewroot.getAbsolutePath() + ". Tag=" + viewtag ) );
 		status.addToLog( logger.debug( id + "Stream is " + stream.getFullyQualifiedName() ) );
 
-		hudsonOut.println( "[PUCM] viewtag: " + viewtag );
+		hudsonOut.println( "[" + Config.nameShort + "] viewtag: " + viewtag );
 		
 		SnapshotView sv = null;
 
@@ -377,13 +378,13 @@ class RemoteDeliver implements FileCallable<Integer>
 		{
 			if( viewroot.exists() )
 			{
-				hudsonOut.println( "[PUCM] Reusing viewroot: " + viewroot.toString() );
+				hudsonOut.println( "[" + Config.nameShort + "] Reusing viewroot: " + viewroot.toString() );
 			}
 			else
 			{
 				if ( viewroot.mkdir() )
 				{
-					hudsonOut.println( "[PUCM] Created folder for viewroot:  " + viewroot.toString() );
+					hudsonOut.println( "[" + Config.nameShort + "] Created folder for viewroot:  " + viewroot.toString() );
 				}
 				else
 				{
@@ -401,17 +402,17 @@ class RemoteDeliver implements FileCallable<Integer>
 
 		if( UCMView.ViewExists( viewtag ) )
 		{
-			hudsonOut.println( "[PUCM] Reusing viewtag: " + viewtag + "\n" );
+			hudsonOut.println( "[" + Config.nameShort + "] Reusing viewtag: " + viewtag + "\n" );
 			try
 			{
 				SnapshotView.ViewrootIsValid( viewroot );
-				hudsonOut.println( "[PUCM] Viewroot is valid in ClearCase" );
+				hudsonOut.println( "[" + Config.nameShort + "] Viewroot is valid in ClearCase" );
 			}
 			catch( UCMException ucmE )
 			{
 				try
 				{
-					hudsonOut.println( "[PUCM] Viewroot not valid - now regenerating.... " );
+					hudsonOut.println( "[" + Config.nameShort + "] Viewroot not valid - now regenerating.... " );
 					SnapshotView.RegenerateViewDotDat( viewroot, viewtag );
 				}
 				catch( UCMException ucmEe )
@@ -422,7 +423,7 @@ class RemoteDeliver implements FileCallable<Integer>
 				}
 			}
 
-			hudsonOut.print( "[PUCM] Getting snapshotview..." );
+			hudsonOut.print( "[" + Config.nameShort + "] Getting snapshotview..." );
 			try
 			{
 				sv = UCMView.GetSnapshotView( viewroot );
@@ -441,7 +442,7 @@ class RemoteDeliver implements FileCallable<Integer>
 			{
 				sv = SnapshotView.Create( stream, viewroot, viewtag );
 
-				hudsonOut.println( "[PUCM] View doesn't exist. Created new view in local workspace: " + viewroot.getAbsolutePath() );
+				hudsonOut.println( "[" + Config.nameShort + "] View doesn't exist. Created new view in local workspace: " + viewroot.getAbsolutePath() );
 				status.addToLog( logger.log( "The view did not exist and created a new" ) );
 			}
 			catch( UCMException e )
@@ -455,7 +456,7 @@ class RemoteDeliver implements FileCallable<Integer>
 
 		try
 		{
-			hudsonOut.print( "[PUCM] Updating deliver view using " + loadModule.toLowerCase() + " modules..." );
+			hudsonOut.print( "[" + Config.nameShort + "] Updating deliver view using " + loadModule.toLowerCase() + " modules..." );
 
 			sv.Update( true, true, true, false, COMP.valueOf( loadModule.toUpperCase() ), null );
 			hudsonOut.println( " DONE" );
