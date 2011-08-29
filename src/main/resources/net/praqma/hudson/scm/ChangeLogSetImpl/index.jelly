@@ -1,5 +1,5 @@
 <!--
-  Displays PUCM change log. Data in this file is set in the ChangeLogSetImpl
+  Displays CCUCM change log. Data in this file is set in the ChangeLogSetImpl
   This page is shown in http://localhost:8080/job/[jobname]/[buildnumber]/changes
 -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">

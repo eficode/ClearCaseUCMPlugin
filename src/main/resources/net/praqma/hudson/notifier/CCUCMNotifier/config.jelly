@@ -1,0 +1,123 @@
+<!--
+This should be the file that makes it possible to select our notifier in the "post build" section of hudson
+-->
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+	<!--
+	<f:entry title="Promote" help="/plugin/ClearCase-UCM-Plugin/notifier/help-promoteToLevel.html">
+	    <f:checkbox name="CCUCM.promote" checked="${h.defaultToTrue(instance.promote)}" />
+	</f:entry>
+
+	<f:nested>
+
+		<table>
+			<f:entry title="Promote unstable" help="/plugin/ClearCase-UCM-Plugin/notifier/help-promoteunstable.html">
+			    <f:checkbox name="CCUCM.promoteUnstable" checked="${instance.promoteUnstable}" />
+			</f:entry>
+		</table>
+	</f:nested>
+	-->
+
+	<!--
+	<f:entry title="Promote stable builds" help="/plugin/ClearCase-UCM-Plugin/notifier/help-promoteToLevel.html">
+		<f:radio name="CCUCM.promote" value="stable" checked="${instance.promote == 'stable'}" />
+	</f:entry>
+
+	<f:entry title="Promote unstable builds" help="/plugin/ClearCase-UCM-Plugin/notifier/help-promoteunstable.html">
+		<f:radio name="CCUCM.promote" value="unstable" checked="${instance.promote == 'unstable'}" />
+	</f:entry>
+
+	<f:entry title="Do not promote" help="/plugin/ClearCase-UCM-Plugin/notifier/help-attrproject.html">
+		<f:radio name="CCUCM.promote" value="none" checked="${instance.promote == null}" />
+	</f:entry>
+	-->
+
+	<f:entry title="Promote" help="/plugin/ClearCase-UCM-Plugin/notifier/help-promoteToLevel.html">
+		<select class="setting-input" name="CCUCM.promoteAction">
+			<f:option selected="${instance.promoteAction == 100}" value="100">Do not promote</f:option>
+			<f:option selected="${instance.promoteAction == 101}" value="101">Promote stable builds</f:option>
+			<f:option selected="${instance.promoteAction == 102}" value="102">Promote unstable builds</f:option>
+		</select>
+	</f:entry>
+
+
+
+
+	<f:entry title="Recommend baseline" help="/plugin/ClearCase-UCM-Plugin/notifier/help-recommendBaseline.html">
+	    <f:checkbox name="CCUCM.recommended" checked="${instance.recommended}" />
+	</f:entry>
+
+	<f:entry title="Make tag" help="/plugin/ClearCase-UCM-Plugin/notifier/help-makeTag.html">
+	    <f:checkbox name="CCUCM.makeTag" checked="${instance.makeTag}" />
+	</f:entry>
+
+	<f:entry title="Set description" help="/plugin/ClearCase-UCM-Plugin/notifier/help-setDescription.html">
+	    <f:checkbox name="CCUCM.setDescription" checked="${instance.setDescription}" />
+	</f:entry>
+
+
+<!--
+	<f:section title="UCM Deliver Options">
+
+		<f:advanced title="En lille test">
+
+				<f:entry title="Use UCM Deliver" help="/plugin/ClearCase-UCM-Plugin/notifier/help-ucmdeliver.html">
+					<f:checkbox name="CCUCM.ucmDeliver" checked="${instance.ucmDeliver}" />
+				</f:entry>
+
+				<f:nested>
+
+					<table>
+					    <f:entry title="Target stream" help="/plugin/ClearCase-UCM-Plugin/notifier/help-alternate.html">
+				      		<f:textbox name="CCUCM.alternateTarget" value="${instance.alternateTarget}"/>
+				    	</f:entry>
+
+					    <f:entry title="New (target) baseline name" help="/plugin/ClearCase-UCM-Plugin/notifier/help-baselinename.html">
+				      		<f:textbox name="CCUCM.baselineName" value="${instance.baselineName}"/>
+				    	</f:entry>
+
+
+						<f:entry title="Get build attributes from UCM project and Component" help="/plugin/ClearCase-UCM-Plugin/notifier/help-attrproject.html">
+							<f:radio name="CCUCM.versionFrom" value="project" checked="${instance.versionFrom == 'project'}" />
+						</f:entry>
+
+						<f:entry title="Get build attributes from settings" help="/plugin/ClearCase-UCM-Plugin/notifier/help-attrsettings.html">
+							<f:radio name="CCUCM.versionFrom" value="settings" checked="${instance.versionFrom == 'settings'}" />
+						</f:entry>
+
+						<f:nested>
+
+							<table>
+							    <f:entry title="Major">
+						      		<f:textbox name="CCUCM.buildnumberMajor" value="${instance.buildnumberMajor}"/>
+						    	</f:entry>
+
+							    <f:entry title="Minor">
+						      		<f:textbox name="CCUCM.buildnumberMinor" value="${instance.buildnumberMinor}"/>
+						    	</f:entry>
+
+							    <f:entry title="Patch">
+						      		<f:textbox name="CCUCM.buildnumberPatch" value="${instance.buildnumberPatch}"/>
+						    	</f:entry>
+
+								<f:entry title="Sequence from component" help="/plugin/ClearCase-UCM-Plugin/notifier/help-sequencefromcomponent.html">
+									<f:radio name="CCUCM.buildnumberSequenceSelector" value="component" checked="${instance.buildnumberSequenceSelector == 'component'}" />
+								</f:entry>
+
+								<f:entry title="Sequence is the Job number">
+									<f:radio name="CCUCM.buildnumberSequenceSelector" value="current" checked="${instance.buildnumberSequenceSelector == 'current'}" />
+								</f:entry>
+							</table>
+
+						</f:nested>
+
+					</table>
+
+				</f:nested>
+
+		</f:advanced>
+
+	</f:section>
+-->
+
+</j:jelly>

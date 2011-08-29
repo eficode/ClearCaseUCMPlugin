@@ -181,7 +181,7 @@ public class CCUCMScm extends SCM {
         boolean result = true;
 
         PrintStream consoleOutput = listener.getLogger();
-        consoleOutput.println("[" + Config.nameShort + "] Praqmatic UCM v. " + net.praqma.hudson.Version.version + " - SCM section started");
+        consoleOutput.println("[" + Config.nameShort + "] ClearCase UCM Plugin version " + net.praqma.hudson.Version.version );
         consoleOutput.println("[" + Config.nameShort + "] Polling streams: " + polling.toString());
 
         /* Recalculate the states */
@@ -1017,7 +1017,7 @@ public class CCUCMScm extends SCM {
          */
         @Override
         public String getDisplayName() {
-            return "Praqmatic UCM";
+            return "ClearCase UCM";
         }
 
         /**

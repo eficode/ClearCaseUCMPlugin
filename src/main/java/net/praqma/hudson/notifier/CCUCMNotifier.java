@@ -465,7 +465,7 @@ public class CCUCMNotifier extends Notifier {
         @Override
         public String getDisplayName() {
             //logger.trace_function();
-            return "Praqmatic UCM";
+            return "ClearCase UCM";
         }
 
         /**
