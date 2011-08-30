@@ -373,7 +373,9 @@ public class CCUCMScm extends SCM {
             	int total = baselines.size();
             	int pruned = filterBaselines( baselines );
             	
-            	consoleOutput.println( "[" + Config.nameShort + "] Removed " + pruned + " of " + total + " Baselines." );
+            	if( pruned > 0 ) {
+            		consoleOutput.println( "[" + Config.nameShort + "] Removed " + pruned + " of " + total + " Baselines." );
+            	}
 
                 /* if we did not find any baselines we should return false */
                 if (baselines.size() < 1) {
@@ -487,11 +489,7 @@ public class CCUCMScm extends SCM {
         int c = 1;
         for (Stream s : streams) {
             try {
-                String name = s.getShortname().substring( 0, Math.min( 20, s.getShortname().length() ) );
-                int left = 20 - name.length();
-                name = name + new String(new char[left]).replace("\0", " ");
-                //consoleOutput.print("[" + Config.nameShort + "]  [" + c + "] " + name + new String(new char[left]).replace("\0", " ") + " " );
-                consoleOutput.printf( "[" + Config.nameShort + "] [%02d] %s ", c, name );
+                consoleOutput.printf( "[" + Config.nameShort + "] [%02d] %s ", c, s.getShortname().length() );
                 c++;
                 List<Baseline> found = getValidBaselines(project, state, Project.getPlevelFromString(levelToPoll), s, component);
                 for (Baseline b : found ) {
