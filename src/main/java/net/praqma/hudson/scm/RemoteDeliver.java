@@ -131,7 +131,7 @@ class RemoteDeliver implements FileCallable<Integer> {
         	
         	if( e.type.equals( UCMType.INTERPROJECT_DELIVER_DENIED ) ) {
         		hudsonOut.println(e.getMessage());
-        		return 2;
+        		return 3;
         	}
         	
             throw new IOException(e.getMessage());
