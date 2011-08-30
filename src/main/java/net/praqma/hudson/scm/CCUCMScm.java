@@ -436,8 +436,8 @@ public class CCUCMScm extends SCM {
         	result = false;
         }
         
-        /* If returnStatus == 1|2 the deliver was not started and should not be tried cancelled later */
-        if( returnStatus == 1 || returnStatus == 2 ) {
+        /* If returnStatus == 1|2|3 the deliver was not started and should not be tried cancelled later */
+        if( returnStatus == 1 || returnStatus == 2 | returnStatus == 3 ) {
         	state.setNeedsToBeCompleted( false );
         }
         
