@@ -124,6 +124,11 @@ class RemoteDeliver implements FileCallable<Integer> {
         		return 1;
         	}
         	
+        	if( e.type.equals( UCMType.MERGE_ERROR ) ) {
+        		hudsonOut.println(e.getMessage());
+        		return 2;
+        	}
+        	
             throw new IOException(e.getMessage());
         }
 
