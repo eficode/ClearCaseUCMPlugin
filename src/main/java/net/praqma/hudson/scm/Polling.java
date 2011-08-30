@@ -61,6 +61,14 @@ public class Polling {
 		}
 	}
 	
+	public boolean isPolling() {
+		if( !this.type.equals( PollingType.none ) ) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
 	public String toString() {
 		return type.toString();
 	}

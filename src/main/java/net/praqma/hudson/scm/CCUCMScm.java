@@ -182,8 +182,7 @@ public class CCUCMScm extends SCM {
 
         PrintStream consoleOutput = listener.getLogger();
         consoleOutput.println("[" + Config.nameShort + "] ClearCase UCM Plugin version " + net.praqma.hudson.Version.version );
-        consoleOutput.println("[" + Config.nameShort + "] Polling streams: " + polling.toString());
-
+        
         /* Recalculate the states */
         int count = ccucm.recalculate(build.getProject());
         logger.info(id + "Removed " + count + " from states.");
@@ -219,27 +218,30 @@ public class CCUCMScm extends SCM {
         state.setBaselineInformation(bi);
         
 
-        /* Determining the CCUCM_baseline modifier */
-        String baselinevalue = getBaselineValue( build );
+        /* Determining the Baseline modifier */
+        String baselineInput = getBaselineValue( build );
 
-        /* The special CCUCM_baseline case */
-        if (build.getBuildVariables().get(baselinevalue) != null) {
-            logger.debug( "BASELINE: " + baselinevalue );
-            state.setPolling( new Polling( PollingType.none ) );
-            result = doBaseline( build, baselinevalue, state, listener );
+        /* The special Baseline case */
+        if (build.getBuildVariables().get(baselineInput) != null) {
+            logger.debug( "BASELINE: " + baselineInput );
+            polling = new Polling( PollingType.none );
+            result = doBaseline( build, baselineInput, state, listener );
         } else {
+        	consoleOutput.println("[" + Config.nameShort + "] Polling streams: " + polling.toString());
        		result = pollStream( build, state, listener );
         }
+        
+        state.setPolling(polling);
         
         /* If a baseline is found */
         if (state.getBaseline() != null && result ) {
         	consoleOutput.println("[" + Config.nameShort + "] Using " + state.getBaseline());
         	build.setDescription("<small>" + state.getBaseline() + "</small>");
         	
-            if( polling.isPollingSelf() ) {
+            if( polling.isPollingSelf() || !polling.isPolling() ) {
             	result = bla( build, workspace, changelogFile, listener, state );
             } else {
-            /* Only start deliver when NOT polling self */
+            	/* Only start deliver when NOT polling self */
             	result = beginDeliver( build, state, listener );
             }
             
@@ -292,18 +294,16 @@ public class CCUCMScm extends SCM {
         return true;
     }
     
-    public boolean doBaseline( AbstractBuild<?, ?> build, String baselinevalue, State state, BuildListener listener ) {
+    public boolean doBaseline( AbstractBuild<?, ?> build, String baselineInput, State state, BuildListener listener ) {
         
         PrintStream consoleOutput = listener.getLogger();
         boolean result = true;
         
-        String baselinename = (String) build.getBuildVariables().get(baselinevalue);
+        String baselinename = (String) build.getBuildVariables().get(baselineInput);
         try {
             state.setBaseline(UCMEntity.getBaseline(baselinename));
             state.setStream(state.getBaseline().getStream());
-            consoleOutput.println("[" + Config.nameShort + "] Starting parameterized build with a CCUCM_baseline.\n[" + Config.nameShort + "] Using baseline: " + baselinename
-                    + " from integrationstream " + state.getStream().getShortname());
-
+            consoleOutput.println("[" + Config.nameShort + "] Starting parameterized build with a CCUCM_baseline." );
             /* The component could be used in the post build section */
             state.setComponent(state.getBaseline().getComponent());
             state.setStream(state.getBaseline().getStream());
@@ -325,7 +325,7 @@ public class CCUCMScm extends SCM {
 
         while (i.hasNext()) {
             String next = i.next().toString();
-            if (next.equalsIgnoreCase("CCUCM_baseline")) {
+            if (next.equalsIgnoreCase("baseline")) {
                 return next;
             }
         }
@@ -352,8 +352,6 @@ public class CCUCMScm extends SCM {
         boolean result = true;
         PrintStream consoleOutput = listener.getLogger();
         
-        state.setPolling(polling);
-
         try {
 
             printParameters(consoleOutput);
