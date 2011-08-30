@@ -410,14 +410,16 @@ public class CCUCMScm extends SCM {
         FilePath workspace = build.getWorkspace();
         PrintStream consoleOutput = listener.getLogger();
         boolean result = true;
+        
+        int returnStatus = 0;
     	
         try {
             logger.debug( "Remote delivering...." );
-            consoleOutput.println("[" + Config.nameShort + "] Starting delivery");
+            consoleOutput.println("[" + Config.nameShort + "] Establishing deliver view");
             //RemoteDeliver rmDeliver = new RemoteDeliver(UCMEntity.getStream(stream).getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
             RemoteDeliver rmDeliver = new RemoteDeliver(state.getBaseline().getStream().getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
 
-            int i = workspace.act(rmDeliver);
+            returnStatus = workspace.act(rmDeliver);
             /*Next line must be after the line above*/
             state.setSnapView(rmDeliver.getSnapShotView());
         } catch (IOException e) {
@@ -432,10 +434,20 @@ public class CCUCMScm extends SCM {
             result = false;
         }
         
-        consoleOutput.println("[" + Config.nameShort + "] Deliver " + (result ? "succeeded" : "failed"));
-        /* If failed, cancel the deliver */
+        /* The result must be false if the returnStatus is not equal to 0 */
+        if( returnStatus != 0 ) {
+        	result = false;
+        }
         
-        if( !result ) {
+        /* If returnStatus == 1 the deliver was not started and should not be tried cancelled later */
+        if( returnStatus == 1 ) {
+        	state.setNeedsToBeCompleted( false );
+        }
+        
+        consoleOutput.println("[" + Config.nameShort + "] Deliver " + (result ? "succeeded" : "failed"));
+        /* If failed, cancel the deliver 
+         * But only if the deliver actually started */
+        if( !result && returnStatus != 1 ) {
             try {
                 consoleOutput.print("[" + Config.nameShort + "] Trying to cancel. ");
                 Util.completeRemoteDeliver( workspace, listener, state, false );
@@ -489,7 +501,7 @@ public class CCUCMScm extends SCM {
         int c = 1;
         for (Stream s : streams) {
             try {
-                consoleOutput.printf( "[" + Config.nameShort + "] [%02d] %s ", c, s.getShortname().length() );
+                consoleOutput.printf( "[" + Config.nameShort + "] [%02d] %s ", c, s.getShortname() );
                 c++;
                 List<Baseline> found = getValidBaselines(project, state, Project.getPlevelFromString(levelToPoll), s, component);
                 for (Baseline b : found ) {

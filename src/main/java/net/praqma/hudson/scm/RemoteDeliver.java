@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 
 import net.praqma.clearcase.ucm.UCMException;
+import net.praqma.clearcase.ucm.UCMException.UCMType;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Stream;
@@ -17,6 +18,7 @@ import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
 import net.praqma.clearcase.ucm.view.UCMView;
+import net.praqma.hudson.Config;
 import net.praqma.hudson.Util;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.util.debug.PraqmaLogger.Logger;
@@ -107,17 +109,26 @@ class RemoteDeliver implements FileCallable<Integer> {
         /* Make deliver view */
         try {
             snapview = makeDeliverView(target, workspace);
-        	//snapview = Util.makeView(target, workspace, listener, loadModule, jobName, "view");
-            baseline.deliver(baseline.getStream(), stream.getDefaultTarget(), snapview.GetViewRoot(), snapview.GetViewtag(), true, false, true);
-            //baseline.promote();
-        } catch (UCMException e) {
-            throw new IOException(e.getMessage());
         } catch (ScmException e) {
             throw new IOException("Could not create deliver view: " + e.getMessage());
         }
+        
+        /* Make the deliver */
+        try {
+            hudsonOut.println( "[" + Config.nameShort + "] Starting deliver" );
+            baseline.deliver(baseline.getStream(), stream.getDefaultTarget(), snapview.GetViewRoot(), snapview.GetViewtag(), true, false, true);
+        } catch (UCMException e) {
+        	/* Figure out what happened */
+        	if( e.type.equals( UCMType.DELIVER_REQUIRES_REBASE ) ) {
+        		hudsonOut.println(e.getMessage());
+        		return 1;
+        	}
+        	
+            throw new IOException(e.getMessage());
+        }
 
         /* End of deliver */
-        return 1;
+        return 0;
     }
 
     private SnapshotView makeDeliverView(Stream stream, File workspace) throws ScmException {
