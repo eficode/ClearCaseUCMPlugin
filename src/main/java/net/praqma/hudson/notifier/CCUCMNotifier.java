@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
 import jcifs.dcerpc.msrpc.netdfs;
@@ -69,6 +71,8 @@ public class CCUCMNotifier extends Notifier {
     public static final int __NO_PROMOTE = 100;
     public static final int __PROMOTE_STABLE = 101;
     public static final int __PROMOTE_UNSTABLE = 102;
+    
+    private SimpleDateFormat logformat  = new SimpleDateFormat( "yyyyMMdd-HHmmss" );
 
     /**
      * This constructor is used in the inner class <code>DescriptorImpl</code>.
@@ -297,13 +301,18 @@ public class CCUCMNotifier extends Notifier {
                     Baseline childBase = pstate.getBaseline();
                     try {
                         hudsonOut.print("[" + Config.nameShort + "] Creating baseline on Integration stream. ");
-                        //Baseline.create(childBase.getShortname(), childBase.getComponent(), pstate.getSnapView().GetViewRoot(), true, true);
-                        String number = net.praqma.hudson.Util.CreateNumber(listener, build.getNumber(), pstate.getBaselineInformation().versionFrom, 
-                        													pstate.getBaselineInformation().buildnumberMajor, pstate.getBaselineInformation().buildnumberMinor, 
-                        													pstate.getBaselineInformation().buildnumberPatch, pstate.getBaselineInformation().buildnumberSequenceSelector, 
-                        													pstate.getStream().getDefaultTarget(), pstate.getComponent());
+                        String name = pstate.getBaseline().getStream().getShortname() + "_" + logformat.format( new Date() );
+                        if( pstate.getBaselineInformation().versionFrom == null || pstate.getBaselineInformation().versionFrom.equalsIgnoreCase( "default" ) ) {
+                        	//name += "_DEFAULT";
+                        } else {
+	                        String number = net.praqma.hudson.Util.CreateNumber(listener, build.getNumber(), pstate.getBaselineInformation().versionFrom, 
+	                        													pstate.getBaselineInformation().buildnumberMajor, pstate.getBaselineInformation().buildnumberMinor, 
+	                        													pstate.getBaselineInformation().buildnumberPatch, pstate.getBaselineInformation().buildnumberSequenceSelector, 
+	                        													pstate.getStream().getDefaultTarget(), pstate.getComponent());
+	                        name = pstate.getBaseline().getShortname() + "_" + number;
+                        }
                         
-                        targetbaseline = Util.createRemoteBaseline( workspace, listener, pstate.getBaseline().getShortname() + "_" + number, pstate.getBaseline().getComponent().getFullyQualifiedName(), pstate.getSnapView().GetViewRoot() );
+                        targetbaseline = Util.createRemoteBaseline( workspace, listener, name, pstate.getBaseline().getComponent().getFullyQualifiedName(), pstate.getSnapView().GetViewRoot() );
                         
                         hudsonOut.println( targetbaseline );
                     } catch( Exception e ) {

@@ -57,6 +57,10 @@
 	<f:section title="Baseline Creation Options">
 
 		<f:advanced title="">
+		
+                <f:entry title="Default Baseline naming" help="/plugin/ClearCase-UCM-Plugin/scm/help-attrproject.html">
+                    <f:radio name="CCUCM.versionFrom" value="default" checked="${instance.versionFrom == 'default' || instance.versionFrom == null}" />
+                </f:entry>
 	
 				<f:entry title="Get build attributes from UCM project and Component" help="/plugin/ClearCase-UCM-Plugin/scm/help-attrproject.html">
 					<f:radio name="CCUCM.versionFrom" value="project" checked="${instance.versionFrom == 'project'}" />

@@ -496,7 +496,7 @@ public class CCUCMScm extends SCM {
             logger.warning( "Could not retrieve streams: " + e1.getMessage() );
         }
         
-        consoleOutput.println("[" + Config.nameShort + "] Scanning " + streams.size() + " child stream" + ( streams.size() == 1 ? "" : "s" ) + " for baselines." );
+        consoleOutput.println("[" + Config.nameShort + "] Scanning " + streams.size() + " stream" + ( streams.size() == 1 ? "" : "s" ) + " for baselines." );
         
         int c = 1;
         for (Stream s : streams) {
@@ -871,8 +871,8 @@ public class CCUCMScm extends SCM {
 
     public void printBaselines(List<Baseline> baselines, PrintStream ps) {
         if (baselines != null) {
-            ps.println("[" + Config.nameShort + "] Retrieved baselines:");
-            if (!(baselines.size() > 20)) {
+            ps.println("[" + Config.nameShort + "] Retrieved " + baselines.size() + " baseline" + ( baselines.size() == 1 ? "" : "s" ) + ":");
+            if (!(baselines.size() > 8)) {
                 for (Baseline b : baselines) {
                     ps.println("[" + Config.nameShort + "] + " + b.getShortname() + "(" + b.getDate() + ")");
                 }
@@ -881,7 +881,7 @@ public class CCUCMScm extends SCM {
                 ps.println("[" + Config.nameShort + "] + " + baselines.get(0).getShortname() + "(" + baselines.get(0).getDate() + ")");
                 ps.println("[" + Config.nameShort + "] + " + baselines.get(1).getShortname() + "(" + baselines.get(1).getDate() + ")");
                 ps.println("[" + Config.nameShort + "] + " + baselines.get(2).getShortname() + "(" + baselines.get(2).getDate() + ")");
-                ps.println("[" + Config.nameShort + "]   ...(" + (i - 6) + " baselines not shown)...");
+                ps.println("[" + Config.nameShort + "]   ...");
                 ps.println("[" + Config.nameShort + "] + " + baselines.get(i - 3).getShortname() + "(" + baselines.get(i-3).getDate() + ")");
                 ps.println("[" + Config.nameShort + "] + " + baselines.get(i - 2).getShortname() + "(" + baselines.get(i-2).getDate() + ")");
                 ps.println("[" + Config.nameShort + "] + " + baselines.get(i - 1).getShortname() + "(" + baselines.get(i-1).getDate() + ")");
