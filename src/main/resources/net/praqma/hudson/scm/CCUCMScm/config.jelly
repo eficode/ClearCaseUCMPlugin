@@ -32,7 +32,7 @@
         </select>
     </f:entry>
     
-	<f:entry title="Polling" help="/plugin/ClearCase-UCM-Plugin/notifier/help-polling.html">
+	<f:entry title="Polling" help="/plugin/ClearCase-UCM-Plugin/scm/help-polling.html">
 		<select class="setting-input" name="CCUCM.polling">
 		    <f:option selected="${instance.polling == 'self'}" value="self">Poll self</f:option>
 			<f:option selected="${instance.polling == 'childs'}" value="child">Poll child streams</f:option>
@@ -49,6 +49,13 @@
 	<f:entry title="Newest" help="/plugin/ClearCase-UCM-Plugin/scm/help-newest.html">
 	    <f:checkbox name="CCUCM.newest" checked="${instance.newest}" />
 	</f:entry>
+	
+    <f:entry title="Unstable" help="/plugin/ClearCase-UCM-Plugin/scm/help-unstable.html">
+        <select class="setting-input" name="CCUCM.treatUnstable">
+            <f:option selected="${instance.treatUnstable == 'successful'}" value="successful">Unstable jobs are treated as successful</f:option>
+            <f:option selected="${instance.treatUnstable == 'failed'}" value="failed">Unstable jobs are treated as failed</f:option>
+        </select>
+    </f:entry>
 	
     <f:entry title="Create baseline" help="/plugin/ClearCase-UCM-Plugin/scm/help-newest.html">
         <f:checkbox name="CCUCM.createBaseline" checked="${instance.createBaseline}" />

@@ -21,6 +21,7 @@ import net.praqma.clearcase.ucm.entities.Tag;
 import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.hudson.Config;
+import net.praqma.hudson.scm.Unstable;
 import net.praqma.util.debug.PraqmaLogger;
 import net.praqma.util.debug.PraqmaLogger.Logger;
 
@@ -42,8 +43,6 @@ class RemotePostBuild implements FileCallable<Status> {
 	private String targetstream;
 
 	private boolean makeTag = false;
-	private int promote = 0;
-	private boolean promoteUnstable = false;
 	private boolean recommend = false;
 	private Status status;
 	private BuildListener listener;
@@ -52,6 +51,7 @@ class RemotePostBuild implements FileCallable<Status> {
 
 	private Logger logger = null;
 	private PrintStream hudsonOut = null;
+	private Unstable unstable;
 
 	private Pipe pipe = null;
 	private BufferedWriter bw = null;
@@ -59,7 +59,7 @@ class RemotePostBuild implements FileCallable<Status> {
 
 	public RemotePostBuild( Result result, Status status, BuildListener listener,
 							/* Values for */
-							boolean makeTag, int promote, boolean recommended,
+							boolean makeTag, boolean recommended, Unstable unstable,
 							/* Common values */
 							String sourcebaseline, String targetbaseline, String sourcestream, String targetstream, String displayName, String buildNumber, Logger logger/*
 																												 * ,
@@ -76,10 +76,11 @@ class RemotePostBuild implements FileCallable<Status> {
 		this.sourcestream = sourcestream;
 		this.targetstream = targetstream;
 
+		this.unstable = unstable;
+		
 		this.result = result;
 
 		this.makeTag = makeTag;
-		this.promote = promote;
 		this.recommend = recommended;
 
 		this.status = status;
@@ -161,32 +162,31 @@ class RemotePostBuild implements FileCallable<Status> {
 				tag.setEntry( "buildstatus", "SUCCESS" );
 			}
 
-			if( promote > CCUCMNotifier.__NO_PROMOTE ) {
-				try {
-					Project.Plevel pl = sourcebaseline.promote();
-					status.setPromotedLevel( pl );
-					status.setPLevel( true );
-					hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " promoted to " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
-				} catch (UCMException e) {
-					status.setStable( false );
+			try {
+				Project.Plevel pl = sourcebaseline.promote();
+				status.setPromotedLevel( pl );
+				status.setPLevel( true );
+				hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " promoted to " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
+			} catch (UCMException e) {
+				status.setStable( false );
+				/*
+				 * as it will not make sense to recommend if we cannot
+				 * promote, we do this:
+				 */
+				if( recommend ) {
+					status.setRecommended( false );
+					hudsonOut.println( "[" + Config.nameShort + "] Could not promote baseline " + sourcebaseline.getShortname() + " and will not recommend " + targetbaseline.getShortname() + ". " + e.getMessage() );
+					status.addToLog( logger.warning( id + "Could not promote baseline and will not recommend. " + e.getMessage() ) );
+				} else {
 					/*
-					 * as it will not make sense to recommend if we cannot
-					 * promote, we do this:
+					 * As we will not recommend if we cannot promote, it's
+					 * ok to break method here
 					 */
-					if( recommend ) {
-						status.setRecommended( false );
-						hudsonOut.println( "[" + Config.nameShort + "] Could not promote baseline " + sourcebaseline.getShortname() + " and will not recommend " + targetbaseline.getShortname() + ". " + e.getMessage() );
-						status.addToLog( logger.warning( id + "Could not promote baseline and will not recommend. " + e.getMessage() ) );
-					} else {
-						/*
-						 * As we will not recommend if we cannot promote, it's
-						 * ok to break method here
-						 */
-						hudsonOut.println( "[" + Config.nameShort + "] Could not promote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
-						status.addToLog( logger.warning( id + "Could not promote baseline. " + e.getMessage() ) );
-					}
+					hudsonOut.println( "[" + Config.nameShort + "] Could not promote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
+					status.addToLog( logger.warning( id + "Could not promote baseline. " + e.getMessage() ) );
 				}
 			}
+			
 			/* Recommend the Baseline */
 			if( recommend ) {
 				try {
@@ -217,21 +217,20 @@ class RemotePostBuild implements FileCallable<Status> {
 					tag.setEntry( "buildstatus", "FAILURE" );
 				}
 
-				if( promote > CCUCMNotifier.__NO_PROMOTE ) {
-					try {
-						status.addToLog( logger.warning( id + "Demoting baseline" ) );
-						Project.Plevel pl = sourcebaseline.demote();
-						status.setPromotedLevel( pl );
-						status.setPLevel( true );
-						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
-					} catch (Exception e) {
-						status.setStable( false );
-						// throw new NotifierException(
-						// "Could not demote baseline. " + e.getMessage() );
-						hudsonOut.println( "[" + Config.nameShort + "] Could not demote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
-						status.addToLog( logger.warning( id + "Could not demote baseline. " + e.getMessage() ) );
-					}
+				try {
+					status.addToLog( logger.warning( id + "Demoting baseline" ) );
+					Project.Plevel pl = sourcebaseline.demote();
+					status.setPromotedLevel( pl );
+					status.setPLevel( true );
+					hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
+				} catch (Exception e) {
+					status.setStable( false );
+					// throw new NotifierException(
+					// "Could not demote baseline. " + e.getMessage() );
+					hudsonOut.println( "[" + Config.nameShort + "] Could not demote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
+					status.addToLog( logger.warning( id + "Could not demote baseline. " + e.getMessage() ) );
 				}
+
 			}
 			/*
 			 * The build is unstable, or something in the middle.... TODO Maybe
@@ -242,25 +241,24 @@ class RemotePostBuild implements FileCallable<Status> {
 					tag.setEntry( "buildstatus", "UNSTABLE" );
 				}
 
-				if( promote > CCUCMNotifier.__NO_PROMOTE ) {
-					try {
-						Project.Plevel pl = Project.Plevel.INITIAL;
+				try {
+					Project.Plevel pl = Project.Plevel.INITIAL;
 
-						if( promote == CCUCMNotifier.__PROMOTE_UNSTABLE ) {
-							pl = sourcebaseline.promote();
-							hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is promoted, even though the build is unstable." );
-						} else {
-							pl = sourcebaseline.demote();
-						}
-						status.setPromotedLevel( pl );
-						status.setPLevel( true );
-						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
-					} catch (Exception e) {
-						status.setStable( false );
-						hudsonOut.println( "[" + Config.nameShort + "] Could not demote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
-						status.addToLog( logger.warning( id + "Could not demote baseline. " + e.getMessage() ) );
+					if( unstable.treatSuccessful() ) {
+						pl = sourcebaseline.promote();
+						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is promoted, even though the build is unstable." );
+					} else {
+						pl = sourcebaseline.demote();
 					}
+					status.setPromotedLevel( pl );
+					status.setPLevel( true );
+					hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
+				} catch (Exception e) {
+					status.setStable( false );
+					hudsonOut.println( "[" + Config.nameShort + "] Could not demote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
+					status.addToLog( logger.warning( id + "Could not demote baseline. " + e.getMessage() ) );
 				}
+
 				/* Recommend the Baseline */
 				if( recommend ) {
 					try {

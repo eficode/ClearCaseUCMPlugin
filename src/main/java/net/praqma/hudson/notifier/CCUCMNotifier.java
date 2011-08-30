@@ -54,8 +54,6 @@ import hudson.tasks.Publisher;
 public class CCUCMNotifier extends Notifier {
     /* Old skool promotion */
 
-    private boolean promote = false;
-    private int promoteAction = __UNKNOWN_PROMOTE;
     private boolean recommended;
     //private Baseline baseline;
     private PrintStream hudsonOut;
@@ -67,10 +65,6 @@ public class CCUCMNotifier extends Notifier {
     private UCMDeliver ucmDeliverObj = null;
     private String jobName = "";
     private Integer jobNumber = 0;
-    public static final int __UNKNOWN_PROMOTE = 99;
-    public static final int __NO_PROMOTE = 100;
-    public static final int __PROMOTE_STABLE = 101;
-    public static final int __PROMOTE_UNSTABLE = 102;
     
     private SimpleDateFormat logformat  = new SimpleDateFormat( "yyyyMMdd-HHmmss" );
 
@@ -89,9 +83,7 @@ public class CCUCMNotifier extends Notifier {
      * @param ucmDeliver The special deliver object, in which all the deliver parameters are encapsulated.
 
      */
-    public CCUCMNotifier(boolean promote, boolean recommended, boolean makeTag, boolean setDescription, UCMDeliver ucmDeliver, int promoteAction) {
-        this.promote = promote;
-        this.promoteAction = promoteAction;
+    public CCUCMNotifier( boolean recommended, boolean makeTag, boolean setDescription, UCMDeliver ucmDeliver ) {
         this.recommended = recommended;
         this.makeTag = makeTag;
         this.setDescription = setDescription;
@@ -289,7 +281,8 @@ public class CCUCMNotifier extends Notifier {
         if( pstate.needsToBeCompleted() && pstate.getPolling().isPollingOther() ) {
             status.setBuildStatus(buildResult);
             
-            boolean complete = buildResult.isBetterThan(Result.FAILURE);
+            /* Determine whether to complete or cancel */
+            boolean complete = buildResult.isBetterThan( pstate.getUnstable().treatSuccessful() ? Result.FAILURE : Result.UNSTABLE );
             
             try {                
                 hudsonOut.print("[" + Config.nameShort + "] " + ( complete ? "completing" : "cancelling" ) + " the deliver. ");
@@ -298,12 +291,12 @@ public class CCUCMNotifier extends Notifier {
                 
                 /* If deliver was completed, create the baseline */
                 if( complete && pstate.getBaselineInformation().createBaseline ) {
-                    Baseline childBase = pstate.getBaseline();
-                    try {
+
+                	try {
                         hudsonOut.print("[" + Config.nameShort + "] Creating baseline on Integration stream. ");
                         String name = pstate.getBaseline().getStream().getShortname() + "_" + logformat.format( new Date() );
                         if( pstate.getBaselineInformation().versionFrom == null || pstate.getBaselineInformation().versionFrom.equalsIgnoreCase( "default" ) ) {
-                        	//name += "_DEFAULT";
+                        	/* No op so far */
                         } else {
 	                        String number = net.praqma.hudson.Util.CreateNumber(listener, build.getNumber(), pstate.getBaselineInformation().versionFrom, 
 	                        													pstate.getBaselineInformation().buildnumberMajor, pstate.getBaselineInformation().buildnumberMinor, 
@@ -373,7 +366,7 @@ public class CCUCMNotifier extends Notifier {
             
             String streamName = pstate.getPolling().isPollingOther() ? pstate.getBaseline().getStream().getFullyQualifiedName() : pstate.getStream().getFullyQualifiedName();
             f = workspace.actAsync(new RemotePostBuild(buildResult, status, listener, 
-            		                                   makeTag, promoteAction, recommended, 
+            		                                   makeTag, recommended, pstate.getUnstable(), 
             		                                   sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString(build.getNumber()), logger/*, pout*/, pipe));
 
             status = f.get();
@@ -397,14 +390,6 @@ public class CCUCMNotifier extends Notifier {
         if (!status.isStable()) {
             build.setResult(Result.UNSTABLE);
         }
-    }
-
-    public boolean getPromote() {
-        return promoteAction > CCUCMNotifier.__NO_PROMOTE;
-    }
-
-    public int getPromoteAction() {
-        return promoteAction;
     }
 
     public boolean isRecommended() {
@@ -514,16 +499,6 @@ public class CCUCMNotifier extends Notifier {
          */
         @Override
         public Notifier newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-            int promoteAction = CCUCMNotifier.__NO_PROMOTE;
-            try {
-                promoteAction = Integer.parseInt(req.getParameter("CCUCM.promoteAction"));
-            } catch (NumberFormatException e) {
-                throw new FormException("Could not parse integer: " + e.getMessage(), "CCUCM.promotedAction");
-                /* No op */
-            }
-
-            /* Old promote field */
-            boolean promote = req.getParameter("CCUCM.promote") != null;
 
             boolean recommended = req.getParameter("CCUCM.recommended") != null;
             boolean makeTag = req.getParameter("CCUCM.makeTag") != null;
@@ -554,7 +529,7 @@ public class CCUCMNotifier extends Notifier {
 
             save();
 
-            return new CCUCMNotifier(promote, recommended, makeTag, setDescription, d, promoteAction);
+            return new CCUCMNotifier(recommended, makeTag, setDescription, d);
         }
 
         @Override

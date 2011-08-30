@@ -5,11 +5,9 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Build;
 import hudson.model.BuildListener;
-import hudson.model.Result;
 import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.remoting.Future;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.PollingResult;
 import hudson.scm.SCMDescriptor;
@@ -28,7 +26,6 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.Cool;
@@ -42,7 +39,6 @@ import net.praqma.clearcase.ucm.entities.UCMEntity.LabelStatus;
 import net.praqma.clearcase.ucm.utils.BaselineList;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.ScmException;
-import net.praqma.hudson.remoting.RemoteDeliverComplete;
 import net.praqma.hudson.remoting.Util;
 import net.praqma.hudson.scm.Polling.PollingType;
 import net.praqma.hudson.scm.CCUCMState.State;
@@ -84,6 +80,8 @@ public class CCUCMScm extends SCM {
     private Logger logger = null;
     public static CCUCMState ccucm = new CCUCMState();
     
+    private Unstable treatUnstable;
+    
     private boolean createBaseline;
     private String versionFrom;
     private String buildnumberMajor;
@@ -121,7 +119,7 @@ public class CCUCMScm extends SCM {
      * @param multiSite
      */
    @DataBoundConstructor
-   public CCUCMScm(String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream
+   public CCUCMScm(String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable
 		   /* Baseline creation */, boolean createBaseline, String versionFrom, String buildnumberMajor, String buildnumberMinor, String buildnumberPatch, String buildnumberSequenceSelector
 		   /* Build options     */, String buildProject, boolean multiSite  ) {
 
@@ -146,6 +144,7 @@ public class CCUCMScm extends SCM {
        this.multiSite = multiSite;
 
        this.polling = new Polling(polling);
+       this.treatUnstable = new Unstable( treatUnstable );
        
        this.createBaseline = createBaseline;
        this.versionFrom = versionFrom;
@@ -645,6 +644,8 @@ public class CCUCMScm extends SCM {
             logger.warning( e );
         }
         
+        state.setUnstable( treatUnstable );
+        
         /*
         try {
             state.setBaseline( UCMEntity.getBaseline( bl, false ) );
@@ -932,10 +933,10 @@ public class CCUCMScm extends SCM {
     public String getPolling() {
         return polling.toString();
     }
-
+    
     @Exported
-    public String getBl() {
-        return bl;
+    public String getTreatUnstable() {
+        return treatUnstable.toString();
     }
 
     @Exported

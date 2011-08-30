@@ -145,6 +145,7 @@ public class CCUCMState {
         private long multiSiteFrequency = 0;
         private List<Baseline> baselines = null;
         private Polling polling;
+        private Unstable unstable;
         private boolean needsToBeCompleted = true;
         private Logger logger;
         private BaselineInformation bi;
@@ -196,6 +197,14 @@ public class CCUCMState {
 
         public void setPolling(Polling polling) {
             this.polling = polling;
+        }
+        
+        public Unstable getUnstable() {
+            return unstable;
+        }
+
+        public void setUnstable(Unstable unstable) {
+            this.unstable = unstable;
         }
 
         public void setStream(Stream stream) {
