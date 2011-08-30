@@ -13,7 +13,7 @@ import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
 import hudson.remoting.VirtualChannel;
 
-public class CreateRemoteBaseline implements FileCallable<Boolean> {
+public class CreateRemoteBaseline implements FileCallable<String> {
 
 	private static final long serialVersionUID = -8984877325832486334L;
 
@@ -30,7 +30,7 @@ public class CreateRemoteBaseline implements FileCallable<Boolean> {
     }
     
     @Override
-    public Boolean invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
+    public String invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
         PrintStream out = listener.getLogger();
         
     	Component component = null;
@@ -41,13 +41,14 @@ public class CreateRemoteBaseline implements FileCallable<Boolean> {
 			throw new IOException( "Unable to get Component:" + e.getMessage() );
 		}
     	
+    	Baseline bl = null;
     	try {
-			Baseline.create( baseName, component, view, true, false );
+			bl = Baseline.create( baseName, component, view, true, false );
 		} catch (UCMException e) {
 			throw new IOException( "Unable to create Baseline:" + e.getMessage() );
 		}
     
-        return true;
+        return bl.getFullyQualifiedName();
     }
 
 }

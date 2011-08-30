@@ -24,14 +24,14 @@ public abstract class Util {
         }
     }
     
-    public static void createRemoteBaseline( FilePath workspace, BuildListener listener, String baseName, String componentName, File view ) throws CCUCMException {
+    public static String createRemoteBaseline( FilePath workspace, BuildListener listener, String baseName, String componentName, File view ) throws CCUCMException {
         
         try {
-            Future<Boolean> i = null;
+            Future<String> i = null;
 
             i = workspace.actAsync(new CreateRemoteBaseline( baseName, componentName, view, listener ) );
-            i.get();
-            return;
+            
+            return i.get();
             
         } catch( Exception e ) {
             throw new CCUCMException( e.getMessage() );

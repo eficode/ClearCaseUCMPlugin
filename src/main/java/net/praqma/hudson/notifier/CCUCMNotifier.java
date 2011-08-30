@@ -268,6 +268,17 @@ public class CCUCMNotifier extends Notifier {
         }
 
         hudsonOut.println("[" + Config.nameShort + "] Build result: " + buildResult);
+        
+        /* Initialize variables for post build steps */
+        String sourcestream = "";
+		try {
+			sourcestream = pstate.getBaseline().getStream().getFullyQualifiedName();
+		} catch (UCMException e2) {
+			logger.warning( "Could not get name for source stream...." );
+		}
+        String targetstream = sourcestream;
+        String sourcebaseline = pstate.getBaseline().getFullyQualifiedName();
+        String targetbaseline = sourcebaseline;
 
         /* Finalize CCUCM, deliver + baseline 
          * Only do this for child and sibling polling */
@@ -277,7 +288,7 @@ public class CCUCMNotifier extends Notifier {
             boolean complete = buildResult.isBetterThan(Result.FAILURE);
             
             try {                
-                hudsonOut.print("[" + Config.nameShort + "] Trying to " + ( complete ? "complete" : "cancel" ) + " the deliver. ");
+                hudsonOut.print("[" + Config.nameShort + "] " + ( complete ? "completing" : "cancelling" ) + " the deliver. ");
                 Util.completeRemoteDeliver( workspace, listener, pstate, complete );
                 hudsonOut.println("Success.");
                 
@@ -292,13 +303,18 @@ public class CCUCMNotifier extends Notifier {
                         													pstate.getBaselineInformation().buildnumberPatch, pstate.getBaselineInformation().buildnumberSequenceSelector, 
                         													pstate.getStream().getDefaultTarget(), pstate.getComponent());
                         
-                        Util.createRemoteBaseline( workspace, listener, pstate.getBaseline().getShortname() + "_" + number, pstate.getBaseline().getComponent().getFullyQualifiedName(), pstate.getSnapView().GetViewRoot() );
+                        targetbaseline = Util.createRemoteBaseline( workspace, listener, pstate.getBaseline().getShortname() + "_" + number, pstate.getBaseline().getComponent().getFullyQualifiedName(), pstate.getSnapView().GetViewRoot() );
                         
-                        hudsonOut.println(" Success.");
+                        hudsonOut.println( targetbaseline );
                     } catch( Exception e ) {
                         hudsonOut.println(" Failed.");
                         logger.warning( "Failed to create baseline on stream" );
                         logger.warning( e );
+                        /* We cannot recommend a baseline that is not created */
+                        if( recommended ) {
+                        	hudsonOut.println( "[" + Config.nameShort + "] Cannot recommend Baseline when not created" );
+                        }
+                        recommended = false;
                     }
                 }
                 
@@ -307,6 +323,12 @@ public class CCUCMNotifier extends Notifier {
                 status.setStable(false);
                 hudsonOut.println("Failed.");
                 logger.warning(e);
+                
+                /* We cannot recommend a baseline that is not created */
+                if( recommended ) {
+                	hudsonOut.println( "[" + Config.nameShort + "] Cannot recommend a baseline when deliver failed" );
+                }
+                recommended = false;
                 
                 /* If trying to complete and it failed, try to cancel it */
                 if( complete ) {
@@ -325,6 +347,11 @@ public class CCUCMNotifier extends Notifier {
                 }
             }
         } 
+        
+        
+        if( pstate.getPolling().isPollingOther() ) {
+        	targetstream = pstate.getStream().getFullyQualifiedName();
+        }
     
         /* Remote post build step, common to all types */
         try {
@@ -336,7 +363,9 @@ public class CCUCMNotifier extends Notifier {
             Future<Status> f = null;
             
             String streamName = pstate.getPolling().isPollingOther() ? pstate.getBaseline().getStream().getFullyQualifiedName() : pstate.getStream().getFullyQualifiedName();
-            f = workspace.actAsync(new RemotePostBuild(buildResult, status, listener, makeTag, promoteAction, recommended, pstate.getBaseline().getFullyQualifiedName(), streamName, build.getParent().getDisplayName(), Integer.toString(build.getNumber()), logger/*, pout*/, pipe));
+            f = workspace.actAsync(new RemotePostBuild(buildResult, status, listener, 
+            		                                   makeTag, promoteAction, recommended, 
+            		                                   sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString(build.getNumber()), logger/*, pout*/, pipe));
 
             status = f.get();
 

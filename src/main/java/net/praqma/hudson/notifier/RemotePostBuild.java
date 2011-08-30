@@ -36,8 +36,10 @@ class RemotePostBuild implements FileCallable<Status> {
 
 	private Result result;
 
-	private String baseline;
-	private String stream;
+	private String sourcebaseline;
+	private String targetbaseline;
+	private String sourcestream;
+	private String targetstream;
 
 	private boolean makeTag = false;
 	private int promote = 0;
@@ -59,7 +61,7 @@ class RemotePostBuild implements FileCallable<Status> {
 							/* Values for */
 							boolean makeTag, int promote, boolean recommended,
 							/* Common values */
-							String baseline, String stream, String displayName, String buildNumber, Logger logger/*
+							String sourcebaseline, String targetbaseline, String sourcestream, String targetstream, String displayName, String buildNumber, Logger logger/*
 																												 * ,
 																												 * PipedOutputStream
 																												 * pout
@@ -69,8 +71,10 @@ class RemotePostBuild implements FileCallable<Status> {
 
 		this.id = "[" + displayName + "::" + buildNumber + "]";
 
-		this.baseline = baseline;
-		this.stream = stream;
+		this.sourcebaseline = sourcebaseline;
+		this.targetbaseline = targetbaseline;
+		this.sourcestream = sourcestream;
+		this.targetstream = targetstream;
 
 		this.result = result;
 
@@ -100,32 +104,50 @@ class RemotePostBuild implements FileCallable<Status> {
 
 		status.addToLog( logger.info( "Starting PostBuild task" ) );
 
-		/* Create the baseline object */
-		Baseline baseline = null;
+		/* Create the source baseline object */
+		Baseline sourcebaseline = null;
 		try {
-			baseline = UCMEntity.getBaseline( this.baseline );
+			sourcebaseline = UCMEntity.getBaseline( this.sourcebaseline );
 		} catch (UCMException e) {
-			status.addToLog( logger.debug( id + "could not create Baseline object:" + e.getMessage() ) );
-			throw new IOException( "[" + Config.nameShort + "] Could not create Baseline object: " + e.getMessage() );
+			status.addToLog( logger.debug( id + "could not create source Baseline object:" + e.getMessage() ) );
+			throw new IOException( "[" + Config.nameShort + "] Could not create source Baseline object: " + e.getMessage() );
+		}
+		
+		/* Create the target baseline object */
+		Baseline targetbaseline = null;
+		try {
+			targetbaseline = UCMEntity.getBaseline( this.targetbaseline );
+		} catch (UCMException e) {
+			status.addToLog( logger.debug( id + "could not create target Baseline object:" + e.getMessage() ) );
+			throw new IOException( "[" + Config.nameShort + "] Could not create target Baseline object: " + e.getMessage() );
 		}
 
-		/* Create the stream object */
-		Stream stream = null;
+		/* Create the source stream object */
+		Stream sourcestream = null;
 		try {
-			stream = UCMEntity.getStream( this.stream );
+			sourcestream = UCMEntity.getStream( this.sourcestream );
 		} catch (UCMException e) {
-			status.addToLog( logger.debug( id + "could not create Stream object:" + e.getMessage() ) );
-			throw new IOException( "[" + Config.nameShort + "] Could not create Stream object: " + e.getMessage() );
+			status.addToLog( logger.debug( id + "could not create source Stream object:" + e.getMessage() ) );
+			throw new IOException( "[" + Config.nameShort + "] Could not create source Stream object: " + e.getMessage() );
+		}
+		
+		/* Create the target stream object */
+		Stream targetstream = null;
+		try {
+			targetstream = UCMEntity.getStream( this.targetstream );
+		} catch (UCMException e) {
+			status.addToLog( logger.debug( id + "could not create target Stream object:" + e.getMessage() ) );
+			throw new IOException( "[" + Config.nameShort + "] Could not create target Stream object: " + e.getMessage() );
 		}
 
-		status.addToLog( logger.warning( id + "Stream and component created" ) );
+		status.addToLog( logger.warning( id + "Streams and baselines created" ) );
 
 		/* Create the Tag object */
 		Tag tag = null;
 		if( makeTag ) {
 			try {
 				// Getting tag to set buildstatus
-				tag = baseline.getTag( this.displayName, this.buildNumber );
+				tag = sourcebaseline.getTag( this.displayName, this.buildNumber );
 				status.setTagAvailable( true );
 			} catch (UCMException e) {
 				hudsonOut.println( "[" + Config.nameShort + "] Could not get Tag: " + e.getMessage() );
@@ -141,10 +163,10 @@ class RemotePostBuild implements FileCallable<Status> {
 
 			if( promote > CCUCMNotifier.__NO_PROMOTE ) {
 				try {
-					Project.Plevel pl = baseline.promote();
+					Project.Plevel pl = sourcebaseline.promote();
 					status.setPromotedLevel( pl );
 					status.setPLevel( true );
-					hudsonOut.println( "[" + Config.nameShort + "] Baseline promoted to " + baseline.getPromotionLevel( true ).toString() + "." );
+					hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " promoted to " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
 				} catch (UCMException e) {
 					status.setStable( false );
 					/*
@@ -153,14 +175,14 @@ class RemotePostBuild implements FileCallable<Status> {
 					 */
 					if( recommend ) {
 						status.setRecommended( false );
-						hudsonOut.println( "[" + Config.nameShort + "] Could not promote baseline and will not recommend. " + e.getMessage() );
+						hudsonOut.println( "[" + Config.nameShort + "] Could not promote baseline " + sourcebaseline.getShortname() + " and will not recommend " + targetbaseline.getShortname() + ". " + e.getMessage() );
 						status.addToLog( logger.warning( id + "Could not promote baseline and will not recommend. " + e.getMessage() ) );
 					} else {
 						/*
 						 * As we will not recommend if we cannot promote, it's
 						 * ok to break method here
 						 */
-						hudsonOut.println( "[" + Config.nameShort + "] Could not promote baseline. " + e.getMessage() );
+						hudsonOut.println( "[" + Config.nameShort + "] Could not promote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
 						status.addToLog( logger.warning( id + "Could not promote baseline. " + e.getMessage() ) );
 					}
 				}
@@ -169,13 +191,13 @@ class RemotePostBuild implements FileCallable<Status> {
 			if( recommend ) {
 				try {
 					if( status.isPLevel() ) {
-						stream.recommendBaseline( baseline );
-						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + baseline.getShortname() + " is now recommended." );
+						targetstream.recommendBaseline( targetbaseline );
+						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + targetbaseline.getShortname() + " is now recommended." );
 					}
 				} catch ( UCMException e ) {
 					status.setStable( false );
 					status.setRecommended( false );
-					hudsonOut.println( "[" + Config.nameShort + "] Could not recommend Baseline: " + e.getMessage() );
+					hudsonOut.println( "[" + Config.nameShort + "] Could not recommend Baseline " + targetbaseline.getShortname() + ": " + e.getMessage() );
 					status.addToLog( logger.warning( id + "Could not recommend baseline: " + e.getMessage() ) );
 				}
 			}
@@ -198,15 +220,15 @@ class RemotePostBuild implements FileCallable<Status> {
 				if( promote > CCUCMNotifier.__NO_PROMOTE ) {
 					try {
 						status.addToLog( logger.warning( id + "Demoting baseline" ) );
-						Project.Plevel pl = baseline.demote();
+						Project.Plevel pl = sourcebaseline.demote();
 						status.setPromotedLevel( pl );
 						status.setPLevel( true );
-						hudsonOut.println( "[" + Config.nameShort + "] Baseline is " + baseline.getPromotionLevel( true ).toString() + "." );
+						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
 					} catch (Exception e) {
 						status.setStable( false );
 						// throw new NotifierException(
 						// "Could not demote baseline. " + e.getMessage() );
-						hudsonOut.println( "[" + Config.nameShort + "] Could not demote baseline. " + e.getMessage() );
+						hudsonOut.println( "[" + Config.nameShort + "] Could not demote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
 						status.addToLog( logger.warning( id + "Could not demote baseline. " + e.getMessage() ) );
 					}
 				}
@@ -225,17 +247,17 @@ class RemotePostBuild implements FileCallable<Status> {
 						Project.Plevel pl = Project.Plevel.INITIAL;
 
 						if( promote == CCUCMNotifier.__PROMOTE_UNSTABLE ) {
-							pl = baseline.promote();
-							hudsonOut.println( "[" + Config.nameShort + "] Baseline is promoted, even though the build is unstable." );
+							pl = sourcebaseline.promote();
+							hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is promoted, even though the build is unstable." );
 						} else {
-							pl = baseline.demote();
+							pl = sourcebaseline.demote();
 						}
 						status.setPromotedLevel( pl );
 						status.setPLevel( true );
-						hudsonOut.println( "[" + Config.nameShort + "] Baseline is " + baseline.getPromotionLevel( true ).toString() + "." );
+						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
 					} catch (Exception e) {
 						status.setStable( false );
-						hudsonOut.println( "[" + Config.nameShort + "] Could not demote baseline. " + e.getMessage() );
+						hudsonOut.println( "[" + Config.nameShort + "] Could not demote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
 						status.addToLog( logger.warning( id + "Could not demote baseline. " + e.getMessage() ) );
 					}
 				}
@@ -243,13 +265,13 @@ class RemotePostBuild implements FileCallable<Status> {
 				if( recommend ) {
 					try {
 						if( status.isPLevel() ) {
-							stream.recommendBaseline( baseline );
-							hudsonOut.println( "[" + Config.nameShort + "] Baseline " + baseline.getShortname() + " is now recommended." );
+							targetstream.recommendBaseline( targetbaseline );
+							hudsonOut.println( "[" + Config.nameShort + "] Baseline " + targetbaseline.getShortname() + " is now recommended." );
 						}
 					} catch (Exception e) {
 						status.setStable( false );
 						status.setRecommended( false );
-						hudsonOut.println( "[" + Config.nameShort + "] Could not recommend baseline. Reason: " + e.getMessage() );
+						hudsonOut.println( "[" + Config.nameShort + "] Could not recommend baseline " + targetbaseline.getShortname() + ". Reason: " + e.getMessage() );
 						status.addToLog( logger.warning( id + "Could not recommend baseline. Reason: " + e.getMessage() ) );
 					}
 				}
@@ -259,7 +281,7 @@ class RemotePostBuild implements FileCallable<Status> {
 			else {
 				tag.setEntry( "buildstatus", result.toString() );
 				status.addToLog( logger.log( id + "Buildstatus (Result) was " + result + ". Not handled by plugin." ) );
-				hudsonOut.println( "[" + Config.nameShort + "] Baseline not changed. Buildstatus: " + result );
+				hudsonOut.println( "[" + Config.nameShort + "] Baselines not changed. Buildstatus: " + result );
 			}
 		}
 
@@ -279,13 +301,13 @@ class RemotePostBuild implements FileCallable<Status> {
 		}
 
 		try {
-			newPLevel = baseline.getPromotionLevel( true ).toString();
+			newPLevel = sourcebaseline.getPromotionLevel( true ).toString();
 		} catch (UCMException e) {
 			logger.log( id + " Could not get promotionlevel." );
 			hudsonOut.println( "[" + Config.nameShort + "] Could not get promotion level." );
 		}
 
-		status.setBuildDescr( setDisplaystatus( newPLevel, baseline.getShortname() ) );
+		status.setBuildDescr( setDisplaystatus( newPLevel, targetbaseline.getShortname() ) );
 
 		status.addToLog( logger.warning( id + "Remote post build finished normally" ) );
 
