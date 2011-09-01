@@ -464,7 +464,7 @@ public class CCUCMScm extends SCM {
         
         /* If returnStatus == 1|2|3 the deliver was not started and should not be tried cancelled later 
          * Perhaps isFailed could be used? */
-        if( er.isDeliverRequiresRebase() || er.isInterprojectDeliverDenied() | er.isMergeError() || !er.isStarted() ) {
+        if( er.isDeliverRequiresRebase() || er.isInterprojectDeliverDenied() || !er.isStarted() ) {
         	logger.debug( id + "No need for completing deliver" );
         	state.setNeedsToBeCompleted( false );
         }
@@ -519,6 +519,8 @@ public class CCUCMScm extends SCM {
         	}
         } catch( UCMException e1 ) {
             logger.warning( "Could not retrieve streams: " + e1.getMessage() );
+            consoleOutput.println("[" + Config.nameShort + "] No streams found");
+            return baselines;
         }
         
         consoleOutput.println("[" + Config.nameShort + "] Scanning " + streams.size() + " stream" + ( streams.size() == 1 ? "" : "s" ) + " for baselines." );
