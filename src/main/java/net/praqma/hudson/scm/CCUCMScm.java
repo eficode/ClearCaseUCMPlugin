@@ -398,7 +398,7 @@ public class CCUCMScm extends SCM {
                 state.setBaseline(selectBaseline(state.getBaselines(), newest));
             }
             
-            if(state.getBaselines().size() < 1) {
+            if( state.getBaselines() == null || state.getBaselines().size() < 1) {
                 return false;
             }
             
@@ -593,7 +593,7 @@ public class CCUCMScm extends SCM {
          */
 
         State state = ccucm.getState(jobName, jobNumber);
-        state.setAddedByPoller(true);
+        
         storeStateParameters( state );
         
         if (this.multiSite) {
@@ -655,6 +655,8 @@ public class CCUCMScm extends SCM {
         /* Remove state if not being built */
         if( p == PollingResult.NO_CHANGES ) {
             state.remove();
+        } else {
+        	state.setAddedByPoller(true);
         }
         
         return p;
