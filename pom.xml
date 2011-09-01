@@ -13,7 +13,7 @@
     </properties>
 
 
-    <artifactId>ClearCase-UCM-Plugin</artifactId>
+    <artifactId>clearcase-ucm-plugin</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <name>ClearCase UCM Plugin</name>
     <description>Integrates Jenkins to ClearCase UCM</description>
