@@ -13,7 +13,7 @@
     </properties>
 
 
-    <artifactId>ClearCase-UCM-Plugin</artifactId>
+    <artifactId>clearcase-ucm-plugin</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <name>ClearCase UCM Plugin</name>
     <description>Integrates Jenkins to ClearCase UCM</description>
@@ -188,9 +188,9 @@
     </dependencies>
 
     <scm>
-        <connection>scm:git:ssh://github.com/Praqma/pucm.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/Praqma/pucm.git</developerConnection>
-        <url>https://github.com/Praqma/pucm</url>
+        <connection>scm:git:ssh://github.com/Praqma/ClearCaseUCMPlugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/Praqma/ClearCaseUCMPlugin.git</developerConnection>
+        <url>https://github.com/Praqma/ClearCaseUCMPlugin</url>
     </scm>
 
 </project>
