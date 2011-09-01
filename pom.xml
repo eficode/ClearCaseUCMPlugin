@@ -188,9 +188,9 @@
     </dependencies>
 
     <scm>
-        <connection>scm:git:ssh://github.com/Praqma/pucm.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/Praqma/pucm.git</developerConnection>
-        <url>https://github.com/Praqma/pucm</url>
+        <connection>scm:git:ssh://github.com/Praqma/ClearCaseUCMPlugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/Praqma/ClearCaseUCMPlugin.git</developerConnection>
+        <url>https://github.com/Praqma/ClearCaseUCMPlugin</url>
     </scm>
 
 </project>
