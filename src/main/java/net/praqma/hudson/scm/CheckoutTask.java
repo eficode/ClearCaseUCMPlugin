@@ -16,6 +16,7 @@ import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.*;
 import net.praqma.hudson.exception.ScmException;
+import net.praqma.hudson.scm.EstablishResult.ResultType;
 import net.praqma.util.debug.PraqmaLogger;
 import net.praqma.util.debug.PraqmaLogger.Logger;
 import net.praqma.util.structure.Tuple;
@@ -24,7 +25,7 @@ import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
 import hudson.remoting.VirtualChannel;
 
-public class CheckoutTask implements FileCallable<Map<String, String>> {
+public class CheckoutTask implements FileCallable<EstablishResult> {
 
 	private static final long serialVersionUID = -7029877626574728221L;
 	private PrintStream hudsonOut;
@@ -57,7 +58,7 @@ public class CheckoutTask implements FileCallable<Map<String, String>> {
 	}
 
 	@Override
-	public Map<String, String> invoke( File workspace, VirtualChannel channel ) throws IOException {
+	public EstablishResult invoke( File workspace, VirtualChannel channel ) throws IOException {
 		PraqmaLogger.getLogger( logger );
 		/* Make sure that the local log file is not written */
 		logger.setLocalLog( null );
@@ -68,6 +69,8 @@ public class CheckoutTask implements FileCallable<Map<String, String>> {
 
 		String diff = "";
 		String viewtag = "";
+		
+		EstablishResult er = new EstablishResult();
 
 		try {
 			UCM.setContext( UCM.ContextType.CLEARTOOL );
@@ -77,6 +80,7 @@ public class CheckoutTask implements FileCallable<Map<String, String>> {
 		} catch (net.praqma.hudson.exception.ScmException e) {
 			log += logger.debug( id + "SCM exception: " + e.getMessage() );
 			hudsonOut.println( "[" + Config.nameShort + "] SCM exception: " + e.getMessage() );
+			er.setResultType( ResultType.INITIALIZE_WORKSPACE_ERROR );
 		} catch (UCMException e) {
 			log += logger.debug( id + "Could not get changes. " + e.getMessage() );
 			log += logger.info( e );
@@ -85,11 +89,11 @@ public class CheckoutTask implements FileCallable<Map<String, String>> {
 
 		log += logger.info( "CheckoutTask finished normally" );
 
-		Map<String, String> r = new HashMap<String, String>();
-		r.put( "diff", diff );
-		r.put( "log", log );
-		r.put( "viewtag", viewtag );
-		return r;
+		er.setResultType( ResultType.SUCCESS );
+		er.setLog( log );
+		er.setMessage( diff );
+		er.setViewtag( viewtag );
+		return er;
 	}
 
 	private String makeWorkspace( File workspace ) throws ScmException {

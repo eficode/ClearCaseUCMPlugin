@@ -179,6 +179,8 @@ public abstract class Util {
         
         boolean pathExists = false;
 
+        /* Determine if there is a view path
+         * if not, create it */
         try {
             if (viewroot.exists()) {
             	pathExists = true;
@@ -193,6 +195,8 @@ public abstract class Util {
             throw new ScmException("Could not make workspace (for viewroot " + viewroot.toString() + "). Cause: " + e.getMessage());
 
         }
+        
+        /* Only do this is if the path existed */
 
         if (UCMView.viewExists(viewtag)) {
             hudsonOut.println("[" + Config.nameShort + "] Reusing view tag");

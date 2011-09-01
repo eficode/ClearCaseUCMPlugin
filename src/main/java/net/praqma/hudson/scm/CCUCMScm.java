@@ -243,7 +243,7 @@ public class CCUCMScm extends SCM {
             	result = bla( build, workspace, changelogFile, listener, state );
             } else {
             	/* Only start deliver when NOT polling self */
-            	result = beginDeliver( build, state, listener );
+            	result = beginDeliver( build, state, listener, changelogFile );
             }
             
         }
@@ -256,6 +256,8 @@ public class CCUCMScm extends SCM {
     private boolean bla( AbstractBuild<?, ?> build, FilePath workspace, File changelogFile, BuildListener listener, State state ) {
 
     	PrintStream consoleOutput = listener.getLogger();
+    	
+    	EstablishResult er;
         try {
             /* Force the Baseline to be loaded */
             try {
@@ -269,10 +271,10 @@ public class CCUCMScm extends SCM {
             
             CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream().getFullyQualifiedName(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, logger);
 
-            Map<String, String> ctresult = workspace.act(ct);
-            String changelog = ctresult.get( "log" );
-            logger.empty(ctresult.get( "log" ));
-            this.viewtag = ctresult.get( "viewtag" );
+            er = workspace.act(ct);
+            String changelog = er.getMessage();
+            logger.empty(er.getLog());
+            this.viewtag = er.getViewtag();
             
 
             /* Write change log */
@@ -294,7 +296,13 @@ public class CCUCMScm extends SCM {
             return false;
         }
         
-        return true;
+        if( er == null || er.isFailed() ) {
+            consoleOutput.println("[" + Config.nameShort + "] Could not establish workspace: " + er);
+            state.setPostBuild(false);
+            return false;
+        } else {       
+        	return true;
+        }
     }
     
     public boolean doBaseline( AbstractBuild<?, ?> build, String baselineInput, State state, BuildListener listener ) {
@@ -407,7 +415,7 @@ public class CCUCMScm extends SCM {
         return result;
     }
     
-    public boolean beginDeliver( AbstractBuild<?, ?> build, State state, BuildListener listener ) {
+    public boolean beginDeliver( AbstractBuild<?, ?> build, State state, BuildListener listener, File changelogFile ) {
         FilePath workspace = build.getWorkspace();
         PrintStream consoleOutput = listener.getLogger();
         boolean result = true;
@@ -421,6 +429,16 @@ public class CCUCMScm extends SCM {
             RemoteDeliver rmDeliver = new RemoteDeliver(state.getBaseline().getStream().getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
 
             er = workspace.act(rmDeliver);
+            
+            /* Write change log */
+            try {
+                FileOutputStream fos = new FileOutputStream(changelogFile);
+                fos.write(er.getMessage().getBytes());
+                fos.close();
+            } catch (IOException e) {
+                logger.debug(id + "Could not write change log file");
+                consoleOutput.println("[" + Config.nameShort + "] Could not write change log file");
+            }
 
             /*Next line must be after the line above*/
             state.setSnapView(rmDeliver.getSnapShotView());

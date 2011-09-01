@@ -15,6 +15,7 @@ import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
+import net.praqma.clearcase.ucm.utils.BaselineDiff;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
 import net.praqma.clearcase.ucm.view.UCMView;
@@ -116,7 +117,17 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
             throw new IOException("Could not create deliver view: " + e.getMessage());
         }
         
+        String diff = "";
+		try {
+			BaselineDiff bldiff = baseline.getDifferences( snapview );
+			diff = Util.createChangelog( bldiff, baseline );
+		} catch (UCMException e1) {
+			hudsonOut.println( "[" + Config.nameShort + "] Unable to create change log" );
+		}
+
+        
         EstablishResult er = new EstablishResult(viewtag);
+        er.setMessage(  diff );
         
         /* Make the deliver */
         try {

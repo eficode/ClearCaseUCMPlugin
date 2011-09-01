@@ -11,6 +11,7 @@ public class EstablishResult implements Serializable {
 		MERGE_ERROR,
 		DELIVER_REQUIRES_REBASE,
 		INTERPROJECT_DELIVER_DENIED,
+		INITIALIZE_WORKSPACE_ERROR,
 		SUCCESS
 	}
 	
@@ -68,6 +69,10 @@ public class EstablishResult implements Serializable {
 	
 	public String getViewtag() {
 		return this.viewtag;
+	}
+	
+	public void setViewtag( String viewtag ) {
+		this.viewtag = viewtag;
 	}
 
 	public String getLog() {
