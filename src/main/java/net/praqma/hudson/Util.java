@@ -198,6 +198,7 @@ public abstract class Util {
             hudsonOut.println("[" + Config.nameShort + "] Reusing view tag");
             try {
                 String vt = SnapshotView.viewrootIsValid(viewroot);
+                hudsonOut.println("[" + Config.nameShort + "] UUID resulted in " + vt);
                 /* Not the correct view tag given the view */
                 if( !vt.equals( viewtag ) && pathExists ) {
                 	hudsonOut.println("[" + Config.nameShort + "] View tag is not the same as " + vt);

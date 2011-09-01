@@ -276,6 +276,8 @@ public class CCUCMNotifier extends Notifier {
         String sourcebaseline = pstate.getBaseline().getFullyQualifiedName();
         String targetbaseline = sourcebaseline;
 
+        logger.debug( "NTBC: " + pstate.needsToBeCompleted() );
+        
         /* Finalize CCUCM, deliver + baseline 
          * Only do this for child and sibling polling */
         if( pstate.needsToBeCompleted() && pstate.getPolling().isPollingOther() ) {

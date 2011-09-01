@@ -412,7 +412,7 @@ public class CCUCMScm extends SCM {
         PrintStream consoleOutput = listener.getLogger();
         boolean result = true;
         
-        EstablishResult er = null;
+        EstablishResult er = new EstablishResult();
     	
         try {
             logger.debug( "Remote delivering...." );
@@ -436,14 +436,18 @@ public class CCUCMScm extends SCM {
             result = false;
         }
         
+        logger.debug( id + "RESULT: " + er.getResultType().toString() );
+        
         /* The result must be false if the returnStatus is not equal to 0 */
         if( er.isFailed() ) {
+        	logger.debug( id + "No need for completing deliver" );
         	result = false;
         }
         
         /* If returnStatus == 1|2|3 the deliver was not started and should not be tried cancelled later 
          * Perhaps isFailed could be used? */
-        if( er.isDeliverRequiresRebase() || er.isInterprojectDeliverDenied() | er.isMergeError() ) {
+        if( er.isDeliverRequiresRebase() || er.isInterprojectDeliverDenied() | er.isMergeError() || !er.isStarted() ) {
+        	logger.debug( id + "No need for completing deliver" );
         	state.setNeedsToBeCompleted( false );
         }
         
@@ -452,9 +456,9 @@ public class CCUCMScm extends SCM {
          * But only if the deliver actually started */
         if( !result && er.isCancellable() ) {
             try {
-                consoleOutput.print("[" + Config.nameShort + "] Trying to cancel. ");
+                consoleOutput.print("[" + Config.nameShort + "] Cancelling deliver. ");
                 Util.completeRemoteDeliver( workspace, listener, state, false );
-                consoleOutput.println("Done");
+                consoleOutput.println("Success");
                 
                 /* Make sure, that the post step is not run */
                 state.setNeedsToBeCompleted( false );

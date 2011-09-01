@@ -45,19 +45,23 @@ public class EstablishResult implements Serializable {
 	}
 	
 	public boolean isMergeError() {
-		return !type.equals( ResultType.MERGE_ERROR );
+		return type.equals( ResultType.MERGE_ERROR );
 	}
 	
 	public boolean isDeliverRequiresRebase() {
-		return !type.equals( ResultType.DELIVER_REQUIRES_REBASE );
+		return type.equals( ResultType.DELIVER_REQUIRES_REBASE );
 	}
 	
 	public boolean isInterprojectDeliverDenied() {
-		return !type.equals( ResultType.INTERPROJECT_DELIVER_DENIED );
+		return type.equals( ResultType.INTERPROJECT_DELIVER_DENIED );
 	}
 	
 	public boolean isCancellable() {
 		return type.equals( ResultType.SUCCESS );
+	}
+	
+	public boolean isStarted() {
+		return !type.equals( ResultType.NOT_STARTED );
 	}
 	
 	
