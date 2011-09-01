@@ -29,11 +29,11 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
             
             try {
 
-                state.getBaseline().deliver(state.getBaseline().getStream(), state.getStream(), state.getSnapView().GetViewRoot(), state.getSnapView().GetViewtag(), true, true, true);
+                state.getBaseline().deliver(state.getBaseline().getStream(), state.getStream(), state.getSnapView().getViewRoot(), state.getSnapView().getViewtag(), true, true, true);
             } catch (UCMException ex) {
                 
                 try {
-                    state.getBaseline().cancel(state.getSnapView().GetViewRoot());
+                    state.getBaseline().cancel(state.getSnapView().getViewRoot());
                 } catch (UCMException ex1) {
                     
                     throw new IOException( "Completing the deliver failed. Could not cancel." );
@@ -45,7 +45,7 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
             
         } else {
             try {
-                state.getBaseline().cancel(state.getSnapView().GetViewRoot());
+                state.getBaseline().cancel(state.getSnapView().getViewRoot());
             } catch (UCMException ex) {
                 throw new IOException( "Could not cancel the deliver." );
             }

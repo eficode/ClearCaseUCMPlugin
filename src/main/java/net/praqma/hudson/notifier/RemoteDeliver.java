@@ -270,12 +270,12 @@ class RemoteDeliver implements FileCallable<Integer>
 		try
 		{
 			status.addToLog( logger.info( id + "Trying to deliver the Baseline to " + target.getFullyQualifiedName() ) );
-			status.addToLog( logger.info( id + "The view is " + view.GetViewRoot().getAbsolutePath() + ". Tag=" + view.GetViewtag() ) );
+			status.addToLog( logger.info( id + "The view is " + view.getViewRoot().getAbsolutePath() + ". Tag=" + view.getViewtag() ) );
 			if( stream.isReadOnly() )
 			{
 				status.addToLog( logger.debug( id + "The stream is read only" ) );
 				//baseline.deliver( null, target, view.GetViewRoot(), null, true, true, true );
-				if( !baseline.deliver( baseline.getStream(), null, view.GetViewRoot(), view.GetViewtag(), true, true, true ) )
+				if( !baseline.deliver( baseline.getStream(), null, view.getViewRoot(), view.getViewtag(), true, true, true ) )
 				{
 					status.addToLog( logger.debug( id + "The deliver was empty, no changes" ) );
 					makebl = false;
@@ -287,7 +287,7 @@ class RemoteDeliver implements FileCallable<Integer>
 			else
 			{
 				status.addToLog( logger.debug( id + "The stream is writable" ) );
-				stream.deliver( null, target, view.GetViewRoot(), null, true, true, true );
+				stream.deliver( null, target, view.getViewRoot(), null, true, true, true );
 			}
 		}
 		catch ( UCMException e )
@@ -301,7 +301,7 @@ class RemoteDeliver implements FileCallable<Integer>
 				if( stream.isDelivering() )
 				{
 					hudsonOut.print( "Trying to cancel..." );
-					stream.cancelDeliver( view.GetViewRoot() );
+					stream.cancelDeliver( view.getViewRoot() );
 				}
 				else
 				{
@@ -335,7 +335,7 @@ class RemoteDeliver implements FileCallable<Integer>
 			try
 			{
 				status.addToLog( logger.info( id + "Creating new baseline " + ucmDeliver.baselineName + number ) );
-				newbl = Baseline.create( ucmDeliver.baselineName + number, component, view.GetViewRoot(), false, false );
+				newbl = Baseline.create( ucmDeliver.baselineName + number, component, view.getViewRoot(), false, false );
 				hudsonOut.println( "[" + Config.nameShort + "] Created baseline " + ucmDeliver.baselineName + number );
 			}
 			catch ( UCMException e )
@@ -400,12 +400,12 @@ class RemoteDeliver implements FileCallable<Integer>
 
 		}
 
-		if( UCMView.ViewExists( viewtag ) )
+		if( UCMView.viewExists( viewtag ) )
 		{
 			hudsonOut.println( "[" + Config.nameShort + "] Reusing viewtag: " + viewtag + "\n" );
 			try
 			{
-				SnapshotView.ViewrootIsValid( viewroot );
+				SnapshotView.viewrootIsValid( viewroot );
 				hudsonOut.println( "[" + Config.nameShort + "] Viewroot is valid in ClearCase" );
 			}
 			catch( UCMException ucmE )
@@ -413,7 +413,7 @@ class RemoteDeliver implements FileCallable<Integer>
 				try
 				{
 					hudsonOut.println( "[" + Config.nameShort + "] Viewroot not valid - now regenerating.... " );
-					SnapshotView.RegenerateViewDotDat( viewroot, viewtag );
+					SnapshotView.regenerateViewDotDat( viewroot, viewtag );
 				}
 				catch( UCMException ucmEe )
 				{
@@ -426,7 +426,7 @@ class RemoteDeliver implements FileCallable<Integer>
 			hudsonOut.print( "[" + Config.nameShort + "] Getting snapshotview..." );
 			try
 			{
-				sv = UCMView.GetSnapshotView( viewroot );
+				sv = UCMView.getSnapshotView( viewroot );
 				hudsonOut.println( " DONE" );
 			}
 			catch( UCMException e )
@@ -440,7 +440,7 @@ class RemoteDeliver implements FileCallable<Integer>
 		{
 			try
 			{
-				sv = SnapshotView.Create( stream, viewroot, viewtag );
+				sv = SnapshotView.create( stream, viewroot, viewtag );
 
 				hudsonOut.println( "[" + Config.nameShort + "] View doesn't exist. Created new view in local workspace: " + viewroot.getAbsolutePath() );
 				status.addToLog( logger.log( "The view did not exist and created a new" ) );

@@ -3,20 +3,17 @@ package net.praqma.hudson.scm;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.utils.BaselineDiff;
-import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.Cool;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
-import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.view.SnapshotView;
-import net.praqma.clearcase.ucm.view.UCMView;
-import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
 import net.praqma.hudson.*;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.util.debug.PraqmaLogger;
@@ -27,7 +24,7 @@ import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
 import hudson.remoting.VirtualChannel;
 
-public class CheckoutTask implements FileCallable<Tuple<String, String>> {
+public class CheckoutTask implements FileCallable<Map<String, String>> {
 
 	private static final long serialVersionUID = -7029877626574728221L;
 	private PrintStream hudsonOut;
@@ -60,7 +57,7 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 	}
 
 	@Override
-	public Tuple<String, String> invoke( File workspace, VirtualChannel channel ) throws IOException {
+	public Map<String, String> invoke( File workspace, VirtualChannel channel ) throws IOException {
 		PraqmaLogger.getLogger( logger );
 		/* Make sure that the local log file is not written */
 		logger.setLocalLog( null );
@@ -69,15 +66,14 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 
 		log += logger.info( "Starting CheckoutTask" );
 
-		boolean doPostBuild = true;
 		String diff = "";
+		String viewtag = "";
 
 		try {
 			UCM.setContext( UCM.ContextType.CLEARTOOL );
-			makeWorkspace( workspace );
+			viewtag = makeWorkspace( workspace );
 			BaselineDiff bldiff = bl.getDifferences( sv );
 			diff = Util.createChangelog( bldiff, bl );
-			doPostBuild = true;
 		} catch (net.praqma.hudson.exception.ScmException e) {
 			log += logger.debug( id + "SCM exception: " + e.getMessage() );
 			hudsonOut.println( "[" + Config.nameShort + "] SCM exception: " + e.getMessage() );
@@ -89,10 +85,14 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 
 		log += logger.info( "CheckoutTask finished normally" );
 
-		return new Tuple<String, String>( diff, log );
+		Map<String, String> r = new HashMap<String, String>();
+		r.put( "diff", diff );
+		r.put( "log", log );
+		r.put( "viewtag", viewtag );
+		return r;
 	}
 
-	private void makeWorkspace( File workspace ) throws ScmException {
+	private String makeWorkspace( File workspace ) throws ScmException {
 		// We know we have a stream (st), because it is set in
 		// baselinesToBuild()
 		try {
@@ -108,9 +108,9 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 		}
 
 		String newJobName = jobname.replaceAll("\\s", "_");
-		String viewtag = newJobName + "_" + System.getenv("COMPUTERNAME") + "_" + integrationstream.getShortname();
+		String viewtag = "CCUCM_" + newJobName + "_" + System.getenv("COMPUTERNAME");
 
-		File viewroot = new File( workspace, viewtag );
+		File viewroot = new File( workspace, "view" );
 		
 		Stream devstream = null;
 
@@ -133,6 +133,8 @@ public class CheckoutTask implements FileCallable<Tuple<String, String>> {
 		devstream.rebase( sv, bl, true );
 		hudsonOut.println( " DONE" );
 		hudsonOut.println( "[" + Config.nameShort + "] Log written to " + logger.getPath() );
+		
+		return viewtag;
 	}
 
 	private Stream getDeveloperStream( String streamname, String pvob, PrintStream hudsonOut ) throws ScmException {

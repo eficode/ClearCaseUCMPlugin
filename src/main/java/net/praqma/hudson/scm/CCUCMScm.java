@@ -94,6 +94,8 @@ public class CCUCMScm extends SCM {
     public static StoredBaselines storedBaselines = new StoredBaselines();
     public static final String CCUCM_LOGGER_STRING = "include_classes";
     private Polling polling;
+    
+    private String viewtag = "";
 
     /**
      * Default constructor, mainly used for unit tests.
@@ -267,9 +269,11 @@ public class CCUCMScm extends SCM {
             
             CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream().getFullyQualifiedName(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, logger);
 
-            Tuple<String, String> ctresult = workspace.act(ct);
-            String changelog = ctresult.t1;
-            logger.empty(ctresult.t2);
+            Map<String, String> ctresult = workspace.act(ct);
+            String changelog = ctresult.get( "log" );
+            logger.empty(ctresult.get( "log" ));
+            this.viewtag = ctresult.get( "viewtag" );
+            
 
             /* Write change log */
             try {
@@ -408,7 +412,7 @@ public class CCUCMScm extends SCM {
         PrintStream consoleOutput = listener.getLogger();
         boolean result = true;
         
-        int returnStatus = 0;
+        EstablishResult er = null;
     	
         try {
             logger.debug( "Remote delivering...." );
@@ -416,7 +420,8 @@ public class CCUCMScm extends SCM {
             //RemoteDeliver rmDeliver = new RemoteDeliver(UCMEntity.getStream(stream).getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
             RemoteDeliver rmDeliver = new RemoteDeliver(state.getBaseline().getStream().getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
 
-            returnStatus = workspace.act(rmDeliver);
+            er = workspace.act(rmDeliver);
+
             /*Next line must be after the line above*/
             state.setSnapView(rmDeliver.getSnapShotView());
         } catch (IOException e) {
@@ -432,19 +437,20 @@ public class CCUCMScm extends SCM {
         }
         
         /* The result must be false if the returnStatus is not equal to 0 */
-        if( returnStatus != 0 ) {
+        if( er.isFailed() ) {
         	result = false;
         }
         
-        /* If returnStatus == 1|2|3 the deliver was not started and should not be tried cancelled later */
-        if( returnStatus == 1 || returnStatus == 2 | returnStatus == 3 ) {
+        /* If returnStatus == 1|2|3 the deliver was not started and should not be tried cancelled later 
+         * Perhaps isFailed could be used? */
+        if( er.isDeliverRequiresRebase() || er.isInterprojectDeliverDenied() | er.isMergeError() ) {
         	state.setNeedsToBeCompleted( false );
         }
         
         consoleOutput.println("[" + Config.nameShort + "] Deliver " + (result ? "succeeded" : "failed"));
         /* If failed, cancel the deliver 
          * But only if the deliver actually started */
-        if( !result && returnStatus != 1 ) {
+        if( !result && er.isCancellable() ) {
             try {
                 consoleOutput.print("[" + Config.nameShort + "] Trying to cancel. ");
                 Util.completeRemoteDeliver( workspace, listener, state, false );
@@ -531,6 +537,12 @@ public class CCUCMScm extends SCM {
             env.put("CC_BASELINE", state.getBaseline().getFullyQualifiedName());
         } else {
             env.put("CC_BASELINE", "");
+        }
+        
+        env.put( "CC_VIEWTAG", viewtag );
+        String workspace = env.get( "WORKSPACE" );
+        if (workspace != null) {
+            env.put("CC_VIEWPATH", workspace + File.separator + viewtag);
         }
     }
 

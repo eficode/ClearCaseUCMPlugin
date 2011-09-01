@@ -21,6 +21,7 @@ import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.Util;
 import net.praqma.hudson.exception.ScmException;
+import net.praqma.hudson.scm.EstablishResult.ResultType;
 import net.praqma.util.debug.PraqmaLogger.Logger;
 
 /**
@@ -28,7 +29,7 @@ import net.praqma.util.debug.PraqmaLogger.Logger;
  * @author wolfgang
  *
  */
-class RemoteDeliver implements FileCallable<Integer> {
+class RemoteDeliver implements FileCallable<EstablishResult> {
 
     private static final long serialVersionUID = 1L;
     private String jobName;
@@ -47,6 +48,8 @@ class RemoteDeliver implements FileCallable<Integer> {
     // UCMDeliver ucmDeliver = null;
     private Logger logger = null;
     private PrintStream hudsonOut = null;
+    
+    private String viewtag = "";
 
     public RemoteDeliver(String stream, BuildListener listener,
             /* Common values */
@@ -64,7 +67,7 @@ class RemoteDeliver implements FileCallable<Integer> {
         // this.ucmDeliver = ucmDeliver;
     }
 
-    public Integer invoke(File workspace, VirtualChannel channel) throws IOException {
+    public EstablishResult invoke(File workspace, VirtualChannel channel) throws IOException {
         
         hudsonOut = listener.getLogger();
 
@@ -113,41 +116,47 @@ class RemoteDeliver implements FileCallable<Integer> {
             throw new IOException("Could not create deliver view: " + e.getMessage());
         }
         
+        EstablishResult er = new EstablishResult(viewtag);
+        
         /* Make the deliver */
         try {
             hudsonOut.println( "[" + Config.nameShort + "] Starting deliver" );
-            baseline.deliver(baseline.getStream(), stream.getDefaultTarget(), snapview.GetViewRoot(), snapview.GetViewtag(), true, false, true);
+            baseline.deliver(baseline.getStream(), stream.getDefaultTarget(), snapview.getViewRoot(), snapview.getViewtag(), true, false, true);
         } catch (UCMException e) {
         	/* Figure out what happened */
         	if( e.type.equals( UCMType.DELIVER_REQUIRES_REBASE ) ) {
         		hudsonOut.println(e.getMessage());
-        		return 1;
+        		er.setResultType( ResultType.DELIVER_REQUIRES_REBASE );
+        		return er;
         	}
         	
         	if( e.type.equals( UCMType.MERGE_ERROR ) ) {
         		hudsonOut.println(e.getMessage());
-        		return 2;
+        		er.setResultType( ResultType.MERGE_ERROR );
+        		return er;
         	}
         	
         	if( e.type.equals( UCMType.INTERPROJECT_DELIVER_DENIED ) ) {
         		hudsonOut.println(e.getMessage());
-        		return 3;
+        		er.setResultType( ResultType.INTERPROJECT_DELIVER_DENIED );
+        		return er;
         	}
         	
             throw new IOException(e.getMessage());
         }
 
         /* End of deliver */
-        return 0;
+        er.setResultType( ResultType.SUCCESS );
+        return er;
     }
 
     private SnapshotView makeDeliverView(Stream stream, File workspace) throws ScmException {
         /* Replace evil characters with less evil characters */
         String newJobName = jobName.replaceAll("\\s", "_");
 
-        String viewtag = newJobName + "_" + System.getenv("COMPUTERNAME") + "_" + stream.getShortname();
+        viewtag = "CCUCM_" + newJobName + "_" + System.getenv("COMPUTERNAME") + "_" + stream.getShortname();
         
-        File viewroot = new File(workspace, viewtag);
+        File viewroot = new File(workspace, "view");
 
         return Util.makeView( stream, workspace, listener, loadModule, viewroot, viewtag );
     }

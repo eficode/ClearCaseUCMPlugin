@@ -1,5 +1,6 @@
 package net.praqma.hudson;
 
+import hudson.FilePath;
 import hudson.model.BuildListener;
 
 import java.io.File;
@@ -174,10 +175,13 @@ public abstract class Util {
 		SnapshotView snapview = null;
 		
         hudsonOut.println("[" + Config.nameShort + "] View root: " + viewroot.getAbsolutePath());
-        hudsonOut.println("[" + Config.nameShort + "] View tag : " + viewtag);        
+        hudsonOut.println("[" + Config.nameShort + "] View tag : " + viewtag);
+        
+        boolean pathExists = false;
 
         try {
             if (viewroot.exists()) {
+            	pathExists = true;
                 hudsonOut.println("[" + Config.nameShort + "] Reusing view root");
             } else {
                 if (viewroot.mkdir()) {
@@ -190,14 +194,26 @@ public abstract class Util {
 
         }
 
-        if (UCMView.ViewExists(viewtag)) {
+        if (UCMView.viewExists(viewtag)) {
             hudsonOut.println("[" + Config.nameShort + "] Reusing view tag");
             try {
-                SnapshotView.ViewrootIsValid(viewroot);
+                String vt = SnapshotView.viewrootIsValid(viewroot);
+                /* Not the correct view tag given the view */
+                if( !vt.equals( viewtag ) && pathExists ) {
+                	hudsonOut.println("[" + Config.nameShort + "] View tag is not the same as " + vt);
+                	/* Delete view */
+                	FilePath path = new FilePath( viewroot );
+                	try {
+						path.deleteRecursive();
+					} catch (Exception e) {
+						throw new ScmException( "Unable to recursively prepare view root: " + e.getMessage() );
+					}
+                	makeView( stream, workspace, listener, loadModule, viewroot, viewtag );
+                }
             } catch (UCMException ucmE) {
                 try {
                     hudsonOut.println("[" + Config.nameShort + "] Regenerating invalid view root");
-                    SnapshotView.RegenerateViewDotDat(viewroot, viewtag);
+                    SnapshotView.regenerateViewDotDat(viewroot, viewtag);
                 } catch (UCMException ucmEx) {
                     if (ucmEx.stdout != null) {
                         hudsonOut.println(ucmEx.stdout);
@@ -208,7 +224,7 @@ public abstract class Util {
 
             hudsonOut.println("[" + Config.nameShort + "] Getting snapshotview...");
             try {
-                snapview = UCMView.GetSnapshotView(viewroot);
+                snapview = UCMView.getSnapshotView(viewroot);
             } catch (UCMException e) {
                 if (e.stdout != null) {
                     hudsonOut.println(e.stdout);
@@ -217,7 +233,7 @@ public abstract class Util {
             }
         } else {
             try {
-                snapview = SnapshotView.Create(stream, viewroot, viewtag);
+                snapview = SnapshotView.create(stream, viewroot, viewtag);
 
                 hudsonOut.println("[" + Config.nameShort + "] Created new view in local workspace: " + viewroot.getAbsolutePath());
             } catch (UCMException e) {
