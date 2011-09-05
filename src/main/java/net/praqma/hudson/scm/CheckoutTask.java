@@ -14,6 +14,7 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.view.SnapshotView;
+import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
 import net.praqma.hudson.*;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.scm.EstablishResult.ResultType;
@@ -120,13 +121,13 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 
 		devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( integrationstream ), hudsonOut );
 
-		sv = Util.makeView( devstream, workspace, listener, loadModule, viewroot, viewtag );
+		sv = Util.makeView( devstream, workspace, listener, loadModule, viewroot, viewtag, false );
 		
 
 		// Now we have to rebase - if a rebase is in progress, the
 		// old one must be stopped and the new started instead
 		if( devstream.isRebaseInProgress() ) {
-			hudsonOut.print( "[" + Config.nameShort + "] Cancelling previous rebase..." );
+			hudsonOut.print( "[" + Config.nameShort + "] Cancelling previous rebase." );
 			devstream.cancelRebase();
 			hudsonOut.println( " DONE" );
 		}
@@ -136,7 +137,16 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		hudsonOut.print( "[" + Config.nameShort + "] Rebasing development stream (" + devstream.getShortname() + ") against parent stream (" + integrationstream.getShortname() + ")" );
 		devstream.rebase( sv, bl, true );
 		hudsonOut.println( " DONE" );
-		hudsonOut.println( "[" + Config.nameShort + "] Log written to " + logger.getPath() );
+		
+		try {
+            hudsonOut.println("[" + Config.nameShort + "] Updating view using " + loadModule.toLowerCase() + " modules");
+            sv.Update(true, true, true, false, COMP.valueOf(loadModule.toUpperCase()), null);
+        } catch (UCMException e) {
+            if (e.stdout != null) {
+                hudsonOut.println(e.stdout);
+            }
+            throw new ScmException("Could not update snapshot view. " + e.getMessage());
+        }
 		
 		return viewtag;
 	}

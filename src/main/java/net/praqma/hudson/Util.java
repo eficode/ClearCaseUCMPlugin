@@ -168,8 +168,11 @@ public abstract class Util {
 
 		return buffer.toString();
 	}
-	
 	public static SnapshotView makeView(Stream stream, File workspace, BuildListener listener, String loadModule, File viewroot, String viewtag) throws ScmException {
+		return makeView(stream, workspace, listener, loadModule, viewroot, viewtag, true);
+	}
+	
+	public static SnapshotView makeView(Stream stream, File workspace, BuildListener listener, String loadModule, File viewroot, String viewtag, boolean update) throws ScmException {
 		
 		PrintStream hudsonOut = listener.getLogger();
 		SnapshotView snapview = null;
@@ -227,7 +230,7 @@ public abstract class Util {
                 }
             }
 
-            hudsonOut.println("[" + Config.nameShort + "] Getting snapshotview...");
+            hudsonOut.println("[" + Config.nameShort + "] Getting snapshotview");
             try {
                 snapview = UCMView.getSnapshotView(viewroot);
             } catch (UCMException e) {
@@ -250,14 +253,16 @@ public abstract class Util {
             }
         }
 
-        try {
-            hudsonOut.println("[" + Config.nameShort + "] Updating view using " + loadModule.toLowerCase() + " modules...");
-            snapview.Update(true, true, true, false, COMP.valueOf(loadModule.toUpperCase()), null);
-        } catch (UCMException e) {
-            if (e.stdout != null) {
-                hudsonOut.println(e.stdout);
-            }
-            throw new ScmException("Could not update snapshot view. " + e.getMessage());
+        if( update ) {
+	        try {
+	            hudsonOut.println("[" + Config.nameShort + "] Updating view using " + loadModule.toLowerCase() + " modules.");
+	            snapview.Update(true, true, true, false, COMP.valueOf(loadModule.toUpperCase()), null);
+	        } catch (UCMException e) {
+	            if (e.stdout != null) {
+	                hudsonOut.println(e.stdout);
+	            }
+	            throw new ScmException("Could not update snapshot view. " + e.getMessage());
+	        }
         }
 
         return snapview;
