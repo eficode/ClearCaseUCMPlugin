@@ -39,6 +39,8 @@ import net.praqma.clearcase.ucm.entities.UCMEntity.LabelStatus;
 import net.praqma.clearcase.ucm.utils.BaselineList;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.ScmException;
+import net.praqma.hudson.exception.TemplateException;
+import net.praqma.hudson.nametemplates.NameTemplate;
 import net.praqma.hudson.remoting.Util;
 import net.praqma.hudson.scm.Polling.PollingType;
 import net.praqma.hudson.scm.CCUCMState.State;
@@ -83,11 +85,7 @@ public class CCUCMScm extends SCM {
     private Unstable treatUnstable;
     
     private boolean createBaseline;
-    private String versionFrom;
-    private String buildnumberMajor;
-    private String buildnumberMinor;
-    private String buildnumberPatch;
-    private String buildnumberSequenceSelector;
+    private String nameTemplate;
 
     /* Threshold in milliseconds */
     public static final long __CCUCM_STORED_BASELINES_THRESHOLD = 5 * 60 * 1000;
@@ -113,16 +111,13 @@ public class CCUCMScm extends SCM {
      * @param polling
      * @param stream
      * @param versionFrom
-     * @param buildnumberMajor
-     * @param buildnumberMinor
-     * @param buildnumberPatch
-     * @param buildnumberSequenceSelector
+     * @param nameTemplate
      * @param buildProject
      * @param multiSite
      */
    @DataBoundConstructor
    public CCUCMScm(String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable
-		   /* Baseline creation */, boolean createBaseline, String versionFrom, String buildnumberMajor, String buildnumberMinor, String buildnumberPatch, String buildnumberSequenceSelector
+		   /* Baseline creation */, boolean createBaseline, String nameTemplate
 		   /* Build options     */, String buildProject, boolean multiSite  ) {
 
        /* Preparing the logger */
@@ -149,11 +144,7 @@ public class CCUCMScm extends SCM {
        this.treatUnstable = new Unstable( treatUnstable );
        
        this.createBaseline = createBaseline;
-       this.versionFrom = versionFrom;
-       this.buildnumberMajor = buildnumberMajor;
-       this.buildnumberMinor = buildnumberMinor;
-       this.buildnumberPatch = buildnumberPatch;
-       this.buildnumberSequenceSelector = buildnumberSequenceSelector;
+       this.nameTemplate = nameTemplate;
 
    }
 
@@ -189,15 +180,30 @@ public class CCUCMScm extends SCM {
         logger.info(id + "Removed " + count + " from states.");
 
         doPostBuild = true;
-
+        
         /* If we polled, we should get the same object created at that point */
         State state = ccucm.getState(jobName, jobNumber);
         state.setLoadModule(loadModule);
         storeStateParameters( state );
         
         logger.debug(id + "The initial state:\n" + state.stringify());
-
+        
         state.setLogger(logger);
+        
+        /* Check template */
+        if( createBaseline ) {
+        	if( nameTemplate != null && nameTemplate.length() > 0 ) {
+        		try {
+					NameTemplate.testTemplate( nameTemplate );
+				} catch (TemplateException e) {
+					consoleOutput.println("[" + Config.nameShort + "] The template could not be parsed correctly" );
+					return false;
+				}
+        	} else {
+        		consoleOutput.println("[" + Config.nameShort + "] A valid template must be provided to create a Baseline" );
+        		return false;
+        	}
+        }
 
         if (this.multiSite) {
             /* Get the time in milli seconds and store it to the state */
@@ -206,18 +212,14 @@ public class CCUCMScm extends SCM {
         } else {
             state.setMultiSiteFrequency(0);
         }
+
         
-        /* Store baseline creation information */
-        BaselineInformation bi         = new BaselineInformation();
-        bi.createBaseline              = this.createBaseline;
-        bi.buildnumberMajor            = this.buildnumberMajor;
-        bi.buildnumberMinor            = this.buildnumberMinor;
-        bi.buildnumberPatch            = this.buildnumberPatch;
-        bi.versionFrom                 = this.versionFrom;
-        bi.buildnumberSequenceSelector = this.buildnumberSequenceSelector;
-        
-        state.setBaselineInformation(bi);
-        
+        state.setCreatebaseline( createBaseline );
+        /* Trim template, strip out quotes */
+        if( nameTemplate.matches( "^\".+\"$" ) ) {
+        	nameTemplate = nameTemplate.substring( 1, nameTemplate.length()-1 );
+        }
+        state.setNameTemplate( nameTemplate );
 
         /* Determining the Baseline modifier */
         String baselineInput = getBaselineValue( build );
@@ -993,28 +995,10 @@ public class CCUCMScm extends SCM {
         return this.createBaseline;
     }
     
-    public String getVersionFrom() {
-    	return this.versionFrom;
-    }
-    
-    public String getBuildnumberMajor() {
-    	return this.buildnumberMajor;
-    }
-    
-    public String getBuildnumberMinor() {
-    	return this.buildnumberMinor;
-    }
-    
-    public String getBuildnumberPatch() {
-    	return this.buildnumberPatch;
-    }
-    
-    public String getBuildnumberSequenceSelector() {
-    	return this.buildnumberSequenceSelector;
+    public String getNameTemplate() {
+    	return this.nameTemplate;
     }
 
-    
-    
 
     /**
      * This class is used to describe the plugin to Hudson
@@ -1075,7 +1059,17 @@ public class CCUCMScm extends SCM {
          * @return
          */
         public FormValidation doExecutableCheck(@QueryParameter String value) {
-            return FormValidation.validateExecutable(value);
+        	return FormValidation.validateExecutable(value);
+        }
+        
+        public FormValidation doTemplateCheck(@QueryParameter String value) throws FormValidation {
+        	try {
+				NameTemplate.testTemplate( value );
+				return FormValidation.ok( "The template seems ok" );
+			} catch (TemplateException e) {
+				throw FormValidation.error( "Does not appear to be a valid template" );
+			}
+            
         }
 
         /**

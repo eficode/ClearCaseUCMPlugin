@@ -60,54 +60,11 @@
     <f:entry title="Create baseline" help="/plugin/ClearCase-UCM-Plugin/scm/help-newest.html">
         <f:checkbox name="CCUCM.createBaseline" checked="${instance.createBaseline}" />
     </f:entry>
+    
+    <f:entry title="Name template" help="/plugin/ClearCase-UCM-Plugin/scm/help-component.html">
+      <f:textbox name="nameTemplate" value="${scm.nameTemplate}" default="baseline_[date]_[time]" checkUrl="'${rootURL}/scm/CCUCMScm/templateCheck?value='+escape(this.value)"/>
+    </f:entry>
 
-	<f:section title="Baseline Creation Options">
-
-		<f:advanced title="">
-		
-                <f:entry title="Default Baseline naming" help="/plugin/ClearCase-UCM-Plugin/scm/help-attrproject.html">
-                    <f:radio name="CCUCM.versionFrom" value="default" checked="${instance.versionFrom == 'default' || instance.versionFrom == null}" />
-                </f:entry>
-	
-				<f:entry title="Get build attributes from UCM project and Component" help="/plugin/ClearCase-UCM-Plugin/scm/help-attrproject.html">
-					<f:radio name="CCUCM.versionFrom" value="project" checked="${instance.versionFrom == 'project'}" />
-				</f:entry>
-	
-				<f:entry title="Get build attributes from settings" help="/plugin/ClearCase-UCM-Plugin/scm/help-attrsettings.html">
-					<f:radio name="CCUCM.versionFrom" value="settings" checked="${instance.versionFrom == 'settings'}" />
-				</f:entry>
-	
-				<f:nested>
-	
-					<table>
-					    <f:entry title="Major">
-				      		<f:textbox name="CCUCM.buildnumberMajor" value="${instance.buildnumberMajor}"/>
-				    	</f:entry>
-	
-					    <f:entry title="Minor">
-				      		<f:textbox name="CCUCM.buildnumberMinor" value="${instance.buildnumberMinor}"/>
-				    	</f:entry>
-	
-					    <f:entry title="Patch">
-				      		<f:textbox name="CCUCM.buildnumberPatch" value="${instance.buildnumberPatch}"/>
-				    	</f:entry>
-	
-						<f:entry title="Sequence from component" help="/plugin/ClearCase-UCM-Plugin/scm/help-sequencefromcomponent.html">
-							<f:radio name="CCUCM.buildnumberSequenceSelector" value="component" checked="${instance.buildnumberSequenceSelector == 'component'}" />
-						</f:entry>
-	
-						<f:entry title="Sequence is the Job number">
-							<f:radio name="CCUCM.buildnumberSequenceSelector" value="current" checked="${instance.buildnumberSequenceSelector == 'current'}" />
-						</f:entry>
-					</table>
-	
-				</f:nested>
-
-		</f:advanced>
-
-	</f:section>
-	
-	
 	
 	<f:section title="Build Options">
 	

@@ -20,6 +20,7 @@ import net.praqma.clearcase.Cool;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.NotifierException;
+import net.praqma.hudson.nametemplates.NameTemplate;
 import net.praqma.hudson.remoting.RemoteDeliverComplete;
 import net.praqma.hudson.remoting.Util;
 import net.praqma.hudson.scm.CCUCMScm;
@@ -292,26 +293,19 @@ public class CCUCMNotifier extends Notifier {
                 hudsonOut.println("Success.");
                 
                 /* If deliver was completed, create the baseline */
-                if( complete && pstate.getBaselineInformation().createBaseline ) {
+                if( complete && pstate.createBaseline() ) {
 
                 	try {
                         hudsonOut.print("[" + Config.nameShort + "] Creating baseline on Integration stream. ");
-                        String name = pstate.getBaseline().getStream().getShortname() + "_" + logformat.format( new Date() );
-                        if( pstate.getBaselineInformation().versionFrom == null || pstate.getBaselineInformation().versionFrom.equalsIgnoreCase( "default" ) ) {
-                        	/* No op so far */
-                        } else {
-	                        String number = net.praqma.hudson.Util.CreateNumber(listener, build.getNumber(), pstate.getBaselineInformation().versionFrom, 
-	                        													pstate.getBaselineInformation().buildnumberMajor, pstate.getBaselineInformation().buildnumberMinor, 
-	                        													pstate.getBaselineInformation().buildnumberPatch, pstate.getBaselineInformation().buildnumberSequenceSelector, 
-	                        													pstate.getStream().getDefaultTarget(), pstate.getComponent());
-	                        name = pstate.getBaseline().getShortname() + "_" + number;
-                        }
+
+                        NameTemplate.validateTemplates( pstate );
+                        String name = NameTemplate.parseTemplate( pstate.getNameTemplate(), pstate );
                         
                         targetbaseline = Util.createRemoteBaseline( workspace, listener, name, pstate.getBaseline().getComponent().getFullyQualifiedName(), pstate.getSnapView().getViewRoot() );
                         
                         hudsonOut.println( targetbaseline );
                     } catch( Exception e ) {
-                        hudsonOut.println(" Failed.");
+                        hudsonOut.println(" Failed: " + e.getMessage());
                         logger.warning( "Failed to create baseline on stream" );
                         logger.warning( e );
                         /* We cannot recommend a baseline that is not created */

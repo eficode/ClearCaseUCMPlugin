@@ -1,4 +1,6 @@
 .project
 .classpath
 .settings/
+src/main/java/net/praqma/hudson/test/
+work/
 target

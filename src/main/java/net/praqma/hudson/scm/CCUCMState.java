@@ -148,9 +148,10 @@ public class CCUCMState {
         private Unstable unstable;
         private boolean needsToBeCompleted = true;
         private Logger logger;
-        private BaselineInformation bi;
         private SnapshotView snapView;
         private SnapshotView deliverView;
+        private boolean createBaseline = true;
+        private String nameTemplate;
 
         public State() {
         }
@@ -354,12 +355,20 @@ public class CCUCMState {
             return this.needsToBeCompleted;
         }
         
-        public void setBaselineInformation( BaselineInformation bi ) {
-        	this.bi = bi;
+        public void setCreatebaseline( boolean tf ) {
+        	this.createBaseline = tf;
         }
         
-        public BaselineInformation getBaselineInformation() {
-        	return this.bi;
+        public boolean createBaseline() {
+        	return this.createBaseline;
+        }
+        
+        public void setNameTemplate( String template ) {
+        	this.nameTemplate = template;
+        }
+        
+        public String getNameTemplate() {
+        	return this.nameTemplate;
         }
     }
 }
