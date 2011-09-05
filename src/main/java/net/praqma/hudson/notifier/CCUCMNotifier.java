@@ -69,6 +69,8 @@ public class CCUCMNotifier extends Notifier {
     
     private SimpleDateFormat logformat  = new SimpleDateFormat( "yyyyMMdd-HHmmss" );
 
+    public CCUCMNotifier() {}
+    
     /**
      * This constructor is used in the inner class <code>DescriptorImpl</code>.
      *

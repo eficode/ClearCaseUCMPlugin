@@ -12,6 +12,7 @@ public class EstablishResult implements Serializable {
 		DELIVER_REQUIRES_REBASE,
 		INTERPROJECT_DELIVER_DENIED,
 		INITIALIZE_WORKSPACE_ERROR,
+		DELIVER_IN_PROGRESS,
 		SUCCESS
 	}
 	
@@ -57,8 +58,12 @@ public class EstablishResult implements Serializable {
 		return type.equals( ResultType.INTERPROJECT_DELIVER_DENIED );
 	}
 	
+	public boolean isDeliverInProgress() {
+		return type.equals( ResultType.DELIVER_IN_PROGRESS );
+	}
+	
 	public boolean isCancellable() {
-		return type.equals( ResultType.SUCCESS );
+		return ( type.equals( ResultType.SUCCESS ) || type.equals( ResultType.MERGE_ERROR ) );
 	}
 	
 	public boolean isStarted() {

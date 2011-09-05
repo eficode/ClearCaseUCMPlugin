@@ -153,6 +153,12 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
         		return er;
         	}
         	
+        	if( e.type.equals( UCMType.DELIVER_IN_PROGRESS ) ) {
+        		hudsonOut.println(e.getMessage());
+        		er.setResultType( ResultType.DELIVER_IN_PROGRESS );
+        		return er;
+        	}
+        	
             throw new IOException(e.getMessage());
         }
 

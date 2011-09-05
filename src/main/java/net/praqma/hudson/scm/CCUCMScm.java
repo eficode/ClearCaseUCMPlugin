@@ -41,6 +41,7 @@ import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.exception.TemplateException;
 import net.praqma.hudson.nametemplates.NameTemplate;
+import net.praqma.hudson.notifier.CCUCMNotifier;
 import net.praqma.hudson.remoting.Util;
 import net.praqma.hudson.scm.Polling.PollingType;
 import net.praqma.hudson.scm.CCUCMState.State;
@@ -189,7 +190,7 @@ public class CCUCMScm extends SCM {
         logger.debug(id + "The initial state:\n" + state.stringify());
         
         state.setLogger(logger);
-        
+                
         /* Check template */
         if( createBaseline ) {
         	if( nameTemplate != null && nameTemplate.length() > 0 ) {
@@ -460,7 +461,7 @@ public class CCUCMScm extends SCM {
         
         /* The result must be false if the returnStatus is not equal to 0 */
         if( er.isFailed() ) {
-        	logger.debug( id + "No need for completing deliver" );
+        	logger.debug( id + "Result is false!" );
         	result = false;
         }
         
@@ -473,7 +474,7 @@ public class CCUCMScm extends SCM {
         
         consoleOutput.println("[" + Config.nameShort + "] Deliver " + (result ? "succeeded" : "failed"));
         /* If failed, cancel the deliver 
-         * But only if the deliver actually started */
+         * But only if the deliver actually started and can be cancelled */
         if( !result && er.isCancellable() ) {
             try {
                 consoleOutput.print("[" + Config.nameShort + "] Cancelling deliver. ");
