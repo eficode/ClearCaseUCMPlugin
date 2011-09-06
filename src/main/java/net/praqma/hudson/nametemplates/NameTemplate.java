@@ -8,7 +8,6 @@ import java.util.regex.Pattern;
 
 import net.praqma.hudson.exception.TemplateException;
 import net.praqma.hudson.scm.CCUCMState.State;
-import net.praqma.hudson.test.TimeTemplate;
 
 public class NameTemplate {
 	
