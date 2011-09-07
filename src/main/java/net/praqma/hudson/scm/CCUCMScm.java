@@ -193,16 +193,21 @@ public class CCUCMScm extends SCM {
                 
         /* Check template */
         if( createBaseline ) {
-        	if( nameTemplate != null && nameTemplate.length() > 0 ) {
-        		try {
-					NameTemplate.testTemplate( nameTemplate );
-				} catch (TemplateException e) {
-					consoleOutput.println("[" + Config.nameShort + "] The template could not be parsed correctly" );
-					return false;
-				}
+        	/* Sanity check */
+        	if( polling.isPollingOther() ) {
+	        	if( nameTemplate != null && nameTemplate.length() > 0 ) {
+	        		try {
+						NameTemplate.testTemplate( nameTemplate );
+					} catch (TemplateException e) {
+						consoleOutput.println("[" + Config.nameShort + "] The template could not be parsed correctly" );
+						return false;
+					}
+	        	} else {
+	        		consoleOutput.println("[" + Config.nameShort + "] A valid template must be provided to create a Baseline" );
+	        		return false;
+	        	}
         	} else {
-        		consoleOutput.println("[" + Config.nameShort + "] A valid template must be provided to create a Baseline" );
-        		return false;
+        		consoleOutput.println("[" + Config.nameShort + "] You cannot create a baseline in this mode" );
         	}
         }
 
