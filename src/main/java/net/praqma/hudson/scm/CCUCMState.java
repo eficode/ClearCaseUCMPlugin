@@ -152,6 +152,8 @@ public class CCUCMState {
         private SnapshotView deliverView;
         private boolean createBaseline = true;
         private String nameTemplate;
+        
+        private String error;
 
         public State() {
         }
@@ -370,5 +372,15 @@ public class CCUCMState {
         public String getNameTemplate() {
         	return this.nameTemplate;
         }
+
+		public String getError() {
+			return error;
+		}
+
+		public void setError( String error ) {
+			this.error = error;
+		}
+        
+        
     }
 }

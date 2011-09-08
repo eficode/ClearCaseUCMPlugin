@@ -7,14 +7,19 @@ import hudson.remoting.VirtualChannel;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
 
+import net.praqma.clearcase.Cool;
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.UCMException.UCMType;
+import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
+import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.utils.BaselineDiff;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
@@ -23,6 +28,7 @@ import net.praqma.hudson.Config;
 import net.praqma.hudson.Util;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.scm.EstablishResult.ResultType;
+import net.praqma.util.debug.PraqmaLogger;
 import net.praqma.util.debug.PraqmaLogger.Logger;
 
 /**
@@ -47,14 +53,14 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
     private String component;
     private String loadModule;
     // UCMDeliver ucmDeliver = null;
-    private Logger logger = null;
+    private Logger logger;
     private PrintStream hudsonOut = null;
     
     private String viewtag = "";
 
     public RemoteDeliver(String stream, BuildListener listener,
             /* Common values */
-            String component, String loadModule, String baseline, String jobName) {
+            String component, String loadModule, String baseline, String jobName, Logger logger) {
         this.jobName = jobName;
 
         this.baseline = baseline;
@@ -64,6 +70,7 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
 
         this.component = component;
         this.loadModule = loadModule;
+        this.logger = logger;
 
         // this.ucmDeliver = ucmDeliver;
     }
@@ -71,6 +78,12 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
     public EstablishResult invoke(File workspace, VirtualChannel channel) throws IOException {
         
         hudsonOut = listener.getLogger();
+        
+		logger = PraqmaLogger.getLogger( logger );
+		logger.subscribeAll();
+		/* Make sure that the local log file is not written */
+		logger.setLocalLog( null );
+		Cool.setLogger( logger );
 
         //TODO this should not be necessary cause its done in the Config.java file ????.
         UCM.setContext(UCM.ContextType.CLEARTOOL);
@@ -119,15 +132,20 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
         
         String diff = "";
 		try {
-			BaselineDiff bldiff = baseline.getDifferences( snapview );
+			List<Activity> bldiff = Version.getBaselineDiff( target, baseline, true, snapview.getViewRoot() );
+			hudsonOut.print( "[" + Config.nameShort + "] Found " + bldiff.size() + " activit" + ( bldiff.size() == 1 ? "y" : "ies" ) + ". " );
+			int c = 0;
+			for( Activity a : bldiff ) {
+				c += a.changeset.versions.size();
+			}
+			hudsonOut.println( c + " version" + ( c == 0 ? "" : "s" ) + " involved" );
 			diff = Util.createChangelog( bldiff, baseline );
 		} catch (UCMException e1) {
-			hudsonOut.println( "[" + Config.nameShort + "] Unable to create change log" );
+			hudsonOut.println( "[" + Config.nameShort + "] Unable to create change log: " + e1.getMessage() );
 		}
-
-        
+		
         EstablishResult er = new EstablishResult(viewtag);
-        er.setMessage(  diff );
+        er.setMessage( diff );
         
         /* Make the deliver */
         try {

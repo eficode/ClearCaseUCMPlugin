@@ -137,7 +137,7 @@ public class CCUCMNotifier extends Notifier {
         Cool.setLogger(logger);
 
         status = new Status();
-
+        
         this.id = "[" + jobName + "::" + jobNumber + "]";
 
         SCM scmTemp = null;
@@ -155,13 +155,13 @@ public class CCUCMNotifier extends Notifier {
 
         State pstate = null;
         Baseline baseline = null;
-
+        
         /* Only do this part if a valid CCUCMScm build */
         if (result) {
             /* Retrieve the CCUCM state */
             pstate = CCUCMScm.ccucm.getState(jobName, jobNumber);
             pstate.getLogger().debug("The valid state: " + pstate.stringify());
-
+            
             /* Validate the state */
             if (pstate.doPostBuild() && pstate.getBaseline() != null) {
                 logger.debug(id + "Post build");
@@ -196,6 +196,8 @@ public class CCUCMNotifier extends Notifier {
         /* There's a valid baseline, lets process it */
         if (result) {
 
+        	status.setErrorMessage( pstate.getError() );
+        	
             try {
                 processBuild(build, launcher, listener, pstate);
                 if (setDescription) {

@@ -434,12 +434,13 @@ public class CCUCMScm extends SCM {
             logger.debug( "Remote delivering...." );
             consoleOutput.println("[" + Config.nameShort + "] Establishing deliver view");
             //RemoteDeliver rmDeliver = new RemoteDeliver(UCMEntity.getStream(stream).getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
-            RemoteDeliver rmDeliver = new RemoteDeliver(state.getBaseline().getStream().getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
+            RemoteDeliver rmDeliver = new RemoteDeliver(state.getBaseline().getStream().getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), logger);
 
             er = workspace.act(rmDeliver);
             
             /* Write change log */
             try {
+            	//consoleOutput.println("[" + Config.nameShort + "] DIFF ON MASTER: " + er.getMessage());
                 FileOutputStream fos = new FileOutputStream(changelogFile);
                 fos.write(er.getMessage().getBytes());
                 fos.close();
@@ -494,6 +495,17 @@ public class CCUCMScm extends SCM {
                 logger.warning(e);
                 consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
             }
+        }
+        
+        /* Write something useful to the output */
+        if( er.isMergeError() ) {
+        	try {
+				consoleOutput.println("[" + Config.nameShort + "] Changes need to be manually merged, The stream " + state.getBaseline().getStream().getShortname() + " must be rebased to the most recent baseline on " + state.getStream().getShortname() + " - During the rebase the merge conflict should be solved manually. Hereafter create a new baseline on " + state.getBaseline().getStream().getShortname() + "." );
+				build.setDescription("<small>Merge error</small>");
+				state.setError( "merge error" );
+			} catch ( Exception e ) {
+				consoleOutput.println("[" + Config.nameShort + "] Could not set description" );
+			}
         }
         
         try {

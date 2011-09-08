@@ -6,98 +6,82 @@ import net.praqma.clearcase.ucm.entities.Project;
 
 import hudson.model.Result;
 
-public class Status implements Serializable
-{
+public class Status implements Serializable {
 	private boolean pLevel = false;
 	private boolean recommended = true;
 	private boolean tagPersisted = false;
 	private boolean tagAvailable = false;
 	private Result buildStatus;
-	private String errorMsg = "";
+	private String errorMessage = "";
 	private String buildDescr = "";
-	
+
 	private Project.Plevel promotedLevel = null;
-	
+
 	private boolean stable = true;
-	
+
 	private String log = "";
-	
-	public Status()
-	{
-		
+
+	public Status() {
+
 	}
 
-	public void setPLevel( boolean pLevel )
-	{
+	public void setPLevel( boolean pLevel ) {
 		this.pLevel = pLevel;
 	}
 
-	public boolean isPLevel()
-	{
+	public boolean isPLevel() {
 		return pLevel;
 	}
-	
-	public void addToLog( String l )
-	{
+
+	public void addToLog( String l ) {
 		this.log += l;
 	}
-	
-	public String getLog()
-	{
+
+	public String getLog() {
 		return log;
 	}
-	
-	public void setStable( boolean stable )
-	{
+
+	public void setStable( boolean stable ) {
 		this.stable = stable;
 	}
-	
-	public boolean isStable()
-	{
+
+	public boolean isStable() {
 		return this.stable;
 	}
 
-	public void setRecommended( boolean recommended )
-	{
+	public void setRecommended( boolean recommended ) {
 		this.recommended = recommended;
 	}
 
-	public boolean isRecommended()
-	{
+	public boolean isRecommended() {
 		return recommended;
 	}
 
-	public void setTagPersisted( boolean tagPersisted )
-	{
+	public void setTagPersisted( boolean tagPersisted ) {
 		this.tagPersisted = tagPersisted;
 	}
 
-	public boolean isTagPersisted()
-	{
+	public boolean isTagPersisted() {
 		return tagPersisted;
 	}
 
-	public void setBuildStatus( Result buildStatus )
-	{
+	public void setBuildStatus( Result buildStatus ) {
 		this.buildStatus = buildStatus;
 	}
 
-	public Result getBuildStatus()
-	{
+	public Result getBuildStatus() {
 		return buildStatus;
 	}
 
-	public void setTagAvailable( boolean tagAvailable )
-	{
+	public void setTagAvailable( boolean tagAvailable ) {
 		this.tagAvailable = tagAvailable;
 	}
 
-	public boolean isTagAvailable()
-	{
+	public boolean isTagAvailable() {
 		return tagAvailable;
 	}
 
-	public void setBuildDescr(String buildDescr) {
+	public void setBuildDescr( String buildDescr ) {
 		this.buildDescr = buildDescr;
 	}
 
@@ -105,15 +89,20 @@ public class Status implements Serializable
 		return buildDescr;
 	}
 
-	public void setPromotedLevel( Project.Plevel promotedLevel )
-	{
+	public void setPromotedLevel( Project.Plevel promotedLevel ) {
 		this.promotedLevel = promotedLevel;
 	}
 
-	public Project.Plevel getPromotedLevel()
-	{
+	public Project.Plevel getPromotedLevel() {
 		return promotedLevel;
 	}
 
-	
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
+	public void setErrorMessage( String errorMessage ) {
+		this.errorMessage = errorMessage;
+	}
+
 }

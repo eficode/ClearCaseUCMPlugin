@@ -133,7 +133,7 @@ public abstract class Util {
 		return devstream;
 	}
 	
-	public static String createChangelog(BaselineDiff changes, Baseline bl) {
+	public static String createChangelog(List<Activity> changes, Baseline bl) {
 		StringBuffer buffer = new StringBuffer();
 
 		buffer.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");

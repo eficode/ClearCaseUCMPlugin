@@ -305,7 +305,11 @@ class RemotePostBuild implements FileCallable<Status> {
 			hudsonOut.println( "[" + Config.nameShort + "] Could not get promotion level." );
 		}
 
-		status.setBuildDescr( setDisplaystatus( newPLevel, targetbaseline.getShortname() ) );
+		if( this.sourcestream.equals( this.targetstream )) {
+			status.setBuildDescr( setDisplaystatusSelf( newPLevel, targetbaseline.getShortname() ) );
+		} else {
+			status.setBuildDescr( setDisplaystatus( sourcebaseline.getShortname(), newPLevel, targetbaseline.getShortname(), status.getErrorMessage() ) );
+		}
 
 		status.addToLog( logger.warning( id + "Remote post build finished normally" ) );
 
@@ -316,22 +320,38 @@ class RemotePostBuild implements FileCallable<Status> {
 		return status;
 	}
 
-	private String setDisplaystatus( String plevel, String fqn ) {
+	private String setDisplaystatusSelf( String plevel, String fqn ) {
 		String s = "";
 
 		// Get shortname
 		s += "<small>" + fqn + "</small>";
 
 		// Get plevel:
-		s += "<BR/><small>" + plevel + "</small>";
+		s += "<br/><small>" + plevel + "</small>";
 
 		if( recommend ) {
 			if( status.isRecommended() ) {
-				s += "<BR/><B><small>Recommended</small></B>";
+				s += "<br/><B><small>Recommended</small></B>";
 			} else {
-				s += "<BR/><B><small>Could not recommend</small></B>";
+				s += "<br/><B><small>Could not recommend</small></B>";
 			}
 		}
+		return s;
+	}
+	
+	private String setDisplaystatus( String source, String plevel, String target, String error ) {
+		String s = "";
+
+		s += "<small>" + source + " <b>" + plevel + "</b></small>";
+
+		if( status.isRecommended() ) {
+			s += "<br/><small>" + target + " <b>recommended</b></small>";
+		}
+		
+		if( error != null ) {
+			s += "<br/><small>Failed with <b>" + error + "</b></small>";
+		}
+
 		return s;
 	}
 
