@@ -36,14 +36,8 @@
 		</select>
 	</f:entry>
 
-<!--
-    <f:entry title="Poll child stream" help="/plugin/ClearCase-UCM-Plugin/scm/help-pollChild.html" >
-      <f:checkbox name="CCUCM.pollChild" checked="${instance.pollChild}" />
-    </f:entry>
--->
-
 	<f:entry title="Newest" help="/plugin/ClearCase-UCM-Plugin/scm/help-newest.html">
-	    <f:checkbox name="CCUCM.newest" checked="${instance.newest}" />
+	    <f:checkbox name="CCUCM.newest" checked="${scm.newest}" />
 	</f:entry>
 	
     <f:entry title="Unstable" help="/plugin/ClearCase-UCM-Plugin/scm/help-unstable.html">
@@ -54,13 +48,24 @@
     </f:entry>
 	
     <f:entry title="Create baseline" help="/plugin/ClearCase-UCM-Plugin/scm/help-newest.html">
-        <f:checkbox name="CCUCM.createBaseline" checked="${instance.createBaseline}" />
+        <f:checkbox name="CCUCM.createBaseline" checked="${scm.createBaseline}" />
     </f:entry>
     
     <f:entry title="Name template" help="/plugin/ClearCase-UCM-Plugin/scm/help-component.html">
-      <f:textbox name="nameTemplate" value="${scm.nameTemplate}" default="baseline_[date]_[time]" checkUrl="'${rootURL}/scm/CCUCMScm/templateCheck?value='+escape(this.value)"/>
+      <f:textbox name="CCUCM.nameTemplate" value="${scm.nameTemplate}" default="baseline_[date]_[time]" checkUrl="'${rootURL}/scm/CCUCMScm/templateCheck?value='+escape(this.value)"/>
     </f:entry>
 
+    <f:entry title="Recommend baseline" help="/plugin/ClearCase-UCM-Plugin/scm/help-recommendBaseline.html">
+        <f:checkbox name="CCUCM.recommend" checked="${scm.recommend}" />
+    </f:entry>
+
+    <f:entry title="Make tag" help="/plugin/ClearCase-UCM-Plugin/scm/help-makeTag.html">
+        <f:checkbox name="CCUCM.makeTag" checked="${scm.makeTag}" />
+    </f:entry>
+
+    <f:entry title="Set description" help="/plugin/ClearCase-UCM-Plugin/scm/help-setDescription.html">
+        <f:checkbox name="CCUCM.setDescription" checked="${scm.setDescription}" />
+    </f:entry>
 	
 	<f:section title="Build Options">
 	

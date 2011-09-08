@@ -53,23 +53,19 @@ import hudson.tasks.Publisher;
  *
  */
 public class CCUCMNotifier extends Notifier {
-    /* Old skool promotion */
 
-    private boolean recommended;
-    //private Baseline baseline;
     private PrintStream hudsonOut;
-    private boolean makeTag;
-    private boolean setDescription;
+
     private Status status;
     private String id = "";
     private Logger logger = null;
-    private UCMDeliver ucmDeliverObj = null;
     private String jobName = "";
     private Integer jobNumber = 0;
     
     private SimpleDateFormat logformat  = new SimpleDateFormat( "yyyyMMdd-HHmmss" );
 
-    public CCUCMNotifier() {}
+    public CCUCMNotifier() {
+    }
     
     /**
      * This constructor is used in the inner class <code>DescriptorImpl</code>.
@@ -86,13 +82,8 @@ public class CCUCMNotifier extends Notifier {
      * @param ucmDeliver The special deliver object, in which all the deliver parameters are encapsulated.
 
      */
-    public CCUCMNotifier( boolean recommended, boolean makeTag, boolean setDescription, UCMDeliver ucmDeliver ) {
-        this.recommended = recommended;
-        this.makeTag = makeTag;
-        this.setDescription = setDescription;
+    public CCUCMNotifier( boolean recommended, boolean makeTag, boolean setDescription ) {
 
-        /* Advanced */
-        this.ucmDeliverObj = ucmDeliver;
     }
 
     /**
@@ -200,7 +191,7 @@ public class CCUCMNotifier extends Notifier {
         	
             try {
                 processBuild(build, launcher, listener, pstate);
-                if (setDescription) {
+                if (pstate.isSetDescription()) {
                     build.setDescription(status.getBuildDescr());
                     hudsonOut.println("[" + Config.nameShort + "] Description set to - " + status.getBuildDescr());
                 }
@@ -313,10 +304,11 @@ public class CCUCMNotifier extends Notifier {
                         logger.warning( "Failed to create baseline on stream" );
                         logger.warning( e );
                         /* We cannot recommend a baseline that is not created */
-                        if( recommended ) {
+                        if( pstate.doRecommend() ) {
                         	hudsonOut.println( "[" + Config.nameShort + "] Cannot recommend Baseline when not created" );
                         }
-                        recommended = false;
+                        
+                        pstate.setRecommend( false );
                     }
                 }
                 
@@ -327,10 +319,10 @@ public class CCUCMNotifier extends Notifier {
                 logger.warning(e);
                 
                 /* We cannot recommend a baseline that is not created */
-                if( recommended ) {
+                if( pstate.doRecommend() ) {
                 	hudsonOut.println( "[" + Config.nameShort + "] Cannot recommend a baseline when deliver failed" );
                 }
-                recommended = false;
+                pstate.setRecommend( false );
                 
                 /* If trying to complete and it failed, try to cancel it */
                 if( complete ) {
@@ -366,7 +358,7 @@ public class CCUCMNotifier extends Notifier {
             
             String streamName = pstate.getPolling().isPollingOther() ? pstate.getBaseline().getStream().getFullyQualifiedName() : pstate.getStream().getFullyQualifiedName();
             f = workspace.actAsync(new RemotePostBuild(buildResult, status, listener, 
-            		                                   makeTag, recommended, pstate.getUnstable(), 
+            		                                   pstate.isMakeTag(), pstate.doRecommend(), pstate.getUnstable(), 
             		                                   sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString(build.getNumber()), logger/*, pout*/, pipe));
 
             status = f.get();
@@ -389,83 +381,6 @@ public class CCUCMNotifier extends Notifier {
         
         if (!status.isStable()) {
             build.setResult(Result.UNSTABLE);
-        }
-    }
-
-    public boolean isRecommended() {
-        return recommended;
-    }
-
-    public boolean isMakeTag() {
-        return makeTag;
-    }
-
-    public boolean isSetDescription() {
-        return setDescription;
-    }
-
-    /* Advanced */
-    public boolean isUcmDeliver() {
-        if (ucmDeliverObj != null) {
-            return ucmDeliverObj.ucmDeliver;
-        } else {
-            return false;
-        }
-    }
-
-    public String getAlternateTarget() {
-        if (ucmDeliverObj != null) {
-            return ucmDeliverObj.alternateTarget;
-        } else {
-            return "";
-        }
-    }
-
-    public String getBaselineName() {
-        if (ucmDeliverObj != null) {
-            return ucmDeliverObj.baselineName;
-        } else {
-            return "";
-        }
-    }
-
-    public String getVersionFrom() {
-        if (ucmDeliverObj != null) {
-            return ucmDeliverObj.versionFrom;
-        } else {
-            return "";
-        }
-    }
-
-    public String getBuildnumberSequenceSelector() {
-        if (ucmDeliverObj != null) {
-            return ucmDeliverObj.buildnumberSequenceSelector;
-        } else {
-            return "";
-        }
-    }
-
-    public String getbuildnumberMajor() {
-        if (ucmDeliverObj != null) {
-            return ucmDeliverObj.buildnumberMajor;
-        } else {
-            return "";
-        }
-    }
-
-    public String getbuildnumberMinor() {
-        if (ucmDeliverObj != null) {
-            return ucmDeliverObj.buildnumberMinor;
-        } else {
-            return "";
-        }
-    }
-
-    public String getbuildnumberPatch() {
-        if (ucmDeliverObj != null) {
-            return ucmDeliverObj.buildnumberPatch;
-        } else {
-            return "";
         }
     }
 
@@ -500,36 +415,9 @@ public class CCUCMNotifier extends Notifier {
         @Override
         public Notifier newInstance(StaplerRequest req, JSONObject formData) throws FormException {
 
-            boolean recommended = req.getParameter("CCUCM.recommended") != null;
-            boolean makeTag = req.getParameter("CCUCM.makeTag") != null;
-            boolean setDescription = req.getParameter("CCUCM.setDescription") != null;
-
-            boolean ucmDeliver = req.getParameter("CCUCM.ucmDeliver") != null;
-            String alternateTarget = req.getParameter("CCUCM.alternateTarget");
-            String baselineName = req.getParameter("CCUCM.baselineName");
-            //      boolean apply4level = req.getParameter("CCUCM.apply4level") != null;
-            String versionFrom = req.getParameter("CCUCM.versionFrom");
-            String buildnumberSequenceSelector = req.getParameter("CCUCM.buildnumberSequenceSelector");
-
-            String buildnumberMajor = req.getParameter("CCUCM.buildnumberMajor");
-            String buildnumberMinor = req.getParameter("CCUCM.buildnumberMinor");
-            String buildnumberPatch = req.getParameter("CCUCM.buildnumberPatch");
-
-            UCMDeliver d = new UCMDeliver();
-
-            d.ucmDeliver = ucmDeliver;
-            d.alternateTarget = alternateTarget;
-            d.baselineName = baselineName;
-            //d.apply4level      = apply4level;
-            d.versionFrom = versionFrom;
-            d.buildnumberSequenceSelector = buildnumberSequenceSelector;
-            d.buildnumberMajor = buildnumberMajor;
-            d.buildnumberMinor = buildnumberMinor;
-            d.buildnumberPatch = buildnumberPatch;
-
             save();
 
-            return new CCUCMNotifier(recommended, makeTag, setDescription, d);
+            return new CCUCMNotifier();
         }
 
         @Override

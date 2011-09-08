@@ -13,6 +13,7 @@ import hudson.scm.PollingResult;
 import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
 import hudson.scm.SCM;
+import hudson.tasks.Publisher;
 import hudson.util.FormValidation;
 
 import java.io.File;
@@ -48,11 +49,11 @@ import net.praqma.hudson.scm.CCUCMState.State;
 import net.praqma.hudson.scm.StoredBaselines.StoredBaseline;
 import net.praqma.util.debug.PraqmaLogger;
 import net.praqma.util.debug.PraqmaLogger.Logger;
-import net.praqma.util.structure.Tuple;
 import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.Exported;
 
 /**
@@ -82,6 +83,11 @@ public class CCUCMScm extends SCM {
     private String id = "";
     private Logger logger = null;
     public static CCUCMState ccucm = new CCUCMState();
+    
+    /* Old notifier fields */
+    private boolean recommend;
+    private boolean makeTag;
+    private boolean setDescription;
     
     private Unstable treatUnstable;
     
@@ -119,6 +125,7 @@ public class CCUCMScm extends SCM {
    @DataBoundConstructor
    public CCUCMScm(String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable
 		   /* Baseline creation */, boolean createBaseline, String nameTemplate
+		   /* Notofier options */ , boolean recommend, boolean makeTag, boolean setDescription
 		   /* Build options     */, String buildProject, boolean multiSite  ) {
 
        /* Preparing the logger */
@@ -146,6 +153,10 @@ public class CCUCMScm extends SCM {
        
        this.createBaseline = createBaseline;
        this.nameTemplate = nameTemplate;
+       
+       this.recommend = recommend;
+       this.makeTag = makeTag;
+       this.setDescription = setDescription;
 
    }
 
@@ -257,7 +268,21 @@ public class CCUCMScm extends SCM {
         }
         
         consoleOutput.println( "[" + Config.nameShort + "] Pre build steps done" );
-
+        
+        boolean used = false;
+        for( Publisher p : build.getParent().getPublishersList() ) {
+        	logger.debug( "NOTIFIER: " + p.toString() );
+        	if( p instanceof CCUCMNotifier ) {
+        		used = true;
+        		break;
+        	}
+        }
+        
+        if( !used ) {
+        	logger.info( "Adding notifier to project" );
+        	build.getParent().getPublishersList().add( new CCUCMNotifier() );
+        }
+        
         return result;
     }
     
@@ -704,6 +729,11 @@ public class CCUCMScm extends SCM {
         
         state.setUnstable( treatUnstable );
         
+        /* Notifier stuff */
+        state.setSetDescription( setDescription );
+        state.setMakeTag( makeTag );
+        state.setRecommend( recommend );
+        
         /*
         try {
             state.setBaseline( UCMEntity.getBaseline( bl, false ) );
@@ -1016,6 +1046,7 @@ public class CCUCMScm extends SCM {
     public String getNameTemplate() {
     	return this.nameTemplate;
     }
+    
 
 
     /**
@@ -1082,6 +1113,13 @@ public class CCUCMScm extends SCM {
 				throw FormValidation.error( "Does not appear to be a valid template" );
 			}
             
+        }
+        
+        @Override
+        public CCUCMScm newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+        	CCUCMScm instance = req.bindJSON(CCUCMScm.class, formData);
+        	/* TODO This is actually where the Notifier check should be!!! */
+            return instance;
         }
 
 

@@ -43,7 +43,7 @@ public class PucmScmTest extends HudsonTestCase {
 	
 	public void testSpecificBaselineTest() throws IOException {
 		FreeStyleProject proj = createFreeStyleProject();
-		proj.getPublishersList().add( new CCUCMNotifier( false, false, false, null ) );
+		proj.getPublishersList().add( new CCUCMNotifier( false, false, false ) );
         List<ParameterDefinition> list = new ArrayList<ParameterDefinition>();
         list.add(new StringParameterDefinition("pucm_baseline", "empty"));
         ParametersDefinitionProperty pdp = new ParametersDefinitionProperty(list);

@@ -153,6 +153,10 @@ public class CCUCMState {
         private boolean createBaseline = true;
         private String nameTemplate;
         
+        private boolean setDescription = false;
+        private boolean makeTag = false;
+        private boolean recommend = false;
+        
         private String error;
 
         public State() {
@@ -379,6 +383,30 @@ public class CCUCMState {
 
 		public void setError( String error ) {
 			this.error = error;
+		}
+
+		public boolean isSetDescription() {
+			return setDescription;
+		}
+
+		public void setSetDescription( boolean setDescription ) {
+			this.setDescription = setDescription;
+		}
+
+		public boolean isMakeTag() {
+			return makeTag;
+		}
+
+		public void setMakeTag( boolean makeTag ) {
+			this.makeTag = makeTag;
+		}
+
+		public boolean doRecommend() {
+			return recommend;
+		}
+
+		public void setRecommend( boolean recommend ) {
+			this.recommend = recommend;
 		}
         
         
