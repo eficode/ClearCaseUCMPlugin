@@ -1028,7 +1028,6 @@ public class CCUCMScm extends SCM {
     @Extension
     public static class CCUCMScmDescriptor extends SCMDescriptor<CCUCMScm> implements hudson.model.ModelObject {
 
-        private String cleartool;
         private String multiSiteFrequency;
         private List<String> loadModules;
 
@@ -1046,11 +1045,6 @@ public class CCUCMScm extends SCM {
         @Override
         public boolean configure(org.kohsuke.stapler.StaplerRequest req, JSONObject json) throws FormException {
             /* For backwards compatibility, check if parameters are null */
-
-            cleartool = json.getString("CCUCM.cleartool");
-            if (cleartool != null) {
-                cleartool = cleartool.trim();
-            }
 
             multiSiteFrequency = json.getString("CCUCM.multiSiteFrequency");
             if (multiSiteFrequency != null) {
@@ -1090,18 +1084,6 @@ public class CCUCMScm extends SCM {
             
         }
 
-        /**
-         * Called by Hudson. If the user does not input a command for Hudson to
-         * use when polling, default value is returned
-         *
-         * @return
-         */
-        public String getCleartool() {
-            if (cleartool == null || cleartool.equals("")) {
-                return "cleartool";
-            }
-            return cleartool;
-        }
 
         public String getMultiSiteFrequency() {
             return multiSiteFrequency;

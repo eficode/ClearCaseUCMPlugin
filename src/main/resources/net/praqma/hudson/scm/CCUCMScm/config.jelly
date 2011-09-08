@@ -19,10 +19,6 @@
          </select>
        </f:entry>
 
-    <f:entry title="View">
-	At the moment only snapshot view is supported.
-    </f:entry>
-
     <f:entry title="Load modules" help="/plugin/ClearCase-UCM-Plugin/scm/help-loadModules.html">
         <select class="setting-input" name="loadModule">
             <j:set var="modules" value="${descriptor.getLoadModules()}"/>
