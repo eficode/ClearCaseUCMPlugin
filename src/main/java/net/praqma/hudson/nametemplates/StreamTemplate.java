@@ -8,7 +8,7 @@ public class StreamTemplate extends Template {
 	public String parse( State state, String args ) {
 		
 		try {
-			return state.getBaseline().getStream().getShortname();
+			return state.getStream().getShortname();
 		} catch ( Exception e ) {
 			return "unknownstream";
 		}
