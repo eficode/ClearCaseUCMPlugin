@@ -1047,6 +1047,20 @@ public class CCUCMScm extends SCM {
     	return this.nameTemplate;
     }
     
+    
+    
+    public boolean isMakeTag() {
+        return this.makeTag;
+    }
+    
+    public boolean isSetDescription() {
+        return this.setDescription;
+    }
+    
+    public boolean isRecommend() {
+        return this.recommend;
+    }
+    
 
 
     /**

@@ -138,7 +138,7 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
 			for( Activity a : bldiff ) {
 				c += a.changeset.versions.size();
 			}
-			hudsonOut.println( c + " version" + ( c == 0 ? "" : "s" ) + " involved" );
+			hudsonOut.println( c + " version" + ( c == 1 ? "" : "s" ) + " involved" );
 			diff = Util.createChangelog( bldiff, baseline );
 		} catch (UCMException e1) {
 			hudsonOut.println( "[" + Config.nameShort + "] Unable to create change log: " + e1.getMessage() );

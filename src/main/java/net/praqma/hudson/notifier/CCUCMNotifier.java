@@ -193,7 +193,6 @@ public class CCUCMNotifier extends Notifier {
                 processBuild(build, launcher, listener, pstate);
                 if (pstate.isSetDescription()) {
                     build.setDescription(status.getBuildDescr());
-                    hudsonOut.println("[" + Config.nameShort + "] Description set to - " + status.getBuildDescr());
                 }
 
             } catch (NotifierException ne) {
