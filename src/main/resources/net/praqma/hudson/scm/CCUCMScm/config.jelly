@@ -67,7 +67,7 @@
         <f:checkbox name="CCUCM.setDescription" checked="${scm.setDescription}" />
     </f:entry>
 	
-	<f:section title="Build Options">
+	<f:section title="Advanced ClearCase UCM Options">
 	
 		<f:advanced>
 			

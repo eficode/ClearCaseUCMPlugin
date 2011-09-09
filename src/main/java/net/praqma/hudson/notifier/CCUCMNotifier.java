@@ -203,7 +203,11 @@ public class CCUCMNotifier extends Notifier {
         } else {
             String d = build.getDescription();
             if (d != null) {
+            	hudsonOut.println("[" + Config.nameShort + "] NOT NULL.");
                 build.setDescription((d.length() > 0 ? d + "<br/>" : "") + "Nothing to do");
+            } else {
+            	hudsonOut.println("[" + Config.nameShort + "] NULL.");
+                build.setDescription("Nothing to do");
             }
 
             build.setResult(Result.NOT_BUILT);

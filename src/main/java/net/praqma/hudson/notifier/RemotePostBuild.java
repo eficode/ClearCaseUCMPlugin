@@ -324,10 +324,7 @@ class RemotePostBuild implements FileCallable<Status> {
 		String s = "";
 
 		// Get shortname
-		s += "<small>" + fqn + "</small>";
-
-		// Get plevel:
-		s += "<br/><small>" + plevel + "</small>";
+		s += "<small>" + fqn + " <b>" + plevel + "</b></small>";
 
 		if( recommend ) {
 			if( status.isRecommended() ) {
@@ -344,7 +341,7 @@ class RemotePostBuild implements FileCallable<Status> {
 
 		s += "<small>" + source + " <b>" + plevel + "</b></small>";
 
-		if( status.isRecommended() ) {
+		if( status.isRecommended() && recommend ) {
 			s += "<br/><small>" + target + " <b>recommended</b></small>";
 		}
 		

@@ -256,7 +256,7 @@ public class CCUCMScm extends SCM {
         /* If a baseline is found */
         if (state.getBaseline() != null && result ) {
         	consoleOutput.println("[" + Config.nameShort + "] Using " + state.getBaseline());
-        	build.setDescription("<small>" + state.getBaseline() + "</small>");
+        	build.setDescription("<small>" + state.getBaseline().getShortname() + "</small>");
         	
             if( polling.isPollingSelf() || !polling.isPolling() ) {
             	result = bla( build, workspace, changelogFile, listener, state );
@@ -526,10 +526,8 @@ public class CCUCMScm extends SCM {
         if( er.isMergeError() ) {
         	try {
 				consoleOutput.println("[" + Config.nameShort + "] Changes need to be manually merged, The stream " + state.getBaseline().getStream().getShortname() + " must be rebased to the most recent baseline on " + state.getStream().getShortname() + " - During the rebase the merge conflict should be solved manually. Hereafter create a new baseline on " + state.getBaseline().getStream().getShortname() + "." );
-				build.setDescription("<small>Merge error</small>");
 				state.setError( "merge error" );
 			} catch ( Exception e ) {
-				consoleOutput.println("[" + Config.nameShort + "] Could not set description" );
 			}
         }
         
