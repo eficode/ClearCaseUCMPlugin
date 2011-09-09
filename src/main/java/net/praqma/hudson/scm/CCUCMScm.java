@@ -256,7 +256,9 @@ public class CCUCMScm extends SCM {
         /* If a baseline is found */
         if (state.getBaseline() != null && result ) {
         	consoleOutput.println("[" + Config.nameShort + "] Using " + state.getBaseline());
-        	build.setDescription("<small>" + state.getBaseline().getShortname() + "</small>");
+        	if( setDescription ) {
+        		build.setDescription("<small>" + state.getBaseline().getShortname() + "</small>");
+        	}
         	
             if( polling.isPollingSelf() || !polling.isPolling() ) {
             	result = bla( build, workspace, changelogFile, listener, state );
