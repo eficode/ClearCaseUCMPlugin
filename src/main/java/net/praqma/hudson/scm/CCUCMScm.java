@@ -408,10 +408,10 @@ public class CCUCMScm extends SCM {
             	List<Baseline> baselines = null;
             	/* Old skool self polling */
             	if( polling.isPollingSelf() ) {
-            		baselines = getValidBaselines(build.getProject(), state, Project.getPlevelFromString(levelToPoll), state.getStream(), state.getComponent());
+            		baselines = getBaselinesOnSelf(build.getProject(), state, Project.getPlevelFromString(levelToPoll), state.getStream(), state.getComponent());
             	} else {
                     /* Find the Baselines and store them */
-                    baselines = getChildStreamBaselines( build.getProject(), consoleOutput, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
+                    baselines = getBaselinesFromStreams( build.getProject(), consoleOutput, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
             	}
             	
             	int total = baselines.size();
@@ -545,13 +545,13 @@ public class CCUCMScm extends SCM {
     }
     
     /**
-     * Get the {@link Baseline}'s from a {@link Stream}s child Streams.
+     * Get the {@link Baseline}s from a {@link Stream}s related Streams.
      * @param build
      * @param consoleOutput
      * @param state
      * @return
      */
-    private List<Baseline> getChildStreamBaselines( AbstractProject<?, ?> project, PrintStream consoleOutput, State state, Stream stream, Component component, boolean pollingChildStreams ) {
+    private List<Baseline> getBaselinesFromStreams( AbstractProject<?, ?> project, PrintStream consoleOutput, State state, Stream stream, Component component, boolean pollingChildStreams ) {
         
         List<Stream> streams = null;
         List<Baseline> baselines = new ArrayList<Baseline>();
@@ -575,7 +575,7 @@ public class CCUCMScm extends SCM {
             try {
                 consoleOutput.printf( "[" + Config.nameShort + "] [%02d] %s ", c, s.getShortname() );
                 c++;
-                List<Baseline> found = getValidBaselines(project, state, Project.getPlevelFromString(levelToPoll), s, component);
+                List<Baseline> found = getBaselinesOnSelf(project, state, Project.getPlevelFromString(levelToPoll), s, component);
                 for (Baseline b : found ) {
                     baselines.add(b);
                 }
@@ -662,12 +662,10 @@ public class CCUCMScm extends SCM {
 	        List<Baseline> baselines = null;
 	    	/* Old skool self polling */
 	    	if( polling.isPollingSelf() ) {
-	    		
-				baselines = getValidBaselines(project, state, Project.getPlevelFromString(levelToPoll), state.getStream(), state.getComponent());
-
+				baselines = getBaselinesOnSelf(project, state, Project.getPlevelFromString(levelToPoll), state.getStream(), state.getComponent());
 	    	} else {
 	            /* Find the Baselines and store them */
-	            baselines = getChildStreamBaselines( project, consoleOut, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
+	            baselines = getBaselinesFromStreams( project, consoleOut, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
 	    	}
 	            
 	        filterBaselines( baselines );
@@ -745,53 +743,6 @@ public class CCUCMScm extends SCM {
         state.setPlevel( Project.getPlevelFromString(levelToPoll) );
     }
 
-    /**
-     * Determine the valid {@link Baseline}s and return the polling result
-     * @param project
-     * @param listener
-     * @param state
-     * @param stream
-     * @param component
-     * @return
-     */
-    private PollingResult getPossibleBaselines(AbstractProject<?, ?> project, TaskListener listener, State state, Stream stream, Component component) {
-
-        List<Baseline> baselines = null;
-        PrintStream consoleOut = listener.getLogger();
-        printParameters(consoleOut);
-        PollingResult p;
-
-        try {
-            baselines = getValidBaselines(project, state, Project.getPlevelFromString(levelToPoll), stream, component);
-            printBaselines(baselines, consoleOut);
-            
-            /* Storing possible baselines + the selected baseline */
-            state.setBaselines(baselines);
-            Baseline baseline = selectBaseline(baselines, newest);
-            logger.info(id + "Using " + baseline);
-            state.setBaseline(baseline);
-
-        } catch (ScmException e) {
-            e.printStackTrace(consoleOut);
-            consoleOut.println(pollMsgs + "\n[" + Config.nameShort + "] " + e.getMessage());
-            pollMsgs = new StringBuffer();
-            logger.debug(id + "Removed job " + state.getJobNumber() + " from list");
-            state.remove();
-        }
-
-        if (baselines.size() > 0) {
-            p = PollingResult.BUILD_NOW;
-        } else {
-            p = PollingResult.NO_CHANGES;
-        }
-
-        logger.debug(id + "FINAL Polling result = " + p.change.toString());
-
-        logger.unsubscribeAll();
-
-        return p;
-
-    }
 
     @Override
     public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?, ?> build, Launcher launcher, TaskListener listener) throws IOException,
@@ -826,7 +777,7 @@ public class CCUCMScm extends SCM {
      * @return A list of {@link Baseline}s
      * @throws ScmException
      */
-    private List<Baseline> getValidBaselines(AbstractProject<?, ?> project, State state, Project.Plevel plevel, Stream stream, Component component) throws ScmException {
+    private List<Baseline> getBaselinesOnSelf(AbstractProject<?, ?> project, State state, Project.Plevel plevel, Stream stream, Component component) throws ScmException {
         logger.debug(id + "Retrieving valid baselines.");
 
         /* The baseline list */
