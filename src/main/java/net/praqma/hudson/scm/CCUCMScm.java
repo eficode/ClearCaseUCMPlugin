@@ -211,10 +211,12 @@ public class CCUCMScm extends SCM {
 						NameTemplate.testTemplate( nameTemplate );
 					} catch (TemplateException e) {
 						consoleOutput.println("[" + Config.nameShort + "] The template could not be parsed correctly" );
+						state.setPostBuild( false );
 						return false;
 					}
 	        	} else {
 	        		consoleOutput.println("[" + Config.nameShort + "] A valid template must be provided to create a Baseline" );
+	        		state.setPostBuild( false );
 	        		return false;
 	        	}
         	} else {
