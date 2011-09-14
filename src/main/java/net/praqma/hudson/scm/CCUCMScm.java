@@ -1121,10 +1121,10 @@ public class CCUCMScm extends SCM {
         
         public FormValidation doTemplateCheck(@QueryParameter String value) throws FormValidation {
         	try {
-				NameTemplate.testTemplate( value );
+				NameTemplate.testTemplate( NameTemplate.trim( value ) );
 				return FormValidation.ok( "The template seems ok" );
 			} catch (TemplateException e) {
-				throw FormValidation.error( "Does not appear to be a valid template" );
+				throw FormValidation.error( "Does not appear to be a valid template: " + e.getMessage() );
 			}
             
         }

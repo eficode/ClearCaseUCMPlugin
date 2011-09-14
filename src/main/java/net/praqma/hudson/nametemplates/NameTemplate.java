@@ -19,12 +19,13 @@ public class NameTemplate {
 		templates.put( "stream", new StreamTemplate() );
 		templates.put( "component", new ComponentTemplate() );
 		templates.put( "project", new ProjectTemplate() );
-		templates.put( "version", new VersionNumberTemplate() );
+		//templates.put( "version", new VersionNumberTemplate() );
 		templates.put( "number", new NumberTemplate() );
 		templates.put( "user", new UserTemplate() );
 	}
 	
 	private static Pattern rx_ = Pattern.compile( "(\\[.*?\\])" );
+	private static Pattern rx_checkFinal = Pattern.compile( "^[\\w-]+$" );
 	
 	public static void validateTemplates( State state ) {
 		
@@ -40,8 +41,17 @@ public class NameTemplate {
 		}
 	}
 	
+	public static String trim( String template ) {
+        if( template.matches( "^\".+\"$" ) ) {
+        	template = template.substring( 1, template.length()-1 );
+        }
+        
+        return template;
+	}
+	
 	public static boolean testTemplate( String template ) throws TemplateException {
 		Matcher m = rx_.matcher( template );
+		String result = template;
 		
 		while( m.find() ) {
 			String replace = m.group(1);
@@ -56,8 +66,13 @@ public class NameTemplate {
 			if( !templates.containsKey( templateName ) ) {
 				throw new TemplateException( "The template " + templateName + " does not exist" );
 			} else {
-
+				result = result.replace( replace, "" );
 			}
+		}
+		
+		Matcher f = rx_checkFinal.matcher( result );
+		if( !f.find() ) {
+			throw new TemplateException( "The template is not correct" );
 		}
 		
 		return true;
@@ -84,11 +99,13 @@ public class NameTemplate {
 				throw new TemplateException( "The template " + templateName + " does not exist" );
 			} else {
 				String r = templates.get( templateName ).parse( state, args );
-				//System.out.println( "The result: " + r );
-				
-				//System.out.println( "REPLACE: " + replace + ". R: " + r + ". RESULT: " + result );
 				result = result.replace( replace, r );
 			}
+		}
+		
+		Matcher f = rx_checkFinal.matcher( result );
+		if( !f.find() ) {
+			throw new TemplateException( "The template is not correct" );
 		}
 		
 		return result;
