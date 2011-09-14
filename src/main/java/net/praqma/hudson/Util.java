@@ -153,7 +153,7 @@ public abstract class Util {
 			String temp = null;
 			for (Version v : versions) {
 				try {
-					temp = "<file>" + v.getSFile() + " (" + v.getRevision() + ") user: " + v.blame() + "</file>";
+					temp = "<file>" + v.getSFile() + " (" + v.getVersion() + ") user: " + v.blame() + "</file>";
 				} catch (UCMException e) {
 					logger.warning( "Could not generate log" );
 				}
