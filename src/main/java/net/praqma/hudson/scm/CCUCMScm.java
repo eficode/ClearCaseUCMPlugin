@@ -1042,10 +1042,14 @@ public class CCUCMScm extends SCM {
         public boolean configure(org.kohsuke.stapler.StaplerRequest req, JSONObject json) throws FormException {
             /* For backwards compatibility, check if parameters are null */
 
-            multiSiteFrequency = json.getString("CCUCM.multiSiteFrequency");
-            if (multiSiteFrequency != null) {
-                multiSiteFrequency = multiSiteFrequency.trim();
-            }
+        	try {
+	            multiSiteFrequency = json.getString("CCUCM.multiSiteFrequency");
+	            if (multiSiteFrequency != null) {
+	                multiSiteFrequency = multiSiteFrequency.trim();
+	            }
+        	} catch( Exception e ) {
+        		e.printStackTrace();
+        	}
 
             save();
             return true;
