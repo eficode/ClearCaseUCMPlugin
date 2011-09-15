@@ -165,7 +165,6 @@ class RemotePostBuild implements FileCallable<Status> {
 			try {
 				Project.Plevel pl = sourcebaseline.promote();
 				status.setPromotedLevel( pl );
-				status.setPLevel( true );
 				hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " promoted to " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
 			} catch (UCMException e) {
 				status.setStable( false );
@@ -190,10 +189,8 @@ class RemotePostBuild implements FileCallable<Status> {
 			/* Recommend the Baseline */
 			if( recommend ) {
 				try {
-					if( status.isPLevel() ) {
-						targetstream.recommendBaseline( targetbaseline );
-						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + targetbaseline.getShortname() + " is now recommended." );
-					}
+					targetstream.recommendBaseline( targetbaseline );
+					hudsonOut.println( "[" + Config.nameShort + "] Baseline " + targetbaseline.getShortname() + " is now recommended." );
 				} catch ( UCMException e ) {
 					status.setStable( false );
 					status.setRecommended( false );
@@ -244,9 +241,26 @@ class RemotePostBuild implements FileCallable<Status> {
 				try {
 					Project.Plevel pl = Project.Plevel.INITIAL;
 
+					/* Treat the build as successful */
 					if( unstable.treatSuccessful() ) {
+						/* Promote */
 						pl = sourcebaseline.promote();
 						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is promoted, even though the build is unstable." );
+						
+						/* Recommend the Baseline */
+						if( recommend ) {
+							try {
+								if( status.isPLevel() ) {
+									targetstream.recommendBaseline( targetbaseline );
+									hudsonOut.println( "[" + Config.nameShort + "] Baseline " + targetbaseline.getShortname() + " is now recommended." );
+								}
+							} catch (Exception e) {
+								status.setStable( false );
+								status.setRecommended( false );
+								hudsonOut.println( "[" + Config.nameShort + "] Could not recommend baseline " + targetbaseline.getShortname() + ": " + e.getMessage() );
+								status.addToLog( logger.warning( id + "Could not recommend baseline. Reason: " + e.getMessage() ) );
+							}
+						}
 					} else {
 						pl = sourcebaseline.demote();
 					}
@@ -257,21 +271,6 @@ class RemotePostBuild implements FileCallable<Status> {
 					status.setStable( false );
 					hudsonOut.println( "[" + Config.nameShort + "] Could not demote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
 					status.addToLog( logger.warning( id + "Could not demote baseline. " + e.getMessage() ) );
-				}
-
-				/* Recommend the Baseline */
-				if( recommend ) {
-					try {
-						if( status.isPLevel() ) {
-							targetstream.recommendBaseline( targetbaseline );
-							hudsonOut.println( "[" + Config.nameShort + "] Baseline " + targetbaseline.getShortname() + " is now recommended." );
-						}
-					} catch (Exception e) {
-						status.setStable( false );
-						status.setRecommended( false );
-						hudsonOut.println( "[" + Config.nameShort + "] Could not recommend baseline " + targetbaseline.getShortname() + ". Reason: " + e.getMessage() );
-						status.addToLog( logger.warning( id + "Could not recommend baseline. Reason: " + e.getMessage() ) );
-					}
 				}
 
 			}

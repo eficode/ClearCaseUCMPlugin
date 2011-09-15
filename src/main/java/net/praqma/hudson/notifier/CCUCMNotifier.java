@@ -275,21 +275,32 @@ public class CCUCMNotifier extends Notifier {
 
         logger.debug( "NTBC: " + pstate.needsToBeCompleted() );
         
+
+        /* Determine whether to treat the build as successful
+         * 
+         * Success:
+         *  - deliver complete
+         *  - create baseline
+         *  - recommend
+         *  
+         * Fail:
+         *  - deliver cancel
+         * 
+         *  */
+        boolean treatSuccessful = buildResult.isBetterThan( pstate.getUnstable().treatSuccessful() ? Result.FAILURE : Result.UNSTABLE );
+        
         /* Finalize CCUCM, deliver + baseline 
          * Only do this for child and sibling polling */
         if( pstate.needsToBeCompleted() && pstate.getPolling().isPollingOther() ) {
             status.setBuildStatus(buildResult);
-            
-            /* Determine whether to complete or cancel */
-            boolean complete = buildResult.isBetterThan( pstate.getUnstable().treatSuccessful() ? Result.FAILURE : Result.UNSTABLE );
-            
+                        
             try {                
-                hudsonOut.print("[" + Config.nameShort + "] " + ( complete ? "completing" : "cancelling" ) + " the deliver. ");
-                Util.completeRemoteDeliver( workspace, listener, pstate, complete );
+                hudsonOut.print("[" + Config.nameShort + "] " + ( treatSuccessful ? "completing" : "cancelling" ) + " the deliver. ");
+                Util.completeRemoteDeliver( workspace, listener, pstate, treatSuccessful );
                 hudsonOut.println("Success.");
                 
                 /* If deliver was completed, create the baseline */
-                if( complete && pstate.createBaseline() ) {
+                if( treatSuccessful && pstate.createBaseline() ) {
 
                 	try {
                         hudsonOut.print("[" + Config.nameShort + "] Creating baseline on Integration stream. ");
@@ -326,7 +337,7 @@ public class CCUCMNotifier extends Notifier {
                 pstate.setRecommend( false );
                 
                 /* If trying to complete and it failed, try to cancel it */
-                if( complete ) {
+                if( treatSuccessful ) {
                     try{
                         hudsonOut.print("[" + Config.nameShort + "] Trying to cancel the deliver. ");
                         Util.completeRemoteDeliver( workspace, listener, pstate, false );
