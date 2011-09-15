@@ -20,7 +20,7 @@ public class NameTemplate {
 		templates.put( "component", new ComponentTemplate() );
 		templates.put( "baseline", new BaselineTemplate() );
 		templates.put( "project", new ProjectTemplate() );
-		//templates.put( "version", new VersionNumberTemplate() );
+		templates.put( "ccversion", new ClearCaseBuildNumberTemplate() );
 		templates.put( "number", new NumberTemplate() );
 		templates.put( "user", new UserTemplate() );
 	}

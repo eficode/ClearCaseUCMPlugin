@@ -5,7 +5,7 @@ import net.praqma.clearcase.ucm.utils.BuildNumber;
 import net.praqma.hudson.exception.TemplateException;
 import net.praqma.hudson.scm.CCUCMState.State;
 
-public class ClearCaseBuildNumber extends Template {
+public class ClearCaseBuildNumberTemplate extends Template {
 
 	@Override
 	public String parse( State state, String args ) throws TemplateException {
