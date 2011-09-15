@@ -18,6 +18,7 @@ public class NameTemplate {
 		templates.put( "time", new TimeTemplate() );
 		templates.put( "stream", new StreamTemplate() );
 		templates.put( "component", new ComponentTemplate() );
+		templates.put( "baseline", new BaselineTemplate() );
 		templates.put( "project", new ProjectTemplate() );
 		//templates.put( "version", new VersionNumberTemplate() );
 		templates.put( "number", new NumberTemplate() );
