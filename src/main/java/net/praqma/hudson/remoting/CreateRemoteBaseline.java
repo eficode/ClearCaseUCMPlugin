@@ -21,12 +21,14 @@ public class CreateRemoteBaseline implements FileCallable<String> {
 	private String componentName;
 	private File view;
 	private BuildListener listener;
+	private String username;
 	
-	public CreateRemoteBaseline( String baseName, String componentName, File view, BuildListener listener ) {
+	public CreateRemoteBaseline( String baseName, String componentName, File view, String username, BuildListener listener ) {
 		this.baseName = baseName;
 		this.componentName = componentName;
 		this.view = view;
 		this.listener = listener;
+		this.username = username;
     }
     
     @Override
@@ -46,6 +48,13 @@ public class CreateRemoteBaseline implements FileCallable<String> {
 			bl = Baseline.create( baseName, component, view, true, false );
 		} catch (UCMException e) {
 			throw new IOException( "Unable to create Baseline:" + e.getMessage() );
+		}
+    	
+    	try {
+    		out.println( "Changing ownership of baseline" );
+			bl.changeOwnership( username, null );
+		} catch (UCMException e) {
+			throw new IOException( "Unable to change ownership of " + baseName + ":" + e.getMessage() );
 		}
     
         return bl.getFullyQualifiedName();

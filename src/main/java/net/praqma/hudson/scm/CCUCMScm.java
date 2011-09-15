@@ -210,7 +210,7 @@ public class CCUCMScm extends SCM {
 	        		try {
 						NameTemplate.testTemplate( nameTemplate );
 					} catch (TemplateException e) {
-						consoleOutput.println("[" + Config.nameShort + "] The template could not be parsed correctly" );
+						consoleOutput.println("[" + Config.nameShort + "] The template could not be parsed correctly: " + e.getMessage() );
 						state.setPostBuild( false );
 						return false;
 					}

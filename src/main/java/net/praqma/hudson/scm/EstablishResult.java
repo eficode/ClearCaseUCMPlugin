@@ -19,6 +19,7 @@ public class EstablishResult implements Serializable {
 	private ResultType type = ResultType.NOT_STARTED;
 	private String viewtag = "";
 	private String log = "";
+	private String username = "";
 	
 	private String message;
 	
@@ -94,5 +95,13 @@ public class EstablishResult implements Serializable {
 
 	public void setMessage( String message ) {
 		this.message = message;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername( String username ) {
+		this.username = username;
 	}
 }
