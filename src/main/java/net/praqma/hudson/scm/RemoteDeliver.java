@@ -41,7 +41,7 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
     private static final long serialVersionUID = 1L;
     private String jobName;
     private String baseline;
-    private String stream;
+    private String destinationstream;
     private BuildListener listener;
     private String id = "";
     private SnapshotView snapview;
@@ -58,13 +58,13 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
     
     private String viewtag = "";
 
-    public RemoteDeliver(String stream, BuildListener listener,
+    public RemoteDeliver(String destinationstream, BuildListener listener,
             /* Common values */
             String component, String loadModule, String baseline, String jobName, Logger logger) {
         this.jobName = jobName;
 
         this.baseline = baseline;
-        this.stream = stream;
+        this.destinationstream = destinationstream;
 
         this.listener = listener;
 
@@ -101,42 +101,38 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
 
         /* Create the development stream object */
         /* Append vob to dev stream */
-
-        Stream stream = null;
+        
+        Stream destinationStream = null;
         try {
-            stream = UCMEntity.getStream(this.stream);
+        	destinationStream = UCMEntity.getStream(this.destinationstream);
         } catch (UCMException e) {
             if (e.stdout != null) {
                 hudsonOut.println(e.stdout);
             }
-            throw new IOException("Could not create Stream object: " + e.getMessage());
-        }
-
-        /* Get the target Stream */
-        Stream target = null;
-        try {
-            target = stream.getDefaultTarget();
-        } catch (UCMException e) {
-            if (e.stdout != null) {
-                hudsonOut.println(e.stdout);
-            }
-            throw new IOException("The Stream did not have a default target: " + e.getMessage());
+            throw new IOException("Could not create destination Stream object: " + e.getMessage());
         }
 
         /* Make deliver view */
         try {
-            snapview = makeDeliverView(target, workspace);
+            snapview = makeDeliverView(destinationStream, workspace);
         } catch (ScmException e) {
             throw new IOException("Could not create deliver view: " + e.getMessage());
         }
         
+        
         String diff = "";
+        ClearCaseChangeset changeset = new ClearCaseChangeset();
+        
 		try {
-			List<Activity> bldiff = Version.getBaselineDiff( target, baseline, true, snapview.getViewRoot() );
+			List<Activity> bldiff = Version.getBaselineDiff( destinationStream, baseline, true, snapview.getViewRoot() );
 			hudsonOut.print( "[" + Config.nameShort + "] Found " + bldiff.size() + " activit" + ( bldiff.size() == 1 ? "y" : "ies" ) + ". " );
+			
 			int c = 0;
 			for( Activity a : bldiff ) {
 				c += a.changeset.versions.size();
+				for( Version version : a.changeset.versions ) {
+					changeset.addChange( version.getFullyQualifiedName(), version.getUser() );
+				}
 			}
 			hudsonOut.println( c + " version" + ( c == 1 ? "" : "s" ) + " involved" );
 			diff = Util.createChangelog( bldiff, baseline );
@@ -144,13 +140,14 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
 			hudsonOut.println( "[" + Config.nameShort + "] Unable to create change log: " + e1.getMessage() );
 		}
 		
-        EstablishResult er = new EstablishResult(viewtag);
+		EstablishResult er = new EstablishResult(viewtag);
         er.setMessage( diff );
+        er.setChangeset( changeset );
         
         /* Make the deliver */
         try {
             hudsonOut.println( "[" + Config.nameShort + "] Starting deliver" );
-            baseline.deliver(baseline.getStream(), stream.getDefaultTarget(), snapview.getViewRoot(), snapview.getViewtag(), true, false, true);
+            baseline.deliver(baseline.getStream(), destinationStream, snapview.getViewRoot(), snapview.getViewtag(), true, false, true);
         } catch (UCMException e) {
         	/* Figure out what happened */
         	if( e.type.equals( UCMType.DELIVER_REQUIRES_REBASE ) ) {

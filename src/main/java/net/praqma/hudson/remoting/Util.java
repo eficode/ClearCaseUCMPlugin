@@ -15,7 +15,7 @@ public abstract class Util {
         try {
             Future<Boolean> i = null;
 
-            i = workspace.actAsync(new RemoteDeliverComplete( state, complete ) );
+            i = workspace.actAsync(new RemoteDeliverComplete( state, complete, listener ) );
             i.get();
             return;
             

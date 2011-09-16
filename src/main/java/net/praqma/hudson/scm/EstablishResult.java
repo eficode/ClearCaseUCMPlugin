@@ -1,6 +1,8 @@
 package net.praqma.hudson.scm;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EstablishResult implements Serializable {
 
@@ -19,7 +21,8 @@ public class EstablishResult implements Serializable {
 	private ResultType type = ResultType.NOT_STARTED;
 	private String viewtag = "";
 	private String log = "";
-	private String username = "";
+	
+	private ClearCaseChangeset changeset = new ClearCaseChangeset();
 	
 	private String message;
 	
@@ -97,11 +100,13 @@ public class EstablishResult implements Serializable {
 		this.message = message;
 	}
 
-	public String getUsername() {
-		return username;
+	public ClearCaseChangeset getChangeset() {
+		return changeset;
 	}
+	
+	public void setChangeset( ClearCaseChangeset changeset ) {
+		this.changeset = changeset;
+	}
+	
 
-	public void setUsername( String username ) {
-		this.username = username;
-	}
 }

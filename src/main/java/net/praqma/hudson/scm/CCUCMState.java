@@ -155,6 +155,8 @@ public class CCUCMState {
 		private SnapshotView deliverView;
 		private boolean createBaseline = true;
 		private String nameTemplate;
+		
+		private ClearCaseChangeset changeset;
 
 		private boolean setDescription = false;
 		private boolean makeTag = false;
@@ -407,6 +409,14 @@ public class CCUCMState {
 
 		public void setRecommend( boolean recommend ) {
 			this.recommend = recommend;
+		}
+
+		public ClearCaseChangeset getChangeset() {
+			return changeset;
+		}
+
+		public void setChangeset( ClearCaseChangeset changeset ) {
+			this.changeset = changeset;
 		}
 
 	}

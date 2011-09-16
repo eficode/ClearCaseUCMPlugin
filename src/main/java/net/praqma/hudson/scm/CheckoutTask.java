@@ -10,9 +10,11 @@ import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.utils.BaselineDiff;
 import net.praqma.clearcase.Cool;
+import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
+import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
 import net.praqma.hudson.*;
@@ -72,12 +74,23 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		String viewtag = "";
 		
 		EstablishResult er = new EstablishResult();
+		ClearCaseChangeset changeset = new ClearCaseChangeset();
 
 		try {
 			UCM.setContext( UCM.ContextType.CLEARTOOL );
 			viewtag = makeWorkspace( workspace );
 			BaselineDiff bldiff = bl.getDifferences( sv );
 			diff = Util.createChangelog( bldiff, bl );
+			
+			int c = 0;
+			for( Activity a : bldiff ) {
+				c += a.changeset.versions.size();
+				for( Version version : a.changeset.versions ) {
+					changeset.addChange( version.getFullyQualifiedName(), version.getUser() );
+				}
+			}
+			hudsonOut.println( c + " version" + ( c == 1 ? "" : "s" ) + " involved" );
+			
 		} catch (net.praqma.hudson.exception.ScmException e) {
 			log += logger.debug( id + "SCM exception: " + e.getMessage() );
 			hudsonOut.println( "[" + Config.nameShort + "] SCM exception: " + e.getMessage() );
@@ -94,6 +107,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		er.setLog( log );
 		er.setMessage( diff );
 		er.setViewtag( viewtag );
+		er.setChangeset( changeset );
 		return er;
 	}
 

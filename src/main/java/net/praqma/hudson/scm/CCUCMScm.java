@@ -312,6 +312,7 @@ public class CCUCMScm extends SCM {
             String changelog = er.getMessage();
             logger.empty(er.getLog());
             this.viewtag = er.getViewtag();
+            state.setChangeset( er.getChangeset() );
             
 
             /* Write change log */
@@ -463,7 +464,7 @@ public class CCUCMScm extends SCM {
             logger.debug( "Remote delivering...." );
             consoleOutput.println("[" + Config.nameShort + "] Establishing deliver view");
             //RemoteDeliver rmDeliver = new RemoteDeliver(UCMEntity.getStream(stream).getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
-            RemoteDeliver rmDeliver = new RemoteDeliver(state.getBaseline().getStream().getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), logger);
+            RemoteDeliver rmDeliver = new RemoteDeliver(state.getStream().getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), logger);
 
             er = workspace.act(rmDeliver);
             
@@ -483,9 +484,6 @@ public class CCUCMScm extends SCM {
         } catch (IOException e) {
             consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
             result = false;
-        } catch (UCMException e) {
-            consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
-            result = false;
         } catch( InterruptedException e ) {
             consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
             logger.warning( e );
@@ -493,6 +491,7 @@ public class CCUCMScm extends SCM {
         }
         
         logger.debug( id + "RESULT: " + er.getResultType().toString() );
+        state.setChangeset( er.getChangeset() );
         
         /* The result must be false if the returnStatus is not equal to 0 */
         if( er.isFailed() ) {

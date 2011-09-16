@@ -123,15 +123,6 @@ class RemotePostBuild implements FileCallable<Status> {
 			throw new IOException( "[" + Config.nameShort + "] Could not create target Baseline object: " + e.getMessage() );
 		}
 
-		/* Create the source stream object */
-		Stream sourcestream = null;
-		try {
-			sourcestream = UCMEntity.getStream( this.sourcestream );
-		} catch (UCMException e) {
-			status.addToLog( logger.debug( id + "could not create source Stream object:" + e.getMessage() ) );
-			throw new IOException( "[" + Config.nameShort + "] Could not create source Stream object: " + e.getMessage() );
-		}
-		
 		/* Create the target stream object */
 		Stream targetstream = null;
 		try {
