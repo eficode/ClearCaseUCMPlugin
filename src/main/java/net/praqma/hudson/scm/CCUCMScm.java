@@ -39,6 +39,7 @@ import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.entities.UCMEntity.LabelStatus;
 import net.praqma.clearcase.ucm.utils.BaselineList;
 import net.praqma.hudson.Config;
+import net.praqma.hudson.exception.CCUCMException;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.exception.TemplateException;
 import net.praqma.hudson.nametemplates.NameTemplate;
@@ -230,15 +231,6 @@ public class CCUCMScm extends SCM {
         		consoleOutput.println("[" + Config.nameShort + "] You cannot create a baseline in this mode" );
         	}
         }
-
-        if (this.multiSite) {
-            /* Get the time in milli seconds and store it to the state */
-            state.setMultiSiteFrequency(((CCUCMScmDescriptor) getDescriptor()).getMultiSiteFrequencyAsInt() * 60000);
-            logger.info(id + "Multi site frequency: " + state.getMultiSiteFrquency());
-        } else {
-            state.setMultiSiteFrequency(0);
-        }
-
         
         /* Determining the Baseline modifier */
         String baselineInput = getBaselineValue( build );
@@ -411,10 +403,10 @@ public class CCUCMScm extends SCM {
             	List<Baseline> baselines = null;
             	/* Old skool self polling */
             	if( polling.isPollingSelf() ) {
-            		baselines = getBaselinesOnSelf(build.getProject(), state, Project.getPlevelFromString(levelToPoll), state.getStream(), state.getComponent());
+            		baselines = getValidBaselinesFromStream(build.getProject(), state, Project.getPlevelFromString(levelToPoll), state.getStream(), state.getComponent());
             	} else {
                     /* Find the Baselines and store them */
-                    baselines = getBaselinesFromStreams( build.getProject(), consoleOutput, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
+                    baselines = getBaselinesFromStreams( build.getProject(), listener, consoleOutput, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
             	}
             	
             	int total = baselines.size();
@@ -552,18 +544,16 @@ public class CCUCMScm extends SCM {
      * @param state
      * @return
      */
-    private List<Baseline> getBaselinesFromStreams( AbstractProject<?, ?> project, PrintStream consoleOutput, State state, Stream stream, Component component, boolean pollingChildStreams ) {
+    private List<Baseline> getBaselinesFromStreams( AbstractProject<?, ?> project, TaskListener listener, PrintStream consoleOutput, State state, Stream stream, Component component, boolean pollingChildStreams ) {
         
         List<Stream> streams = null;
         List<Baseline> baselines = new ArrayList<Baseline>();
         
+        logger.debug( "I AM HERE" );
         try {
-        	if( pollingChildStreams ) {
-        		streams = stream.getChildStreams();
-        	} else {
-        		streams = stream.getSiblingStreams();
-        	}
-        } catch( UCMException e1 ) {
+        	streams = Util.getRelatedStreams( project.getSomeWorkspace(), listener, stream, pollingChildStreams );
+        } catch( CCUCMException e1 ) {
+        	e1.printStackTrace( consoleOutput );
             logger.warning( "Could not retrieve streams: " + e1.getMessage() );
             consoleOutput.println("[" + Config.nameShort + "] No streams found");
             return baselines;
@@ -576,7 +566,7 @@ public class CCUCMScm extends SCM {
             try {
                 consoleOutput.printf( "[" + Config.nameShort + "] [%02d] %s ", c, s.getShortname() );
                 c++;
-                List<Baseline> found = getBaselinesOnSelf(project, state, Project.getPlevelFromString(levelToPoll), s, component);
+                List<Baseline> found = getValidBaselinesFromStream(project, state, Project.getPlevelFromString(levelToPoll), s, component);
                 for (Baseline b : found ) {
                     baselines.add(b);
                 }
@@ -643,14 +633,6 @@ public class CCUCMScm extends SCM {
         State state = ccucm.getState(jobName, jobNumber);
         
         storeStateParameters( state );
-        
-        if (this.multiSite) {
-            /* Get the time in milli seconds and store it to the state */
-            state.setMultiSiteFrequency(((CCUCMScmDescriptor) getDescriptor()).getMultiSiteFrequencyAsInt() * 60000);
-            logger.info(id + "Multi site frequency: " + state.getMultiSiteFrquency());
-        } else {
-            state.setMultiSiteFrequency(0);
-        }
 
         PrintStream consoleOut = listener.getLogger();
         printParameters(consoleOut);
@@ -663,10 +645,10 @@ public class CCUCMScm extends SCM {
 	        List<Baseline> baselines = null;
 	    	/* Old skool self polling */
 	    	if( polling.isPollingSelf() ) {
-				baselines = getBaselinesOnSelf(project, state, Project.getPlevelFromString(levelToPoll), state.getStream(), state.getComponent());
+				baselines = getValidBaselinesFromStream(project, state, Project.getPlevelFromString(levelToPoll), state.getStream(), state.getComponent());
 	    	} else {
 	            /* Find the Baselines and store them */
-	            baselines = getBaselinesFromStreams( project, consoleOut, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
+	            baselines = getBaselinesFromStreams( project, listener, consoleOut, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
 	    	}
 	            
 	        filterBaselines( baselines );
@@ -715,13 +697,13 @@ public class CCUCMScm extends SCM {
     private void storeStateParameters( State state ) {
         
         try {
-            state.setStream( UCMEntity.getStream( stream, false ) );
+            state.setStream( UCMEntity.getStream( stream, true ) );
         } catch( UCMException e ) {
             logger.warning( e );
         }
         
         try {
-            state.setComponent( UCMEntity.getComponent( component, false ) );
+            state.setComponent( UCMEntity.getComponent( component, true ) );
         } catch( UCMException e ) {
             logger.warning( e );
         }
@@ -778,29 +760,24 @@ public class CCUCMScm extends SCM {
      * @return A list of {@link Baseline}s
      * @throws ScmException
      */
-    private List<Baseline> getBaselinesOnSelf(AbstractProject<?, ?> project, State state, Project.Plevel plevel, Stream stream, Component component) throws ScmException {
+    private List<Baseline> getValidBaselinesFromStream(AbstractProject<?, ?> project, State state, Project.Plevel plevel, Stream stream, Component component) throws ScmException {
         logger.debug(id + "Retrieving valid baselines.");
 
         /* The baseline list */
-        BaselineList baselines = null;
+        List<Baseline> baselines = null;
 
         try {
-            baselines = component.getBaselines(stream, plevel);
-        } catch (UCMException e) {
-            throw new ScmException("Could not retrieve baselines from repository. " + e.getMessage());
-        }
+			baselines = Util.getRemoteBaselinesFromStream( project.getSomeWorkspace(), component, stream, plevel );
+		} catch (CCUCMException e1) {
+			throw new ScmException( "Unable to get baselines from " + stream.getShortname() + ": " + e1.getMessage() );
+		}
+        
         logger.debug(id + "GetBaseline state:\n" + state.stringify());
+        
         List<Baseline> validBaselines = new ArrayList<Baseline>();
+        
         if (baselines.size() >= 1) {
             logger.debug(id + "CCUCM=" + ccucm.stringify());
-
-            if (state.isMultiSite()) {
-                /* Prune the stored baselines */
-                int pruned = CCUCMScm.storedBaselines.prune(state.getMultiSiteFrquency());
-                logger.info(id + "I pruned " + pruned + " baselines from cache with threshold "
-                        + StoredBaselines.milliToMinute(state.getMultiSiteFrquency()) + "m");
-                logger.debug(id + "My stored baselines:\n" + CCUCMScm.storedBaselines.toString());
-            }
 
             try {
                 /* For each baseline in the list */
@@ -810,11 +787,6 @@ public class CCUCMScm extends SCM {
 
                     /* Find the stored baseline if multi site, null if not */
                     StoredBaseline sbl = null;
-                    if (state.isMultiSite()) {
-                        /* Find the baseline if stored */
-                        sbl = CCUCMScm.storedBaselines.getBaseline(b.getFullyQualifiedName());
-                        logger.debug(id + "The found stored baseline: " + sbl);
-                    }
 
                     /*
                      * The baseline is in progress, determine if the job is
@@ -842,7 +814,7 @@ public class CCUCMScm extends SCM {
                         }
                     } /* The baseline is available */ else {
                         /*
-                         * Verify that the found baseline has the same promotion
+                         *  Verify that the found baseline has the same promotion
                          * as the stored(if stored)
                          */
                         if (sbl == null || sbl.plevel == b.getPromotionLevel(true)) {

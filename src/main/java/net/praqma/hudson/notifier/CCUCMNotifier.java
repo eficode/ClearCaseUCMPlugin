@@ -135,7 +135,7 @@ public class CCUCMNotifier extends Notifier {
 
         SCM scmTemp = null;
         /*TODO result is always true!!!!...
-         * so we could move the if blok unless it should not always be true
+         * so we could move the if block unless it should not always be true
          */
         if (result) {
             scmTemp = build.getProject().getScm();
@@ -220,16 +220,6 @@ public class CCUCMNotifier extends Notifier {
         if ((scmTemp instanceof CCUCMScm) && baseline != null) {
             boolean done2 = pstate.remove();
             logger.debug(id + "Removing job " + build.getNumber() + " from collection: " + done2);
-
-            //logger.debug( "CCUCM FINAL=" + CCUCMScm.CCUCM.stringify() );
-
-            if (pstate.isMultiSite()) {
-                /* Trying to store baseline */
-                //logger.debug( id + "Trying to store baseline" );
-                if (!CCUCMScm.storedBaselines.addBaseline(pstate.getBaseline())) {
-                    logger.warning(id + "Storing baseline failed.");
-                }
-            }
         }
         
         hudsonOut.println( "[" + Config.nameShort + "] Post build steps done" );
