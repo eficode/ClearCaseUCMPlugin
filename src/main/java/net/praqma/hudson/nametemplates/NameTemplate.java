@@ -26,7 +26,7 @@ public class NameTemplate {
 	}
 	
 	private static Pattern rx_ = Pattern.compile( "(\\[.*?\\])" );
-	private static Pattern rx_checkFinal = Pattern.compile( "^[\\w-]*$" );
+	private static Pattern rx_checkFinal = Pattern.compile( "^[\\w\\.-]*$" );
 	
 	public static void validateTemplates( State state ) {
 		
