@@ -39,6 +39,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.remoting.Future;
 import hudson.remoting.Pipe;
+import hudson.remoting.RemoteInputStream;
 import hudson.remoting.VirtualChannel;
 import hudson.scm.SCM;
 import hudson.tasks.BuildStepDescriptor;
@@ -366,6 +367,7 @@ public class CCUCMNotifier extends Notifier {
             hudsonOut.println("[" + Config.nameShort + "] Performing common post build steps");
 
             final Pipe pipe = Pipe.createRemoteToLocal();
+            RemoteInputStream in;
 
             Future<Status> f = null;
             
