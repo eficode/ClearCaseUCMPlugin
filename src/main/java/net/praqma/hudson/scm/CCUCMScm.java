@@ -205,6 +205,13 @@ public class CCUCMScm extends SCM {
         consoleOutput.println("[" + Config.nameShort + "] WOLLE WAS HERE" );
                 
         /* Check template */
+        state.setCreatebaseline( createBaseline );
+        /* Trim template, strip out quotes */
+        if( nameTemplate.matches( "^\".+\"$" ) ) {
+        	nameTemplate = nameTemplate.substring( 1, nameTemplate.length()-1 );
+        }
+        state.setNameTemplate( nameTemplate );
+        
         if( createBaseline ) {
         	/* Sanity check */
         	if( polling.isPollingOther() ) {
@@ -235,13 +242,6 @@ public class CCUCMScm extends SCM {
         }
 
         
-        state.setCreatebaseline( createBaseline );
-        /* Trim template, strip out quotes */
-        if( nameTemplate.matches( "^\".+\"$" ) ) {
-        	nameTemplate = nameTemplate.substring( 1, nameTemplate.length()-1 );
-        }
-        state.setNameTemplate( nameTemplate );
-
         /* Determining the Baseline modifier */
         String baselineInput = getBaselineValue( build );
 
