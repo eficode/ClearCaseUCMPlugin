@@ -14,7 +14,7 @@ public class ClearCaseBuildNumberTemplate extends Template {
 			Project project = state.getStream().getProject();
 			return BuildNumber.getBuildNumber(project);
 		} catch (Exception e) {
-			throw new TemplateException( "Could not get version number from ClearCase" );
+			return "unknownccversion";
 		}
 	}
 

@@ -201,8 +201,6 @@ public class CCUCMScm extends SCM {
         logger.debug(id + "The initial state:\n" + state.stringify());
         
         state.setLogger(logger);
-        
-        consoleOutput.println("[" + Config.nameShort + "] WOLLE WAS HERE" );
                 
         /* Check template */
         state.setCreatebaseline( createBaseline );
