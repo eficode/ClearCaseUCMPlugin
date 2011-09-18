@@ -8,6 +8,8 @@ import hudson.model.BuildListener;
 import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.remoting.Future;
+import hudson.remoting.Pipe;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.PollingResult;
 import hudson.scm.SCMDescriptor;
@@ -27,6 +29,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.Cool;
@@ -44,11 +47,13 @@ import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.exception.TemplateException;
 import net.praqma.hudson.nametemplates.NameTemplate;
 import net.praqma.hudson.notifier.CCUCMNotifier;
+import net.praqma.hudson.remoting.GetRemoteBaselineFromStream;
 import net.praqma.hudson.remoting.Util;
 import net.praqma.hudson.scm.Polling.PollingType;
 import net.praqma.hudson.scm.CCUCMState.State;
 import net.praqma.hudson.scm.StoredBaselines.StoredBaseline;
 import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.appenders.FileAppender;
 import net.praqma.util.debug.appenders.StreamAppender;
 import net.praqma.util.execute.CommandLine;
 import net.sf.json.JSONObject;
@@ -130,7 +135,7 @@ public class CCUCMScm extends SCM {
 		   /* Notofier options */ , boolean recommend, boolean makeTag, boolean setDescription
 		   /* Build options     */, String buildProject, boolean multiSite  ) {
 
-       logger.debug("CCUCMSCM constructor");
+       
        this.component = component;
        this.levelToPoll = levelToPoll;
        this.loadModule = loadModule;
@@ -166,10 +171,12 @@ public class CCUCMScm extends SCM {
         PrintStream consoleOutput = listener.getLogger();
         consoleOutput.println("[" + Config.nameShort + "] ClearCase UCM Plugin version " + net.praqma.hudson.Version.version );
         
+        File logfile = new File( build.getRootDir(), "log.log" );
         
         /* Preparing the logger */
-    	Logger logger = Logger.getLogger();
-    	StreamAppender app = new StreamAppender( consoleOutput );
+    	logger = Logger.getLogger();
+    	//StreamAppender app = new StreamAppender( consoleOutput );
+    	FileAppender app = new FileAppender( logfile );
 	    Logger.addAppender( app );
         
 	    logger.info(id + "CCUCMSCM checkout v. " + net.praqma.hudson.Version.version);
@@ -207,11 +214,13 @@ public class CCUCMScm extends SCM {
 					} catch (TemplateException e) {
 						consoleOutput.println("[" + Config.nameShort + "] The template could not be parsed correctly: " + e.getMessage() );
 						state.setPostBuild( false );
+						Logger.removeAppender( app );
 						return false;
 					}
 	        	} else {
 	        		consoleOutput.println("[" + Config.nameShort + "] A valid template must be provided to create a Baseline" );
 	        		state.setPostBuild( false );
+	        		Logger.removeAppender( app );
 	        		return false;
 	        	}
         	} else {
@@ -266,6 +275,7 @@ public class CCUCMScm extends SCM {
         	build.getParent().getPublishersList().add( new CCUCMNotifier() );
         }
         
+        Logger.removeAppender( app );
         return result;
     }
     
@@ -440,12 +450,21 @@ public class CCUCMScm extends SCM {
         EstablishResult er = new EstablishResult();
     	
         try {
-            logger.debug( "Remote delivering...." );
-            consoleOutput.println("[" + Config.nameShort + "] Establishing deliver view");
+            //logger.debug( "Remote delivering...." );
+            //consoleOutput.println("[" + Config.nameShort + "] Establishing deliver view");
             //RemoteDeliver rmDeliver = new RemoteDeliver(UCMEntity.getStream(stream).getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
-            RemoteDeliver rmDeliver = new RemoteDeliver(state.getStream().getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), null);
-
-            er = workspace.act(rmDeliver);
+            RemoteDeliver rmDeliver = null;
+            if( workspace.isRemote() ) {
+				final Pipe pipe = Pipe.createRemoteToLocal();
+				Future<EstablishResult> i = null;
+				rmDeliver = new RemoteDeliver(state.getStream().getFullyQualifiedName(), listener, pipe, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
+				i = workspace.actAsync( rmDeliver );
+				logger.redirect( pipe.getIn() );
+				er = i.get();
+            } else {
+            	rmDeliver = new RemoteDeliver(state.getStream().getFullyQualifiedName(), listener, null, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
+            	er = workspace.act(rmDeliver);
+            }
             
             /* Write change log */
             try {
@@ -467,7 +486,11 @@ public class CCUCMScm extends SCM {
             consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
             logger.warning( e );
             result = false;
-        }
+        } catch (ExecutionException e) {
+            consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
+            logger.warning( e );
+            result = false;
+		}
         
         logger.debug( id + "RESULT: " + er.getResultType().toString() );
         state.setChangeset( er.getChangeset() );
@@ -552,14 +575,15 @@ public class CCUCMScm extends SCM {
             try {
                 consoleOutput.printf( "[" + Config.nameShort + "] [%02d] %s ", c, s.getShortname() );
                 c++;
-                List<Baseline> found = getValidBaselinesFromStream(project, state, Project.getPlevelFromString(levelToPoll), s, component);
+                //List<Baseline> found = getValidBaselinesFromStream(project, state, Project.getPlevelFromString(levelToPoll), s, component);
+                List<Baseline> found = Util.getRemoteBaselinesFromStream( project.getSomeWorkspace(), component, s, Project.getPlevelFromString(levelToPoll) );
                 for (Baseline b : found ) {
                     baselines.add(b);
                 }
                 consoleOutput.println( found.size() + " baseline" + ( found.size() == 1 ? "" : "s" ) + " found" );
-            } catch (ScmException e) {
-                consoleOutput.println("No baselines found");
-            }
+            } catch (CCUCMException e) {
+            	consoleOutput.println("No baselines found");
+			}
         }
         
         consoleOutput.println("");

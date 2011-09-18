@@ -40,7 +40,6 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
     	Logger logger = Logger.getLogger();
 
     	StreamAppender app = null;
-    	
     	if( pipe != null ) {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );	    	
 	    	app = new StreamAppender( toMaster );
@@ -51,17 +50,24 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
         BaselineList baselines = null;
         
         try {
-            baselines = component.getBaselines(stream, plevel );
+            baselines = component.getBaselines( stream, plevel );
         } catch (UCMException e) {
-        	if( pipe != null ) {
-        		Logger.removeAppender( app );
-        	}
+       		Logger.removeAppender( app );
             throw new IOException("Could not retrieve baselines from repository. " + e.getMessage());
         }
         
-    	if( pipe != null ) {
-    		Logger.removeAppender( app );
-    	}
+        /* Load baselines remotely */
+        for( Baseline baseline : baselines ) {
+        	try {
+				baseline.load();
+			} catch (UCMException e) {
+				logger.warning( "Could not load the baseline " + baseline.getShortname() + ": " + e.getMessage() );
+				/* Maybe it should be removed from the list... In fact, this shouldn't happen */
+			}
+        }
+        
+        Logger.removeAppender( app );
+
         return baselines;
     }
 

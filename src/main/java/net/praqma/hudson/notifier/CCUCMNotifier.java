@@ -9,6 +9,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import jcifs.dcerpc.msrpc.netdfs;
@@ -26,8 +27,9 @@ import net.praqma.hudson.remoting.RemoteDeliverComplete;
 import net.praqma.hudson.remoting.Util;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.scm.CCUCMState.State;
-import net.praqma.util.debug.PraqmaLogger;
-import net.praqma.util.debug.PraqmaLogger.Logger;
+import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.appenders.FileAppender;
+import net.praqma.util.debug.appenders.StreamAppender;
 import net.sf.json.JSONObject;
 
 import hudson.Extension;
@@ -108,26 +110,17 @@ public class CCUCMNotifier extends Notifier {
         hudsonOut = listener.getLogger();
         
         /* Preparing the logger */
-        logger = PraqmaLogger.getLogger();
-        logger.subscribeAll();
-        File rdir = new File(logger.getPath());
-        logger.setLocalLog(new File(rdir + System.getProperty("file.separator") + "log.log"));
+        File logfile = new File( build.getRootDir(), "log.log" );
+    	logger = Logger.getLogger();
+    	//StreamAppender app = new StreamAppender( hudsonOut );
+    	FileAppender app = new FileAppender( logfile );
+	    Logger.addAppender( app );
 
         /* Prepare job variables */
         jobName = build.getParent().getDisplayName().replace(' ', '_');
         jobNumber = build.getNumber();
 
-        /*
-        logger.unsubscribeAll();
-        if (build.getBuildVariables().get("include_classes") != null) {
-            String[] is = build.getBuildVariables().get("include_classes").toString().split(",");
-            for (String i : is) {
-                logger.subscribe(i.trim());
-            }
-        }
-        */
 
-        Cool.setLogger(logger);
 
         status = new Status();
         
@@ -153,7 +146,6 @@ public class CCUCMNotifier extends Notifier {
         if (result) {
             /* Retrieve the CCUCM state */
             pstate = CCUCMScm.ccucm.getState(jobName, jobNumber);
-            pstate.getLogger().debug("The valid state: " + pstate.stringify());
             
             /* Validate the state */
             if (pstate.doPostBuild() && pstate.getBaseline() != null) {
@@ -224,6 +216,7 @@ public class CCUCMNotifier extends Notifier {
         
         hudsonOut.println( "[" + Config.nameShort + "] Post build steps done" );
 
+        Logger.removeAppender( app );
         return result;
     }
 
@@ -355,20 +348,23 @@ public class CCUCMNotifier extends Notifier {
         try {
             logger.debug(id + "Remote post build step");
             hudsonOut.println("[" + Config.nameShort + "] Performing common post build steps");
-
-            final Pipe pipe = Pipe.createRemoteToLocal();
-            RemoteInputStream in;
-
-            Future<Status> f = null;
             
-            String streamName = pstate.getPolling().isPollingOther() ? pstate.getBaseline().getStream().getFullyQualifiedName() : pstate.getStream().getFullyQualifiedName();
-            f = workspace.actAsync(new RemotePostBuild(buildResult, status, listener,
-            		                                   pstate.isMakeTag(), pstate.doRecommend(), pstate.getUnstable(), 
-            		                                   sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString(build.getNumber()), logger/*, pout*/, pipe));
+            Future<Status> i = null;
+            if( workspace.isRemote() ) {
+				final Pipe pipe = Pipe.createRemoteToLocal();
+				
+            	i = workspace.actAsync(new RemotePostBuild(buildResult, status, listener,
+            		                   pstate.isMakeTag(), pstate.doRecommend(), pstate.getUnstable(), 
+            		                   sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString(build.getNumber()), pipe));
+				logger.redirect( pipe.getIn() );
+            } else {
+            	i = workspace.actAsync(new RemotePostBuild(buildResult, status, listener,
+                        pstate.isMakeTag(), pstate.doRecommend(), pstate.getUnstable(), 
+                        sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString(build.getNumber()), null));
+            	
+            }
 
-            status = f.get();
-
-            logger.empty(status.getLog());
+            status = i.get();
         } catch (Exception e) {
             status.setStable(false);
             logger.debug(id + "Something went wrong: " + e.getMessage());

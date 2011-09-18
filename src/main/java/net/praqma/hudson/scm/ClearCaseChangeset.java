@@ -1,13 +1,15 @@
 package net.praqma.hudson.scm;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClearCaseChangeset {
+public class ClearCaseChangeset implements Serializable {
 
 	private static final long serialVersionUID = -641415231946264343L;
 	
-	public class Element {
+	public class Element implements Serializable {
+		private static final long serialVersionUID = 3359962418061746143L;
 		private String version;
 		private String user;
 		

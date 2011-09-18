@@ -19,8 +19,6 @@ public class Status implements Serializable {
 
 	private boolean stable = true;
 
-	private String log = "";
-
 	public Status() {
 
 	}
@@ -31,14 +29,6 @@ public class Status implements Serializable {
 
 	public boolean isPLevel() {
 		return pLevel;
-	}
-
-	public void addToLog( String l ) {
-		this.log += l;
-	}
-
-	public String getLog() {
-		return log;
 	}
 
 	public void setStable( boolean stable ) {

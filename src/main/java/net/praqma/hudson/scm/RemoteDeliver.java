@@ -2,6 +2,7 @@ package net.praqma.hudson.scm;
 
 import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
+import hudson.remoting.Pipe;
 import hudson.remoting.VirtualChannel;
 
 import java.io.File;
@@ -28,8 +29,8 @@ import net.praqma.hudson.Config;
 import net.praqma.hudson.Util;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.scm.EstablishResult.ResultType;
-import net.praqma.util.debug.PraqmaLogger;
-import net.praqma.util.debug.PraqmaLogger.Logger;
+import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.appenders.StreamAppender;
 
 /**
  *
@@ -52,15 +53,15 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
      */
     private String component;
     private String loadModule;
-    // UCMDeliver ucmDeliver = null;
-    private Logger logger;
     private PrintStream hudsonOut = null;
+    
+    private Pipe pipe;
     
     private String viewtag = "";
 
-    public RemoteDeliver(String destinationstream, BuildListener listener,
+    public RemoteDeliver(String destinationstream, BuildListener listener, Pipe pipe,
             /* Common values */
-            String component, String loadModule, String baseline, String jobName, Logger logger) {
+            String component, String loadModule, String baseline, String jobName) {
         this.jobName = jobName;
 
         this.baseline = baseline;
@@ -70,7 +71,8 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
 
         this.component = component;
         this.loadModule = loadModule;
-        this.logger = logger;
+        
+        this.pipe = pipe;
 
         // this.ucmDeliver = ucmDeliver;
     }
@@ -79,11 +81,12 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
         
         hudsonOut = listener.getLogger();
         
-		logger = PraqmaLogger.getLogger( logger );
-		logger.subscribeAll();
-		/* Make sure that the local log file is not written */
-		logger.setLocalLog( null );
-		Cool.setLogger( logger );
+    	StreamAppender app = null;
+    	if( pipe != null ) {
+	    	PrintStream toMaster = new PrintStream( pipe.getOut() );	    	
+	    	app = new StreamAppender( toMaster );
+	    	Logger.addAppender( app );
+    	}
 
         //TODO this should not be necessary cause its done in the Config.java file ????.
         UCM.setContext(UCM.ContextType.CLEARTOOL);
@@ -96,6 +99,7 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
             if (e.stdout != null) {
                 hudsonOut.println(e.stdout);
             }
+            Logger.removeAppender( app );
             throw new IOException("Could not create Baseline object: " + e.getMessage());
         }
 
@@ -109,6 +113,7 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
             if (e.stdout != null) {
                 hudsonOut.println(e.stdout);
             }
+            Logger.removeAppender( app );
             throw new IOException("Could not create destination Stream object: " + e.getMessage());
         }
 
@@ -116,6 +121,7 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
         try {
             snapview = makeDeliverView(destinationStream, workspace);
         } catch (ScmException e) {
+        	Logger.removeAppender( app );
             throw new IOException("Could not create deliver view: " + e.getMessage());
         }
         
@@ -153,32 +159,38 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
         	if( e.type.equals( UCMType.DELIVER_REQUIRES_REBASE ) ) {
         		hudsonOut.println(e.getMessage());
         		er.setResultType( ResultType.DELIVER_REQUIRES_REBASE );
+        		Logger.removeAppender( app );
         		return er;
         	}
         	
         	if( e.type.equals( UCMType.MERGE_ERROR ) ) {
         		hudsonOut.println(e.getMessage());
         		er.setResultType( ResultType.MERGE_ERROR );
+        		Logger.removeAppender( app );
         		return er;
         	}
         	
         	if( e.type.equals( UCMType.INTERPROJECT_DELIVER_DENIED ) ) {
         		hudsonOut.println(e.getMessage());
         		er.setResultType( ResultType.INTERPROJECT_DELIVER_DENIED );
+        		Logger.removeAppender( app );
         		return er;
         	}
         	
         	if( e.type.equals( UCMType.DELIVER_IN_PROGRESS ) ) {
         		hudsonOut.println(e.getMessage());
         		er.setResultType( ResultType.DELIVER_IN_PROGRESS );
+        		Logger.removeAppender( app );
         		return er;
         	}
         	
+        	Logger.removeAppender( app );
             throw new IOException(e.getMessage());
         }
 
         /* End of deliver */
         er.setResultType( ResultType.SUCCESS );
+        Logger.removeAppender( app );
         return er;
     }
 

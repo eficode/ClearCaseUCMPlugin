@@ -6,15 +6,12 @@ import hudson.model.Result;
 import hudson.remoting.Pipe;
 import hudson.remoting.VirtualChannel;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.io.PipedOutputStream;
 import java.io.PrintStream;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
-import net.praqma.clearcase.Cool;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Tag;
@@ -22,8 +19,8 @@ import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.scm.Unstable;
-import net.praqma.util.debug.PraqmaLogger;
-import net.praqma.util.debug.PraqmaLogger.Logger;
+import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.appenders.StreamAppender;
 
 /**
  * 
@@ -54,18 +51,12 @@ class RemotePostBuild implements FileCallable<Status> {
 	private Unstable unstable;
 
 	private Pipe pipe = null;
-	private BufferedWriter bw = null;
-	private PipedOutputStream pout = null;
 
 	public RemotePostBuild( Result result, Status status, BuildListener listener,
 							/* Values for */
 							boolean makeTag, boolean recommended, Unstable unstable,
 							/* Common values */
-							String sourcebaseline, String targetbaseline, String sourcestream, String targetstream, String displayName, String buildNumber, Logger logger/*
-																												 * ,
-																												 * PipedOutputStream
-																												 * pout
-																												 */, Pipe pipe ) {
+							String sourcebaseline, String targetbaseline, String sourcestream, String targetstream, String displayName, String buildNumber, Pipe pipe ) {
 		this.displayName = displayName;
 		this.buildNumber = buildNumber;
 
@@ -86,7 +77,6 @@ class RemotePostBuild implements FileCallable<Status> {
 		this.status = status;
 		this.listener = listener;
 
-		this.logger = logger;
 		this.pipe = pipe;
 		/*
 		 * this.pout = pout;
@@ -94,23 +84,27 @@ class RemotePostBuild implements FileCallable<Status> {
 	}
 
 	public Status invoke( File workspace, VirtualChannel channel ) throws IOException {
-		PraqmaLogger.getLogger( logger );
-		/* Make sure that the local log file is not written */
-		logger.setLocalLog( null );
-		Cool.setLogger( logger );
 		hudsonOut = listener.getLogger();
 		UCM.setContext( UCM.ContextType.CLEARTOOL );
+		
+    	StreamAppender app = null;
+    	if( pipe != null ) {
+	    	PrintStream toMaster = new PrintStream( pipe.getOut() );	    	
+	    	app = new StreamAppender( toMaster );
+	    	Logger.addAppender( app );
+    	}
 
 		String newPLevel = "";
 
-		status.addToLog( logger.info( "Starting PostBuild task" ) );
+		logger.info( "Starting PostBuild task" );
 
 		/* Create the source baseline object */
 		Baseline sourcebaseline = null;
 		try {
 			sourcebaseline = UCMEntity.getBaseline( this.sourcebaseline );
 		} catch (UCMException e) {
-			status.addToLog( logger.debug( id + "could not create source Baseline object:" + e.getMessage() ) );
+			logger.debug( id + "could not create source Baseline object:" + e.getMessage() );
+			Logger.removeAppender( app );
 			throw new IOException( "[" + Config.nameShort + "] Could not create source Baseline object: " + e.getMessage() );
 		}
 		
@@ -119,7 +113,8 @@ class RemotePostBuild implements FileCallable<Status> {
 		try {
 			targetbaseline = UCMEntity.getBaseline( this.targetbaseline );
 		} catch (UCMException e) {
-			status.addToLog( logger.debug( id + "could not create target Baseline object:" + e.getMessage() ) );
+			logger.debug( id + "could not create target Baseline object:" + e.getMessage() );
+			Logger.removeAppender( app );
 			throw new IOException( "[" + Config.nameShort + "] Could not create target Baseline object: " + e.getMessage() );
 		}
 
@@ -128,11 +123,12 @@ class RemotePostBuild implements FileCallable<Status> {
 		try {
 			targetstream = UCMEntity.getStream( this.targetstream );
 		} catch (UCMException e) {
-			status.addToLog( logger.debug( id + "could not create target Stream object:" + e.getMessage() ) );
+			logger.debug( id + "could not create target Stream object:" + e.getMessage() );
+			Logger.removeAppender( app );
 			throw new IOException( "[" + Config.nameShort + "] Could not create target Stream object: " + e.getMessage() );
 		}
 
-		status.addToLog( logger.warning( id + "Streams and baselines created" ) );
+		logger.warning( id + "Streams and baselines created" );
 
 		/* Create the Tag object */
 		Tag tag = null;
@@ -143,7 +139,7 @@ class RemotePostBuild implements FileCallable<Status> {
 				status.setTagAvailable( true );
 			} catch (UCMException e) {
 				hudsonOut.println( "[" + Config.nameShort + "] Could not get Tag: " + e.getMessage() );
-				status.addToLog( logger.warning( id + "Could not get Tag: " + e.getMessage() ) );
+				logger.warning( id + "Could not get Tag: " + e.getMessage() );
 			}
 		}
 
@@ -166,14 +162,14 @@ class RemotePostBuild implements FileCallable<Status> {
 				if( recommend ) {
 					status.setRecommended( false );
 					hudsonOut.println( "[" + Config.nameShort + "] Could not promote baseline " + sourcebaseline.getShortname() + " and will not recommend " + targetbaseline.getShortname() + ". " + e.getMessage() );
-					status.addToLog( logger.warning( id + "Could not promote baseline and will not recommend. " + e.getMessage() ) );
+					logger.warning( id + "Could not promote baseline and will not recommend. " + e.getMessage() );
 				} else {
 					/*
 					 * As we will not recommend if we cannot promote, it's
 					 * ok to break method here
 					 */
 					hudsonOut.println( "[" + Config.nameShort + "] Could not promote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
-					status.addToLog( logger.warning( id + "Could not promote baseline. " + e.getMessage() ) );
+					logger.warning( id + "Could not promote baseline. " + e.getMessage() );
 				}
 			}
 			
@@ -186,7 +182,7 @@ class RemotePostBuild implements FileCallable<Status> {
 					status.setStable( false );
 					status.setRecommended( false );
 					hudsonOut.println( "[" + Config.nameShort + "] Could not recommend Baseline " + targetbaseline.getShortname() + ": " + e.getMessage() );
-					status.addToLog( logger.warning( id + "Could not recommend baseline: " + e.getMessage() ) );
+					logger.warning( id + "Could not recommend baseline: " + e.getMessage() );
 				}
 			}
 		}
@@ -206,7 +202,7 @@ class RemotePostBuild implements FileCallable<Status> {
 				}
 
 				try {
-					status.addToLog( logger.warning( id + "Demoting baseline" ) );
+					logger.warning( id + "Demoting baseline" );
 					Project.Plevel pl = sourcebaseline.demote();
 					status.setPromotedLevel( pl );
 					status.setPLevel( true );
@@ -216,7 +212,7 @@ class RemotePostBuild implements FileCallable<Status> {
 					// throw new NotifierException(
 					// "Could not demote baseline. " + e.getMessage() );
 					hudsonOut.println( "[" + Config.nameShort + "] Could not demote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
-					status.addToLog( logger.warning( id + "Could not demote baseline. " + e.getMessage() ) );
+					logger.warning( id + "Could not demote baseline. " + e.getMessage() );
 				}
 
 			}
@@ -249,7 +245,7 @@ class RemotePostBuild implements FileCallable<Status> {
 								status.setStable( false );
 								status.setRecommended( false );
 								hudsonOut.println( "[" + Config.nameShort + "] Could not recommend baseline " + targetbaseline.getShortname() + ": " + e.getMessage() );
-								status.addToLog( logger.warning( id + "Could not recommend baseline. Reason: " + e.getMessage() ) );
+								logger.warning( id + "Could not recommend baseline. Reason: " + e.getMessage() );
 							}
 						}
 					} else {
@@ -261,14 +257,14 @@ class RemotePostBuild implements FileCallable<Status> {
 				} catch (Exception e) {
 					status.setStable( false );
 					hudsonOut.println( "[" + Config.nameShort + "] Could not demote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
-					status.addToLog( logger.warning( id + "Could not demote baseline. " + e.getMessage() ) );
+					logger.warning( id + "Could not demote baseline. " + e.getMessage() );
 				}
 
 			}
 			/* Result not handled by CCUCM */
 			else {
 				tag.setEntry( "buildstatus", result.toString() );
-				status.addToLog( logger.log( id + "Buildstatus (Result) was " + result + ". Not handled by plugin." ) );
+				logger.log( id + "Buildstatus (Result) was " + result + ". Not handled by plugin." );
 				hudsonOut.println( "[" + Config.nameShort + "] Baselines not changed. Buildstatus: " + result );
 			}
 		}
@@ -301,12 +297,8 @@ class RemotePostBuild implements FileCallable<Status> {
 			status.setBuildDescr( setDisplaystatus( sourcebaseline.getShortname(), newPLevel, targetbaseline.getShortname(), status.getErrorMessage() ) );
 		}
 
-		status.addToLog( logger.warning( id + "Remote post build finished normally" ) );
-
-		/*
-		 * if( out != null ) { out.close(); }
-		 */
-
+		logger.warning( id + "Remote post build finished normally" );
+		Logger.removeAppender( app );
 		return status;
 	}
 
