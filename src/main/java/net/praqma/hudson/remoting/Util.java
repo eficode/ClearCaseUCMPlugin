@@ -13,6 +13,7 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Project.Plevel;
 import net.praqma.hudson.exception.CCUCMException;
 import net.praqma.hudson.scm.CCUCMState.State;
+import net.praqma.util.debug.Logger;
 import hudson.FilePath;
 import hudson.model.BuildListener;
 import hudson.model.TaskListener;
@@ -20,6 +21,8 @@ import hudson.remoting.Future;
 import hudson.remoting.Pipe;
 
 public abstract class Util {
+	
+	private static Logger logger = Logger.getLogger();
 
 	public static void completeRemoteDeliver( FilePath workspace, BuildListener listener, State state, boolean complete ) throws CCUCMException {
 
@@ -77,11 +80,7 @@ public abstract class Util {
 	
 				i = workspace.actAsync( new GetRelatedStreams( listener, stream, pollingChildStreams, pipe ) );
 				
-				BufferedReader in = new BufferedReader( new InputStreamReader( pipe.getIn() ) );
-				String line = "";
-				while( ( line = in.readLine() ) != null ) {
-					out.println( "I got: " + line );
-				}
+				logger.redirect( pipe.getIn() );
 	
 				return i.get();
 			} else {

@@ -535,8 +535,7 @@ public class CCUCMScm extends SCM {
         
         List<Stream> streams = null;
         List<Baseline> baselines = new ArrayList<Baseline>();
-        
-        logger.debug( "I AM HERE" );
+
         try {
         	streams = Util.getRelatedStreams( project.getSomeWorkspace(), listener, stream, pollingChildStreams );
         } catch( CCUCMException e1 ) {
