@@ -48,8 +48,9 @@ import net.praqma.hudson.remoting.Util;
 import net.praqma.hudson.scm.Polling.PollingType;
 import net.praqma.hudson.scm.CCUCMState.State;
 import net.praqma.hudson.scm.StoredBaselines.StoredBaseline;
-import net.praqma.util.debug.PraqmaLogger;
-import net.praqma.util.debug.PraqmaLogger.Logger;
+import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.appenders.StreamAppender;
+import net.praqma.util.execute.CommandLine;
 import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -129,17 +130,6 @@ public class CCUCMScm extends SCM {
 		   /* Notofier options */ , boolean recommend, boolean makeTag, boolean setDescription
 		   /* Build options     */, String buildProject, boolean multiSite  ) {
 
-       /* Preparing the logger */
-       logger = PraqmaLogger.getLogger();
-       logger.subscribeAll();
-       File rdir = new File(logger.getPath());
-       logger.setLocalLog(new File(rdir + System.getProperty("file.separator") + "log.log"));
-
-       /* Make sure the cool library is also affected */
-       Cool.setLogger(logger);
-
-       this.logger = PraqmaLogger.getLogger();
-       logger.trace_function();
        logger.debug("CCUCMSCM constructor");
        this.component = component;
        this.levelToPoll = levelToPoll;
@@ -170,28 +160,27 @@ public class CCUCMScm extends SCM {
         jobNumber = build.getNumber();
         this.id = "[" + jobName + "::" + jobNumber + "]";
 
-
-        /* Preparing the logger */
-        logger = PraqmaLogger.getLogger();
-        logger.subscribeAll();
-        File rdir = build.getRootDir();
-        logger.setLocalLog(new File(rdir + System.getProperty("file.separator") + "log.log"));
-
-        /* Make sure the cool library is also affected */
-        Cool.setLogger(logger);
-
-        // logger.print(bl.getFullyQualifiedName());
-
-        logger.info(id + "CCUCMSCM checkout v. " + net.praqma.hudson.Version.version);
+        
         boolean result = true;
 
         PrintStream consoleOutput = listener.getLogger();
         consoleOutput.println("[" + Config.nameShort + "] ClearCase UCM Plugin version " + net.praqma.hudson.Version.version );
         
+        
+        /* Preparing the logger */
+    	Logger logger = Logger.getLogger();
+    	StreamAppender app = new StreamAppender( consoleOutput );
+	    Logger.addAppender( app );
+        
+	    logger.info(id + "CCUCMSCM checkout v. " + net.praqma.hudson.Version.version);
+	    
         /* Recalculate the states */
         int count = ccucm.recalculate(build.getProject());
         logger.info(id + "Removed " + count + " from states.");
 
+        
+        logger.info( CommandLine.getInstance().run( "dir" ).stdoutList.toString() );
+        
         doPostBuild = true;
         
         /* If we polled, we should get the same object created at that point */
@@ -201,8 +190,6 @@ public class CCUCMScm extends SCM {
         
         logger.debug(id + "The initial state:\n" + state.stringify());
         
-        state.setLogger(logger);
-                
         /* Check template */
         state.setCreatebaseline( createBaseline );
         /* Trim template, strip out quotes */
@@ -298,11 +285,11 @@ public class CCUCMScm extends SCM {
 
 
             
-            CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream().getFullyQualifiedName(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, logger);
+            CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream().getFullyQualifiedName(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, null);
 
             er = workspace.act(ct);
             String changelog = er.getMessage();
-            logger.empty(er.getLog());
+
             this.viewtag = er.getViewtag();
             state.setChangeset( er.getChangeset() );
             
@@ -456,7 +443,7 @@ public class CCUCMScm extends SCM {
             logger.debug( "Remote delivering...." );
             consoleOutput.println("[" + Config.nameShort + "] Establishing deliver view");
             //RemoteDeliver rmDeliver = new RemoteDeliver(UCMEntity.getStream(stream).getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
-            RemoteDeliver rmDeliver = new RemoteDeliver(state.getStream().getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), logger);
+            RemoteDeliver rmDeliver = new RemoteDeliver(state.getStream().getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), null);
 
             er = workspace.act(rmDeliver);
             
@@ -583,7 +570,6 @@ public class CCUCMScm extends SCM {
 
     @Override
     public ChangeLogParser createChangeLogParser() {
-        logger.trace_function();
         return new ChangeLogParserImpl();
     }
 
@@ -615,8 +601,6 @@ public class CCUCMScm extends SCM {
     public PollingResult compareRemoteRevisionWith(AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener,
             SCMRevisionState rstate) throws IOException, InterruptedException {
         /* Preparing the logger */
-        logger = PraqmaLogger.getLogger();
-        logger.subscribeAll();
 
         this.id = "[" + project.getDisplayName() + "::" + project.getNextBuildNumber() + "]";
 
@@ -667,8 +651,6 @@ public class CCUCMScm extends SCM {
 	
 	        logger.debug(id + "FINAL Polling result = " + p.change.toString());
 	
-	        logger.unsubscribeAll();
-	        
 	        logger.debug(id + "The POLL state:\n" + state.stringify());
 	
 	        /* Remove state if not being built */

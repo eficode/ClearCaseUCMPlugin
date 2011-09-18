@@ -8,34 +8,23 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 
-import net.praqma.clearcase.Cool;
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
-import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.Version;
-import net.praqma.clearcase.ucm.utils.BaselineDiff;
 import net.praqma.clearcase.ucm.utils.BuildNumber;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
 import net.praqma.hudson.exception.ScmException;
-import net.praqma.util.debug.PraqmaLogger;
-import net.praqma.util.debug.PraqmaLogger.Logger;
+import net.praqma.util.debug.Logger;
 
 public abstract class Util {
 	
-	private static Logger logger;
-	
-	static {
-		logger = PraqmaLogger.getLogger( );
-		logger.setLocalLog( null );
-		Cool.setLogger( logger );
-		UCM.setContext( UCM.ContextType.CLEARTOOL );
-	}
+	private static Logger logger = Logger.getLogger();
 
 	public static String CreateNumber( BuildListener listener, int buildNumber, String versionFrom, String buildnumberMajor, String buildnumberMinor,
 			String buildnumberPatch, String buildnumberSequenceSelector, Stream target, Component component ) throws IOException {

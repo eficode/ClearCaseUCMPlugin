@@ -10,6 +10,7 @@ import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project.Plevel;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.utils.BaselineList;
+import net.praqma.util.execute.CommandLine;
 import hudson.FilePath.FileCallable;
 import hudson.remoting.VirtualChannel;
 
@@ -34,7 +35,7 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
 
         /* The baseline list */
         BaselineList baselines = null;
-
+        
         try {
             baselines = component.getBaselines(stream, plevel );
         } catch (UCMException e) {

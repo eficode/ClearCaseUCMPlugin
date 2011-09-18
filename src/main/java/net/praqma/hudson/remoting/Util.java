@@ -70,19 +70,28 @@ public abstract class Util {
 		
 		try {
 			
-			final Pipe pipe = Pipe.createRemoteToLocal();
-			
-			Future<List<Stream>> i = null;
+			if( workspace.isRemote() ) {
+				final Pipe pipe = Pipe.createRemoteToLocal();
+				
+				Future<List<Stream>> i = null;
+	
+				i = workspace.actAsync( new GetRelatedStreams( listener, stream, pollingChildStreams, pipe ) );
+				
+				BufferedReader in = new BufferedReader( new InputStreamReader( pipe.getIn() ) );
+				String line = "";
+				while( ( line = in.readLine() ) != null ) {
+					out.println( "I got: " + line );
+				}
+	
+				return i.get();
+			} else {
+				Future<List<Stream>> i = null;
+				
+				i = workspace.actAsync( new GetRelatedStreams( listener, stream, pollingChildStreams, null ) );
+				
+				return i.get();
 
-			i = workspace.actAsync( new GetRelatedStreams( listener, stream, pollingChildStreams, pipe ) );
-			
-			BufferedReader in = new BufferedReader( new InputStreamReader( pipe.getIn() ) );
-			String line = "";
-			while( ( line = in.readLine() ) != null ) {
-				out.println( "I got: " + line );
 			}
-
-			return i.get();
 
 		} catch (Exception e) {
 			e.printStackTrace( out );

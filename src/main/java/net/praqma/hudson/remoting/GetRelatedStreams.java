@@ -17,6 +17,9 @@ import net.praqma.clearcase.Cool.ContextType;
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
+import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.appenders.StreamAppender;
+import net.praqma.util.execute.CommandLine;
 
 public class GetRelatedStreams implements FileCallable<List<Stream>> {
 
@@ -39,19 +42,26 @@ public class GetRelatedStreams implements FileCallable<List<Stream>> {
     public List<Stream> invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
     	
     	PrintStream out = listener.getLogger();
+    	Logger logger = Logger.getLogger();
+
+    	StreamAppender app = null;
     	
-    	OutputStream logger = pipe.getOut();
+    	if( pipe != null ) {
+	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
+	    	toMaster.println("Wolle was here");
+	    	
+	    	app = new StreamAppender( toMaster );
+	    	Logger.addAppender( app );
+    	}
     	
-    	PrintStream lout = new PrintStream( logger );
-    	lout.println("Wolle was here");
-    	lout.close();
     	
     	Cool.setContext( ContextType.CLEARTOOL );
     	
     	List<Stream> streams = null;
     	
-   	
-        try {
+    	logger.debug( "Blsalblalbal" );
+    	
+    	try {
         	if( pollingChildStreams ) {
         		streams = stream.getChildStreams();
         	} else {
@@ -59,9 +69,18 @@ public class GetRelatedStreams implements FileCallable<List<Stream>> {
         	}
         } catch( UCMException e1 ) {
         	e1.printStackTrace( out );
+        	//toMaster.close();
+        	if( pipe != null ) {
+        		Logger.removeAppender( app );
+        	}
         	throw new IOException( "Could not find any related streams: " + e1.getMessage() );
         }
         
+        //toMaster.close();
+        logger.fatal( "I AM HERE" );
+        if( pipe != null ) {
+        	Logger.removeAppender( app );
+        }
         return streams;
     }
 }
