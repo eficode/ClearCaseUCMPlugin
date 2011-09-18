@@ -38,14 +38,20 @@ public abstract class Util {
 		}
 	}
 
-	public static String createRemoteBaseline( FilePath workspace, BuildListener listener, String baseName, String componentName, File view, String username ) throws CCUCMException {
+	public static String createRemoteBaseline( FilePath workspace, BuildListener listener, String baseName, Component component, File view, String username ) throws CCUCMException {
 
 		try {
-			Future<String> i = null;
-
-			i = workspace.actAsync( new CreateRemoteBaseline( baseName, componentName, view, username, listener ) );
-
-			return i.get();
+			if( workspace.isRemote() ) {
+				final Pipe pipe = Pipe.createRemoteToLocal();
+				Future<String> i = null;
+				i = workspace.actAsync( new CreateRemoteBaseline( baseName, component, view, username, listener, pipe ) );
+				logger.redirect( pipe.getIn() );
+				return i.get();
+			} else {
+				Future<String> i = null;
+				i = workspace.actAsync( new CreateRemoteBaseline( baseName, component, view, username, listener, null ) );
+				return i.get();
+			}
 
 		} catch (Exception e) {
 			throw new CCUCMException( e.getMessage() );
@@ -55,12 +61,17 @@ public abstract class Util {
 	public static List<Baseline> getRemoteBaselinesFromStream( FilePath workspace, Component component, Stream stream, Plevel plevel ) throws CCUCMException {
 
 		try {
-			final Pipe pipe = Pipe.createRemoteToLocal();
-			Future<List<Baseline>> i = null;
-
-			i = workspace.actAsync( new GetRemoteBaselineFromStream( component, stream, plevel, pipe ) );
-			logger.redirect( pipe.getIn() );
-			return i.get();
+			if( workspace.isRemote() ) {
+				final Pipe pipe = Pipe.createRemoteToLocal();
+				Future<List<Baseline>> i = null;
+				i = workspace.actAsync( new GetRemoteBaselineFromStream( component, stream, plevel, pipe ) );
+				logger.redirect( pipe.getIn() );
+				return i.get();
+			} else {
+				Future<List<Baseline>> i = null;
+				i = workspace.actAsync( new GetRemoteBaselineFromStream( component, stream, plevel, null ) );
+				return i.get();
+			}
 
 		} catch (Exception e) {
 			throw new CCUCMException( e.getMessage() );
@@ -76,19 +87,13 @@ public abstract class Util {
 			
 			if( workspace.isRemote() ) {
 				final Pipe pipe = Pipe.createRemoteToLocal();
-				
 				Future<List<Stream>> i = null;
-	
 				i = workspace.actAsync( new GetRelatedStreams( listener, stream, pollingChildStreams, pipe ) );
-				
 				logger.redirect( pipe.getIn() );
-	
 				return i.get();
 			} else {
 				Future<List<Stream>> i = null;
-				
 				i = workspace.actAsync( new GetRelatedStreams( listener, stream, pollingChildStreams, null ) );
-				
 				return i.get();
 
 			}

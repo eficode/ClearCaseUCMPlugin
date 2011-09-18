@@ -7,10 +7,12 @@ import java.io.PrintStream;
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
-import net.praqma.clearcase.ucm.entities.UCMEntity;
+import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.appenders.StreamAppender;
 
 import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
+import hudson.remoting.Pipe;
 import hudson.remoting.VirtualChannel;
 
 public class CreateRemoteBaseline implements FileCallable<String> {
@@ -18,45 +20,54 @@ public class CreateRemoteBaseline implements FileCallable<String> {
 	private static final long serialVersionUID = -8984877325832486334L;
 
 	private String baseName;
-	private String componentName;
+	private Component component;
 	private File view;
 	private BuildListener listener;
 	private String username;
+	private Pipe pipe;
 	
-	public CreateRemoteBaseline( String baseName, String componentName, File view, String username, BuildListener listener ) {
+	public CreateRemoteBaseline( String baseName, Component component, File view, String username, BuildListener listener, Pipe pipe ) {
 		this.baseName = baseName;
-		this.componentName = componentName;
+		this.component = component;
 		this.view = view;
 		this.listener = listener;
 		this.username = username;
+		this.pipe = pipe;
     }
     
     @Override
     public String invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
         PrintStream out = listener.getLogger();
         
-    	Component component = null;
-    	
-    	try {
-			component = UCMEntity.getComponent( componentName, true );
-		} catch (UCMException e) {
-			throw new IOException( "Unable to get Component:" + e.getMessage() );
-		}
-    	
+    	StreamAppender app = null;
+    	if( pipe != null ) {
+	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
+	    	app = new StreamAppender( toMaster );
+	    	Logger.addAppender( app );
+    	}
+        
     	Baseline bl = null;
     	try {
 			bl = Baseline.create( baseName, component, view, true, true );
 		} catch (UCMException e) {
+        	if( pipe != null ) {
+        		Logger.removeAppender( app );
+        	}
 			throw new IOException( "Unable to create Baseline:" + e.getMessage() );
 		}
     	
     	try {
-    		out.println( "Changing ownership of baseline" );
 			bl.changeOwnership( username, null );
 		} catch (UCMException e) {
+        	if( pipe != null ) {
+        		Logger.removeAppender( app );
+        	}
 			throw new IOException( "Unable to change ownership of " + baseName + ":" + e.getMessage() );
 		}
     
+    	if( pipe != null ) {
+    		Logger.removeAppender( app );
+    	}
         return bl.getFullyQualifiedName();
     }
 

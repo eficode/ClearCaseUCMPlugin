@@ -45,11 +45,8 @@ public class GetRelatedStreams implements FileCallable<List<Stream>> {
     	Logger logger = Logger.getLogger();
 
     	StreamAppender app = null;
-    	
     	if( pipe != null ) {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
-	    	toMaster.println("Wolle was here");
-	    	
 	    	app = new StreamAppender( toMaster );
 	    	Logger.addAppender( app );
     	}
@@ -58,8 +55,6 @@ public class GetRelatedStreams implements FileCallable<List<Stream>> {
     	Cool.setContext( ContextType.CLEARTOOL );
     	
     	List<Stream> streams = null;
-    	
-    	logger.debug( "Blsalblalbal" );
     	
     	try {
         	if( pollingChildStreams ) {
