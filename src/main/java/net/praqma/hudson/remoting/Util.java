@@ -27,10 +27,17 @@ public abstract class Util {
 	public static void completeRemoteDeliver( FilePath workspace, BuildListener listener, State state, boolean complete ) throws CCUCMException {
 
 		try {
-			Future<Boolean> i = null;
-
-			i = workspace.actAsync( new RemoteDeliverComplete( state, complete, listener ) );
-			i.get();
+			if( workspace.isRemote() ) {
+				final Pipe pipe = Pipe.createRemoteToLocal();
+				Future<Boolean> i = null;
+				i = workspace.actAsync( new RemoteDeliverComplete( state, complete, listener, pipe ) );
+				logger.redirect( pipe.getIn() );
+				i.get();
+			} else {
+				Future<Boolean> i = null;
+				i = workspace.actAsync( new RemoteDeliverComplete( state, complete, listener, null ) );
+				i.get();
+			}
 			return;
 
 		} catch (Exception e) {
