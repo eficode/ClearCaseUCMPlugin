@@ -55,10 +55,11 @@ public abstract class Util {
 	public static List<Baseline> getRemoteBaselinesFromStream( FilePath workspace, Component component, Stream stream, Plevel plevel ) throws CCUCMException {
 
 		try {
+			final Pipe pipe = Pipe.createRemoteToLocal();
 			Future<List<Baseline>> i = null;
 
-			i = workspace.actAsync( new GetRemoteBaselineFromStream( component, stream, plevel ) );
-
+			i = workspace.actAsync( new GetRemoteBaselineFromStream( component, stream, plevel, pipe ) );
+			logger.redirect( pipe.getIn() );
 			return i.get();
 
 		} catch (Exception e) {
