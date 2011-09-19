@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import net.praqma.clearcase.ucm.UCMException;
@@ -71,6 +72,8 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		
     	logger = Logger.getLogger();
 
+		UCM.setContext( UCM.ContextType.CLEARTOOL );
+        
     	StreamAppender app = null;
     	if( pipe != null ) {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );	    	
@@ -90,6 +93,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 			UCM.setContext( UCM.ContextType.CLEARTOOL );
 			viewtag = makeWorkspace( workspace );
 			BaselineDiff bldiff = bl.getDifferences( sv );
+			//List<Activity> bldiff = Version.getBaselineDiff( bl, null, true, sv.getViewRoot() );
 			diff = Util.createChangelog( bldiff, bl );
 			
 			int c = 0;
@@ -108,6 +112,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		} catch (UCMException e) {
 			logger.debug( id + "Could not get changes. " + e.getMessage() );
 			logger.info( e );
+			hudsonOut.println( e.stdout );
 			hudsonOut.println( "[" + Config.nameShort + "] Could not get changes. " + e.getMessage() );
 		}
 

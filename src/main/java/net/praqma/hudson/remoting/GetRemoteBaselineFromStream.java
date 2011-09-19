@@ -8,6 +8,7 @@ import java.util.List;
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
+import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.Project.Plevel;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.utils.BaselineList;
@@ -38,6 +39,8 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
     public List<Baseline> invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
     	
     	Logger logger = Logger.getLogger();
+    	
+    	UCM.setContext( UCM.ContextType.CLEARTOOL );
 
     	StreamAppender app = null;
     	if( pipe != null ) {
@@ -47,10 +50,6 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
     	}
     	
     	logger.info( "Retrieving remote baselines from " + stream.getShortname() );
-
-    	logger.debug( "COMPONENT: " + component );
-    	logger.debug( "STREAM: " + stream );
-    	logger.debug( "LEVEL: " + plevel );
     	
         /* The baseline list */
         BaselineList baselines = null;
@@ -61,8 +60,6 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
        		Logger.removeAppender( app );
             throw new IOException("Could not retrieve baselines from repository. " + e.getMessage());
         }
-        
-    	logger.debug( "After" );
         
         /* Load baselines remotely */
         for( Baseline baseline : baselines ) {

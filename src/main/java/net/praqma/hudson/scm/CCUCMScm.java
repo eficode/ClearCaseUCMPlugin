@@ -184,9 +184,6 @@ public class CCUCMScm extends SCM {
         /* Recalculate the states */
         int count = ccucm.recalculate(build.getProject());
         logger.info(id + "Removed " + count + " from states.");
-
-        
-        logger.info( CommandLine.getInstance().run( "dir" ).stdoutList.toString() );
         
         doPostBuild = true;
         
