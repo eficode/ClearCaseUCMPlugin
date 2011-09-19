@@ -1,18 +1,18 @@
 package net.praqma.hudson.nametemplates;
 
 import net.praqma.clearcase.ucm.entities.Project;
-import net.praqma.clearcase.ucm.utils.BuildNumber;
 import net.praqma.hudson.exception.TemplateException;
+import net.praqma.hudson.remoting.Util;
 import net.praqma.hudson.scm.CCUCMState.State;
 
-public class ClearCaseBuildNumberTemplate extends Template {
+public class ClearCaseVersionNumberTemplate extends Template {
 
 	@Override
 	public String parse( State state, String args ) throws TemplateException {
 		
 		try {
 			Project project = state.getStream().getProject();
-			return BuildNumber.getBuildNumber(project);
+			return Util.getClearCaseVersion( state.getWorkspace(), project );
 		} catch (Exception e) {
 			return "unknownccversion";
 		}

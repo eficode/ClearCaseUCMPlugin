@@ -9,6 +9,7 @@ import java.util.List;
 
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
+import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.entities.Project.Plevel;
@@ -132,5 +133,27 @@ public abstract class Util {
 		} catch (Exception e) {
 			throw new CCUCMException( e.getMessage() );
 		}
-	}	
+	}
+	
+	public static String getClearCaseVersion( FilePath workspace, Project project ) throws CCUCMException {
+		
+		try {
+			Future<String> i = null;
+			
+			if( workspace.isRemote() ) {
+				final Pipe pipe = Pipe.createRemoteToLocal();
+				
+				i = workspace.actAsync( new GetClearCaseVersion( project, pipe ) );
+				logger.redirect( pipe.getIn() );
+				
+			} else {
+				i = workspace.actAsync( new GetClearCaseVersion( project, null ) );
+			}
+			
+			return i.get();
+
+		} catch (Exception e) {
+			throw new CCUCMException( e.getMessage() );
+		}
+	}
 }
