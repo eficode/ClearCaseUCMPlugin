@@ -280,7 +280,7 @@ public class CCUCMNotifier extends Notifier {
             status.setBuildStatus(buildResult);
                         
             try {                
-                hudsonOut.print("[" + Config.nameShort + "] " + ( treatSuccessful ? "completing" : "cancelling" ) + " the deliver. ");
+                hudsonOut.print("[" + Config.nameShort + "] " + ( treatSuccessful ? "Completing" : "Cancelling" ) + " the deliver. ");
                 Util.completeRemoteDeliver( workspace, listener, pstate, treatSuccessful );
                 hudsonOut.println("Success.");
                 

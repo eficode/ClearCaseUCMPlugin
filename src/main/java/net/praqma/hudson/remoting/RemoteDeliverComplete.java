@@ -37,6 +37,8 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 		
 		PrintStream out = listener.getLogger();
 		
+		out.println( "Setting up logger" );
+		
     	StreamAppender app = null;
     	if( pipe != null ) {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
@@ -44,10 +46,13 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 	    	Logger.addAppender( app );
     	}
 
-		if( complete ) {
+    	if( complete ) {
+    		out.println( "Completing" );
 
 			try {
+				out.println( "Before" );
 				state.getBaseline().deliver( state.getBaseline().getStream(), state.getStream(), state.getSnapView().getViewRoot(), state.getSnapView().getViewtag(), true, true, true );
+				out.println( "After" );
 			} catch (UCMException ex) {
 
 				try {
@@ -71,6 +76,7 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 			}
 			
 		} else {
+			out.println( "Cancelling" );
 			try {
 				state.getBaseline().cancel( state.getSnapView().getViewRoot() );
 			} catch (UCMException ex) {

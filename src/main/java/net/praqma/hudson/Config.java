@@ -11,26 +11,19 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.hudson.exception.ScmException;
-import net.praqma.util.debug.PraqmaLogger;
-import net.praqma.util.debug.PraqmaLogger.Logger;
+import net.praqma.util.debug.Logger;
 
 public class Config {
 	
 	public static String nameShort = "CCUCM";
 	public static String nameLong = "ClearCase UCM";
 
-    /*public static final int __UNKNOWN_PROMOTE = 99;
-    public static final int __NO_PROMOTE = 100;
-    public static final int __PROMOTE_STABLE = 101;
-    public static final int __PROMOTE_UNSTABLE = 102;
-    //Logger*/
-    protected static Logger logger = PraqmaLogger.getLogger();
+    protected static Logger logger = Logger.getLogger();
 
     private Config() {
     }
 
     public static List<String> getLevels() {
-        logger.trace_function();
         List<String> levels = Project.getPromotionLevels();
         return levels;
     }
