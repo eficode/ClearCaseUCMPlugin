@@ -20,12 +20,13 @@ import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
 import net.praqma.hudson.*;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.scm.EstablishResult.ResultType;
-import net.praqma.util.debug.PraqmaLogger;
-import net.praqma.util.debug.PraqmaLogger.Logger;
+import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.appenders.StreamAppender;
 import net.praqma.util.structure.Tuple;
 
 import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
+import hudson.remoting.Pipe;
 import hudson.remoting.VirtualChannel;
 
 public class CheckoutTask implements FileCallable<EstablishResult> {
@@ -38,7 +39,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	private String loadModule;
 	private Baseline bl;
 	private String buildProject;
-	private Logger logger;
+	private Pipe pipe;
 	private String intStream;
 	private String baselinefqname;
 	private BuildListener listener;
@@ -46,8 +47,11 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	private String id = "";
 
 	private String log = "";
+	
+	
+	private Logger logger;
 
-	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, String intStream, String loadModule, String baselinefqname, String buildProject, Logger logger ) {
+	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, String intStream, String loadModule, String baselinefqname, String buildProject, Pipe pipe ) {
 		this.jobname = jobname;
 		this.jobNumber = jobNumber;
 		this.intStream = intStream;
@@ -55,20 +59,26 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		this.baselinefqname = baselinefqname;
 		this.buildProject = buildProject;
 		this.listener = listener;
-		this.logger = logger;
+		this.pipe = pipe;
 
 		this.id = "[" + jobname + "::" + jobNumber + "]";
 	}
 
 	@Override
 	public EstablishResult invoke( File workspace, VirtualChannel channel ) throws IOException {
-		PraqmaLogger.getLogger( logger );
-		/* Make sure that the local log file is not written */
-		logger.setLocalLog( null );
-		Cool.setLogger( logger );
-		hudsonOut = listener.getLogger();
 
-		log += logger.info( "Starting CheckoutTask" );
+		hudsonOut = listener.getLogger();
+		
+    	logger = Logger.getLogger();
+
+    	StreamAppender app = null;
+    	if( pipe != null ) {
+	    	PrintStream toMaster = new PrintStream( pipe.getOut() );	    	
+	    	app = new StreamAppender( toMaster );
+	    	Logger.addAppender( app );
+    	}
+
+		logger.info( "Starting CheckoutTask" );
 
 		String diff = "";
 		String viewtag = "";
@@ -92,22 +102,23 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 			hudsonOut.println( c + " version" + ( c == 1 ? "" : "s" ) + " involved" );
 			
 		} catch (net.praqma.hudson.exception.ScmException e) {
-			log += logger.debug( id + "SCM exception: " + e.getMessage() );
+			logger.debug( id + "SCM exception: " + e.getMessage() );
 			hudsonOut.println( "[" + Config.nameShort + "] SCM exception: " + e.getMessage() );
 			er.setResultType( ResultType.INITIALIZE_WORKSPACE_ERROR );
 		} catch (UCMException e) {
-			log += logger.debug( id + "Could not get changes. " + e.getMessage() );
-			log += logger.info( e );
+			logger.debug( id + "Could not get changes. " + e.getMessage() );
+			logger.info( e );
 			hudsonOut.println( "[" + Config.nameShort + "] Could not get changes. " + e.getMessage() );
 		}
 
-		log += logger.info( "CheckoutTask finished normally" );
+		logger.info( "CheckoutTask finished normally" );
 
 		er.setResultType( ResultType.SUCCESS );
 		er.setLog( log );
 		er.setMessage( diff );
 		er.setViewtag( viewtag );
 		er.setChangeset( changeset );
+		Logger.removeAppender( app );
 		return er;
 	}
 
@@ -121,9 +132,9 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 			throw new ScmException( "Could not get stream. Job might run on machine with different region. " + e.getMessage() );
 		}
 		if( workspace != null ) {
-			log += logger.debug( id + "workspace: " + workspace.getAbsolutePath() );
+			logger.debug( id + "workspace: " + workspace.getAbsolutePath() );
 		} else {
-			log += logger.debug( id + "workspace must be null???" );
+			logger.debug( id + "workspace must be null???" );
 		}
 
 		String newJobName = jobname.replaceAll("\\s", "_");
