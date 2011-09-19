@@ -1,8 +1,8 @@
 package net.praqma.hudson.scm;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+
+import net.praqma.clearcase.ucm.view.SnapshotView;
 
 public class EstablishResult implements Serializable {
 
@@ -23,6 +23,8 @@ public class EstablishResult implements Serializable {
 	private String log = "";
 	
 	private ClearCaseChangeset changeset = new ClearCaseChangeset();
+	
+	private SnapshotView view;
 	
 	private String message;
 	
@@ -106,6 +108,14 @@ public class EstablishResult implements Serializable {
 	
 	public void setChangeset( ClearCaseChangeset changeset ) {
 		this.changeset = changeset;
+	}
+
+	public SnapshotView getView() {
+		return view;
+	}
+
+	public void setView( SnapshotView view ) {
+		this.view = view;
 	}
 	
 

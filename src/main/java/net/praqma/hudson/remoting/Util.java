@@ -30,12 +30,12 @@ public abstract class Util {
 			if( workspace.isRemote() ) {
 				final Pipe pipe = Pipe.createRemoteToLocal();
 				Future<Boolean> i = null;
-				i = workspace.actAsync( new RemoteDeliverComplete( state, complete, listener, pipe ) );
+				i = workspace.actAsync( new RemoteDeliverComplete( state.getBaseline(), state.getStream(), state.getSnapView(), state.getChangeset(), complete, listener, pipe ) );
 				logger.redirect( pipe.getIn() );
 				i.get();
 			} else {
 				Future<Boolean> i = null;
-				i = workspace.actAsync( new RemoteDeliverComplete( state, complete, listener, null ) );
+				i = workspace.actAsync( new RemoteDeliverComplete( state.getBaseline(), state.getStream(), state.getSnapView(), state.getChangeset(), complete, listener, null ) );
 				i.get();
 			}
 			return;

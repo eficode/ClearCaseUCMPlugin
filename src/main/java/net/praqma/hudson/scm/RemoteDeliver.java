@@ -147,6 +147,7 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
 		}
 		
 		EstablishResult er = new EstablishResult(viewtag);
+		er.setView( snapview );
         er.setMessage( diff );
         er.setChangeset( changeset );
         

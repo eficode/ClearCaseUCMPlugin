@@ -5,8 +5,12 @@ import java.io.IOException;
 import java.io.PrintStream;
 
 import net.praqma.clearcase.ucm.UCMException;
+import net.praqma.clearcase.ucm.entities.Baseline;
+import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
+import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.scm.CCUCMState.State;
+import net.praqma.hudson.scm.ClearCaseChangeset;
 import net.praqma.hudson.scm.ClearCaseChangeset.Element;
 import net.praqma.util.debug.Logger;
 import net.praqma.util.debug.appenders.StreamAppender;
@@ -20,24 +24,30 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 
 	private static final long serialVersionUID = 2506984544940354996L;
 
-	private State state;
 	private boolean complete;
 	private BuildListener listener;
 	private Pipe pipe;
+	
+	private Baseline baseline;
+	private Stream stream;
+	private SnapshotView view;
+	private ClearCaseChangeset changeset;
 
-	public RemoteDeliverComplete( State state, boolean complete, BuildListener listener, Pipe pipe ) {
-		this.state = state;
+	public RemoteDeliverComplete( Baseline baseline, Stream stream, SnapshotView view, ClearCaseChangeset changeset, boolean complete, BuildListener listener, Pipe pipe ) {
 		this.complete = complete;
 		this.listener = listener;
 		this.pipe = pipe;
+		
+		this.baseline = baseline;
+		this.stream = stream;
+		this.view = view;
+		this.changeset = changeset;
 	}
 
 	@Override
 	public Boolean invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
 		
 		PrintStream out = listener.getLogger();
-		
-		out.println( "Setting up logger" );
 		
     	StreamAppender app = null;
     	if( pipe != null ) {
@@ -47,16 +57,14 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
     	}
 
     	if( complete ) {
-    		out.println( "Completing" );
 
 			try {
-				out.println( "Before" );
-				state.getBaseline().deliver( state.getBaseline().getStream(), state.getStream(), state.getSnapView().getViewRoot(), state.getSnapView().getViewtag(), true, true, true );
+				baseline.deliver( baseline.getStream(), stream, view.getViewRoot(), view.getViewtag(), true, true, true );
 				out.println( "After" );
 			} catch (UCMException ex) {
 
 				try {
-					state.getBaseline().cancel( state.getSnapView().getViewRoot() );
+					baseline.cancel( view.getViewRoot() );
 				} catch (UCMException ex1) {
 	        		Logger.removeAppender( app );
 					throw new IOException( "Completing the deliver failed. Could not cancel." );
@@ -66,9 +74,9 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 			}
 			
 			/* All is well, change ownerships */
-			for( Element e : state.getChangeset().getList() ) {
+			for( Element e : changeset.getList() ) {
 				try {
-					UCMEntity.changeOwnership( e.getVersion(), e.getUser(), state.getSnapView().getViewRoot() );
+					UCMEntity.changeOwnership( e.getVersion(), e.getUser(), view.getViewRoot() );
 				} catch( UCMException ex ) {
 					Logger.removeAppender( app );
 					out.println( "Unable to change ownership: " + ex.getMessage() );
@@ -78,7 +86,7 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 		} else {
 			out.println( "Cancelling" );
 			try {
-				state.getBaseline().cancel( state.getSnapView().getViewRoot() );
+				baseline.cancel( view.getViewRoot() );
 			} catch (UCMException ex) {
 				Logger.removeAppender( app );
 				throw new IOException( "Could not cancel the deliver." );

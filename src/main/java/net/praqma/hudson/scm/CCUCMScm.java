@@ -461,10 +461,13 @@ public class CCUCMScm extends SCM {
 				i = workspace.actAsync( rmDeliver );
 				logger.redirect( pipe.getIn() );
 				er = i.get();
+
             } else {
             	rmDeliver = new RemoteDeliver(state.getStream().getFullyQualifiedName(), listener, null, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
             	er = workspace.act(rmDeliver);
             }
+            
+			state.setSnapView(er.getView());
             
             /* Write change log */
             try {
@@ -477,8 +480,7 @@ public class CCUCMScm extends SCM {
                 consoleOutput.println("[" + Config.nameShort + "] Could not write change log file");
             }
 
-            /*Next line must be after the line above*/
-            state.setSnapView(rmDeliver.getSnapShotView());
+            
         } catch (IOException e) {
             consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
             result = false;
