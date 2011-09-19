@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
+import java.util.Set;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
@@ -28,11 +29,15 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
 	private Plevel plevel;
 	private Pipe pipe;
 	
-	public GetRemoteBaselineFromStream( Component component, Stream stream, Plevel plevel, Pipe pipe ) {
+	private Set<String> subscriptions;
+	
+	public GetRemoteBaselineFromStream( Component component, Stream stream, Plevel plevel, Pipe pipe, Set<String> subscriptions ) {
 		this.component = component;
 		this.stream = stream;
 		this.plevel = plevel;
 		this.pipe = pipe;
+		
+		this.subscriptions = subscriptions;
     }
     
     @Override
@@ -47,6 +52,7 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );	    	
 	    	app = new StreamAppender( toMaster );
 	    	Logger.addAppender( app );
+	    	app.setSubscriptions( subscriptions );
     	}
     	
     	logger.info( "Retrieving remote baselines from " + stream.getShortname() );

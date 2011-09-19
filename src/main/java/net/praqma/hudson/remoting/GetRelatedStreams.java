@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.List;
+import java.util.Set;
 
 import net.praqma.clearcase.Cool;
 import net.praqma.clearcase.Cool.ContextType;
@@ -30,12 +31,15 @@ public class GetRelatedStreams implements FileCallable<List<Stream>> {
 	private TaskListener listener;
 	private Pipe pipe;
 	
-	public GetRelatedStreams( TaskListener listener, Stream stream, boolean pollingChildStreams, Pipe pipe ) {
+	private Set<String> subscriptions;
+	
+	public GetRelatedStreams( TaskListener listener, Stream stream, boolean pollingChildStreams, Pipe pipe, Set<String> subscriptions ) {
 		this.stream = stream;
 		this.pollingChildStreams = pollingChildStreams;
 		this.listener = listener;
 		
 		this.pipe = pipe;
+		this.subscriptions = subscriptions;
     }
     
     @Override
@@ -49,6 +53,7 @@ public class GetRelatedStreams implements FileCallable<List<Stream>> {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
 	    	app = new StreamAppender( toMaster );
 	    	Logger.addAppender( app );
+	    	app.setSubscriptions( subscriptions );
     	}
     	
     	

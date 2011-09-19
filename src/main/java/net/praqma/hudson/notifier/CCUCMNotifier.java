@@ -25,7 +25,7 @@ import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.NotifierException;
 import net.praqma.hudson.nametemplates.NameTemplate;
 import net.praqma.hudson.remoting.RemoteDeliverComplete;
-import net.praqma.hudson.remoting.Util;
+import net.praqma.hudson.remoting.RemoteUtil;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.scm.CCUCMState.State;
 import net.praqma.util.debug.Logger;
@@ -115,18 +115,11 @@ public class CCUCMNotifier extends Notifier {
         this.id = "[" + jobName + "::" + jobNumber + "]";
         
         /* Preparing the logger */
-        File logfile = new File( build.getRootDir(), "log.log" );
+        File logfile = new File( build.getRootDir(), "ccucm.log" );
     	logger = Logger.getLogger();
     	FileAppender app = new FileAppender( logfile );
     	app.setTag( id );
-    	
-		if( build.getBuildVariables().get( Config.logVar ) != null ) {
-            String[] is = build.getBuildVariables().get( Config.logVar ).toString().split(",");
-			for( String i : is ) {
-				app.subscribe( i.trim() );
-			}
-        }
-    	
+    	net.praqma.hudson.Util.initializeAppender( build, app );
 	    Logger.addAppender( app );
 
         /* Prepare job variables */
@@ -292,7 +285,7 @@ public class CCUCMNotifier extends Notifier {
                         
             try {                
                 hudsonOut.print("[" + Config.nameShort + "] " + ( treatSuccessful ? "Completing" : "Cancelling" ) + " the deliver. ");
-                Util.completeRemoteDeliver( workspace, listener, pstate, treatSuccessful );
+                RemoteUtil.completeRemoteDeliver( workspace, listener, pstate, treatSuccessful );
                 hudsonOut.println("Success.");
                 
                 /* If deliver was completed, create the baseline */
@@ -304,7 +297,7 @@ public class CCUCMNotifier extends Notifier {
                         NameTemplate.validateTemplates( pstate );
                         String name = NameTemplate.parseTemplate( pstate.getNameTemplate(), pstate );
                         
-                        targetbaseline = Util.createRemoteBaseline( workspace, listener, name, pstate.getBaseline().getComponent(), pstate.getSnapView().getViewRoot(), pstate.getBaseline().getUser() );
+                        targetbaseline = RemoteUtil.createRemoteBaseline( workspace, listener, name, pstate.getBaseline().getComponent(), pstate.getSnapView().getViewRoot(), pstate.getBaseline().getUser() );
                         
                         hudsonOut.println( targetbaseline );
                     } catch( Exception e ) {
@@ -336,7 +329,7 @@ public class CCUCMNotifier extends Notifier {
                 if( treatSuccessful ) {
                     try{
                         hudsonOut.print("[" + Config.nameShort + "] Trying to cancel the deliver. ");
-                        Util.completeRemoteDeliver( workspace, listener, pstate, false );
+                        RemoteUtil.completeRemoteDeliver( workspace, listener, pstate, false );
                         hudsonOut.println("Success.");
                     } catch( Exception e1 ) {
                         hudsonOut.println(" Failed.");
@@ -366,12 +359,12 @@ public class CCUCMNotifier extends Notifier {
 				
             	i = workspace.actAsync(new RemotePostBuild(buildResult, status, listener,
             		                   pstate.isMakeTag(), pstate.doRecommend(), pstate.getUnstable(), 
-            		                   sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString(build.getNumber()), pipe));
+            		                   sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString(build.getNumber()), pipe, Logger.getSubscriptions()));
 				logger.redirect( pipe.getIn() );
             } else {
             	i = workspace.actAsync(new RemotePostBuild(buildResult, status, listener,
                         pstate.isMakeTag(), pstate.doRecommend(), pstate.getUnstable(), 
-                        sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString(build.getNumber()), null));
+                        sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString(build.getNumber()), null, Logger.getSubscriptions()));
             	
             }
 

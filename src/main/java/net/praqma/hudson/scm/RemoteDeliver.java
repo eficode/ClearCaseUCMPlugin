@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import net.praqma.clearcase.Cool;
 import net.praqma.clearcase.ucm.UCMException;
@@ -56,10 +57,11 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
     private PrintStream hudsonOut = null;
     
     private Pipe pipe;
+    private Set<String> subscriptions;
     
     private String viewtag = "";
 
-    public RemoteDeliver(String destinationstream, BuildListener listener, Pipe pipe,
+    public RemoteDeliver(String destinationstream, BuildListener listener, Pipe pipe, Set<String> subscriptions,
             /* Common values */
             String component, String loadModule, String baseline, String jobName) {
         this.jobName = jobName;
@@ -73,8 +75,7 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
         this.loadModule = loadModule;
         
         this.pipe = pipe;
-
-        // this.ucmDeliver = ucmDeliver;
+        this.subscriptions = subscriptions;
     }
 
     public EstablishResult invoke(File workspace, VirtualChannel channel) throws IOException {
@@ -86,6 +87,7 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );	    	
 	    	app = new StreamAppender( toMaster );
 	    	Logger.addAppender( app );
+	    	app.setSubscriptions( subscriptions );
     	}
 
         //TODO this should not be necessary cause its done in the Config.java file ????.

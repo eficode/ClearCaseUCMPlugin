@@ -17,6 +17,8 @@ public class Config {
 	public static String nameShort = "CCUCM";
 	public static String nameLong = "ClearCase UCM";
 	public static String logVar = "ccucm_log";
+	public static String levelVar = "ccucm_loglevel";
+	public static String logAllVar = "ccucm_logall";
 
     protected static Logger logger = Logger.getLogger();
 

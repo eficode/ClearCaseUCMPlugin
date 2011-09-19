@@ -3,6 +3,7 @@ package net.praqma.hudson.remoting;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Set;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
@@ -20,9 +21,13 @@ public class LoadEntity implements FileCallable<UCMEntity> {
 	private UCMEntity entity;
 	private Pipe pipe;
 	
-	public LoadEntity( UCMEntity entity, Pipe pipe ) {
+	private Set<String> subscriptions;
+	
+	public LoadEntity( UCMEntity entity, Pipe pipe, Set<String> subscriptions ) {
 		this.entity = entity;
 		this.pipe = pipe;
+		
+		this.subscriptions = subscriptions;
     }
     
     @Override
@@ -33,6 +38,7 @@ public class LoadEntity implements FileCallable<UCMEntity> {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
 	    	app = new StreamAppender( toMaster );
 	    	Logger.addAppender( app );
+	    	app.setSubscriptions( subscriptions );
     	}
         
     	try {

@@ -2,6 +2,7 @@ package net.praqma.hudson;
 
 import hudson.FilePath;
 import hudson.model.BuildListener;
+import hudson.model.AbstractBuild;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,6 +22,8 @@ import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.Logger.LogLevel;
+import net.praqma.util.debug.appenders.Appender;
 
 public abstract class Util {
 	
@@ -256,4 +259,33 @@ public abstract class Util {
 
         return snapview;
     }
+	
+	public static void initializeAppender( AbstractBuild<?,?> build, Appender appender ) {
+		appender.setSubscribeAll( false );
+		
+		/* Log classes */
+		if( build.getBuildVariables().get( Config.logVar ) != null ) {
+            String[] is = build.getBuildVariables().get( Config.logVar ).toString().split(",");
+			for( String i : is ) {
+				appender.subscribe( i.trim() );
+			}
+        }
+		
+		/* Log all */
+		if( build.getBuildVariables().get( Config.logAllVar ) != null ) {
+			appender.setSubscribeAll( true );
+		}
+		
+		/* Log level */
+		if( build.getBuildVariables().get( Config.levelVar ) != null ) {
+			try {
+				LogLevel level = LogLevel.valueOf( build.getBuildVariables().get( Config.levelVar ) );
+				appender.setMinimumLevel( level );
+			} catch( Exception e ) {
+				/* Just don't do it */
+			}
+		}
+		
+		System.out.println("SUBS: " + appender.getSubscriptions());
+	}
 }

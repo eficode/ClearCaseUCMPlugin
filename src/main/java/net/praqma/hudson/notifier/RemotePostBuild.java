@@ -9,6 +9,7 @@ import hudson.remoting.VirtualChannel;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Set;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
@@ -48,12 +49,13 @@ class RemotePostBuild implements FileCallable<Status> {
 	private Unstable unstable;
 
 	private Pipe pipe = null;
+	private Set<String> subscriptions;
 
 	public RemotePostBuild( Result result, Status status, BuildListener listener,
 							/* Values for */
 							boolean makeTag, boolean recommended, Unstable unstable,
 							/* Common values */
-							Baseline sourcebaseline, Baseline targetbaseline, Stream sourcestream, Stream targetstream, String displayName, String buildNumber, Pipe pipe ) {
+							Baseline sourcebaseline, Baseline targetbaseline, Stream sourcestream, Stream targetstream, String displayName, String buildNumber, Pipe pipe, Set<String> subscriptions ) {
 		
 		
 		this.displayName = displayName;
@@ -77,9 +79,7 @@ class RemotePostBuild implements FileCallable<Status> {
 		this.listener = listener;
 
 		this.pipe = pipe;
-		/*
-		 * this.pout = pout;
-		 */
+		this.subscriptions = subscriptions;
 	}
 
 	public Status invoke( File workspace, VirtualChannel channel ) throws IOException {
@@ -93,6 +93,7 @@ class RemotePostBuild implements FileCallable<Status> {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );	    	
 	    	app = new StreamAppender( toMaster );
 	    	Logger.addAppender( app );
+	    	app.setSubscriptions( subscriptions );
     	}
 
 		String newPLevel = "";
@@ -267,7 +268,7 @@ class RemotePostBuild implements FileCallable<Status> {
 		}
 		
 
-		logger.warning( id + "Remote post build finished normally" );
+		logger.info( id + "Remote post build finished normally" );
 		Logger.removeAppender( app );
 		return status;
 	}

@@ -2,7 +2,7 @@ package net.praqma.hudson.nametemplates;
 
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
-import net.praqma.hudson.remoting.Util;
+import net.praqma.hudson.remoting.RemoteUtil;
 import net.praqma.hudson.scm.CCUCMState.State;
 
 public class ProjectTemplate extends Template {
@@ -13,14 +13,14 @@ public class ProjectTemplate extends Template {
 		try {
 			Baseline bl = null;
 			if( !state.getBaseline().isLoaded() ) {
-				bl = (Baseline) Util.loadEntity( state.getWorkspace(), state.getBaseline() );
+				bl = (Baseline) RemoteUtil.loadEntity( state.getWorkspace(), state.getBaseline() );
 			} else {
 				bl = state.getBaseline();
 			}
 			
 			Stream st = null;
 			if( !bl.getStream().isLoaded() ) {
-				st = (Stream) Util.loadEntity( state.getWorkspace(), state.getBaseline().getStream() );
+				st = (Stream) RemoteUtil.loadEntity( state.getWorkspace(), state.getBaseline().getStream() );
 			} else {
 				st = bl.getStream();
 			}

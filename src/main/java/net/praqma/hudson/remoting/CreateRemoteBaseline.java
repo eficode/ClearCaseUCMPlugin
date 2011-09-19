@@ -3,6 +3,7 @@ package net.praqma.hudson.remoting;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Set;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
@@ -25,14 +26,16 @@ public class CreateRemoteBaseline implements FileCallable<Baseline> {
 	private BuildListener listener;
 	private String username;
 	private Pipe pipe;
+	private Set<String> subscriptions;
 	
-	public CreateRemoteBaseline( String baseName, Component component, File view, String username, BuildListener listener, Pipe pipe ) {
+	public CreateRemoteBaseline( String baseName, Component component, File view, String username, BuildListener listener, Pipe pipe, Set<String> subscriptions ) {
 		this.baseName = baseName;
 		this.component = component;
 		this.view = view;
 		this.listener = listener;
 		this.username = username;
 		this.pipe = pipe;
+		this.subscriptions = subscriptions;
     }
     
     @Override
@@ -44,6 +47,7 @@ public class CreateRemoteBaseline implements FileCallable<Baseline> {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
 	    	app = new StreamAppender( toMaster );
 	    	Logger.addAppender( app );
+	    	app.setSubscriptions( subscriptions );
     	}
         
     	Baseline bl = null;

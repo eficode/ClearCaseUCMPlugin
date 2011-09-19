@@ -3,13 +3,13 @@ package net.praqma.hudson.remoting;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Set;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.view.SnapshotView;
-import net.praqma.hudson.scm.CCUCMState.State;
 import net.praqma.hudson.scm.ClearCaseChangeset;
 import net.praqma.hudson.scm.ClearCaseChangeset.Element;
 import net.praqma.util.debug.Logger;
@@ -32,8 +32,10 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 	private Stream stream;
 	private SnapshotView view;
 	private ClearCaseChangeset changeset;
+	
+	private Set<String> subscriptions;
 
-	public RemoteDeliverComplete( Baseline baseline, Stream stream, SnapshotView view, ClearCaseChangeset changeset, boolean complete, BuildListener listener, Pipe pipe ) {
+	public RemoteDeliverComplete( Baseline baseline, Stream stream, SnapshotView view, ClearCaseChangeset changeset, boolean complete, BuildListener listener, Pipe pipe, Set<String> subscriptions ) {
 		this.complete = complete;
 		this.listener = listener;
 		this.pipe = pipe;
@@ -42,6 +44,8 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 		this.stream = stream;
 		this.view = view;
 		this.changeset = changeset;
+		
+		this.subscriptions = subscriptions;
 	}
 
 	@Override
@@ -49,11 +53,13 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 		
 		PrintStream out = listener.getLogger();
 		
+		Logger logger = Logger.getLogger();
     	StreamAppender app = null;
     	if( pipe != null ) {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
 	    	app = new StreamAppender( toMaster );
 	    	Logger.addAppender( app );
+	    	app.setSubscriptions( subscriptions );
     	}
 
     	if( complete ) {

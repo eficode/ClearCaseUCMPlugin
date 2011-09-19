@@ -29,6 +29,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import net.praqma.clearcase.ucm.UCMException;
@@ -48,11 +49,12 @@ import net.praqma.hudson.exception.TemplateException;
 import net.praqma.hudson.nametemplates.NameTemplate;
 import net.praqma.hudson.notifier.CCUCMNotifier;
 import net.praqma.hudson.remoting.GetRemoteBaselineFromStream;
-import net.praqma.hudson.remoting.Util;
+import net.praqma.hudson.remoting.RemoteUtil;
 import net.praqma.hudson.scm.Polling.PollingType;
 import net.praqma.hudson.scm.CCUCMState.State;
 import net.praqma.hudson.scm.StoredBaselines.StoredBaseline;
 import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.Logger.LogLevel;
 import net.praqma.util.debug.appenders.FileAppender;
 import net.praqma.util.debug.appenders.StreamAppender;
 import net.praqma.util.execute.CommandLine;
@@ -108,12 +110,13 @@ public class CCUCMScm extends SCM {
     private Polling polling;
     
     private String viewtag = "";
+    
+    private Set<String> subs;
 
     /**
      * Default constructor, mainly used for unit tests.
      */
     public CCUCMScm() {
-    	System.out.println( "[WOLLE]Default constructor!" );
     }
     
 
@@ -154,8 +157,6 @@ public class CCUCMScm extends SCM {
        this.recommend = recommend;
        this.makeTag = makeTag;
        this.setDescription = setDescription;
-       
-       System.out.println( "[WOLLE]Databound constructor!" );
 
    }
 
@@ -175,17 +176,11 @@ public class CCUCMScm extends SCM {
         
         /* Preparing the logger */
     	logger = Logger.getLogger();
-    	File logfile = new File( build.getRootDir(), "log.log" );
+    	File logfile = new File( build.getRootDir(), "ccucm.log" );
     	FileAppender app = new FileAppender( logfile );
     	app.setTag( id );
-	    
-		if( build.getBuildVariables().get( Config.logVar ) != null ) {
-            String[] is = build.getBuildVariables().get( Config.logVar ).toString().split(",");
-			for( String i : is ) {
-				app.subscribe( i.trim() );
-			}
-        }
-	    
+	    net.praqma.hudson.Util.initializeAppender( build, app );	    
+	    subs = app.getSubscriptions();
 	    Logger.addAppender( app );
         
 	    logger.info(id + "CCUCMSCM checkout v. " + net.praqma.hudson.Version.version, id);
@@ -295,11 +290,11 @@ public class CCUCMScm extends SCM {
         	Future<EstablishResult> i = null;
         	if( workspace.isRemote() ) {
         		final Pipe pipe = Pipe.createRemoteToLocal();
-        		CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream().getFullyQualifiedName(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, pipe);
+        		CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream().getFullyQualifiedName(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, pipe, Logger.getSubscriptions());
         		i = workspace.actAsync( ct );
         		logger.redirect( pipe.getIn() );
         	} else {
-        		CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream().getFullyQualifiedName(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, null);
+        		CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream().getFullyQualifiedName(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, null, Logger.getSubscriptions());
         		i = workspace.actAsync( ct );
         	}
         	er = i.get();
@@ -462,13 +457,13 @@ public class CCUCMScm extends SCM {
             if( workspace.isRemote() ) {
 				final Pipe pipe = Pipe.createRemoteToLocal();
 				Future<EstablishResult> i = null;
-				rmDeliver = new RemoteDeliver(state.getStream().getFullyQualifiedName(), listener, pipe, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
+				rmDeliver = new RemoteDeliver(state.getStream().getFullyQualifiedName(), listener, pipe, Logger.getSubscriptions(), component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
 				i = workspace.actAsync( rmDeliver );
 				logger.redirect( pipe.getIn() );
 				er = i.get();
 
             } else {
-            	rmDeliver = new RemoteDeliver(state.getStream().getFullyQualifiedName(), listener, null, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
+            	rmDeliver = new RemoteDeliver(state.getStream().getFullyQualifiedName(), listener, null, Logger.getSubscriptions(), component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
             	er = workspace.act(rmDeliver);
             }
             
@@ -521,7 +516,7 @@ public class CCUCMScm extends SCM {
         if( !result && er.isCancellable() ) {
             try {
                 consoleOutput.print("[" + Config.nameShort + "] Cancelling deliver. ");
-                Util.completeRemoteDeliver( workspace, listener, state, false );
+                RemoteUtil.completeRemoteDeliver( workspace, listener, state, false );
                 consoleOutput.println("Success");
                 
                 /* Make sure, that the post step is not run */
@@ -567,7 +562,7 @@ public class CCUCMScm extends SCM {
         List<Baseline> baselines = new ArrayList<Baseline>();
 
         try {
-        	streams = Util.getRelatedStreams( project.getSomeWorkspace(), listener, stream, pollingChildStreams );
+        	streams = RemoteUtil.getRelatedStreams( project.getSomeWorkspace(), listener, stream, pollingChildStreams );
         } catch( CCUCMException e1 ) {
         	e1.printStackTrace( consoleOutput );
             logger.warning( "Could not retrieve streams: " + e1.getMessage(), id );
@@ -583,7 +578,7 @@ public class CCUCMScm extends SCM {
                 consoleOutput.printf( "[" + Config.nameShort + "] [%02d] %s ", c, s.getShortname() );
                 c++;
                 //List<Baseline> found = getValidBaselinesFromStream(project, state, Project.getPlevelFromString(levelToPoll), s, component);
-                List<Baseline> found = Util.getRemoteBaselinesFromStream( project.getSomeWorkspace(), component, s, Project.getPlevelFromString(levelToPoll) );
+                List<Baseline> found = RemoteUtil.getRemoteBaselinesFromStream( project.getSomeWorkspace(), component, s, Project.getPlevelFromString(levelToPoll) );
                 for (Baseline b : found ) {
                     baselines.add(b);
                 }
@@ -631,12 +626,16 @@ public class CCUCMScm extends SCM {
     public PollingResult compareRemoteRevisionWith(AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState rstate) throws IOException, InterruptedException {
         this.id = "[" + project.getDisplayName() + "::" + project.getNextBuildNumber() + "]";
         
-        /* Preparing the logger */
+        FileAppender app = null;
+        /* Preparing the logger, uncomment to enable */
+        /*
     	logger = Logger.getLogger();
     	File logfile = new File( project.getRootDir(), "polling.log" );
-    	FileAppender app = new FileAppender( logfile );
-    	app.setTag( id );	    
+    	app = new FileAppender( logfile );
+    	app.setTag( id );
+    	app.setMinimumLevel( LogLevel.INFO );
 	    Logger.addAppender( app );
+	    */
 
         /*
          * Make a state object, which is only temporary, only to determine if
@@ -703,6 +702,8 @@ public class CCUCMScm extends SCM {
         	state.setAddedByPoller(true);
         }
         
+        
+        Logger.removeAppender( app );
         return p;
     }
     
@@ -783,7 +784,7 @@ public class CCUCMScm extends SCM {
         List<Baseline> baselines = null;
 
         try {
-			baselines = Util.getRemoteBaselinesFromStream( project.getSomeWorkspace(), component, stream, plevel );
+			baselines = RemoteUtil.getRemoteBaselinesFromStream( project.getSomeWorkspace(), component, stream, plevel );
 		} catch (CCUCMException e1) {
 			throw new ScmException( "Unable to get baselines from " + stream.getShortname() + ": " + e1.getMessage() );
 		}

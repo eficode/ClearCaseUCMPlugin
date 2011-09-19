@@ -6,6 +6,7 @@ import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
@@ -51,8 +52,9 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	
 	
 	private Logger logger;
+	private Set<String> subscriptions;
 
-	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, String intStream, String loadModule, String baselinefqname, String buildProject, Pipe pipe ) {
+	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, String intStream, String loadModule, String baselinefqname, String buildProject, Pipe pipe, Set<String> subscriptions ) {
 		this.jobname = jobname;
 		this.jobNumber = jobNumber;
 		this.intStream = intStream;
@@ -61,6 +63,8 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		this.buildProject = buildProject;
 		this.listener = listener;
 		this.pipe = pipe;
+		
+		this.subscriptions = subscriptions;
 
 		this.id = "[" + jobname + "::" + jobNumber + "]";
 	}
@@ -79,6 +83,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );	    	
 	    	app = new StreamAppender( toMaster );
 	    	Logger.addAppender( app );
+	    	app.setSubscriptions( subscriptions );
     	}
 
 		logger.info( "Starting CheckoutTask" );
