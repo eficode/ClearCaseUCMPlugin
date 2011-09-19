@@ -283,21 +283,20 @@ public class CCUCMScm extends SCM {
 
     	PrintStream consoleOutput = listener.getLogger();
     	
-    	EstablishResult er;
+    	EstablishResult er = null;
         try {
-            /* Force the Baseline to be loaded */
-            try {
-                state.getBaseline().load();
-            } catch (UCMException e) {
-                logger.debug(id + "Could not load Baseline");
-                consoleOutput.println("[" + Config.nameShort + "] Could not load Baseline.");
-            }
-
-
             
-            CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream().getFullyQualifiedName(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, null);
+        	CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream().getFullyQualifiedName(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, null);
 
-            er = workspace.act(ct);
+        	Future<EstablishResult> i = null;
+        	if( workspace.isRemote() ) {
+        		final Pipe pipe = Pipe.createRemoteToLocal();
+        		i = workspace.actAsync( ct );
+        		logger.redirect( pipe.getIn() );
+        	} else {
+        		i = workspace.actAsync( ct );
+        	}
+        	er = i.get();
             String changelog = er.getMessage();
 
             this.viewtag = er.getViewtag();
