@@ -119,6 +119,14 @@ public class CCUCMNotifier extends Notifier {
     	logger = Logger.getLogger();
     	FileAppender app = new FileAppender( logfile );
     	app.setTag( id );
+    	
+		if( build.getBuildVariables().get( Config.logVar ) != null ) {
+            String[] is = build.getBuildVariables().get( Config.logVar ).toString().split(",");
+			for( String i : is ) {
+				app.subscribe( i.trim() );
+			}
+        }
+    	
 	    Logger.addAppender( app );
 
         /* Prepare job variables */

@@ -1,6 +1,5 @@
 package net.praqma.hudson;
 
-import java.io.PrintStream;
 import java.util.List;
 
 import net.praqma.clearcase.ucm.UCMException;
@@ -17,6 +16,7 @@ public class Config {
 	
 	public static String nameShort = "CCUCM";
 	public static String nameLong = "ClearCase UCM";
+	public static String logVar = "ccucm_log";
 
     protected static Logger logger = Logger.getLogger();
 

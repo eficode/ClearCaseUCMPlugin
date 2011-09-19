@@ -178,6 +178,14 @@ public class CCUCMScm extends SCM {
     	File logfile = new File( build.getRootDir(), "log.log" );
     	FileAppender app = new FileAppender( logfile );
     	app.setTag( id );
+	    
+		if( build.getBuildVariables().get( Config.logVar ) != null ) {
+            String[] is = build.getBuildVariables().get( Config.logVar ).toString().split(",");
+			for( String i : is ) {
+				app.subscribe( i.trim() );
+			}
+        }
+	    
 	    Logger.addAppender( app );
         
 	    logger.info(id + "CCUCMSCM checkout v. " + net.praqma.hudson.Version.version, id);
@@ -620,11 +628,15 @@ public class CCUCMScm extends SCM {
      *
      */
     @Override
-    public PollingResult compareRemoteRevisionWith(AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener,
-            SCMRevisionState rstate) throws IOException, InterruptedException {
-        /* Preparing the logger */
-
+    public PollingResult compareRemoteRevisionWith(AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState rstate) throws IOException, InterruptedException {
         this.id = "[" + project.getDisplayName() + "::" + project.getNextBuildNumber() + "]";
+        
+        /* Preparing the logger */
+    	logger = Logger.getLogger();
+    	File logfile = new File( project.getRootDir(), "polling.log" );
+    	FileAppender app = new FileAppender( logfile );
+    	app.setTag( id );	    
+	    Logger.addAppender( app );
 
         /*
          * Make a state object, which is only temporary, only to determine if
