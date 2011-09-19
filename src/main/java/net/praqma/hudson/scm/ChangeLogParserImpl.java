@@ -16,8 +16,7 @@ import hudson.scm.ChangeLogSet;
 import hudson.scm.ChangeLogSet.Entry;
 import hudson.util.Digester2;
 
-import net.praqma.util.debug.PraqmaLogger;
-import net.praqma.util.debug.PraqmaLogger.Logger;
+import net.praqma.util.debug.Logger;
 
 /**
  * 
@@ -25,16 +24,12 @@ import net.praqma.util.debug.PraqmaLogger.Logger;
  * @author Margit Bennetzen
  * 
  */
-public class ChangeLogParserImpl extends ChangeLogParser
-{
+public class ChangeLogParserImpl extends ChangeLogParser {
 
-	protected static Logger logger = PraqmaLogger.getLogger();
+	protected static Logger logger = Logger.getLogger();
 
 	@Override
-	public ChangeLogSet<? extends Entry> parse( AbstractBuild build, File changelogFile ) throws IOException, SAXException
-	{
-		logger.trace_function();
-
+	public ChangeLogSet<? extends Entry> parse( AbstractBuild build, File changelogFile ) throws IOException, SAXException {
 		List<ChangeLogEntryImpl> entries = new ArrayList<ChangeLogEntryImpl>();
 
 		// Source: http://wiki.hudson-ci.org/display/HUDSON/Change+log

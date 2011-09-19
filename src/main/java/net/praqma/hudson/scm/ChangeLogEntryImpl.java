@@ -6,8 +6,7 @@ import java.util.List;
 import hudson.model.User;
 import hudson.scm.ChangeLogSet.Entry;
 
-import net.praqma.util.debug.PraqmaLogger;
-import net.praqma.util.debug.PraqmaLogger.Logger;
+import net.praqma.util.debug.Logger;
 
 /**
  * A change set is a collection of changed entries. This classes represents one
@@ -24,38 +23,29 @@ public class ChangeLogEntryImpl extends Entry {
 	private String msg;
 	private String author;
 	private String date;
-	protected static Logger logger = PraqmaLogger.getLogger();
+	protected static Logger logger = Logger.getLogger();
 	private volatile List<String> affectedPaths = new ArrayList<String>();
 
-	public ChangeLogEntryImpl()
-	{
-		logger.trace_function();
+	public ChangeLogEntryImpl() {
 	}
 
 	/**
 	 * Hudson calls this to show changes on the changes-page
 	 */
 	@Override
-	public Collection<String> getAffectedPaths()
-	{
-		logger.trace_function();
+	public Collection<String> getAffectedPaths() {
 		// a baseline can be set without any files changed - but then we wont
 		// build
 		return affectedPaths;
 	}
 
-	public void setNextFilepath( String filepath )
-	{
-		logger.trace_function();
+	public void setNextFilepath( String filepath ) {
 		affectedPaths.add( filepath );
 	}
 
 	@Override
-	public User getAuthor()
-	{
-		logger.trace_function();
-		if ( author == null )
-		{
+	public User getAuthor() {
+		if( author == null ) {
 			return User.getUnknown();
 		}
 		return User.get( author );
@@ -63,9 +53,7 @@ public class ChangeLogEntryImpl extends Entry {
 
 	// Digester in ChangeLogParserImpl cannot call setAuthor successfully, but
 	// setMyAuthor works.
-	public void setMyAuthor( String author )
-	{
-		logger.trace_function();
+	public void setMyAuthor( String author ) {
 		this.author = author;
 	}
 
@@ -74,9 +62,7 @@ public class ChangeLogEntryImpl extends Entry {
 	 * 
 	 * @param parent
 	 */
-	public void setParent( ChangeLogSetImpl parent )
-	{
-		logger.trace_function();
+	public void setParent( ChangeLogSetImpl parent ) {
 		this.parent = parent;
 	}
 
@@ -84,16 +70,12 @@ public class ChangeLogEntryImpl extends Entry {
 	 * Used in digest.jelly to get the message attached to the entry
 	 */
 	@Override
-	public String getMsg()
-	{
-		logger.trace_function();
+	public String getMsg() {
 		return actName;
 	}
 
-	public void setActName( String actName )
-	{
-		logger.trace_function();
+	public void setActName( String actName ) {
 		this.actName = actName;
 	}
-	
+
 }

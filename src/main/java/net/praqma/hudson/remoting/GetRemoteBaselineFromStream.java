@@ -45,7 +45,13 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
 	    	app = new StreamAppender( toMaster );
 	    	Logger.addAppender( app );
     	}
+    	
+    	logger.info( "Retrieving remote baselines from " + stream.getShortname() );
 
+    	logger.debug( "COMPONENT: " + component );
+    	logger.debug( "STREAM: " + stream );
+    	logger.debug( "LEVEL: " + plevel );
+    	
         /* The baseline list */
         BaselineList baselines = null;
         
@@ -55,6 +61,8 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
        		Logger.removeAppender( app );
             throw new IOException("Could not retrieve baselines from repository. " + e.getMessage());
         }
+        
+    	logger.debug( "After" );
         
         /* Load baselines remotely */
         for( Baseline baseline : baselines ) {

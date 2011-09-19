@@ -15,9 +15,7 @@ import java.util.ConcurrentModificationException;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.view.SnapshotView;
-import net.praqma.hudson.scm.Polling.PollingType;
-import net.praqma.util.debug.PraqmaLogger;
-import net.praqma.util.debug.PraqmaLogger.Logger;
+import net.praqma.util.debug.Logger;
 
 /**
  * This is the state object for the CCUCM jobs
@@ -29,7 +27,7 @@ public class CCUCMState {
 
 	private List<State> states = Collections.synchronizedList( new ArrayList<State>() );
 	private static final String linesep = System.getProperty( "line.separator" );
-	private Logger logger = PraqmaLogger.getLogger();
+	private Logger logger = Logger.getLogger();
 
 	/**
 	 * Get a state given job name and job number

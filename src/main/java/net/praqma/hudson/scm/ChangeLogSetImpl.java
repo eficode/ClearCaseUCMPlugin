@@ -4,8 +4,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import net.praqma.util.debug.PraqmaLogger;
-import net.praqma.util.debug.PraqmaLogger.Logger;
+import net.praqma.util.debug.Logger;
 
 import hudson.model.AbstractBuild;
 import hudson.scm.ChangeLogSet;
@@ -19,35 +18,27 @@ import hudson.scm.ChangeLogSet;
  * 
  */
 
-public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl>
-{
+public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl> {
 
-	protected static Logger logger = PraqmaLogger.getLogger();
+	protected static Logger logger = Logger.getLogger();
 	private List<ChangeLogEntryImpl> entries = null;
 	private String baselineName;
 
-	protected ChangeLogSetImpl( AbstractBuild<?, ?> build, List<ChangeLogEntryImpl> entries )
-	{
+	protected ChangeLogSetImpl( AbstractBuild<?, ?> build, List<ChangeLogEntryImpl> entries ) {
 		super( build );
-		logger.trace_function();
 
 		this.entries = Collections.unmodifiableList( entries );
-		for ( ChangeLogEntryImpl entry : entries )
-		{
+		for( ChangeLogEntryImpl entry : entries ) {
 			entry.setParent( this );
 		}
 	}
 
-	public Iterator<ChangeLogEntryImpl> iterator()
-	{
-		logger.trace_function();
+	public Iterator<ChangeLogEntryImpl> iterator() {
 		return entries.iterator();
 	}
 
 	@Override
-	public boolean isEmptySet()
-	{
-		logger.trace_function();
+	public boolean isEmptySet() {
 		return entries.isEmpty();
 	}
 
@@ -56,21 +47,15 @@ public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl>
 	 * 
 	 * @return
 	 */
-	public List<ChangeLogEntryImpl> getEntries()
-	{
-		logger.trace_function();
+	public List<ChangeLogEntryImpl> getEntries() {
 		return entries;
 	}
 
-	public void setBaselineName( String baselineName )
-	{
-		logger.trace_function();
+	public void setBaselineName( String baselineName ) {
 		this.baselineName = baselineName;
 	}
 
-	public String getBaselineName()
-	{
-		logger.trace_function();
+	public String getBaselineName() {
 		return baselineName;
 	}
 }

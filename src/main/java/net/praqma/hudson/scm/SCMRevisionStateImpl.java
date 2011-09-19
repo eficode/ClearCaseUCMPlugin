@@ -1,8 +1,7 @@
 package net.praqma.hudson.scm;
 
 import hudson.scm.SCMRevisionState;
-import net.praqma.util.debug.PraqmaLogger;
-import net.praqma.util.debug.PraqmaLogger.Logger;
+import net.praqma.util.debug.Logger;
 
 /**
  * 
@@ -10,14 +9,11 @@ import net.praqma.util.debug.PraqmaLogger.Logger;
  * @author Margit Bennetzen
  * 
  */
-public class SCMRevisionStateImpl extends SCMRevisionState
-{
+public class SCMRevisionStateImpl extends SCMRevisionState {
 
-	protected static Logger logger = PraqmaLogger.getLogger();
+	protected static Logger logger = Logger.getLogger();
 
-	public SCMRevisionStateImpl()
-	{
+	public SCMRevisionStateImpl() {
 		super();
-		logger.trace_function();
 	}
 }
