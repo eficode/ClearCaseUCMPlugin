@@ -95,7 +95,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 			BaselineDiff bldiff = bl.getDifferences( sv );
 			//List<Activity> bldiff = Version.getBaselineDiff( bl, null, true, sv.getViewRoot() );
 			diff = Util.createChangelog( bldiff, bl );
-			
+			hudsonOut.print( "[" + Config.nameShort + "] Found " + bldiff.size() + " activit" + ( bldiff.size() == 1 ? "y" : "ies" ) + ". " );
 			int c = 0;
 			for( Activity a : bldiff ) {
 				c += a.changeset.versions.size();

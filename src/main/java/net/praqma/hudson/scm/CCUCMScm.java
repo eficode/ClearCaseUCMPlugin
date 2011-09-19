@@ -113,6 +113,7 @@ public class CCUCMScm extends SCM {
      * Default constructor, mainly used for unit tests.
      */
     public CCUCMScm() {
+    	System.out.println( "[WOLLE]Default constructor!" );
     }
     
 
@@ -132,7 +133,7 @@ public class CCUCMScm extends SCM {
    @DataBoundConstructor
    public CCUCMScm(String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable
 		   /* Baseline creation */, boolean createBaseline, String nameTemplate
-		   /* Notofier options */ , boolean recommend, boolean makeTag, boolean setDescription
+		   /* Notifier options */ , boolean recommend, boolean makeTag, boolean setDescription
 		   /* Build options     */, String buildProject, boolean multiSite  ) {
 
        
@@ -153,12 +154,13 @@ public class CCUCMScm extends SCM {
        this.recommend = recommend;
        this.makeTag = makeTag;
        this.setDescription = setDescription;
+       
+       System.out.println( "[WOLLE]Databound constructor!" );
 
    }
 
     @Override
-    public boolean checkout(AbstractBuild<?, ?> build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile)
-            throws IOException, InterruptedException {
+    public boolean checkout(AbstractBuild<?, ?> build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile) throws IOException, InterruptedException {
         /* Prepare job variables */
 
         jobName = build.getParent().getDisplayName().replace(' ', '_');
@@ -171,10 +173,9 @@ public class CCUCMScm extends SCM {
         PrintStream consoleOutput = listener.getLogger();
         consoleOutput.println("[" + Config.nameShort + "] ClearCase UCM Plugin version " + net.praqma.hudson.Version.version );
         
-        File logfile = new File( build.getRootDir(), "log.log" );
-        
         /* Preparing the logger */
     	logger = Logger.getLogger();
+    	File logfile = new File( build.getRootDir(), "log.log" );
     	FileAppender app = new FileAppender( logfile );
     	app.setTag( id );
 	    Logger.addAppender( app );
@@ -248,7 +249,7 @@ public class CCUCMScm extends SCM {
         	}
         	
             if( polling.isPollingSelf() || !polling.isPolling() ) {
-            	result = bla( build, workspace, changelogFile, listener, state );
+            	result = initializeWorkspace( build, workspace, changelogFile, listener, state );
             } else {
             	/* Only start deliver when NOT polling self */
             	result = beginDeliver( build, state, listener, changelogFile );
@@ -276,7 +277,7 @@ public class CCUCMScm extends SCM {
         return result;
     }
     
-    private boolean bla( AbstractBuild<?, ?> build, FilePath workspace, File changelogFile, BuildListener listener, State state ) {
+    private boolean initializeWorkspace( AbstractBuild<?, ?> build, FilePath workspace, File changelogFile, BuildListener listener, State state ) {
 
     	PrintStream consoleOutput = listener.getLogger();
     	
@@ -286,7 +287,7 @@ public class CCUCMScm extends SCM {
         	Future<EstablishResult> i = null;
         	if( workspace.isRemote() ) {
         		final Pipe pipe = Pipe.createRemoteToLocal();
-        		CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream().getFullyQualifiedName(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, null);
+        		CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream().getFullyQualifiedName(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, pipe);
         		i = workspace.actAsync( ct );
         		logger.redirect( pipe.getIn() );
         	} else {
