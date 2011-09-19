@@ -15,7 +15,7 @@ import hudson.model.BuildListener;
 import hudson.remoting.Pipe;
 import hudson.remoting.VirtualChannel;
 
-public class CreateRemoteBaseline implements FileCallable<String> {
+public class CreateRemoteBaseline implements FileCallable<Baseline> {
 
 	private static final long serialVersionUID = -8984877325832486334L;
 
@@ -36,7 +36,7 @@ public class CreateRemoteBaseline implements FileCallable<String> {
     }
     
     @Override
-    public String invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
+    public Baseline invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
         PrintStream out = listener.getLogger();
         
     	StreamAppender app = null;
@@ -50,25 +50,20 @@ public class CreateRemoteBaseline implements FileCallable<String> {
     	try {
 			bl = Baseline.create( baseName, component, view, true, true );
 		} catch (UCMException e) {
-        	if( pipe != null ) {
-        		Logger.removeAppender( app );
-        	}
-			throw new IOException( "Unable to create Baseline:" + e.getMessage() );
+        	Logger.removeAppender( app );
+        	throw new IOException( "Unable to create Baseline:" + e.getMessage() );
 		}
     	
     	try {
 			bl.changeOwnership( username, null );
 		} catch (UCMException e) {
-        	if( pipe != null ) {
-        		Logger.removeAppender( app );
-        	}
-			throw new IOException( "Unable to change ownership of " + baseName + ":" + e.getMessage() );
+        	Logger.removeAppender( app );
+        	throw new IOException( "Unable to change ownership of " + baseName + ":" + e.getMessage() );
 		}
     
-    	if( pipe != null ) {
-    		Logger.removeAppender( app );
-    	}
-        return bl.getFullyQualifiedName();
+    	Logger.removeAppender( app );
+
+    	return bl;
     }
 
 }

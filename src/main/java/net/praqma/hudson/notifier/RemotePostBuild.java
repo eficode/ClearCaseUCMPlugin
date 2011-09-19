@@ -16,7 +16,6 @@ import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Tag;
 import net.praqma.clearcase.ucm.entities.UCM;
-import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.scm.Unstable;
 import net.praqma.util.debug.Logger;
@@ -34,10 +33,10 @@ class RemotePostBuild implements FileCallable<Status> {
 
 	private Result result;
 
-	private String sourcebaseline;
-	private String targetbaseline;
-	private String sourcestream;
-	private String targetstream;
+	private Baseline sourcebaseline;
+	private Baseline targetbaseline;
+	private Stream sourcestream;
+	private Stream targetstream;
 
 	private boolean makeTag = false;
 	private boolean recommend = false;
@@ -45,8 +44,6 @@ class RemotePostBuild implements FileCallable<Status> {
 	private BuildListener listener;
 
 	private String id = "";
-
-	private Logger logger = null;
 	private PrintStream hudsonOut = null;
 	private Unstable unstable;
 
@@ -56,7 +53,9 @@ class RemotePostBuild implements FileCallable<Status> {
 							/* Values for */
 							boolean makeTag, boolean recommended, Unstable unstable,
 							/* Common values */
-							String sourcebaseline, String targetbaseline, String sourcestream, String targetstream, String displayName, String buildNumber, Pipe pipe ) {
+							Baseline sourcebaseline, Baseline targetbaseline, Stream sourcestream, Stream targetstream, String displayName, String buildNumber, Pipe pipe ) {
+		
+		
 		this.displayName = displayName;
 		this.buildNumber = buildNumber;
 
@@ -87,6 +86,8 @@ class RemotePostBuild implements FileCallable<Status> {
 		hudsonOut = listener.getLogger();
 		UCM.setContext( UCM.ContextType.CLEARTOOL );
 		
+		Logger logger = Logger.getLogger();
+		
     	StreamAppender app = null;
     	if( pipe != null ) {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );	    	
@@ -97,38 +98,6 @@ class RemotePostBuild implements FileCallable<Status> {
 		String newPLevel = "";
 
 		logger.info( "Starting PostBuild task" );
-
-		/* Create the source baseline object */
-		Baseline sourcebaseline = null;
-		try {
-			sourcebaseline = UCMEntity.getBaseline( this.sourcebaseline );
-		} catch (UCMException e) {
-			logger.debug( id + "could not create source Baseline object:" + e.getMessage() );
-			Logger.removeAppender( app );
-			throw new IOException( "[" + Config.nameShort + "] Could not create source Baseline object: " + e.getMessage() );
-		}
-		
-		/* Create the target baseline object */
-		Baseline targetbaseline = null;
-		try {
-			targetbaseline = UCMEntity.getBaseline( this.targetbaseline );
-		} catch (UCMException e) {
-			logger.debug( id + "could not create target Baseline object:" + e.getMessage() );
-			Logger.removeAppender( app );
-			throw new IOException( "[" + Config.nameShort + "] Could not create target Baseline object: " + e.getMessage() );
-		}
-
-		/* Create the target stream object */
-		Stream targetstream = null;
-		try {
-			targetstream = UCMEntity.getStream( this.targetstream );
-		} catch (UCMException e) {
-			logger.debug( id + "could not create target Stream object:" + e.getMessage() );
-			Logger.removeAppender( app );
-			throw new IOException( "[" + Config.nameShort + "] Could not create target Stream object: " + e.getMessage() );
-		}
-
-		logger.warning( id + "Streams and baselines created" );
 
 		/* Create the Tag object */
 		Tag tag = null;
@@ -142,9 +111,10 @@ class RemotePostBuild implements FileCallable<Status> {
 				logger.warning( id + "Could not get Tag: " + e.getMessage() );
 			}
 		}
-
+		
 		/* The build was a success and the deliver did not fail */
 		if( result.equals( Result.SUCCESS ) && status.isStable() ) {
+
 			if( status.isTagAvailable() ) {
 				tag.setEntry( "buildstatus", "SUCCESS" );
 			}
@@ -283,7 +253,6 @@ class RemotePostBuild implements FileCallable<Status> {
 				hudsonOut.println( "[" + Config.nameShort + "] Tag object was null, tag not set." );
 			}
 		}
-
 		try {
 			newPLevel = sourcebaseline.getPromotionLevel( true ).toString();
 		} catch (UCMException e) {
@@ -296,6 +265,7 @@ class RemotePostBuild implements FileCallable<Status> {
 		} else {
 			status.setBuildDescr( setDisplaystatus( sourcebaseline.getShortname(), newPLevel, targetbaseline.getShortname(), status.getErrorMessage() ) );
 		}
+		
 
 		logger.warning( id + "Remote post build finished normally" );
 		Logger.removeAppender( app );

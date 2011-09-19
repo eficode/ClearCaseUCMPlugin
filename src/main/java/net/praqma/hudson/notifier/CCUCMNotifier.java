@@ -18,6 +18,7 @@ import org.kohsuke.stapler.StaplerRequest;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
+import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.Cool;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.hudson.Config;
@@ -248,15 +249,15 @@ public class CCUCMNotifier extends Notifier {
         hudsonOut.println("[" + Config.nameShort + "] Build result: " + buildResult);
         
         /* Initialize variables for post build steps */
-        String sourcestream = "";
+        Stream targetstream = null;
 		try {
-			sourcestream = pstate.getBaseline().getStream().getFullyQualifiedName();
+			targetstream = pstate.getBaseline().getStream();
 		} catch (UCMException e2) {
-			logger.warning( "Could not get name for source stream...." );
+			logger.error( "The target stream could not be resolved: " + e2.getMessage() );
 		}
-        String targetstream = sourcestream;
-        String sourcebaseline = pstate.getBaseline().getFullyQualifiedName();
-        String targetbaseline = sourcebaseline;
+        Stream sourcestream = targetstream;
+        Baseline sourcebaseline = pstate.getBaseline();
+        Baseline targetbaseline = sourcebaseline;
 
         logger.debug( "NTBC: " + pstate.needsToBeCompleted() );
         
@@ -341,7 +342,7 @@ public class CCUCMNotifier extends Notifier {
         
         
         if( pstate.getPolling().isPollingOther() ) {
-        	targetstream = pstate.getStream().getFullyQualifiedName();
+        	targetstream = pstate.getStream();
         }
     
         /* Remote post build step, common to all types */

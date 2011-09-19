@@ -60,7 +60,6 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 
 			try {
 				baseline.deliver( baseline.getStream(), stream, view.getViewRoot(), view.getViewtag(), true, true, true );
-				out.println( "After" );
 			} catch (UCMException ex) {
 
 				try {

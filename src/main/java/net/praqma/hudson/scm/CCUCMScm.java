@@ -232,16 +232,16 @@ public class CCUCMScm extends SCM {
         String baselineInput = getBaselineValue( build );
 
         /* The special Baseline case */
-        if (build.getBuildVariables().get(baselineInput) != null) {
-            logger.debug( "BASELINE: " + baselineInput );
-            polling = new Polling( PollingType.none );
-            result = doBaseline( build, baselineInput, state, listener );
-        } else {
-        	consoleOutput.println("[" + Config.nameShort + "] Polling streams: " + polling.toString());
-       		result = pollStream( build, state, listener );
-        }
+		if( build.getBuildVariables().get( baselineInput ) != null ) {
+			logger.debug( "BASELINE: " + baselineInput );
+			polling = new Polling( PollingType.none );
+			result = doBaseline( build, baselineInput, state, listener );
+		} else {
+			consoleOutput.println( "[" + Config.nameShort + "] Polling streams: " + polling.toString() );
+			result = pollStream( build, state, listener );
+		}
         
-        state.setPolling(polling);
+		state.setPolling( polling );
         
         /* If a baseline is found */
         if (state.getBaseline() != null && result ) {

@@ -45,17 +45,17 @@ public abstract class Util {
 		}
 	}
 
-	public static String createRemoteBaseline( FilePath workspace, BuildListener listener, String baseName, Component component, File view, String username ) throws CCUCMException {
+	public static Baseline createRemoteBaseline( FilePath workspace, BuildListener listener, String baseName, Component component, File view, String username ) throws CCUCMException {
 
 		try {
 			if( workspace.isRemote() ) {
 				final Pipe pipe = Pipe.createRemoteToLocal();
-				Future<String> i = null;
+				Future<Baseline> i = null;
 				i = workspace.actAsync( new CreateRemoteBaseline( baseName, component, view, username, listener, pipe ) );
 				logger.redirect( pipe.getIn() );
 				return i.get();
 			} else {
-				Future<String> i = null;
+				Future<Baseline> i = null;
 				i = workspace.actAsync( new CreateRemoteBaseline( baseName, component, view, username, listener, null ) );
 				return i.get();
 			}
