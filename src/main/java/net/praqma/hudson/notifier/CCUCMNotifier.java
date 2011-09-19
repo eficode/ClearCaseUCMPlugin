@@ -110,11 +110,15 @@ public class CCUCMNotifier extends Notifier {
         boolean result = true;
         hudsonOut = listener.getLogger();
         
+        status = new Status();
+        
+        this.id = "[" + jobName + "::" + jobNumber + "]";
+        
         /* Preparing the logger */
         File logfile = new File( build.getRootDir(), "log.log" );
     	logger = Logger.getLogger();
-    	//StreamAppender app = new StreamAppender( hudsonOut );
     	FileAppender app = new FileAppender( logfile );
+    	app.setTag( id );
 	    Logger.addAppender( app );
 
         /* Prepare job variables */
@@ -123,9 +127,7 @@ public class CCUCMNotifier extends Notifier {
 
 
 
-        status = new Status();
-        
-        this.id = "[" + jobName + "::" + jobNumber + "]";
+
 
         SCM scmTemp = null;
         /*TODO result is always true!!!!...
@@ -150,7 +152,7 @@ public class CCUCMNotifier extends Notifier {
             
             /* Validate the state */
             if (pstate.doPostBuild() && pstate.getBaseline() != null) {
-                logger.debug(id + "Post build");
+                logger.debug(id + "Post build", id);
 
                 /* This shouldn't actually be necessary!?
                  * TODO Maybe the baseline should be re-Load()ed instead of creating a new object?  */
@@ -161,7 +163,7 @@ public class CCUCMNotifier extends Notifier {
                     try {
                         baseline = UCMEntity.getBaseline(bl);
                     } catch (UCMException e) {
-                        logger.warning(id + "Could not initialize baseline.");
+                        logger.warning(id + "Could not initialize baseline.", id);
                         baseline = null;
                     }
 
@@ -212,7 +214,7 @@ public class CCUCMNotifier extends Notifier {
          */
         if ((scmTemp instanceof CCUCMScm) && baseline != null) {
             boolean done2 = pstate.remove();
-            logger.debug(id + "Removing job " + build.getNumber() + " from collection: " + done2);
+            logger.debug(id + "Removing job " + build.getNumber() + " from collection: " + done2, id);
         }
         
         hudsonOut.println( "[" + Config.nameShort + "] Post build steps done" );
@@ -236,13 +238,13 @@ public class CCUCMNotifier extends Notifier {
         VirtualChannel ch = launcher.getChannel();
 
         if (ch == null) {
-            logger.debug("The channel was null");
+            logger.debug("The channel was null", id);
         }
 
         FilePath workspace = build.getExecutor().getCurrentWorkspace();
 
         if (workspace == null) {
-            logger.warning("Workspace is null");
+            logger.warning("Workspace is null", id);
             throw new NotifierException("Workspace is null");
         }
 
@@ -253,13 +255,13 @@ public class CCUCMNotifier extends Notifier {
 		try {
 			targetstream = pstate.getBaseline().getStream();
 		} catch (UCMException e2) {
-			logger.error( "The target stream could not be resolved: " + e2.getMessage() );
+			logger.error( "The target stream could not be resolved: " + e2.getMessage(), id );
 		}
         Stream sourcestream = targetstream;
         Baseline sourcebaseline = pstate.getBaseline();
         Baseline targetbaseline = sourcebaseline;
 
-        logger.debug( "NTBC: " + pstate.needsToBeCompleted() );
+        logger.debug( "NTBC: " + pstate.needsToBeCompleted(), id );
         
 
         /* Determine whether to treat the build as successful
@@ -299,8 +301,8 @@ public class CCUCMNotifier extends Notifier {
                         hudsonOut.println( targetbaseline );
                     } catch( Exception e ) {
                         hudsonOut.println(" Failed: " + e.getMessage());
-                        logger.warning( "Failed to create baseline on stream" );
-                        logger.warning( e );
+                        logger.warning( "Failed to create baseline on stream", id );
+                        logger.warning( e, id );
                         /* We cannot recommend a baseline that is not created */
                         if( pstate.doRecommend() ) {
                         	hudsonOut.println( "[" + Config.nameShort + "] Cannot recommend Baseline when not created" );
@@ -314,7 +316,7 @@ public class CCUCMNotifier extends Notifier {
                 status.setBuildStatus(buildResult);
                 status.setStable(false);
                 hudsonOut.println("Failed.");
-                logger.warning(e);
+                logger.warning(e, id);
                 
                 /* We cannot recommend a baseline that is not created */
                 if( pstate.doRecommend() ) {
@@ -330,12 +332,12 @@ public class CCUCMNotifier extends Notifier {
                         hudsonOut.println("Success.");
                     } catch( Exception e1 ) {
                         hudsonOut.println(" Failed.");
-                        logger.warning( "Failed to cancel deliver" );
-                        logger.warning( e );
+                        logger.warning( "Failed to cancel deliver", id );
+                        logger.warning( e, id );
                     }
                 } else {
-                    logger.warning( "Failed to cancel deliver" );
-                    logger.warning( e );
+                    logger.warning( "Failed to cancel deliver", id );
+                    logger.warning( e, id );
                 }
             }
         } 
@@ -347,7 +349,7 @@ public class CCUCMNotifier extends Notifier {
     
         /* Remote post build step, common to all types */
         try {
-            logger.debug(id + "Remote post build step");
+            logger.debug(id + "Remote post build step", id);
             hudsonOut.println("[" + Config.nameShort + "] Performing common post build steps");
             
             Future<Status> i = null;
@@ -368,15 +370,15 @@ public class CCUCMNotifier extends Notifier {
             status = i.get();
         } catch (Exception e) {
             status.setStable(false);
-            logger.debug(id + "Something went wrong: " + e.getMessage());
-            logger.warning(e);
+            logger.debug(id + "Something went wrong: " + e.getMessage(), id);
+            logger.warning(e, id);
             hudsonOut.println("[" + Config.nameShort + "] Error: Post build failed: " + e.getMessage());
         }
 
         /* If the promotion level of the baseline was changed on the remote */
         if (status.getPromotedLevel() != null) {
             pstate.getBaseline().setPromotionLevel(status.getPromotedLevel());
-            logger.debug(id + "Baselines promotion level sat to " + status.getPromotedLevel().toString());
+            logger.debug(id + "Baselines promotion level sat to " + status.getPromotedLevel().toString(), id);
         }
         
         status.setBuildStatus(buildResult);
@@ -398,13 +400,11 @@ public class CCUCMNotifier extends Notifier {
 
         public DescriptorImpl() {
             super(CCUCMNotifier.class);
-            //logger.trace_function();
             load();
         }
 
         @Override
         public String getDisplayName() {
-            //logger.trace_function();
             return "ClearCase UCM";
         }
 
@@ -424,7 +424,6 @@ public class CCUCMNotifier extends Notifier {
 
         @Override
         public boolean isApplicable(Class<? extends AbstractProject> arg0) {
-            //logger.trace_function();
             return true;
         }
     }

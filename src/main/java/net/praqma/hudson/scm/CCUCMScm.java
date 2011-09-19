@@ -175,15 +175,15 @@ public class CCUCMScm extends SCM {
         
         /* Preparing the logger */
     	logger = Logger.getLogger();
-    	//StreamAppender app = new StreamAppender( consoleOutput );
     	FileAppender app = new FileAppender( logfile );
+    	app.setTag( id );
 	    Logger.addAppender( app );
         
-	    logger.info(id + "CCUCMSCM checkout v. " + net.praqma.hudson.Version.version);
+	    logger.info(id + "CCUCMSCM checkout v. " + net.praqma.hudson.Version.version, id);
 	    
         /* Recalculate the states */
         int count = ccucm.recalculate(build.getProject());
-        logger.info(id + "Removed " + count + " from states.");
+        logger.info(id + "Removed " + count + " from states.", id);
         
         doPostBuild = true;
         
@@ -192,7 +192,7 @@ public class CCUCMScm extends SCM {
         state.setLoadModule(loadModule);
         storeStateParameters( state );
         
-        logger.debug(id + "The initial state:\n" + state.stringify());
+        logger.debug(id + "The initial state:\n" + state.stringify(), id);
         
         /* Check template */
         state.setCreatebaseline( createBaseline );
@@ -230,7 +230,7 @@ public class CCUCMScm extends SCM {
 
         /* The special Baseline case */
 		if( build.getBuildVariables().get( baselineInput ) != null ) {
-			logger.debug( "BASELINE: " + baselineInput );
+			logger.debug( "BASELINE: " + baselineInput, id );
 			polling = new Polling( PollingType.none );
 			result = doBaseline( build, baselineInput, state, listener );
 		} else {
@@ -260,7 +260,7 @@ public class CCUCMScm extends SCM {
         
         boolean used = false;
         for( Publisher p : build.getParent().getPublishersList() ) {
-        	logger.debug( "NOTIFIER: " + p.toString() );
+        	logger.debug( "NOTIFIER: " + p.toString(), id );
         	if( p instanceof CCUCMNotifier ) {
         		used = true;
         		break;
@@ -268,7 +268,7 @@ public class CCUCMScm extends SCM {
         }
         
         if( !used ) {
-        	logger.info( "Adding notifier to project" );
+        	logger.info( "Adding notifier to project", id );
         	build.getParent().getPublishersList().add( new CCUCMNotifier() );
         }
         
@@ -306,13 +306,13 @@ public class CCUCMScm extends SCM {
                 fos.write(changelog.getBytes());
                 fos.close();
             } catch (IOException e) {
-                logger.debug(id + "Could not write change log file");
+                logger.debug(id + "Could not write change log file", id);
                 consoleOutput.println("[" + Config.nameShort + "] Could not write change log file");
             }
 
         } catch (Exception e) {
             consoleOutput.println("[" + Config.nameShort + "] An unknown error occured: " + e.getMessage());
-            logger.warning(e);
+            logger.warning(e, id);
             e.printStackTrace(consoleOutput);
             doPostBuild = false;
             state.setPostBuild(false);
@@ -341,7 +341,7 @@ public class CCUCMScm extends SCM {
             /* The component could be used in the post build section */
             state.setComponent(state.getBaseline().getComponent());
             state.setStream(state.getBaseline().getStream());
-            logger.debug(id + "Saving the component for later use");
+            logger.debug(id + "Saving the component for later use", id);
         } catch (UCMException e) {
             consoleOutput.println("[" + Config.nameShort + "] Could not find baseline from parameter '" + baselinename + "'.");
             state.setPostBuild(false);
@@ -431,7 +431,7 @@ public class CCUCMScm extends SCM {
             
         } catch( Exception e ) {
             consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
-            logger.warning( e );
+            logger.warning( e, id );
             return false;
         }
         
@@ -472,7 +472,7 @@ public class CCUCMScm extends SCM {
                 fos.write(er.getMessage().getBytes());
                 fos.close();
             } catch (IOException e) {
-                logger.debug(id + "Could not write change log file");
+                logger.debug(id + "Could not write change log file", id);
                 consoleOutput.println("[" + Config.nameShort + "] Could not write change log file");
             }
 
@@ -482,27 +482,27 @@ public class CCUCMScm extends SCM {
             result = false;
         } catch( InterruptedException e ) {
             consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
-            logger.warning( e );
+            logger.warning( e, id );
             result = false;
         } catch (ExecutionException e) {
             consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
-            logger.warning( e );
+            logger.warning( e, id );
             result = false;
 		}
         
-        logger.debug( id + "RESULT: " + er.getResultType().toString() );
+        logger.debug( id + "RESULT: " + er.getResultType().toString(), id );
         state.setChangeset( er.getChangeset() );
         
         /* The result must be false if the returnStatus is not equal to 0 */
         if( er.isFailed() ) {
-        	logger.debug( id + "Result is false!" );
+        	logger.debug( id + "Result is false!", id );
         	result = false;
         }
         
         /* If returnStatus == 1|2|3 the deliver was not started and should not be tried cancelled later 
          * Perhaps isFailed could be used? */
         if( er.isDeliverRequiresRebase() || er.isInterprojectDeliverDenied() || !er.isStarted() ) {
-        	logger.debug( id + "No need for completing deliver" );
+        	logger.debug( id + "No need for completing deliver", id );
         	state.setNeedsToBeCompleted( false );
         }
         
@@ -520,7 +520,7 @@ public class CCUCMScm extends SCM {
                 
             } catch( Exception e ) {
                 consoleOutput.println("Failed");
-                logger.warning(e);
+                logger.warning(e, id);
                 consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
             }
         }
@@ -538,7 +538,7 @@ public class CCUCMScm extends SCM {
 			state.setStream(UCMEntity.getStream(stream));
 		} catch (UCMException e) {
             consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
-            logger.warning( e );
+            logger.warning( e, id );
             result = false;
 		}
         
@@ -561,7 +561,7 @@ public class CCUCMScm extends SCM {
         	streams = Util.getRelatedStreams( project.getSomeWorkspace(), listener, stream, pollingChildStreams );
         } catch( CCUCMException e1 ) {
         	e1.printStackTrace( consoleOutput );
-            logger.warning( "Could not retrieve streams: " + e1.getMessage() );
+            logger.warning( "Could not retrieve streams: " + e1.getMessage(), id );
             consoleOutput.println("[" + Config.nameShort + "] No streams found");
             return baselines;
         }
@@ -670,16 +670,16 @@ public class CCUCMScm extends SCM {
 	            p = PollingResult.NO_CHANGES;
 	        }
 	
-	        logger.debug(id + "FINAL Polling result = " + p.change.toString());
+	        logger.debug( id + "FINAL Polling result = " + p.change.toString(), id );
 	
-	        logger.debug(id + "The POLL state:\n" + state.stringify());
+	        logger.debug(id + "The POLL state:\n" + state.stringify(), id);
 	
 	        /* Remove state if not being built */
 	        if( p == PollingResult.NO_CHANGES ) {
 	            state.remove();
 	        }
 	    } catch (ScmException e) {
-			logger.warning( "Could not get any baselines: " + e.getMessage() );
+			logger.warning( "Could not get any baselines: " + e.getMessage(), id );
 			p = PollingResult.NO_CHANGES;
 		}
         
@@ -702,13 +702,13 @@ public class CCUCMScm extends SCM {
         try {
             state.setStream( UCMEntity.getStream( stream, true ) );
         } catch( UCMException e ) {
-            logger.warning( e );
+            logger.warning( e, id );
         }
         
         try {
             state.setComponent( UCMEntity.getComponent( component, true ) );
         } catch( UCMException e ) {
-            logger.warning( e );
+            logger.warning( e, id );
         }
         
         state.setUnstable( treatUnstable );
@@ -764,7 +764,7 @@ public class CCUCMScm extends SCM {
      * @throws ScmException
      */
     private List<Baseline> getValidBaselinesFromStream(AbstractProject<?, ?> project, State state, Project.Plevel plevel, Stream stream, Component component) throws ScmException {
-        logger.debug(id + "Retrieving valid baselines.");
+        logger.debug(id + "Retrieving valid baselines.", id);
 
         /* The baseline list */
         List<Baseline> baselines = null;
@@ -775,12 +775,12 @@ public class CCUCMScm extends SCM {
 			throw new ScmException( "Unable to get baselines from " + stream.getShortname() + ": " + e1.getMessage() );
 		}
         
-        logger.debug(id + "GetBaseline state:\n" + state.stringify());
+        logger.debug(id + "GetBaseline state:\n" + state.stringify(), id);
         
         List<Baseline> validBaselines = new ArrayList<Baseline>();
         
         if (baselines.size() >= 1) {
-            logger.debug(id + "CCUCM=" + ccucm.stringify());
+            logger.debug(id + "CCUCM=" + ccucm.stringify(), id);
 
             try {
                 /* For each baseline in the list */
@@ -802,18 +802,18 @@ public class CCUCMScm extends SCM {
 
                         /* The job is not running */
                         if (!bld.isLogUpdated()) {
-                            logger.debug(id + "Job " + bld.getNumber() + " is not building");
+                            logger.debug(id + "Job " + bld.getNumber() + " is not building", id);
 
                             /*
                              * Verify that the found baseline has the same
                              * promotion as the stored(if stored)
                              */
                             if (sbl == null || sbl.plevel == b.getPromotionLevel(true)) {
-                                logger.debug(id + b + " was added to selected list");
+                                logger.debug(id + b + " was added to selected list", id);
                                 validBaselines.add(b);
                             }
                         } else {
-                            logger.debug(id + "Job " + bld.getNumber() + " is building " + cstate.getBaseline().getFullyQualifiedName());
+                            logger.debug(id + "Job " + bld.getNumber() + " is building " + cstate.getBaseline().getFullyQualifiedName(), id);
                         }
                     } /* The baseline is available */ else {
                         /*
@@ -821,14 +821,14 @@ public class CCUCMScm extends SCM {
                          * as the stored(if stored)
                          */
                         if (sbl == null || sbl.plevel == b.getPromotionLevel(true)) {
-                            logger.debug(id + b + " was added to selected list");
+                            logger.debug(id + b + " was added to selected list", id);
                             validBaselines.add(b);
                         }
                     }
                 }
 
                 if (validBaselines.size() == 0) {
-                    logger.log(id + "No baselines available on chosen parameters.");
+                    logger.log(id + "No baselines available on chosen parameters.", id);
                     throw new ScmException("No baselines available on chosen parameters.");
                 }
 
