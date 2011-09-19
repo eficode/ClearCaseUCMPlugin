@@ -1,5 +1,6 @@
 package net.praqma.hudson.scm;
 
+import hudson.FilePath;
 import hudson.model.Build;
 import hudson.model.AbstractProject;
 import java.util.ArrayList;
@@ -150,7 +151,6 @@ public class CCUCMState {
 		private Polling polling;
 		private Unstable unstable;
 		private boolean needsToBeCompleted = true;
-		private Logger logger;
 		private SnapshotView snapView;
 		private SnapshotView deliverView;
 		private boolean createBaseline = true;
@@ -161,6 +161,8 @@ public class CCUCMState {
 		private boolean setDescription = false;
 		private boolean makeTag = false;
 		private boolean recommend = false;
+		
+		private FilePath workspace;
 
 		private String error;
 
@@ -262,13 +264,6 @@ public class CCUCMState {
 			return plevel;
 		}
 
-		public void setLogger( Logger logger ) {
-			this.logger = logger;
-		}
-
-		public Logger getLogger() {
-			return logger;
-		}
 
 		public String stringify() {
 			StringBuffer sb = new StringBuffer();
@@ -417,6 +412,14 @@ public class CCUCMState {
 
 		public void setChangeset( ClearCaseChangeset changeset ) {
 			this.changeset = changeset;
+		}
+
+		public FilePath getWorkspace() {
+			return workspace;
+		}
+
+		public void setWorkspace( FilePath workspace ) {
+			this.workspace = workspace;
 		}
 
 	}

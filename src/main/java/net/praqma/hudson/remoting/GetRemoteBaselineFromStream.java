@@ -60,9 +60,6 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
         for( Baseline baseline : baselines ) {
         	try {
 				baseline.load();
-				/* Perhaps this is a bit costly? */
-				baseline.getStream().load();
-				baseline.getStream().getProject().load();
 			} catch (UCMException e) {
 				logger.warning( "Could not load the baseline " + baseline.getShortname() + ": " + e.getMessage() );
 				/* Maybe it should be removed from the list... In fact, this shouldn't happen */

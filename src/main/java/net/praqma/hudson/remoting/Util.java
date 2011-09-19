@@ -10,6 +10,7 @@ import java.util.List;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Stream;
+import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.entities.Project.Plevel;
 import net.praqma.hudson.exception.CCUCMException;
 import net.praqma.hudson.scm.CCUCMState.State;
@@ -110,4 +111,26 @@ public abstract class Util {
 			throw new CCUCMException( e.getMessage() );
 		}
 	}
+	
+	public static UCMEntity loadEntity( FilePath workspace, UCMEntity entity ) throws CCUCMException {
+		
+		try {
+			Future<UCMEntity> i = null;
+			
+			if( workspace.isRemote() ) {
+				final Pipe pipe = Pipe.createRemoteToLocal();
+				
+				i = workspace.actAsync( new LoadEntity( entity, pipe ) );
+				logger.redirect( pipe.getIn() );
+				
+			} else {
+				i = workspace.actAsync( new LoadEntity( entity, null ) );
+			}
+			
+			return i.get();
+
+		} catch (Exception e) {
+			throw new CCUCMException( e.getMessage() );
+		}
+	}	
 }

@@ -1,5 +1,8 @@
 package net.praqma.hudson.nametemplates;
 
+import net.praqma.clearcase.ucm.entities.Baseline;
+import net.praqma.clearcase.ucm.entities.Stream;
+import net.praqma.hudson.remoting.Util;
 import net.praqma.hudson.scm.CCUCMState.State;
 
 public class ProjectTemplate extends Template {
@@ -8,7 +11,21 @@ public class ProjectTemplate extends Template {
 	public String parse( State state, String args ) {
 		
 		try {
-			return state.getBaseline().getStream().getProject().getShortname();
+			Baseline bl = null;
+			if( !state.getBaseline().isLoaded() ) {
+				bl = (Baseline) Util.loadEntity( state.getWorkspace(), state.getBaseline() );
+			} else {
+				bl = state.getBaseline();
+			}
+			
+			Stream st = null;
+			if( !bl.getStream().isLoaded() ) {
+				st = (Stream) Util.loadEntity( state.getWorkspace(), state.getBaseline().getStream() );
+			} else {
+				st = bl.getStream();
+			}
+			
+			return st.getProject().getShortname();
 		} catch ( Exception e ) {
 			return "unknownproject";
 		}

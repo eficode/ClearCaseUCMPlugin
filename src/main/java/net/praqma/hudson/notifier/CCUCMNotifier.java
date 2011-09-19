@@ -290,7 +290,7 @@ public class CCUCMNotifier extends Notifier {
 
                 	try {
                         hudsonOut.print("[" + Config.nameShort + "] Creating baseline on Integration stream. ");
-
+                        pstate.setWorkspace( workspace );
                         NameTemplate.validateTemplates( pstate );
                         String name = NameTemplate.parseTemplate( pstate.getNameTemplate(), pstate );
                         
