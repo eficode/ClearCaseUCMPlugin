@@ -3,6 +3,8 @@ package net.praqma.hudson.scm;
 import hudson.FilePath;
 import hudson.model.Build;
 import hudson.model.AbstractProject;
+import hudson.util.CopyOnWriteList;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -25,7 +27,8 @@ import net.praqma.util.debug.Logger;
  */
 public class CCUCMState {
 
-	private List<State> states = Collections.synchronizedList( new ArrayList<State>() );
+	//private List<State> states = Collections.synchronizedList( new ArrayList<State>() );
+	private CopyOnWriteList<State> states = new CopyOnWriteList<State>();
 	private static final String linesep = System.getProperty( "line.separator" );
 	private Logger logger = Logger.getLogger();
 
@@ -130,7 +133,7 @@ public class CCUCMState {
 	}
 
 	public String stringify() {
-		return net.praqma.util.structure.Printer.listPrinterToString( states );
+		return states.toString();
 	}
 
 	public class State {
