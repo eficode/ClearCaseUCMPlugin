@@ -33,7 +33,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import net.praqma.clearcase.ucm.UCMException;
-import net.praqma.clearcase.Cool;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
@@ -41,23 +40,18 @@ import net.praqma.clearcase.ucm.entities.Project.Plevel;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.entities.UCMEntity.LabelStatus;
-import net.praqma.clearcase.ucm.utils.BaselineList;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.CCUCMException;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.exception.TemplateException;
 import net.praqma.hudson.nametemplates.NameTemplate;
 import net.praqma.hudson.notifier.CCUCMNotifier;
-import net.praqma.hudson.remoting.GetRemoteBaselineFromStream;
 import net.praqma.hudson.remoting.RemoteUtil;
 import net.praqma.hudson.scm.Polling.PollingType;
 import net.praqma.hudson.scm.CCUCMState.State;
 import net.praqma.hudson.scm.StoredBaselines.StoredBaseline;
 import net.praqma.util.debug.Logger;
-import net.praqma.util.debug.Logger.LogLevel;
 import net.praqma.util.debug.appenders.FileAppender;
-import net.praqma.util.debug.appenders.StreamAppender;
-import net.praqma.util.execute.CommandLine;
 import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -682,7 +676,7 @@ public class CCUCMScm extends SCM {
 	            p = PollingResult.NO_CHANGES;
 	        }
 	
-	        logger.debug( id + "FINAL Polling result = " + p.change.toString(), id );
+	        //logger.debug( id + "FINAL Polling result = " + p.change.toString(), id );
 	
 	        logger.debug(id + "The POLL state:\n" + state.stringify(), id);
 	
