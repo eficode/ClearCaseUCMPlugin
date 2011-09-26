@@ -51,6 +51,7 @@ import net.praqma.hudson.scm.Polling.PollingType;
 import net.praqma.hudson.scm.CCUCMState.State;
 import net.praqma.hudson.scm.StoredBaselines.StoredBaseline;
 import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.Logger.LogLevel;
 import net.praqma.util.debug.appenders.FileAppender;
 import net.sf.json.JSONObject;
 
@@ -622,14 +623,12 @@ public class CCUCMScm extends SCM {
         
         FileAppender app = null;
         /* Preparing the logger, uncomment to enable */
-        /*
     	logger = Logger.getLogger();
     	File logfile = new File( project.getRootDir(), "polling.log" );
     	app = new FileAppender( logfile );
     	app.setTag( id );
     	app.setMinimumLevel( LogLevel.INFO );
 	    Logger.addAppender( app );
-	    */
 
         /*
          * Make a state object, which is only temporary, only to determine if
