@@ -7,6 +7,7 @@ import net.praqma.clearcase.ucm.entities.Project;
 import hudson.model.Result;
 
 public class Status implements Serializable {
+	private static final long serialVersionUID = 1113020858633109523L;
 	private boolean recommended = true;
 	private boolean tagPersisted = false;
 	private boolean tagAvailable = false;

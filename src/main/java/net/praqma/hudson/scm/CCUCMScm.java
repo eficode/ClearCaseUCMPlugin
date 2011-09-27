@@ -54,6 +54,7 @@ import net.praqma.hudson.scm.StoredBaselines.StoredBaseline;
 import net.praqma.util.debug.Logger;
 import net.praqma.util.debug.Logger.LogLevel;
 import net.praqma.util.debug.appenders.FileAppender;
+import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -72,12 +73,11 @@ import org.kohsuke.stapler.export.Exported;
  */
 public class CCUCMScm extends SCM {
 
-	private Project.Plevel plevel;
+    private Project.Plevel plevel;
     private String levelToPoll;
     private String loadModule;
     private String component;
     private String stream;
-    private boolean newest;
     private String bl;
     private StringBuffer pollMsgs = new StringBuffer();
     private Stream integrationstream;
@@ -134,12 +134,10 @@ public class CCUCMScm extends SCM {
 		   /* Notifier options */ , boolean recommend, boolean makeTag, boolean setDescription
 		   /* Build options     */, String buildProject  ) {
 
-
        this.component = component;
        this.levelToPoll = levelToPoll;
        this.loadModule = loadModule;
        this.stream = stream;
-       this.newest = newest;
        this.buildProject = buildProject;
 
        this.polling = new Polling(polling);
@@ -152,9 +150,9 @@ public class CCUCMScm extends SCM {
        this.recommend = recommend;
        this.makeTag = makeTag;
        this.setDescription = setDescription;
-
        this.plevel = Util.getLevel( levelToPoll );
    }
+   
 
     @Override
     public boolean checkout(AbstractBuild<?, ?> build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile) throws IOException, InterruptedException {
@@ -241,25 +239,36 @@ public class CCUCMScm extends SCM {
         }
 
         consoleOutput.println( "[" + Config.nameShort + "] Pre build steps done" );
-
-        boolean used = false;
-        for( Publisher p : build.getParent().getPublishersList() ) {
-        	logger.debug( "NOTIFIER: " + p.toString(), id );
-        	if( p instanceof CCUCMNotifier ) {
-        		used = true;
-        		break;
+        
+        /* If plevel is not null, make sure that the CCUCMNotofier is ON */
+        if( plevel != null ) {
+	        boolean used = false;
+	        for( Publisher p : build.getParent().getPublishersList() ) {
+	        	logger.debug( "NOTIFIER: " + p.toString(), id );
+	        	if( p instanceof CCUCMNotifier ) {
+	        		used = true;
+	        		break;
+	        	}
+	        }
+	        
+	        if( !used ) {
+	        	logger.info( "Adding notifier to project", id );
+	        	build.getParent().getPublishersList().add( new CCUCMNotifier() );
+	        }
+	    /* If plevel is null, make sure CCUCMNotofier is not enabled */
+        } else {
+        	Iterator<Publisher> it = build.getParent().getPublishersList().iterator();
+        	while( it.hasNext() ) {
+        		Publisher p = it.next();
+	        	if( p instanceof CCUCMNotifier ) {
+	        		it.remove();
+	        	}
         	}
         }
-
-        if( !used ) {
-        	logger.info( "Adding notifier to project", id );
-        	build.getParent().getPublishersList().add( new CCUCMNotifier() );
-        }
-
-        Logger.removeAppender( app );
-        return result;
+        
+		return result;
     }
-    
+        
 	private boolean checkInput( TaskListener listener ) {
 		PrintStream out = listener.getLogger();
 
@@ -440,7 +449,7 @@ public class CCUCMScm extends SCM {
                 Collections.sort( baselines, new AscendingDateSort() );
 
                 state.setBaselines(baselines);
-                state.setBaseline(selectBaseline(state.getBaselines(), newest));
+				state.setBaseline( selectBaseline( state.getBaselines(), plevel ) );
             }
 
             if( state.getBaselines() == null || state.getBaselines().size() < 1) {
@@ -673,44 +682,49 @@ public class CCUCMScm extends SCM {
 
         PollingResult p = null;
         consoleOut.println("[" + Config.nameShort + "] polling streams: " + polling);
-
-        try {
-	        List<Baseline> baselines = null;
-	    	/* Old skool self polling */
-	    	if( polling.isPollingSelf() ) {
-				baselines = getValidBaselinesFromStream(project, state, plevel, state.getStream(), state.getComponent());
-	    	} else {
-	            /* Find the Baselines and store them */
-	            baselines = getBaselinesFromStreams( project, listener, consoleOut, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
-	    	}
-
-	        filterBaselines( baselines );
-
-	        if( baselines.size() > 0 ) {
-	            p = PollingResult.BUILD_NOW;
-
-	            /* Sort by date */
-	            Collections.sort( baselines, new AscendingDateSort() );
-
-	            state.setBaselines(baselines);
-	            state.setBaseline(selectBaseline(state.getBaselines(), newest));
-	        } else {
-	            p = PollingResult.NO_CHANGES;
-	        }
-
-	        //logger.debug( id + "FINAL Polling result = " + p.change.toString(), id );
-
-	        logger.debug(id + "The POLL state:\n" + state.stringify(), id);
-
-	        /* Remove state if not being built */
-	        if( p == PollingResult.NO_CHANGES ) {
-	            state.remove();
-	        }
-	    } catch (ScmException e) {
-			logger.warning( "Could not get any baselines: " + e.getMessage(), id );
-			p = PollingResult.NO_CHANGES;
-		}
-
+        
+        /* Check input */
+        if( checkInput( listener ) ) {
+        	p = PollingResult.NO_CHANGES;
+	        
+	        try {
+		        List<Baseline> baselines = null;
+		    	/* Old skool self polling */
+		    	if( polling.isPollingSelf() ) {
+					baselines = getValidBaselinesFromStream(project, state, plevel, state.getStream(), state.getComponent());
+		    	} else {
+		            /* Find the Baselines and store them */
+		            baselines = getBaselinesFromStreams( project, listener, consoleOut, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
+		    	}
+		            
+		        filterBaselines( baselines );
+		
+		        if( baselines.size() > 0 ) {
+		            p = PollingResult.BUILD_NOW;
+		            
+		            /* Sort by date */
+		            Collections.sort( baselines, new AscendingDateSort() );
+		            
+		            state.setBaselines(baselines);
+					state.setBaseline( selectBaseline( state.getBaselines(), plevel ) );
+		        } else {
+		            p = PollingResult.NO_CHANGES;
+		        }
+		
+		        //logger.debug( id + "FINAL Polling result = " + p.change.toString(), id );
+		
+		        logger.debug(id + "The POLL state:\n" + state.stringify(), id);
+		
+		        /* Remove state if not being built */
+		        if( p == PollingResult.NO_CHANGES ) {
+		            state.remove();
+		        }
+		    } catch (ScmException e) {
+				logger.warning( "Could not get any baselines: " + e.getMessage(), id );
+				p = PollingResult.NO_CHANGES;
+			}
+        }
+        
         /* Remove state if not being built */
         if( p == PollingResult.NO_CHANGES ) {
             state.remove();
@@ -757,7 +771,7 @@ public class CCUCMScm extends SCM {
         }
         */
 
-        state.setPlevel( Project.getPlevelFromString(levelToPoll) );
+        state.setPlevel( plevel );
     }
 
 
@@ -772,13 +786,13 @@ public class CCUCMScm extends SCM {
         return scmRS;
     }
 
-    private Baseline selectBaseline(List<Baseline> baselines, boolean newest) {
+    private Baseline selectBaseline( List<Baseline> baselines, Project.Plevel plevel ) {
         if (baselines.size() > 0) {
-            if (newest) {
-                return baselines.get(baselines.size() - 1);
-            } else {
-                return baselines.get(0);
-            }
+        	if( plevel != null ) {
+        		return baselines.get(0);
+        	} else {
+        		return baselines.get(baselines.size()-1);
+        	}
         } else {
             return null;
         }
@@ -954,10 +968,6 @@ public class CCUCMScm extends SCM {
         return loadModule;
     }
 
-    public boolean isNewest() {
-        return newest;
-    }
-
     /*
      * getStreamObject() and getBaseline() are used by CCUCMNotifier to get the
      * Baseline and Stream in use, but does not work with concurrent builds!!!
@@ -1074,11 +1084,32 @@ public class CCUCMScm extends SCM {
 			} catch (TemplateException e) {
 				throw FormValidation.error( "Does not appear to be a valid template: " + e.getMessage() );
 			}
-
+        }
+        
+        public void doLevelCheck(@QueryParameter String polling, @QueryParameter String level) throws FormValidation {
+        	System.out.println("LEVEL CHECK: " + polling + " + " + level);
+        	if( level.equalsIgnoreCase( "any" ) && !polling.equals( "self" ) ) {
+        		throw FormValidation.error( "You can only combine self and any" );
+        	}
         }
 
         @Override
         public CCUCMScm newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+        	
+        	//System.out.println( formData.toString( 2, 2 ) );
+        	
+        	try {
+        		String polling = formData.getString( "polling" );
+        		String level = formData.getString( "levelToPoll" );
+        		
+        		if( level.equalsIgnoreCase( "any" ) ) {
+        			if( !polling.equalsIgnoreCase( "self" ) ) {
+        				throw new FormException("You can only use any with self polling", "polling");
+        			}
+        		}
+        	} catch( JSONException e ) {
+        		throw new FormException("You missed some fields: " + e.getMessage(), "CCUCM.polling");
+        	}
         	CCUCMScm instance = req.bindJSON(CCUCMScm.class, formData);
         	/* TODO This is actually where the Notifier check should be!!! */
             return instance;
