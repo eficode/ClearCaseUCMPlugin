@@ -24,6 +24,7 @@ import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.scm.EstablishResult.ResultType;
 import net.praqma.util.debug.Logger;
 import net.praqma.util.debug.Logger.LogLevel;
+import net.praqma.util.debug.LoggerSetting;
 import net.praqma.util.debug.appenders.StreamAppender;
 import net.praqma.util.structure.Tuple;
 
@@ -43,7 +44,6 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	private String buildProject;
 	private Pipe pipe;
 	private Stream targetStream;
-	private String baselinefqname;
 	private BuildListener listener;
 	private Integer jobNumber;
 	private String id = "";
@@ -54,19 +54,19 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	
 	
 	private Logger logger;
-	private Set<String> subscriptions;
+	private LoggerSetting settings;
 
-	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, Stream targetStream, String loadModule, String baselinefqname, String buildProject, boolean any, Pipe pipe, Set<String> subscriptions ) {
+	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, Stream targetStream, String loadModule, Baseline baseline, String buildProject, boolean any, Pipe pipe, LoggerSetting settings ) {
 		this.jobname = jobname;
 		this.jobNumber = jobNumber;
 		this.targetStream = targetStream;
 		this.loadModule = loadModule;
-		this.baselinefqname = baselinefqname;
+		this.bl = baseline;
 		this.buildProject = buildProject;
 		this.listener = listener;
 		this.pipe = pipe;
 		
-		this.subscriptions = subscriptions;
+		this.settings = settings;
 		
 		this.any = any;
 
@@ -87,8 +87,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );	    	
 	    	app = new StreamAppender( toMaster );
 	    	Logger.addAppender( app );
-	    	app.setSubscriptions( subscriptions );
-	    	app.setMinimumLevel( LogLevel.DEBUG );
+	    	app.setSettings( settings );
     	}
 
 		logger.info( "Starting CheckoutTask" );
@@ -101,26 +100,22 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		ClearCaseChangeset changeset = new ClearCaseChangeset();
 
 		try {
-			hudsonOut.println("1");
 			Stream devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( targetStream ) );
-			hudsonOut.println("2: " + devstream);
-			devstream.load();
 			Baseline foundation = devstream.getFoundationBaseline();
-			hudsonOut.println("3a");
-			logger.error( "----->" + foundation );
-			logger.error( "----->" + foundation.getStream() );
-			Stream s = foundation.getStream();
-			logger.error( "<-----" );
-			hudsonOut.println("3b");
-			if( !s.equals( targetStream ) ) {
+			
+			if( !foundation.getStream().equals( targetStream ) ) {
 				hudsonOut.println( "[" + Config.nameShort + "] The foundation baseline " + foundation.getShortname() + " does not match the stream " + targetStream.getShortname() + ". Changelog will probably be bogus." );
 			}			
-			hudsonOut.println("4");
 			makeWorkspace( workspace, viewtag );
-			hudsonOut.println("5");
 			List<Activity> bldiff = null;
-			if( any) {
-				bldiff = Version.getBaselineDiff( foundation, bl, true, sv.getViewRoot() );
+			if( any ) {
+				if( devstream.isCreated() ) {
+					logger.debug( "Diffing newly created stream" );
+					bldiff = Version.getBaselineDiff( targetStream.getFoundationBaseline(), bl, true, sv.getViewRoot() );
+				} else {
+					logger.debug( "Diffing OOOOld stream" );
+					bldiff = Version.getBaselineDiff( foundation, bl, true, sv.getViewRoot() );
+				}
 			} else {
 				bldiff = bl.getDifferences( sv );
 			}
@@ -167,11 +162,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	private void makeWorkspace( File workspace, String viewtag ) throws ScmException {
 		// We know we have a stream (st), because it is set in
 		// baselinesToBuild()
-		try {
-			bl = Baseline.getBaseline( baselinefqname );
-		} catch (UCMException e) {
-			throw new ScmException( "Could not get stream. Job might run on machine with different region. " + e.getMessage() );
-		}
+
 		if( workspace != null ) {
 			logger.debug( id + "workspace: " + workspace.getAbsolutePath() );
 		} else {
