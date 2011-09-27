@@ -104,6 +104,10 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 			Baseline foundation = devstream.getFoundationBaseline();
 			
 			UCM.setContext( UCM.ContextType.CLEARTOOL );
+			Stream s = foundation.getStream();
+			if( !s.equals( targetStream ) ) {
+				hudsonOut.println( "[" + Config.nameShort + "] The foundation baseline " + foundation.getShortname() + " does not match the stream " + targetStream.getShortname() + ". Changelog will probably be bogus." );
+			}			
 			makeWorkspace( workspace, viewtag );
 			List<Activity> bldiff = null;
 			if( any) {
