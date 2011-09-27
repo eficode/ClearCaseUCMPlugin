@@ -296,12 +296,16 @@ public class CCUCMScm extends SCM {
         }
         
         /* Check polling vs plevel */
-        if( plevel == null && polling.isPollingSelf() ) {
-        	return true;
-        } else {
-        	out.println("[" + Config.nameShort + "] You cannot poll any on other than self" );
-        	return false;
+        if( plevel == null ) {
+        	if( polling.isPollingSelf() ) {
+        		return true;
+        	} else {
+        		out.println("[" + Config.nameShort + "] You cannot poll any on other than self" );
+        		return false;
+        	}
         }
+        
+        return true;
     }
     
     private boolean initializeWorkspace( AbstractBuild<?, ?> build, FilePath workspace, File changelogFile, BuildListener listener, State state ) {
