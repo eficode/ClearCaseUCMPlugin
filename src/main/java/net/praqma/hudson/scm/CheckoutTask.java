@@ -101,13 +101,22 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		ClearCaseChangeset changeset = new ClearCaseChangeset();
 
 		try {
+			hudsonOut.println("1");
 			Stream devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( targetStream ) );
+			hudsonOut.println("2");
 			Baseline foundation = devstream.getFoundationBaseline();
+			hudsonOut.println("3a");
+			logger.error( "----->" + foundation );
+			logger.error( "----->" + foundation.getStream() );
 			Stream s = foundation.getStream();
+			logger.error( "<-----" );
+			hudsonOut.println("3b");
 			if( !s.equals( targetStream ) ) {
 				hudsonOut.println( "[" + Config.nameShort + "] The foundation baseline " + foundation.getShortname() + " does not match the stream " + targetStream.getShortname() + ". Changelog will probably be bogus." );
 			}			
+			hudsonOut.println("4");
 			makeWorkspace( workspace, viewtag );
+			hudsonOut.println("5");
 			List<Activity> bldiff = null;
 			if( any) {
 				bldiff = Version.getBaselineDiff( foundation, bl, true, sv.getViewRoot() );
