@@ -103,7 +103,8 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		try {
 			hudsonOut.println("1");
 			Stream devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( targetStream ) );
-			hudsonOut.println("2");
+			hudsonOut.println("2: " + devstream);
+			devstream.load();
 			Baseline foundation = devstream.getFoundationBaseline();
 			hudsonOut.println("3a");
 			logger.error( "----->" + foundation );
