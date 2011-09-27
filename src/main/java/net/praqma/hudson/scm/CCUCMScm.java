@@ -283,29 +283,28 @@ public class CCUCMScm extends SCM {
 						out.println( "[" + Config.nameShort + "] The template could not be parsed correctly: " + e.getMessage() );
 						return false;
 					}
-				} else {
-					out.println( "[" + Config.nameShort + "] A valid template must be provided to create a Baseline" );
-					return false;
-				}
-			} else {
-				out.println( "[" + Config.nameShort + "] You cannot create a baseline in this mode" );
-			}
-		}
 
-		/* Check polling vs plevel */
-		logger.debug( "Polling " + plevel );
-		if( plevel == null ) {
-			logger.debug( "Inside" );
-			if( polling.isPollingSelf() ) {
-				return true;
-			} else {
-				out.println( "[" + Config.nameShort + "] You cannot poll any on other than self" );
-				return false;
-			}
-		}
-
-		return true;
-	}
+	        	} else {
+	        		out.println("[" + Config.nameShort + "] A valid template must be provided to create a Baseline" );
+	        		return false;
+	        	}
+        	} else {
+        		out.println("[" + Config.nameShort + "] You cannot create a baseline in this mode" );
+        	}
+        }
+        
+        /* Check polling vs plevel */
+        if( plevel == null ) {
+        	if( polling.isPollingSelf() ) {
+        		return true;
+        	} else {
+        		out.println("[" + Config.nameShort + "] You cannot poll any on other than self" );
+        		return false;
+        	}
+        }
+        
+        return true;
+    }
     
     private boolean initializeWorkspace( AbstractBuild<?, ?> build, FilePath workspace, File changelogFile, BuildListener listener, State state ) {
 
