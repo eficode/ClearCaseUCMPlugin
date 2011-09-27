@@ -103,12 +103,14 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 			Stream devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( targetStream ) );
 			Baseline foundation = devstream.getFoundationBaseline();
 			
-			if( !foundation.getStream().equals( targetStream ) ) {
-				hudsonOut.println( "[" + Config.nameShort + "] The foundation baseline " + foundation.getShortname() + " does not match the stream " + targetStream.getShortname() + ". Changelog will probably be bogus." );
-			}			
+			UCM.setContext( UCM.ContextType.CLEARTOOL );
 			makeWorkspace( workspace, viewtag );
 			List<Activity> bldiff = null;
-			bldiff = bl.getDifferences( sv );
+			if( any) {
+				bldiff = Version.getBaselineDiff( foundation, bl, true, sv.getViewRoot() );
+			} else {
+				bldiff = bl.getDifferences( sv );
+			}
 			//List<Activity> bldiff = Version.getBaselineDiff( bl, null, true, sv.getViewRoot() );
 			diff = Util.createChangelog( bldiff, bl );
 			hudsonOut.print( "[" + Config.nameShort + "] Found " + bldiff.size() + " activit" + ( bldiff.size() == 1 ? "y" : "ies" ) + ". " );
@@ -152,7 +154,6 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	private void makeWorkspace( File workspace, String viewtag ) throws ScmException {
 		// We know we have a stream (st), because it is set in
 		// baselinesToBuild()
-
 		if( workspace != null ) {
 			logger.debug( id + "workspace: " + workspace.getAbsolutePath() );
 		} else {
