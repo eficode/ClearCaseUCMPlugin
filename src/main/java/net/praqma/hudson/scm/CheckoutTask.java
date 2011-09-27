@@ -56,7 +56,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	private Logger logger;
 	private LoggerSetting settings;
 
-	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, Stream targetStream, String loadModule, Baseline baseline, String buildProject, Pipe pipe, LoggerSetting settings ) {
+	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, Stream targetStream, String loadModule, Baseline baseline, String buildProject, boolean any, Pipe pipe, LoggerSetting settings ) {
 		this.jobname = jobname;
 		this.jobNumber = jobNumber;
 		this.targetStream = targetStream;
@@ -103,15 +103,19 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 			Stream devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( targetStream ) );
 			Baseline foundation = devstream.getFoundationBaseline();
 			
-			UCM.setContext( UCM.ContextType.CLEARTOOL );
-			Stream s = foundation.getStream();
-			if( !s.equals( targetStream ) ) {
+			if( !foundation.getStream().equals( targetStream ) ) {
 				hudsonOut.println( "[" + Config.nameShort + "] The foundation baseline " + foundation.getShortname() + " does not match the stream " + targetStream.getShortname() + ". Changelog will probably be bogus." );
 			}			
 			makeWorkspace( workspace, viewtag );
 			List<Activity> bldiff = null;
-			if( any) {
-				bldiff = Version.getBaselineDiff( foundation, bl, true, sv.getViewRoot() );
+			if( any ) {
+				if( devstream.isCreated() ) {
+					logger.debug( "Diffing newly created stream" );
+					bldiff = Version.getBaselineDiff( targetStream.getFoundationBaseline(), bl, true, sv.getViewRoot() );
+				} else {
+					logger.debug( "Diffing OOOOld stream" );
+					bldiff = Version.getBaselineDiff( foundation, bl, true, sv.getViewRoot() );
+				}
 			} else {
 				bldiff = bl.getDifferences( sv );
 			}
