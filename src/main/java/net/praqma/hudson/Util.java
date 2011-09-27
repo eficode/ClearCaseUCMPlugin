@@ -28,6 +28,14 @@ import net.praqma.util.debug.appenders.Appender;
 public abstract class Util {
 	
 	private static Logger logger = Logger.getLogger();
+	
+	public static Project.Plevel getLevel( String level ) {
+		if( level.equalsIgnoreCase( "any" ) ) {
+			return null;
+		} else {
+			return Project.getPlevelFromString( level );
+		}
+	}
 
 	public static String CreateNumber( BuildListener listener, int buildNumber, String versionFrom, String buildnumberMajor, String buildnumberMinor,
 			String buildnumberPatch, String buildnumberSequenceSelector, Stream target, Component component ) throws IOException {
