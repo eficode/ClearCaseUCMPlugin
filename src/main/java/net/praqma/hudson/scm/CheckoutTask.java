@@ -23,6 +23,7 @@ import net.praqma.hudson.*;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.scm.EstablishResult.ResultType;
 import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.Logger.LogLevel;
 import net.praqma.util.debug.appenders.StreamAppender;
 import net.praqma.util.structure.Tuple;
 
@@ -41,7 +42,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	private Baseline bl;
 	private String buildProject;
 	private Pipe pipe;
-	private Stream integrationStream;
+	private Stream targetStream;
 	private String baselinefqname;
 	private BuildListener listener;
 	private Integer jobNumber;
@@ -55,10 +56,10 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	private Logger logger;
 	private Set<String> subscriptions;
 
-	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, Stream intStream, String loadModule, String baselinefqname, String buildProject, boolean any, Pipe pipe, Set<String> subscriptions ) {
+	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, Stream targetStream, String loadModule, String baselinefqname, String buildProject, boolean any, Pipe pipe, Set<String> subscriptions ) {
 		this.jobname = jobname;
 		this.jobNumber = jobNumber;
-		this.integrationStream = intStream;
+		this.targetStream = targetStream;
 		this.loadModule = loadModule;
 		this.baselinefqname = baselinefqname;
 		this.buildProject = buildProject;
@@ -87,22 +88,26 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	    	app = new StreamAppender( toMaster );
 	    	Logger.addAppender( app );
 	    	app.setSubscriptions( subscriptions );
+	    	app.setMinimumLevel( LogLevel.DEBUG );
     	}
 
 		logger.info( "Starting CheckoutTask" );
 
 		String diff = "";
-		String viewtag = "";
+		String viewtag = makeViewtag();
 		
 		EstablishResult er = new EstablishResult();
+		er.setResultType( ResultType.SUCCESS );
 		ClearCaseChangeset changeset = new ClearCaseChangeset();
 
 		try {
-			Stream devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( integrationStream ) );
+			Stream devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( targetStream ) );
 			Baseline foundation = devstream.getFoundationBaseline();
-			
-			UCM.setContext( UCM.ContextType.CLEARTOOL );
-			viewtag = makeWorkspace( workspace );
+			Stream s = foundation.getStream();
+			if( !s.equals( targetStream ) ) {
+				hudsonOut.println( "[" + Config.nameShort + "] The foundation baseline " + foundation.getShortname() + " does not match the stream " + targetStream.getShortname() + ". Changelog will probably be bogus." );
+			}			
+			makeWorkspace( workspace, viewtag );
 			List<Activity> bldiff = null;
 			if( any) {
 				bldiff = Version.getBaselineDiff( foundation, bl, true, sv.getViewRoot() );
@@ -121,8 +126,10 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 			}
 			hudsonOut.println( c + " version" + ( c == 1 ? "" : "s" ) + " involved" );
 			
+			logger.info( "CheckoutTask finished normally" );
+			
 		} catch (net.praqma.hudson.exception.ScmException e) {
-			logger.debug( id + "SCM exception: " + e.getMessage() );
+			logger.warning( id + "SCM exception: " + e.getMessage() );
 			hudsonOut.println( "[" + Config.nameShort + "] SCM exception: " + e.getMessage() );
 			er.setResultType( ResultType.INITIALIZE_WORKSPACE_ERROR );
 		} catch (UCMException e) {
@@ -132,9 +139,6 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 			hudsonOut.println( "[" + Config.nameShort + "] Could not get changes. " + e.getMessage() );
 		}
 
-		logger.info( "CheckoutTask finished normally" );
-
-		er.setResultType( ResultType.SUCCESS );
 		er.setLog( log );
 		er.setMessage( diff );
 		er.setViewtag( viewtag );
@@ -142,8 +146,15 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		Logger.removeAppender( app );
 		return er;
 	}
+	
+	private String makeViewtag() {
+		String newJobName = jobname.replaceAll("\\s", "_");
+		String viewtag = "CCUCM_" + newJobName + "_" + System.getenv("COMPUTERNAME");
+		
+		return viewtag;
+	}
 
-	private String makeWorkspace( File workspace ) throws ScmException {
+	private void makeWorkspace( File workspace, String viewtag ) throws ScmException {
 		// We know we have a stream (st), because it is set in
 		// baselinesToBuild()
 		try {
@@ -157,14 +168,11 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 			logger.debug( id + "workspace must be null???" );
 		}
 
-		String newJobName = jobname.replaceAll("\\s", "_");
-		String viewtag = "CCUCM_" + newJobName + "_" + System.getenv("COMPUTERNAME");
-
 		File viewroot = new File( workspace, "view" );
 		
 		Stream devstream = null;
 
-		devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( integrationStream ) );
+		devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( targetStream ) );
 
 		sv = Util.makeView( devstream, workspace, listener, loadModule, viewroot, viewtag, false );
 		
@@ -179,7 +187,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		// The last boolean, complete, must always be true from CCUCM
 		// as we are always working on a read-only stream according
 		// to LAK
-		hudsonOut.print( "[" + Config.nameShort + "] Rebasing development stream (" + devstream.getShortname() + ") against parent stream (" + integrationStream.getShortname() + ")" );
+		hudsonOut.print( "[" + Config.nameShort + "] Rebasing development stream (" + devstream.getShortname() + ") against parent stream (" + targetStream.getShortname() + ")" );
 		devstream.rebase( sv, bl, true );
 		hudsonOut.println( " DONE" );
 		
@@ -192,8 +200,6 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
             }
             throw new ScmException("Could not update snapshot view. " + e.getMessage());
         }
-		
-		return viewtag;
 	}
 
 	private Stream getDeveloperStream( String streamname, String pvob ) throws ScmException {
