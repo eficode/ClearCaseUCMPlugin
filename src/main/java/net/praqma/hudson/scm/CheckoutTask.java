@@ -35,14 +35,13 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 
 	private static final long serialVersionUID = -7029877626574728221L;
 	private PrintStream hudsonOut;
-	private Stream integrationstream;
 	private String jobname;
 	private SnapshotView sv;
 	private String loadModule;
 	private Baseline bl;
 	private String buildProject;
 	private Pipe pipe;
-	private String intStream;
+	private Stream integrationStream;
 	private String baselinefqname;
 	private BuildListener listener;
 	private Integer jobNumber;
@@ -50,14 +49,16 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 
 	private String log = "";
 	
+	private boolean any = false;
+	
 	
 	private Logger logger;
 	private Set<String> subscriptions;
 
-	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, String intStream, String loadModule, String baselinefqname, String buildProject, Pipe pipe, Set<String> subscriptions ) {
+	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, Stream intStream, String loadModule, String baselinefqname, String buildProject, boolean any, Pipe pipe, Set<String> subscriptions ) {
 		this.jobname = jobname;
 		this.jobNumber = jobNumber;
-		this.intStream = intStream;
+		this.integrationStream = intStream;
 		this.loadModule = loadModule;
 		this.baselinefqname = baselinefqname;
 		this.buildProject = buildProject;
@@ -65,6 +66,8 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		this.pipe = pipe;
 		
 		this.subscriptions = subscriptions;
+		
+		this.any = any;
 
 		this.id = "[" + jobname + "::" + jobNumber + "]";
 	}
@@ -95,9 +98,17 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		ClearCaseChangeset changeset = new ClearCaseChangeset();
 
 		try {
+			Stream devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( integrationStream ) );
+			Baseline foundation = devstream.getFoundationBaseline();
+			
 			UCM.setContext( UCM.ContextType.CLEARTOOL );
 			viewtag = makeWorkspace( workspace );
-			BaselineDiff bldiff = bl.getDifferences( sv );
+			List<Activity> bldiff = null;
+			if( any) {
+				bldiff = Version.getBaselineDiff( foundation, bl, true, sv.getViewRoot() );
+			} else {
+				bldiff = bl.getDifferences( sv );
+			}
 			//List<Activity> bldiff = Version.getBaselineDiff( bl, null, true, sv.getViewRoot() );
 			diff = Util.createChangelog( bldiff, bl );
 			hudsonOut.print( "[" + Config.nameShort + "] Found " + bldiff.size() + " activit" + ( bldiff.size() == 1 ? "y" : "ies" ) + ". " );
@@ -136,7 +147,6 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		// We know we have a stream (st), because it is set in
 		// baselinesToBuild()
 		try {
-			integrationstream = UCMEntity.getStream( intStream, false );
 			bl = Baseline.getBaseline( baselinefqname );
 		} catch (UCMException e) {
 			throw new ScmException( "Could not get stream. Job might run on machine with different region. " + e.getMessage() );
@@ -154,7 +164,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		
 		Stream devstream = null;
 
-		devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( integrationstream ), hudsonOut );
+		devstream = getDeveloperStream( "stream:" + viewtag, Config.getPvob( integrationStream ) );
 
 		sv = Util.makeView( devstream, workspace, listener, loadModule, viewroot, viewtag, false );
 		
@@ -169,7 +179,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		// The last boolean, complete, must always be true from CCUCM
 		// as we are always working on a read-only stream according
 		// to LAK
-		hudsonOut.print( "[" + Config.nameShort + "] Rebasing development stream (" + devstream.getShortname() + ") against parent stream (" + integrationstream.getShortname() + ")" );
+		hudsonOut.print( "[" + Config.nameShort + "] Rebasing development stream (" + devstream.getShortname() + ") against parent stream (" + integrationStream.getShortname() + ")" );
 		devstream.rebase( sv, bl, true );
 		hudsonOut.println( " DONE" );
 		
@@ -186,7 +196,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		return viewtag;
 	}
 
-	private Stream getDeveloperStream( String streamname, String pvob, PrintStream hudsonOut ) throws ScmException {
+	private Stream getDeveloperStream( String streamname, String pvob ) throws ScmException {
 		Stream devstream = null;
 
 		try {

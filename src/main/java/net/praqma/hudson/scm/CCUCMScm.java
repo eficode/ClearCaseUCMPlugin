@@ -314,11 +314,11 @@ public class CCUCMScm extends SCM {
         	Future<EstablishResult> i = null;
         	if( workspace.isRemote() ) {
         		final Pipe pipe = Pipe.createRemoteToLocal();
-        		CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream().getFullyQualifiedName(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, pipe, Logger.getSubscriptions());
+        		CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, ( plevel == null ), pipe, Logger.getSubscriptions());
         		i = workspace.actAsync( ct );
         		logger.redirect( pipe.getIn() );
         	} else {
-        		CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream().getFullyQualifiedName(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, null, Logger.getSubscriptions());
+        		CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, ( plevel == null ), null, Logger.getSubscriptions());
         		i = workspace.actAsync( ct );
         	}
         	er = i.get();
