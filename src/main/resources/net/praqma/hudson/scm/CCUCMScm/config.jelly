@@ -71,10 +71,6 @@
 	
 		<f:advanced>
 			
-				<f:entry title="Multi-site promotion level cache" help="/plugin/clearcase-ucm-plugin/scm/help-multisite.html">
-				    <f:checkbox name="CCUCM.multiSite" checked="${instance.multiSite}" />
-				</f:entry>
-	
 		    <f:entry title="Build project" help="/plugin/clearcase-ucm-plugin/scm/help-buildProject.html">
 	      		<f:textbox name="buildProject" value="${scm.buildProject}"/>
 	    	</f:entry>

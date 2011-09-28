@@ -41,6 +41,7 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.entities.UCMEntity.LabelStatus;
 import net.praqma.hudson.Config;
+import net.praqma.hudson.Util;
 import net.praqma.hudson.exception.CCUCMException;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.exception.TemplateException;
@@ -71,6 +72,7 @@ import org.kohsuke.stapler.export.Exported;
  */
 public class CCUCMScm extends SCM {
 
+	private Project.Plevel plevel;
     private String levelToPoll;
     private String loadModule;
     private String component;
@@ -81,7 +83,6 @@ public class CCUCMScm extends SCM {
     private Stream integrationstream;
     private boolean doPostBuild = true;
     private String buildProject;
-    private boolean multiSite = false;
     private String jobName = "";
     private Integer jobNumber;
     private String id = "";
@@ -132,7 +133,7 @@ public class CCUCMScm extends SCM {
    public CCUCMScm(String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable
 		   /* Baseline creation */, boolean createBaseline, String nameTemplate
 		   /* Notifier options */ , boolean recommend, boolean makeTag, boolean setDescription
-		   /* Build options     */, String buildProject, boolean multiSite  ) {
+		   /* Build options     */, String buildProject  ) {
 
        
        this.component = component;
@@ -141,7 +142,6 @@ public class CCUCMScm extends SCM {
        this.stream = stream;
        this.newest = newest;
        this.buildProject = buildProject;
-       this.multiSite = multiSite;
 
        this.polling = new Polling(polling);
        this.treatUnstable = new Unstable( treatUnstable );
@@ -153,6 +153,7 @@ public class CCUCMScm extends SCM {
        this.makeTag = makeTag;
        this.setDescription = setDescription;
 
+       this.plevel = Util.getLevel( levelToPoll );
    }
 
     @Override
@@ -201,28 +202,12 @@ public class CCUCMScm extends SCM {
         }
         state.setNameTemplate( nameTemplate );
         
-        if( createBaseline ) {
-        	/* Sanity check */
-        	if( polling.isPollingOther() ) {
-	        	if( nameTemplate != null && nameTemplate.length() > 0 ) {
-	        		try {
-						NameTemplate.testTemplate( nameTemplate );
-					} catch (TemplateException e) {
-						consoleOutput.println("[" + Config.nameShort + "] The template could not be parsed correctly: " + e.getMessage() );
-						state.setPostBuild( false );
-						Logger.removeAppender( app );
-						return false;
-					}
-	        	} else {
-	        		consoleOutput.println("[" + Config.nameShort + "] A valid template must be provided to create a Baseline" );
-	        		state.setPostBuild( false );
-	        		Logger.removeAppender( app );
-	        		return false;
-	        	}
-        	} else {
-        		consoleOutput.println("[" + Config.nameShort + "] You cannot create a baseline in this mode" );
-        	}
-        }
+        /* Check input */
+		if( !checkInput( listener ) ) {
+			state.setPostBuild( false );
+			Logger.removeAppender( app );
+			return false;
+		}
         
         /* Determining the Baseline modifier */
         String baselineInput = getBaselineValue( build );
@@ -275,6 +260,42 @@ public class CCUCMScm extends SCM {
         return result;
     }
     
+	private boolean checkInput( TaskListener listener ) {
+		PrintStream out = listener.getLogger();
+
+		/* Check baseline template */
+		if( createBaseline ) {
+			/* Sanity check */
+			if( polling.isPollingOther() ) {
+				if( nameTemplate != null && nameTemplate.length() > 0 ) {
+					try {
+						NameTemplate.testTemplate( nameTemplate );
+					} catch (TemplateException e) {
+						out.println( "[" + Config.nameShort + "] The template could not be parsed correctly: " + e.getMessage() );
+						return false;
+					}
+				} else {
+					out.println( "[" + Config.nameShort + "] A valid template must be provided to create a Baseline" );
+					return false;
+				}
+			} else {
+				out.println( "[" + Config.nameShort + "] You cannot create a baseline in this mode" );
+			}
+		}
+
+		/* Check polling vs plevel */
+		if( plevel == null ) {
+			if( polling.isPollingSelf() ) {
+				return true;
+			} else {
+				out.println( "[" + Config.nameShort + "] You cannot poll any on other than self" );
+				return false;
+			}
+		}
+
+		return true;
+	}
+    
     private boolean initializeWorkspace( AbstractBuild<?, ?> build, FilePath workspace, File changelogFile, BuildListener listener, State state ) {
 
     	PrintStream consoleOutput = listener.getLogger();
@@ -285,11 +306,11 @@ public class CCUCMScm extends SCM {
         	Future<EstablishResult> i = null;
         	if( workspace.isRemote() ) {
         		final Pipe pipe = Pipe.createRemoteToLocal();
-        		CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream().getFullyQualifiedName(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, pipe, Logger.getSubscriptions());
+        		CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream(), loadModule, state.getBaseline(), buildProject, pipe, Logger.getLoggerSettings( LogLevel.DEBUG ));
         		i = workspace.actAsync( ct );
         		logger.redirect( pipe.getIn() );
         	} else {
-        		CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream().getFullyQualifiedName(), loadModule, state.getBaseline().getFullyQualifiedName(), buildProject, null, Logger.getSubscriptions());
+        		CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream(), loadModule, state.getBaseline(), buildProject, null, Logger.getLoggerSettings( LogLevel.DEBUG ));
         		i = workspace.actAsync( ct );
         	}
         	er = i.get();
@@ -395,7 +416,7 @@ public class CCUCMScm extends SCM {
             	List<Baseline> baselines = null;
             	/* Old skool self polling */
             	if( polling.isPollingSelf() ) {
-            		baselines = getValidBaselinesFromStream(build.getProject(), state, Project.getPlevelFromString(levelToPoll), state.getStream(), state.getComponent());
+            		baselines = getValidBaselinesFromStream(build.getProject(), state, plevel, state.getStream(), state.getComponent());
             	} else {
                     /* Find the Baselines and store them */
                     baselines = getBaselinesFromStreams( build.getProject(), listener, consoleOutput, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
@@ -573,7 +594,7 @@ public class CCUCMScm extends SCM {
                 consoleOutput.printf( "[" + Config.nameShort + "] [%02d] %s ", c, s.getShortname() );
                 c++;
                 //List<Baseline> found = getValidBaselinesFromStream(project, state, Project.getPlevelFromString(levelToPoll), s, component);
-                List<Baseline> found = RemoteUtil.getRemoteBaselinesFromStream( project.getSomeWorkspace(), component, s, Project.getPlevelFromString(levelToPoll) );
+                List<Baseline> found = RemoteUtil.getRemoteBaselinesFromStream( project.getSomeWorkspace(), component, s, plevel );
                 for (Baseline b : found ) {
                     baselines.add(b);
                 }
@@ -655,7 +676,7 @@ public class CCUCMScm extends SCM {
 	        List<Baseline> baselines = null;
 	    	/* Old skool self polling */
 	    	if( polling.isPollingSelf() ) {
-				baselines = getValidBaselinesFromStream(project, state, Project.getPlevelFromString(levelToPoll), state.getStream(), state.getComponent());
+				baselines = getValidBaselinesFromStream(project, state, plevel, state.getStream(), state.getComponent());
 	    	} else {
 	            /* Find the Baselines and store them */
 	            baselines = getBaselinesFromStreams( project, listener, consoleOut, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
@@ -914,10 +935,6 @@ public class CCUCMScm extends SCM {
      * The following getters and booleans (six in all) are used to display saved
      * userdata in Hudsons gui
      */
-    public boolean getMultiSite() {
-        return this.multiSite;
-    }
-
     public String getLevelToPoll() {
         return levelToPoll;
     }
@@ -1007,7 +1024,6 @@ public class CCUCMScm extends SCM {
     @Extension
     public static class CCUCMScmDescriptor extends SCMDescriptor<CCUCMScm> implements hudson.model.ModelObject {
 
-        private String multiSiteFrequency;
         private List<String> loadModules;
 
         public CCUCMScmDescriptor() {
@@ -1023,17 +1039,6 @@ public class CCUCMScm extends SCM {
          */
         @Override
         public boolean configure(org.kohsuke.stapler.StaplerRequest req, JSONObject json) throws FormException {
-            /* For backwards compatibility, check if parameters are null */
-
-        	try {
-	            multiSiteFrequency = json.getString("CCUCM.multiSiteFrequency");
-	            if (multiSiteFrequency != null) {
-	                multiSiteFrequency = multiSiteFrequency.trim();
-	            }
-        	} catch( Exception e ) {
-        		e.printStackTrace();
-        	}
-
             save();
             return true;
         }
@@ -1072,19 +1077,6 @@ public class CCUCMScm extends SCM {
         	CCUCMScm instance = req.bindJSON(CCUCMScm.class, formData);
         	/* TODO This is actually where the Notifier check should be!!! */
             return instance;
-        }
-
-
-        public String getMultiSiteFrequency() {
-            return multiSiteFrequency;
-        }
-
-        public int getMultiSiteFrequencyAsInt() {
-            try {
-                return Integer.parseInt(multiSiteFrequency);
-            } catch (Exception e) {
-                return 0;
-            }
         }
 
         /**

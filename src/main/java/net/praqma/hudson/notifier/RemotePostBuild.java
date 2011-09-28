@@ -176,7 +176,6 @@ class RemotePostBuild implements FileCallable<Status> {
 					logger.warning( id + "Demoting baseline" );
 					Project.Plevel pl = sourcebaseline.demote();
 					status.setPromotedLevel( pl );
-					status.setPLevel( true );
 					hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
 				} catch (Exception e) {
 					status.setStable( false );
@@ -208,10 +207,8 @@ class RemotePostBuild implements FileCallable<Status> {
 						/* Recommend the Baseline */
 						if( recommend ) {
 							try {
-								if( status.isPLevel() ) {
-									targetstream.recommendBaseline( targetbaseline );
-									hudsonOut.println( "[" + Config.nameShort + "] Baseline " + targetbaseline.getShortname() + " is now recommended." );
-								}
+								targetstream.recommendBaseline( targetbaseline );
+								hudsonOut.println( "[" + Config.nameShort + "] Baseline " + targetbaseline.getShortname() + " is now recommended." );
 							} catch (Exception e) {
 								status.setStable( false );
 								status.setRecommended( false );
@@ -223,7 +220,6 @@ class RemotePostBuild implements FileCallable<Status> {
 						pl = sourcebaseline.demote();
 					}
 					status.setPromotedLevel( pl );
-					status.setPLevel( true );
 					hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
 				} catch (Exception e) {
 					status.setStable( false );
