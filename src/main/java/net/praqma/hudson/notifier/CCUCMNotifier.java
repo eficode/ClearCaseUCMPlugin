@@ -190,7 +190,13 @@ public class CCUCMNotifier extends Notifier {
             try {
                 processBuild(build, launcher, listener, pstate);
                 if (pstate.isSetDescription()) {
-                    build.setDescription(status.getBuildDescr());
+                    String d = build.getDescription();
+                    if (d != null) {
+                        build.setDescription((d.length() > 0 ? d + "<br/>" : "") + status.getBuildDescr());
+                    } else {
+                    	build.setDescription(status.getBuildDescr());
+                    }
+                    
                 }
 
             } catch (NotifierException ne) {
