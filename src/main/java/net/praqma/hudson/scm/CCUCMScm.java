@@ -107,8 +107,6 @@ public class CCUCMScm extends SCM {
     
     private String viewtag = "";
     
-    private Set<String> subs;
-
     /**
      * Default constructor, mainly used for unit tests.
      */
@@ -174,9 +172,8 @@ public class CCUCMScm extends SCM {
     	logger = Logger.getLogger();
     	File logfile = new File( build.getRootDir(), "ccucm.log" );
     	FileAppender app = new FileAppender( logfile );
-    	app.setTag( id );
 	    net.praqma.hudson.Util.initializeAppender( build, app );	    
-	    subs = app.getSubscriptions();
+	    app.getSubscriptions();
 	    Logger.addAppender( app );
         
 	    logger.info(id + "CCUCMSCM checkout v. " + net.praqma.hudson.Version.version, id);
