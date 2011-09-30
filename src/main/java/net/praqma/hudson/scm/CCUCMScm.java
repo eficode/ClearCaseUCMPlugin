@@ -284,7 +284,9 @@ public class CCUCMScm extends SCM {
 		}
 
 		/* Check polling vs plevel */
+		logger.debug( "Polling " + plevel );
 		if( plevel == null ) {
+			logger.debug( "Inside" );
 			if( polling.isPollingSelf() ) {
 				return true;
 			} else {
