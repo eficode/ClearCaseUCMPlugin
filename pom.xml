@@ -13,7 +13,7 @@
 
 
     <artifactId>clearcase-ucm-plugin</artifactId>
-    <version>0.9.1-SNAPSHOT</version>
+    <version>0.9.1</version>
     <name>ClearCase UCM Plugin</name>
     <description>Integrates Jenkins to ClearCase UCM</description>
     <url>http://wiki.jenkins-ci.org/display/JENKINS/Pucm+plugin</url>
