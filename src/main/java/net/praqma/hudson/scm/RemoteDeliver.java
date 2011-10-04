@@ -224,13 +224,14 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
                 }
 
                 try {
+                    //rolling back the previous deliver operation
                     UCMContext.context.remoteDeliverCancel(oldViewtag, stream, newView);
                 } catch (UCMException ex) {
                     hudsonOut.println(ex.getMessage());
                     throw new IOException(ex.getMessage(), ex.getCause());
                 }
 
-                //INVOKE recursive method call(..)
+                //Recursive method call of INVOKE(...);
                 this.invoke(workspace, channel);
 
                 /**
