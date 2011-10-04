@@ -232,6 +232,17 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
 
                 //INVOKE recursive method call(..)
                 this.invoke(workspace, channel);
+
+                /**
+                 * Here we must return before the end of the methos
+                 * cause in anyother case than this exception we whis to return
+                 * the exception further op in the system.
+                 *
+                 * But here we wish to try agian until we succeed.
+                 */
+                er.setResultType(ResultType.SUCCESS);
+                Logger.removeAppender(app);
+                return er;
             }
 
             Logger.removeAppender(app);
