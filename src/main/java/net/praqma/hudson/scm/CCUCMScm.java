@@ -87,14 +87,15 @@ public class CCUCMScm extends SCM {
     private String id = "";
     private Logger logger = null;
     public static CCUCMState ccucm = new CCUCMState();
-    
+    private boolean forceDeliver;
+
     /* Old notifier fields */
     private boolean recommend;
     private boolean makeTag;
     private boolean setDescription;
-    
+
     private Unstable treatUnstable;
-    
+
     private boolean createBaseline;
     private String nameTemplate;
 
@@ -103,9 +104,9 @@ public class CCUCMScm extends SCM {
     public static StoredBaselines storedBaselines = new StoredBaselines();
     public static final String CCUCM_LOGGER_STRING = "include_classes";
     private Polling polling;
-    
+
     private String viewtag = "";
-    
+
     private Set<String> subs;
 
     /**
@@ -113,10 +114,10 @@ public class CCUCMScm extends SCM {
      */
     public CCUCMScm() {
     }
-    
+
 
     /**
-     * 
+     *
      * @param component
      * @param levelToPoll
      * @param loadModule
@@ -130,11 +131,11 @@ public class CCUCMScm extends SCM {
      */
    @DataBoundConstructor
    public CCUCMScm(String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable
-		   /* Baseline creation */, boolean createBaseline, String nameTemplate
+		   /* Baseline creation */, boolean createBaseline, String nameTemplate, boolean forceDeliver
 		   /* Notifier options */ , boolean recommend, boolean makeTag, boolean setDescription
 		   /* Build options     */, String buildProject, boolean multiSite  ) {
 
-       
+
        this.component = component;
        this.levelToPoll = levelToPoll;
        this.loadModule = loadModule;
@@ -145,10 +146,11 @@ public class CCUCMScm extends SCM {
 
        this.polling = new Polling(polling);
        this.treatUnstable = new Unstable( treatUnstable );
-       
+
        this.createBaseline = createBaseline;
        this.nameTemplate = nameTemplate;
-       
+
+       this.forceDeliver = forceDeliver;
        this.recommend = recommend;
        this.makeTag = makeTag;
        this.setDescription = setDescription;
@@ -163,36 +165,36 @@ public class CCUCMScm extends SCM {
         jobNumber = build.getNumber();
         this.id = "[" + jobName + "::" + jobNumber + "]";
 
-        
+
         boolean result = true;
 
         PrintStream consoleOutput = listener.getLogger();
         consoleOutput.println("[" + Config.nameShort + "] ClearCase UCM Plugin version " + net.praqma.hudson.Version.version );
-        
+        consoleOutput.println("[" + Config.nameShort + "] Forcing deliver: "+ forceDeliver );
         /* Preparing the logger */
     	logger = Logger.getLogger();
     	File logfile = new File( build.getRootDir(), "ccucm.log" );
     	FileAppender app = new FileAppender( logfile );
     	app.setTag( id );
-	    net.praqma.hudson.Util.initializeAppender( build, app );	    
+	    net.praqma.hudson.Util.initializeAppender( build, app );
 	    subs = app.getSubscriptions();
 	    Logger.addAppender( app );
-        
+
 	    logger.info(id + "CCUCMSCM checkout v. " + net.praqma.hudson.Version.version, id);
-	    
+
         /* Recalculate the states */
         int count = ccucm.recalculate(build.getProject());
         logger.info(id + "Removed " + count + " from states.", id);
-        
+
         doPostBuild = true;
-        
+
         /* If we polled, we should get the same object created at that point */
         State state = ccucm.getState(jobName, jobNumber);
         state.setLoadModule(loadModule);
         storeStateParameters( state );
-        
+
         logger.debug(id + "The initial state:\n" + state.stringify(), id);
-        
+
         /* Check template */
         state.setCreatebaseline( createBaseline );
         /* Trim template, strip out quotes */
@@ -200,7 +202,7 @@ public class CCUCMScm extends SCM {
         	nameTemplate = nameTemplate.substring( 1, nameTemplate.length()-1 );
         }
         state.setNameTemplate( nameTemplate );
-        
+
         if( createBaseline ) {
         	/* Sanity check */
         	if( polling.isPollingOther() ) {
@@ -223,7 +225,7 @@ public class CCUCMScm extends SCM {
         		consoleOutput.println("[" + Config.nameShort + "] You cannot create a baseline in this mode" );
         	}
         }
-        
+
         /* Determining the Baseline modifier */
         String baselineInput = getBaselineValue( build );
 
@@ -236,27 +238,27 @@ public class CCUCMScm extends SCM {
 			consoleOutput.println( "[" + Config.nameShort + "] Polling streams: " + polling.toString() );
 			result = pollStream( build, state, listener );
 		}
-        
+
 		state.setPolling( polling );
-        
+
         /* If a baseline is found */
         if (state.getBaseline() != null && result ) {
         	consoleOutput.println("[" + Config.nameShort + "] Using " + state.getBaseline());
         	if( setDescription ) {
         		build.setDescription("<small>" + state.getBaseline().getShortname() + "</small>");
         	}
-        	
+
             if( polling.isPollingSelf() || !polling.isPolling() ) {
             	result = initializeWorkspace( build, workspace, changelogFile, listener, state );
             } else {
             	/* Only start deliver when NOT polling self */
             	result = beginDeliver( build, state, listener, changelogFile );
             }
-            
+
         }
-        
+
         consoleOutput.println( "[" + Config.nameShort + "] Pre build steps done" );
-        
+
         boolean used = false;
         for( Publisher p : build.getParent().getPublishersList() ) {
         	logger.debug( "NOTIFIER: " + p.toString(), id );
@@ -265,23 +267,23 @@ public class CCUCMScm extends SCM {
         		break;
         	}
         }
-        
+
         if( !used ) {
         	logger.info( "Adding notifier to project", id );
         	build.getParent().getPublishersList().add( new CCUCMNotifier() );
         }
-        
+
         Logger.removeAppender( app );
         return result;
     }
-    
+
     private boolean initializeWorkspace( AbstractBuild<?, ?> build, FilePath workspace, File changelogFile, BuildListener listener, State state ) {
 
     	PrintStream consoleOutput = listener.getLogger();
-    	
+
     	EstablishResult er = null;
         try {
-            
+
         	Future<EstablishResult> i = null;
         	if( workspace.isRemote() ) {
         		final Pipe pipe = Pipe.createRemoteToLocal();
@@ -297,7 +299,7 @@ public class CCUCMScm extends SCM {
 
             this.viewtag = er.getViewtag();
             state.setChangeset( er.getChangeset() );
-            
+
 
             /* Write change log */
             try {
@@ -317,21 +319,21 @@ public class CCUCMScm extends SCM {
             state.setPostBuild(false);
             return false;
         }
-        
+
         if( er == null || er.isFailed() ) {
             consoleOutput.println("[" + Config.nameShort + "] Could not establish workspace: " + er);
             state.setPostBuild(false);
             return false;
-        } else {       
+        } else {
         	return true;
         }
     }
-    
+
     public boolean doBaseline( AbstractBuild<?, ?> build, String baselineInput, State state, BuildListener listener ) {
-        
+
         PrintStream consoleOutput = listener.getLogger();
         boolean result = true;
-        
+
         String baselinename = (String) build.getBuildVariables().get(baselineInput);
         try {
             state.setBaseline(UCMEntity.getBaseline(baselinename));
@@ -347,11 +349,11 @@ public class CCUCMScm extends SCM {
             result = false;
             state.setBaseline(null);
         }
-        
+
         return result;
     }
 
-    
+
     public String getBaselineValue( AbstractBuild<?, ?> build ) {
         Collection<?> c = build.getBuildVariables().keySet();
         Iterator<?> i = c.iterator();
@@ -362,10 +364,10 @@ public class CCUCMScm extends SCM {
                 return next;
             }
         }
-        
+
         return null;
     }
-    
+
     public class AscendingDateSort implements Comparator<Baseline>{
 
 		@Override
@@ -378,20 +380,20 @@ public class CCUCMScm extends SCM {
 			}
 			return (int) ( ( bl1.getDate().getTime() / 1000 ) - ( bl2.getDate().getTime() / 1000 ) );
 		}
-    	
+
     }
-    
+
     private boolean pollStream( AbstractBuild<?, ?> build, State state, BuildListener listener ) {
         boolean result = true;
         PrintStream consoleOutput = listener.getLogger();
-        
+
         try {
 
             printParameters(consoleOutput);
             state.setStream(UCMEntity.getStream(stream));
-            
+
             if (!state.isAddedByPoller()) {
-            	
+
             	List<Baseline> baselines = null;
             	/* Old skool self polling */
             	if( polling.isPollingSelf() ) {
@@ -400,10 +402,10 @@ public class CCUCMScm extends SCM {
                     /* Find the Baselines and store them */
                     baselines = getBaselinesFromStreams( build.getProject(), listener, consoleOutput, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
             	}
-            	
+
             	int total = baselines.size();
             	int pruned = filterBaselines( baselines );
-            	
+
             	if( pruned > 0 ) {
             		consoleOutput.println( "[" + Config.nameShort + "] Removed " + pruned + " of " + total + " Baselines." );
             	}
@@ -412,38 +414,38 @@ public class CCUCMScm extends SCM {
                 if (baselines.size() < 1) {
                     return false;
                 }
-                
+
                 /* Sort by date */
                 Collections.sort( baselines, new AscendingDateSort() );
-                
+
                 state.setBaselines(baselines);
                 state.setBaseline(selectBaseline(state.getBaselines(), newest));
             }
-            
+
             if( state.getBaselines() == null || state.getBaselines().size() < 1) {
                 return false;
             }
-            
+
             /* Print the baselines to jenkins out */
             printBaselines(state.getBaselines(), consoleOutput);
             consoleOutput.println( "" );
-            
+
         } catch( Exception e ) {
             consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
             logger.warning( e, id );
             return false;
         }
-        
+
         return result;
     }
-    
+
     public boolean beginDeliver( AbstractBuild<?, ?> build, State state, BuildListener listener, File changelogFile ) {
         FilePath workspace = build.getWorkspace();
         PrintStream consoleOutput = listener.getLogger();
         boolean result = true;
-        
+
         EstablishResult er = new EstablishResult();
-    	
+
         try {
             //logger.debug( "Remote delivering...." );
             //consoleOutput.println("[" + Config.nameShort + "] Establishing deliver view");
@@ -461,9 +463,9 @@ public class CCUCMScm extends SCM {
             	rmDeliver = new RemoteDeliver(state.getStream().getFullyQualifiedName(), listener, null, Logger.getSubscriptions(), component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
             	er = workspace.act(rmDeliver);
             }
-            
+
 			state.setSnapView(er.getView());
-            
+
             /* Write change log */
             try {
             	//consoleOutput.println("[" + Config.nameShort + "] DIFF ON MASTER: " + er.getMessage());
@@ -475,7 +477,7 @@ public class CCUCMScm extends SCM {
                 consoleOutput.println("[" + Config.nameShort + "] Could not write change log file");
             }
 
-            
+
         } catch (IOException e) {
             consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
             result = false;
@@ -488,42 +490,42 @@ public class CCUCMScm extends SCM {
             logger.warning( e, id );
             result = false;
 		}
-        
+
         logger.debug( id + "RESULT: " + er.getResultType().toString(), id );
         state.setChangeset( er.getChangeset() );
-        
+
         /* The result must be false if the returnStatus is not equal to 0 */
         if( er.isFailed() ) {
         	logger.debug( id + "Result is false!", id );
         	result = false;
         }
-        
-        /* If returnStatus == 1|2|3 the deliver was not started and should not be tried cancelled later 
+
+        /* If returnStatus == 1|2|3 the deliver was not started and should not be tried cancelled later
          * Perhaps isFailed could be used? */
         if( er.isDeliverRequiresRebase() || er.isInterprojectDeliverDenied() || !er.isStarted() ) {
         	logger.debug( id + "No need for completing deliver", id );
         	state.setNeedsToBeCompleted( false );
         }
-        
+
         consoleOutput.println("[" + Config.nameShort + "] Deliver " + (result ? "succeeded" : "failed"));
-        /* If failed, cancel the deliver 
+        /* If failed, cancel the deliver
          * But only if the deliver actually started and can be cancelled */
         if( !result && er.isCancellable() ) {
             try {
                 consoleOutput.print("[" + Config.nameShort + "] Cancelling deliver. ");
                 RemoteUtil.completeRemoteDeliver( workspace, listener, state, false );
                 consoleOutput.println("Success");
-                
+
                 /* Make sure, that the post step is not run */
                 state.setNeedsToBeCompleted( false );
-                
+
             } catch( Exception e ) {
                 consoleOutput.println("Failed");
                 logger.warning(e, id);
                 consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
             }
         }
-        
+
         /* Write something useful to the output */
         if( er.isMergeError() ) {
         	try {
@@ -532,7 +534,7 @@ public class CCUCMScm extends SCM {
 			} catch ( Exception e ) {
 			}
         }
-        
+
         try {
 			state.setStream(UCMEntity.getStream(stream));
 		} catch (UCMException e) {
@@ -540,10 +542,10 @@ public class CCUCMScm extends SCM {
             logger.warning( e, id );
             result = false;
 		}
-        
+
         return result;
     }
-    
+
     /**
      * Get the {@link Baseline}s from a {@link Stream}s related Streams.
      * @param build
@@ -552,7 +554,7 @@ public class CCUCMScm extends SCM {
      * @return
      */
     private List<Baseline> getBaselinesFromStreams( AbstractProject<?, ?> project, TaskListener listener, PrintStream consoleOutput, State state, Stream stream, Component component, boolean pollingChildStreams ) {
-        
+
         List<Stream> streams = null;
         List<Baseline> baselines = new ArrayList<Baseline>();
 
@@ -564,9 +566,9 @@ public class CCUCMScm extends SCM {
             consoleOutput.println("[" + Config.nameShort + "] No streams found");
             return baselines;
         }
-        
+
         consoleOutput.println("[" + Config.nameShort + "] Scanning " + streams.size() + " stream" + ( streams.size() == 1 ? "" : "s" ) + " for baselines." );
-        
+
         int c = 1;
         for (Stream s : streams) {
             try {
@@ -582,9 +584,9 @@ public class CCUCMScm extends SCM {
             	consoleOutput.println("No baselines found");
 			}
         }
-        
+
         consoleOutput.println("");
-        
+
         return baselines;
     }
 
@@ -604,7 +606,7 @@ public class CCUCMScm extends SCM {
         } else {
             env.put("CC_BASELINE", "");
         }
-        
+
         env.put( "CC_VIEWTAG", viewtag );
         String workspace = env.get( "WORKSPACE" );
         if (workspace != null) {
@@ -620,7 +622,7 @@ public class CCUCMScm extends SCM {
     @Override
     public PollingResult compareRemoteRevisionWith(AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState rstate) throws IOException, InterruptedException {
         this.id = "[" + project.getDisplayName() + "::" + project.getNextBuildNumber() + "]";
-        
+
         FileAppender app = null;
         /* Preparing the logger, uncomment to enable */
     	logger = Logger.getLogger();
@@ -641,16 +643,16 @@ public class CCUCMScm extends SCM {
          */
 
         State state = ccucm.getState(jobName, jobNumber);
-        
+
         storeStateParameters( state );
 
         PrintStream consoleOut = listener.getLogger();
         printParameters(consoleOut);
-        
+
 
         PollingResult p = null;
         consoleOut.println("[" + Config.nameShort + "] polling streams: " + polling);
-        
+
         try {
 	        List<Baseline> baselines = null;
 	    	/* Old skool self polling */
@@ -660,25 +662,25 @@ public class CCUCMScm extends SCM {
 	            /* Find the Baselines and store them */
 	            baselines = getBaselinesFromStreams( project, listener, consoleOut, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
 	    	}
-	            
+
 	        filterBaselines( baselines );
-	
+
 	        if( baselines.size() > 0 ) {
 	            p = PollingResult.BUILD_NOW;
-	            
+
 	            /* Sort by date */
 	            Collections.sort( baselines, new AscendingDateSort() );
-	            
+
 	            state.setBaselines(baselines);
 	            state.setBaseline(selectBaseline(state.getBaselines(), newest));
 	        } else {
 	            p = PollingResult.NO_CHANGES;
 	        }
-	
+
 	        //logger.debug( id + "FINAL Polling result = " + p.change.toString(), id );
-	
+
 	        logger.debug(id + "The POLL state:\n" + state.stringify(), id);
-	
+
 	        /* Remove state if not being built */
 	        if( p == PollingResult.NO_CHANGES ) {
 	            state.remove();
@@ -687,44 +689,44 @@ public class CCUCMScm extends SCM {
 			logger.warning( "Could not get any baselines: " + e.getMessage(), id );
 			p = PollingResult.NO_CHANGES;
 		}
-        
+
         /* Remove state if not being built */
         if( p == PollingResult.NO_CHANGES ) {
             state.remove();
         } else {
         	state.setAddedByPoller(true);
         }
-        
-        
+
+
         Logger.removeAppender( app );
         return p;
     }
-    
+
     /**
      * Store the globally defined parameters in the state object
      * @param state
      */
     private void storeStateParameters( State state ) {
-        
+
         try {
             state.setStream( UCMEntity.getStream( stream, true ) );
         } catch( UCMException e ) {
             logger.warning( e, id );
         }
-        
+
         try {
             state.setComponent( UCMEntity.getComponent( component, true ) );
         } catch( UCMException e ) {
             logger.warning( e, id );
         }
-        
+
         state.setUnstable( treatUnstable );
-        
+
         /* Notifier stuff */
         state.setSetDescription( setDescription );
         state.setMakeTag( makeTag );
         state.setRecommend( recommend );
-        
+
         /*
         try {
             state.setBaseline( UCMEntity.getBaseline( bl, false ) );
@@ -732,7 +734,7 @@ public class CCUCMScm extends SCM {
             logger.warning( e );
         }
         */
-        
+
         state.setPlevel( Project.getPlevelFromString(levelToPoll) );
     }
 
@@ -781,11 +783,11 @@ public class CCUCMScm extends SCM {
 		} catch (CCUCMException e1) {
 			throw new ScmException( "Unable to get baselines from " + stream.getShortname() + ": " + e1.getMessage() );
 		}
-        
+
         logger.debug(id + "GetBaseline state:\n" + state.stringify(), id);
-        
+
         List<Baseline> validBaselines = new ArrayList<Baseline>();
-        
+
         if (baselines.size() >= 1) {
             logger.debug(id + "CCUCM=" + ccucm.stringify(), id);
 
@@ -848,17 +850,17 @@ public class CCUCMScm extends SCM {
 
         return validBaselines;
     }
-    
-    
+
+
     /**
      * Filter out baselines that is involved in a deliver or
      * does not have a label
      * @param baselines
      */
     private int filterBaselines( List<Baseline> baselines ) {
-    	
+
     	int pruned = 0;
-    	
+
     	/* Remove deliver baselines */
     	Iterator<Baseline> it = baselines.iterator();
     	while( it.hasNext() ) {
@@ -868,7 +870,7 @@ public class CCUCMScm extends SCM {
     			pruned++;
     		}
     	}
-    	
+
     	/* Remove unlabeled baselines */
     	Iterator<Baseline> it2 = baselines.iterator();
     	while( it2.hasNext() ) {
@@ -878,7 +880,7 @@ public class CCUCMScm extends SCM {
     			pruned++;
     		}
     	}
-    	
+
     	return pruned;
     }
 
@@ -955,7 +957,7 @@ public class CCUCMScm extends SCM {
     public String getPolling() {
         return polling.toString();
     }
-    
+
     @Exported
     public String getTreatUnstable() {
         return treatUnstable.toString();
@@ -969,32 +971,34 @@ public class CCUCMScm extends SCM {
     public String getBuildProject() {
         return buildProject;
     }
-    
-    
-    
-    
+
+    public boolean getForceDeliver() {
+        return forceDeliver;
+    }
+
+
     public boolean isCreateBaseline() {
         return this.createBaseline;
     }
-    
+
     public String getNameTemplate() {
     	return this.nameTemplate;
     }
-    
-    
-    
+
+
+
     public boolean isMakeTag() {
         return this.makeTag;
     }
-    
+
     public boolean isSetDescription() {
         return this.setDescription;
     }
-    
+
     public boolean isRecommend() {
         return this.recommend;
     }
-    
+
 
 
     /**
@@ -1056,7 +1060,7 @@ public class CCUCMScm extends SCM {
         public FormValidation doExecutableCheck(@QueryParameter String value) {
         	return FormValidation.validateExecutable(value);
         }
-        
+
         public FormValidation doTemplateCheck(@QueryParameter String value) throws FormValidation {
         	try {
 				NameTemplate.testTemplate( NameTemplate.trim( value ) );
@@ -1064,9 +1068,9 @@ public class CCUCMScm extends SCM {
 			} catch (TemplateException e) {
 				throw FormValidation.error( "Does not appear to be a valid template: " + e.getMessage() );
 			}
-            
+
         }
-        
+
         @Override
         public CCUCMScm newInstance(StaplerRequest req, JSONObject formData) throws FormException {
         	CCUCMScm instance = req.bindJSON(CCUCMScm.class, formData);
