@@ -179,7 +179,11 @@
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>COOL</artifactId>
+<<<<<<< HEAD
             <version>0.3.34-SNAPSHOT</version>
+=======
+            <version>0.3.33-SNAPSHOT</version>
+>>>>>>> 35f9b742063c33d12b75970b6710935ea0fb7bff
             <type>jar</type>
             <scope>compile</scope>
         </dependency>

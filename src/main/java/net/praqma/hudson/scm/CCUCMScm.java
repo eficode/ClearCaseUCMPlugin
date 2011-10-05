@@ -72,7 +72,6 @@ import org.kohsuke.stapler.export.Exported;
  *
  */
 public class CCUCMScm extends SCM {
-
     private Project.Plevel plevel;
     private String levelToPoll;
     private String loadModule;
@@ -201,11 +200,11 @@ public class CCUCMScm extends SCM {
         state.setNameTemplate( nameTemplate );
         
         /* Check input */
-		if( !checkInput( listener ) ) {
-			state.setPostBuild( false );
-			Logger.removeAppender( app );
-			return false;
-		}
+        if( !checkInput( listener ) ) {
+        	state.setPostBuild( false );
+    		Logger.removeAppender( app );
+        	return false;
+        }
         
         /* Determining the Baseline modifier */
         String baselineInput = getBaselineValue( build );
@@ -266,24 +265,24 @@ public class CCUCMScm extends SCM {
         	}
         }
         
-		return result;
+        Logger.removeAppender( app );
+        return result;
     }
-        
-	private boolean checkInput( TaskListener listener ) {
-		PrintStream out = listener.getLogger();
-
-		/* Check baseline template */
-		if( createBaseline ) {
-			/* Sanity check */
-			if( polling.isPollingOther() ) {
-				if( nameTemplate != null && nameTemplate.length() > 0 ) {
-					try {
+    
+    private boolean checkInput( TaskListener listener ) {
+    	PrintStream out = listener.getLogger();
+    	
+    	/* Check baseline template */
+        if( createBaseline ) {
+        	/* Sanity check */
+        	if( polling.isPollingOther() ) {
+	        	if( nameTemplate != null && nameTemplate.length() > 0 ) {
+	        		try {
 						NameTemplate.testTemplate( nameTemplate );
 					} catch (TemplateException e) {
-						out.println( "[" + Config.nameShort + "] The template could not be parsed correctly: " + e.getMessage() );
+						out.println("[" + Config.nameShort + "] The template could not be parsed correctly: " + e.getMessage() );
 						return false;
 					}
-
 	        	} else {
 	        		out.println("[" + Config.nameShort + "] A valid template must be provided to create a Baseline" );
 	        		return false;
@@ -769,7 +768,6 @@ public class CCUCMScm extends SCM {
             logger.warning( e );
         }
         */
-
         state.setPlevel( plevel );
     }
 
@@ -1053,7 +1051,7 @@ public class CCUCMScm extends SCM {
          */
         @Override
         public boolean configure(org.kohsuke.stapler.StaplerRequest req, JSONObject json) throws FormException {
-            save();
+        	save();
             return true;
         }
 
@@ -1084,6 +1082,7 @@ public class CCUCMScm extends SCM {
 				throw FormValidation.error( "Does not appear to be a valid template: " + e.getMessage() );
 			}
         }
+        
         
         public void doLevelCheck(@QueryParameter String polling, @QueryParameter String level) throws FormValidation {
         	System.out.println("LEVEL CHECK: " + polling + " + " + level);
