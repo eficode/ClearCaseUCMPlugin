@@ -3,21 +3,21 @@
 	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
     <f:entry title="Stream" help="/plugin/clearcase-ucm-plugin/scm/help-stream.html">
-      <f:textbox name="stream" value="${scm.stream}"/>
+        <f:textbox name="stream" value="${scm.stream}"/>
     </f:entry>
 
     <f:entry title="Component" help="/plugin/clearcase-ucm-plugin/scm/help-component.html">
-      <f:textbox name="component" value="${scm.component}"/>
+        <f:textbox name="component" value="${scm.component}"/>
     </f:entry>
 
     <j:set var="levels" value="${descriptor.getLevels()}"/>
-      <f:entry  title="Promotion level" help="/plugin/clearcase-ucm-plugin/scm/help-pLevel.html">
-      <select class="setting-input" name="levelToPoll">
-       <j:forEach var="l" items="${levels}">
-        <f:option selected="${scm.levelToPoll==l}" value="${l}">${l}</f:option>
-          </j:forEach>
-         </select>
-       </f:entry>
+    <f:entry  title="Promotion level" help="/plugin/clearcase-ucm-plugin/scm/help-pLevel.html">
+        <select class="setting-input" name="levelToPoll">
+            <j:forEach var="l" items="${levels}">
+                <f:option selected="${scm.levelToPoll==l}" value="${l}">${l}</f:option>
+            </j:forEach>
+        </select>
+    </f:entry>
 
     <f:entry title="Load modules" help="/plugin/clearcase-ucm-plugin/scm/help-loadModules.html">
         <select class="setting-input" name="loadModule">
@@ -27,32 +27,36 @@
             </j:forEach>
         </select>
     </f:entry>
-    
-	<f:entry title="Polling" help="/plugin/clearcase-ucm-plugin/scm/help-polling.html">
-		<select class="setting-input" name="CCUCM.polling">
-		    <f:option selected="${instance.polling == 'self'}" value="self">Poll self</f:option>
-			<f:option selected="${instance.polling == 'childs'}" value="child">Poll child streams</f:option>
-			<f:option selected="${instance.polling == 'siblings'}" value="sibling">Poll sibling streams</f:option>
-		</select>
-	</f:entry>
 
-	<f:entry title="Newest" help="/plugin/clearcase-ucm-plugin/scm/help-newest.html">
-	    <f:checkbox name="CCUCM.newest" checked="${scm.newest}" />
-	</f:entry>
-	
+    <f:entry title="Polling" help="/plugin/clearcase-ucm-plugin/scm/help-polling.html">
+        <select class="setting-input" name="CCUCM.polling">
+            <f:option selected="${instance.polling == 'self'}" value="self">Poll self</f:option>
+            <f:option selected="${instance.polling == 'childs'}" value="child">Poll child streams</f:option>
+            <f:option selected="${instance.polling == 'siblings'}" value="sibling">Poll sibling streams</f:option>
+        </select>
+    </f:entry>
+
+    <f:entry title="Newest" help="/plugin/clearcase-ucm-plugin/scm/help-newest.html">
+        <f:checkbox name="CCUCM.newest" checked="${scm.newest}" />
+    </f:entry>
+
     <f:entry title="Unstable" help="/plugin/clearcase-ucm-plugin/scm/help-unstable.html">
         <select class="setting-input" name="CCUCM.treatUnstable">
             <f:option selected="${instance.treatUnstable == 'successful'}" value="successful">Unstable jobs are treated as successful</f:option>
             <f:option selected="${instance.treatUnstable == 'failed'}" value="failed">Unstable jobs are treated as failed</f:option>
         </select>
     </f:entry>
-	
+
     <f:entry title="Create baseline" help="/plugin/clearcase-ucm-plugin/scm/help-createBaseline.html">
         <f:checkbox name="CCUCM.createBaseline" checked="${scm.createBaseline}" />
     </f:entry>
-    
+
     <f:entry title="Name template" help="/plugin/clearcase-ucm-plugin/scm/help-template.html">
-      <f:textbox name="CCUCM.nameTemplate" value="${scm.nameTemplate}" default="[project]_[date]_[time]" checkUrl="'${rootURL}/scm/CCUCMScm/templateCheck?value='+escape(this.value)"/>
+        <f:textbox name="CCUCM.nameTemplate" value="${scm.nameTemplate}" default="[project]_[date]_[time]" checkUrl="'${rootURL}/scm/CCUCMScm/templateCheck?value='+escape(this.value)"/>
+    </f:entry>
+
+    <f:entry title="Force deliver" help="/plugin/clearcase-ucm-plugin/scm/help-forceDeliver.html">
+        <f:checkbox name="CCUCM.forceDeliver" checked="${scm.forceDeliver}" />
     </f:entry>
 
     <f:entry title="Recommend baseline" help="/plugin/clearcase-ucm-plugin/scm/help-recommendBaseline.html">
@@ -66,6 +70,7 @@
     <f:entry title="Set description" help="/plugin/clearcase-ucm-plugin/scm/help-setDescription.html">
         <f:checkbox name="CCUCM.setDescription" checked="${h.defaultToTrue(scm.setDescription)}" default="checked" />
     </f:entry>
+<<<<<<< HEAD
 	
 	<f:section title="Advanced ClearCase UCM Options">
 	
@@ -79,4 +84,23 @@
 		
 	</f:section>
 	
+=======
+
+    <f:section title="Advanced ClearCase UCM Options">
+
+        <f:advanced>
+
+            <f:entry title="Multi-site promotion level cache" help="/plugin/clearcase-ucm-plugin/scm/help-multisite.html">
+                <f:checkbox name="CCUCM.multiSite" checked="${instance.multiSite}" />
+            </f:entry>
+
+            <f:entry title="Build project" help="/plugin/clearcase-ucm-plugin/scm/help-buildProject.html">
+                <f:textbox name="buildProject" value="${scm.buildProject}"/>
+            </f:entry>
+
+        </f:advanced>
+
+    </f:section>
+
+>>>>>>> dcab888afba7f75631ea3f134a3639c057108190
 </j:jelly>
