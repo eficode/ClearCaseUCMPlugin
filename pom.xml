@@ -187,11 +187,7 @@
 		<dependency>
 			<groupId>net.praqma</groupId>
 			<artifactId>praqmajutils</artifactId>
-<<<<<<< HEAD
-			<version>0.1.14</version>
-=======
 			<version>0.1.14-SNAPSHOT</version>
->>>>>>> Fix for case 4604
 			<optional>true</optional>
 		</dependency>
 
