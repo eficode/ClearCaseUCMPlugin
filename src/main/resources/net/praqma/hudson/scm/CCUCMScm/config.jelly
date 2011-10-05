@@ -66,16 +66,14 @@
     <f:entry title="Set description" help="/plugin/clearcase-ucm-plugin/scm/help-setDescription.html">
         <f:checkbox name="CCUCM.setDescription" checked="${h.defaultToTrue(scm.setDescription)}" default="checked" />
     </f:entry>
-	
 	<f:section title="Advanced ClearCase UCM Options">
-	
+
 		<f:advanced>
 		    <f:entry title="Build project" help="/plugin/clearcase-ucm-plugin/scm/help-buildProject.html">
 	      		<f:textbox name="buildProject" value="${scm.buildProject}"/>
 	    	</f:entry>
-	
+
 		</f:advanced>
-		
+
 	</f:section>
-	
 </j:jelly>
