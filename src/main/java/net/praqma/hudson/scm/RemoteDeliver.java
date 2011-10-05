@@ -225,7 +225,8 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
 
                 try {
                     //rolling back the previous deliver operation
-                    UCMContext.context.remoteDeliverCancel(oldViewtag, stream, newView);
+                    Stream.getStream(stream).deliverRollBack(oldViewtag, newView);
+                    
                 } catch (UCMException ex) {
                     hudsonOut.println(ex.getMessage());
                     throw new IOException(ex.getMessage(), ex.getCause());
