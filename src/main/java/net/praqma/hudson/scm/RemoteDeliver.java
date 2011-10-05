@@ -11,10 +11,8 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.Set;
 
-import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.naming.Context;
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.UCMException.UCMType;
 import net.praqma.clearcase.ucm.entities.Activity;
@@ -23,7 +21,6 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.entities.Version;
-import net.praqma.clearcase.ucm.persistence.UCMContext;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.Util;
@@ -178,6 +175,15 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
             }
 
             if (e.type.equals(UCMType.DELIVER_IN_PROGRESS)) {
+                CCUCMState state = new CCUCMState();
+                CCUCMState.State s = state.getStateByBaseline(jobName, baseline.getFullyQualifiedName());
+
+                if(!s.getForceDilever()){
+                    hudsonOut.println(e.getMessage());
+                    er.setResultType(ResultType.DELIVER_IN_PROGRESS);
+                    Logger.removeAppender(app);
+                    return er;
+                }
 
                 /**
                  * rollback deliver..
@@ -226,7 +232,7 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
                 try {
                     //rolling back the previous deliver operation
                     Stream.getStream(stream).deliverRollBack(oldViewtag, newView);
-                    
+
                 } catch (UCMException ex) {
                     hudsonOut.println(ex.getMessage());
                     throw new IOException(ex.getMessage(), ex.getCause());

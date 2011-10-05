@@ -726,6 +726,7 @@ public class CCUCMScm extends SCM {
         state.setSetDescription( setDescription );
         state.setMakeTag( makeTag );
         state.setRecommend( recommend );
+        state.setForceDilever(forceDeliver);
 
         /*
         try {

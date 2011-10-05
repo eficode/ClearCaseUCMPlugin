@@ -21,9 +21,9 @@ import net.praqma.util.debug.Logger;
 
 /**
  * This is the state object for the CCUCM jobs
- * 
+ *
  * @author wolfgang
- * 
+ *
  */
 public class CCUCMState {
 
@@ -34,7 +34,7 @@ public class CCUCMState {
 
 	/**
 	 * Get a state given job name and job number
-	 * 
+	 *
 	 * @param jobName
 	 *            the hudson job name
 	 * @param jobNumber
@@ -156,13 +156,22 @@ public class CCUCMState {
 		private SnapshotView deliverView;
 		private boolean createBaseline = true;
 		private String nameTemplate;
-		
+
 		private ClearCaseChangeset changeset;
 
 		private boolean setDescription = false;
 		private boolean makeTag = false;
 		private boolean recommend = false;
-		
+        private boolean forceDilever = false;
+
+        public boolean getForceDilever() {
+            return forceDilever;
+        }
+
+        public void setForceDilever(boolean forceDilever) {
+            this.forceDilever = forceDilever;
+        }
+
 		private FilePath workspace;
 
 		private String error;
