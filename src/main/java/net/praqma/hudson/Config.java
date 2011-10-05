@@ -31,7 +31,7 @@ public class Config {
     }
 
     public static void setContext() {
-        boolean useTestbase = true;
+        boolean useTestbase = false;
         if (useTestbase) {
             /*
              * Examples to use from testbase.xml: stream =
