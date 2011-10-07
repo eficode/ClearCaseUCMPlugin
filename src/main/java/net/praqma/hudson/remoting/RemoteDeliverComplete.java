@@ -27,32 +27,32 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 	private boolean complete;
 	private BuildListener listener;
 	private Pipe pipe;
-	
+
 	private Baseline baseline;
 	private Stream stream;
 	private SnapshotView view;
 	private ClearCaseChangeset changeset;
-	
+
 	private Set<String> subscriptions;
 
 	public RemoteDeliverComplete( Baseline baseline, Stream stream, SnapshotView view, ClearCaseChangeset changeset, boolean complete, BuildListener listener, Pipe pipe, Set<String> subscriptions ) {
 		this.complete = complete;
 		this.listener = listener;
 		this.pipe = pipe;
-		
+
 		this.baseline = baseline;
 		this.stream = stream;
 		this.view = view;
 		this.changeset = changeset;
-		
+
 		this.subscriptions = subscriptions;
 	}
 
 	@Override
 	public Boolean invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
-		
+
 		PrintStream out = listener.getLogger();
-		
+
 		Logger logger = Logger.getLogger();
     	StreamAppender app = null;
     	if( pipe != null ) {
@@ -77,17 +77,7 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 	        	Logger.removeAppender( app );
 				throw new IOException( "Completing the deliver failed. Deliver was cancelled." );
 			}
-			
-			/* All is well, change ownerships */
-			for( Element e : changeset.getList() ) {
-				try {
-					UCMEntity.changeOwnership( e.getVersion(), e.getUser(), view.getViewRoot() );
-				} catch( UCMException ex ) {
-					Logger.removeAppender( app );
-					out.println( "Unable to change ownership: " + ex.getMessage() );
-				}
-			}
-			
+
 		} else {
 			out.println( "Cancelling" );
 			try {
@@ -98,6 +88,7 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 			}
 		}
 
+       
 		Logger.removeAppender( app );
 		return true;
 	}
