@@ -27,7 +27,7 @@ public class CreateRemoteBaseline implements FileCallable<Baseline> {
 	private String username;
 	private Pipe pipe;
 	private Set<String> subscriptions;
-	
+
 	public CreateRemoteBaseline( String baseName, Component component, File view, String username, BuildListener listener, Pipe pipe, Set<String> subscriptions ) {
 		this.baseName = baseName;
 		this.component = component;
@@ -37,11 +37,11 @@ public class CreateRemoteBaseline implements FileCallable<Baseline> {
 		this.pipe = pipe;
 		this.subscriptions = subscriptions;
     }
-    
+
     @Override
     public Baseline invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
         PrintStream out = listener.getLogger();
-        
+
     	StreamAppender app = null;
     	if( pipe != null ) {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
@@ -49,7 +49,7 @@ public class CreateRemoteBaseline implements FileCallable<Baseline> {
 	    	Logger.addAppender( app );
 	    	app.setSubscriptions( subscriptions );
     	}
-        
+
     	Baseline bl = null;
     	try {
 			bl = Baseline.create( baseName, component, view, true, true );
@@ -58,13 +58,6 @@ public class CreateRemoteBaseline implements FileCallable<Baseline> {
         	throw new IOException( "Unable to create Baseline:" + e.getMessage() );
 		}
     	
-    	try {
-			bl.changeOwnership( username, null );
-		} catch (UCMException e) {
-        	Logger.removeAppender( app );
-        	throw new IOException( "Unable to change ownership of " + baseName + ":" + e.getMessage() );
-		}
-    
     	Logger.removeAppender( app );
 
     	return bl;
