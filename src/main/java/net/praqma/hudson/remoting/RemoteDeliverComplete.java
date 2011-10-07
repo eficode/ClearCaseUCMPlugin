@@ -88,6 +88,7 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 			}
 		}
 
+       
 		Logger.removeAppender( app );
 		return true;
 	}
