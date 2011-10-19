@@ -183,7 +183,7 @@ public class CCUCMNotifier extends Notifier {
         }
 
         /* There's a valid baseline, lets process it */
-        if (result) {
+        if(result) {
 
         	status.setErrorMessage( pstate.getError() );
         	
