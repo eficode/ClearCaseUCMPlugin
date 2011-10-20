@@ -358,23 +358,11 @@ public class CCUCMNotifier extends Notifier {
         try {
             logger.debug(id + "Remote post build step", id);
             hudsonOut.println("[" + Config.nameShort + "] Performing common post build steps");
-            
-            Future<Status> i = null;
-            if( workspace.isRemote() ) {
-				final Pipe pipe = Pipe.createRemoteToLocal();
-				
-            	i = workspace.actAsync(new RemotePostBuild(buildResult, status, listener,
-            		                   pstate.isMakeTag(), pstate.doRecommend(), pstate.getUnstable(), 
-            		                   sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString(build.getNumber()), pipe, Logger.getSubscriptions()));
-				logger.redirect( pipe.getIn() );
-            } else {
-            	i = workspace.actAsync(new RemotePostBuild(buildResult, status, listener,
-                        pstate.isMakeTag(), pstate.doRecommend(), pstate.getUnstable(), 
-                        sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString(build.getNumber()), null, Logger.getSubscriptions()));
-            	
-            }
 
-            status = i.get();
+            status = workspace.act( new RemotePostBuild(buildResult, status, listener,
+                        pstate.isMakeTag(), pstate.doRecommend(), pstate.getUnstable(), 
+                        sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString(build.getNumber()) ) );
+            
         } catch (Exception e) {
             status.setStable(false);
             logger.debug(id + "Something went wrong: " + e.getMessage(), id);

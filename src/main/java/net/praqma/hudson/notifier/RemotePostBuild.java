@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
@@ -18,9 +19,8 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Tag;
 import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.hudson.Config;
+import net.praqma.hudson.scm.CheckoutTask;
 import net.praqma.hudson.scm.Unstable;
-import net.praqma.util.debug.Logger;
-import net.praqma.util.debug.appenders.StreamAppender;
 
 /**
  * 
@@ -43,19 +43,17 @@ class RemotePostBuild implements FileCallable<Status> {
 	private boolean recommend = false;
 	private Status status;
 	private BuildListener listener;
+	private Logger logger;
 
 	private String id = "";
 	private PrintStream hudsonOut = null;
 	private Unstable unstable;
-
-	private Pipe pipe = null;
-	private Set<String> subscriptions;
-
+	
 	public RemotePostBuild( Result result, Status status, BuildListener listener,
 							/* Values for */
 							boolean makeTag, boolean recommended, Unstable unstable,
 							/* Common values */
-							Baseline sourcebaseline, Baseline targetbaseline, Stream sourcestream, Stream targetstream, String displayName, String buildNumber, Pipe pipe, Set<String> subscriptions ) {
+							Baseline sourcebaseline, Baseline targetbaseline, Stream sourcestream, Stream targetstream, String displayName, String buildNumber ) {
 		
 		
 		this.displayName = displayName;
@@ -77,24 +75,13 @@ class RemotePostBuild implements FileCallable<Status> {
 
 		this.status = status;
 		this.listener = listener;
-
-		this.pipe = pipe;
-		this.subscriptions = subscriptions;
 	}
 
 	public Status invoke( File workspace, VirtualChannel channel ) throws IOException {
 		hudsonOut = listener.getLogger();
 		UCM.setContext( UCM.ContextType.CLEARTOOL );
 		
-		Logger logger = Logger.getLogger();
-		
-    	StreamAppender app = null;
-    	if( pipe != null ) {
-	    	PrintStream toMaster = new PrintStream( pipe.getOut() );	    	
-	    	app = new StreamAppender( toMaster );
-	    	Logger.addAppender( app );
-	    	app.setSubscriptions( subscriptions );
-    	}
+		logger = Logger.getLogger( RemotePostBuild.class.getName() );
 
 		String newPLevel = "";
 
@@ -231,7 +218,7 @@ class RemotePostBuild implements FileCallable<Status> {
 			/* Result not handled by CCUCM */
 			else {
 				tag.setEntry( "buildstatus", result.toString() );
-				logger.log( id + "Buildstatus (Result) was " + result + ". Not handled by plugin." );
+				logger.info( id + "Buildstatus (Result) was " + result + ". Not handled by plugin." );
 				hudsonOut.println( "[" + Config.nameShort + "] Baselines not changed. Buildstatus: " + result );
 			}
 		}
@@ -253,7 +240,7 @@ class RemotePostBuild implements FileCallable<Status> {
 		try {
 			newPLevel = sourcebaseline.getPromotionLevel( true ).toString();
 		} catch (UCMException e) {
-			logger.log( id + " Could not get promotionlevel." );
+			logger.info( id + " Could not get promotionlevel." );
 			hudsonOut.println( "[" + Config.nameShort + "] Could not get promotion level." );
 		}
 
@@ -265,7 +252,6 @@ class RemotePostBuild implements FileCallable<Status> {
 		
 
 		logger.info( id + "Remote post build finished normally" );
-		Logger.removeAppender( app );
 		return status;
 	}
 

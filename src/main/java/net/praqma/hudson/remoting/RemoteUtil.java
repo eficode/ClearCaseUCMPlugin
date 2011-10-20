@@ -12,33 +12,16 @@ import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.entities.Project.Plevel;
 import net.praqma.hudson.exception.CCUCMException;
 import net.praqma.hudson.scm.CCUCMState.State;
-import net.praqma.util.debug.Logger;
 import hudson.FilePath;
 import hudson.model.BuildListener;
 import hudson.model.TaskListener;
-import hudson.remoting.Future;
-import hudson.remoting.Pipe;
 
 public abstract class RemoteUtil {
-	
-	private static Logger logger = Logger.getLogger();
 
 	public static void completeRemoteDeliver( FilePath workspace, BuildListener listener, State state, boolean complete ) throws CCUCMException {
 
 		try {
-			if( workspace.isRemote() ) {
-				final Pipe pipe = Pipe.createRemoteToLocal();
-				Future<Boolean> i = null;
-				i = workspace.actAsync( new RemoteDeliverComplete( state.getBaseline(), state.getStream(), state.getSnapView(), state.getChangeset(), complete, listener, pipe, Logger.getSubscriptions() ) );
-				logger.redirect( pipe.getIn() );
-				i.get();
-			} else {
-				Future<Boolean> i = null;
-				i = workspace.actAsync( new RemoteDeliverComplete( state.getBaseline(), state.getStream(), state.getSnapView(), state.getChangeset(), complete, listener, null, Logger.getSubscriptions() ) );
-				i.get();
-			}
-			return;
-
+			workspace.act( new RemoteDeliverComplete( state.getBaseline(), state.getStream(), state.getSnapView(), state.getChangeset(), complete, listener ) );
 		} catch (Exception e) {
 			throw new CCUCMException( "Failed to " + ( complete ? "complete" : "cancel" ) + " the deliver: " + e.getMessage() );
 		}
@@ -47,18 +30,7 @@ public abstract class RemoteUtil {
 	public static Baseline createRemoteBaseline( FilePath workspace, BuildListener listener, String baseName, Component component, File view, String username ) throws CCUCMException {
 
 		try {
-			if( workspace.isRemote() ) {
-				final Pipe pipe = Pipe.createRemoteToLocal();
-				Future<Baseline> i = null;
-				i = workspace.actAsync( new CreateRemoteBaseline( baseName, component, view, username, listener, pipe, Logger.getSubscriptions() ) );
-				logger.redirect( pipe.getIn() );
-				return i.get();
-			} else {
-				Future<Baseline> i = null;
-				i = workspace.actAsync( new CreateRemoteBaseline( baseName, component, view, username, listener, null, Logger.getSubscriptions() ) );
-				return i.get();
-			}
-
+			return workspace.act( new CreateRemoteBaseline( baseName, component, view, username, listener ) );
 		} catch (Exception e) {
 			throw new CCUCMException( e.getMessage() );
 		}
@@ -67,18 +39,7 @@ public abstract class RemoteUtil {
 	public static List<Baseline> getRemoteBaselinesFromStream( FilePath workspace, Component component, Stream stream, Plevel plevel ) throws CCUCMException {
 
 		try {
-			if( workspace.isRemote() ) {
-				final Pipe pipe = Pipe.createRemoteToLocal();
-				Future<List<Baseline>> i = null;
-				i = workspace.actAsync( new GetRemoteBaselineFromStream( component, stream, plevel, pipe, Logger.getSubscriptions() ) );
-				logger.redirect( pipe.getIn() );
-				return i.get();
-			} else {
-				Future<List<Baseline>> i = null;
-				i = workspace.actAsync( new GetRemoteBaselineFromStream( component, stream, plevel, null, Logger.getSubscriptions() ) );
-				return i.get();
-			}
-
+			return workspace.act( new GetRemoteBaselineFromStream( component, stream, plevel ) );
 		} catch (Exception e) {
 			throw new CCUCMException( e.getMessage() );
 		}
@@ -90,20 +51,7 @@ public abstract class RemoteUtil {
 		PrintStream out = listener.getLogger();
 		
 		try {
-			
-			if( workspace.isRemote() ) {
-				final Pipe pipe = Pipe.createRemoteToLocal();
-				Future<List<Stream>> i = null;
-				i = workspace.actAsync( new GetRelatedStreams( listener, stream, pollingChildStreams, pipe, Logger.getSubscriptions() ) );
-				logger.redirect( pipe.getIn() );
-				return i.get();
-			} else {
-				Future<List<Stream>> i = null;
-				i = workspace.actAsync( new GetRelatedStreams( listener, stream, pollingChildStreams, null, Logger.getSubscriptions() ) );
-				return i.get();
-
-			}
-
+			return workspace.act( new GetRelatedStreams( listener, stream, pollingChildStreams ) );
 		} catch (Exception e) {
 			e.printStackTrace( out );
 			throw new CCUCMException( e.getMessage() );
@@ -113,20 +61,7 @@ public abstract class RemoteUtil {
 	public static UCMEntity loadEntity( FilePath workspace, UCMEntity entity ) throws CCUCMException {
 		
 		try {
-			Future<UCMEntity> i = null;
-			
-			if( workspace.isRemote() ) {
-				final Pipe pipe = Pipe.createRemoteToLocal();
-				
-				i = workspace.actAsync( new LoadEntity( entity, pipe, Logger.getSubscriptions() ) );
-				logger.redirect( pipe.getIn() );
-				
-			} else {
-				i = workspace.actAsync( new LoadEntity( entity, null, Logger.getSubscriptions() ) );
-			}
-			
-			return i.get();
-
+			return workspace.act(  new LoadEntity( entity ) );
 		} catch (Exception e) {
 			throw new CCUCMException( e.getMessage() );
 		}
@@ -135,20 +70,7 @@ public abstract class RemoteUtil {
 	public static String getClearCaseVersion( FilePath workspace, Project project ) throws CCUCMException {
 		
 		try {
-			Future<String> i = null;
-			
-			if( workspace.isRemote() ) {
-				final Pipe pipe = Pipe.createRemoteToLocal();
-				
-				i = workspace.actAsync( new GetClearCaseVersion( project, pipe, Logger.getSubscriptions() ) );
-				logger.redirect( pipe.getIn() );
-				
-			} else {
-				i = workspace.actAsync( new GetClearCaseVersion( project, null, Logger.getSubscriptions() ) );
-			}
-			
-			return i.get();
-
+			return workspace.act( new GetClearCaseVersion( project ) );
 		} catch (Exception e) {
 			throw new CCUCMException( e.getMessage() );
 		}
