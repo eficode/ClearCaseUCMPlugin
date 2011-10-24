@@ -36,10 +36,16 @@ public abstract class RemoteUtil {
 		}
 	}
 
-	public static List<Baseline> getRemoteBaselinesFromStream( FilePath workspace, Component component, Stream stream, Plevel plevel ) throws CCUCMException {
+	public static List<Baseline> getRemoteBaselinesFromStream( FilePath workspace, Component component, Stream stream, Plevel plevel, boolean slavePolling ) throws CCUCMException {
+
+            GetRemoteBaselineFromStream t = new GetRemoteBaselineFromStream( component, stream, plevel );
 
 		try {
-			return workspace.act( new GetRemoteBaselineFromStream( component, stream, plevel ) );
+                    if(slavePolling){
+                        return workspace.act( new GetRemoteBaselineFromStream( component, stream, plevel ) );
+                    }else{
+                       return t.invoke(null, null);
+                    }
 		} catch (Exception e) {
 			throw new CCUCMException( e.getMessage() );
 		}
@@ -49,7 +55,7 @@ public abstract class RemoteUtil {
 	public static List<Stream> getRelatedStreams( FilePath workspace, TaskListener listener, Stream stream, boolean pollingChildStreams ) throws CCUCMException {
 
 		PrintStream out = listener.getLogger();
-		
+
 		try {
 			return workspace.act( new GetRelatedStreams( listener, stream, pollingChildStreams ) );
 		} catch (Exception e) {
@@ -57,18 +63,18 @@ public abstract class RemoteUtil {
 			throw new CCUCMException( e.getMessage() );
 		}
 	}
-	
+
 	public static UCMEntity loadEntity( FilePath workspace, UCMEntity entity ) throws CCUCMException {
-		
+
 		try {
 			return workspace.act(  new LoadEntity( entity ) );
 		} catch (Exception e) {
 			throw new CCUCMException( e.getMessage() );
 		}
 	}
-	
+
 	public static String getClearCaseVersion( FilePath workspace, Project project ) throws CCUCMException {
-		
+
 		try {
 			return workspace.act( new GetClearCaseVersion( project ) );
 		} catch (Exception e) {

@@ -18,35 +18,35 @@ import hudson.remoting.VirtualChannel;
 public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>> {
 
 	private static final long serialVersionUID = -8984877325832486334L;
-	
+
 	private Component component;
 	private Stream stream;
 	private Plevel plevel;
-	
+
 	public GetRemoteBaselineFromStream( Component component, Stream stream, Plevel plevel ) {
 		this.component = component;
 		this.stream = stream;
 		this.plevel = plevel;
     }
-    
+
     @Override
     public List<Baseline> invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
     	
     	Logger logger = Logger.getLogger( GetRemoteBaselineFromStream.class.getName() );
-    	
+
     	UCM.setContext( UCM.ContextType.CLEARTOOL );
-    	
+
     	logger.info( "Retrieving remote baselines from " + stream.getShortname() );
-    	
+
         /* The baseline list */
         BaselineList baselines = null;
-        
+
         try {
             baselines = component.getBaselines( stream, plevel );
         } catch (UCMException e) {
             throw new IOException("Could not retrieve baselines from repository. " + e.getMessage());
         }
-        
+
         /* Load baselines remotely */
         for( Baseline baseline : baselines ) {
         	try {
