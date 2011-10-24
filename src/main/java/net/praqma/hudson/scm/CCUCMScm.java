@@ -851,7 +851,7 @@ public class CCUCMScm extends SCM {
                     }
                 }
 
-                if (validBaselines.size() == 0) {
+                if (validBaselines.isEmpty()) {
                     logger.log(id + "No baselines available on chosen parameters.", id);
                     throw new ScmException("No baselines available on chosen parameters.");
                 }
