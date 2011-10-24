@@ -1,0 +1,8 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
+	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <f:section title="ClearCase UCM">
+    <f:entry title="Allow polling on slaves" help="/plugin/clearcase-ucm-plugin/help-globalslavepolling.html">
+        <f:checkbox name="CCUCM.slavePolling" checked="${descriptor.slavePolling}" />
+    </f:entry>
+  </f:section>
+</j:jelly>

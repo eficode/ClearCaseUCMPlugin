@@ -13,7 +13,7 @@
 
 
     <artifactId>clearcase-ucm-plugin</artifactId>
-    <version>0.9.3-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>ClearCase UCM Plugin</name>
     <description>Integrates Jenkins to ClearCase UCM</description>
     <url>https://wiki.jenkins-ci.org/display/JENKINS/ClearCase+UCM+Plugin</url>
@@ -31,7 +31,7 @@
         </repository>
     </repositories>
 
-    <!-- 
+    <!--
     <pluginRepositories>
         <pluginRepository>
             <id>m.g.o-public</id>
@@ -70,7 +70,7 @@
             <email>support@praqma.net</email>
         </developer>
     </developers>
-    
+
 
 
     <profiles>
@@ -78,7 +78,7 @@
             <id>hudson</id>
             <activation>
                 <property>
-                    <!-- Hudson by default defines a property BUILD_NUMBER which is used 
+                    <!-- Hudson by default defines a property BUILD_NUMBER which is used
                         to enable the profile. -->
                     <name>BUILD_NUMBER</name>
                 </property>
@@ -139,11 +139,11 @@
                     <goals>deploy</goals>
                 </configuration>
                 </plugin>
-    
+
                 <plugin>
                     <artifactId>maven-release-plugin</artifactId>
                     <configuration>
-                        <goals>deploy</goals><!--because plugin is built against version before 
+                        <goals>deploy</goals><!--because plugin is built against version before
                             1.387 -->
                     </configuration>
                 </plugin>
@@ -156,7 +156,7 @@
                     <target>1.6</target>
                 </configuration>
             </plugin>
-            
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -170,7 +170,7 @@
                     </archive>
                 </configuration>
             </plugin>
-            
+
         </plugins>
     </build>
 
@@ -183,7 +183,7 @@
             <type>jar</type>
             <scope>compile</scope>
         </dependency>
-        
+
 		<dependency>
 			<groupId>net.praqma</groupId>
 			<artifactId>praqmajutils</artifactId>
