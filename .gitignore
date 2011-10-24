@@ -4,3 +4,5 @@
 src/main/java/net/praqma/hudson/test/
 work/
 target
+#Log files
+.log
