@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
@@ -21,11 +23,8 @@ import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
 import net.praqma.hudson.*;
 import net.praqma.hudson.exception.ScmException;
+import net.praqma.hudson.remoting.GetRemoteBaselineFromStream;
 import net.praqma.hudson.scm.EstablishResult.ResultType;
-import net.praqma.util.debug.Logger;
-import net.praqma.util.debug.Logger.LogLevel;
-import net.praqma.util.debug.LoggerSetting;
-import net.praqma.util.debug.appenders.StreamAppender;
 import net.praqma.util.structure.Tuple;
 
 import hudson.FilePath.FileCallable;
@@ -42,7 +41,6 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	private String loadModule;
 	private Baseline bl;
 	private String buildProject;
-	private Pipe pipe;
 	private Stream targetStream;
 	private BuildListener listener;
 	private Integer jobNumber;
@@ -52,11 +50,9 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	
 	private boolean any = false;
 	
-	
 	private Logger logger;
-	private LoggerSetting settings;
 
-	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, Stream targetStream, String loadModule, Baseline baseline, String buildProject, Pipe pipe, LoggerSetting settings ) {
+	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, Stream targetStream, String loadModule, Baseline baseline, String buildProject ) {
 		this.jobname = jobname;
 		this.jobNumber = jobNumber;
 		this.targetStream = targetStream;
@@ -64,9 +60,6 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		this.bl = baseline;
 		this.buildProject = buildProject;
 		this.listener = listener;
-		this.pipe = pipe;
-		
-		this.settings = settings;
 		
 		this.any = any;
 
@@ -78,17 +71,11 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 
 		hudsonOut = listener.getLogger();
 		
-    	logger = Logger.getLogger();
+		logger = Logger.getLogger( CheckoutTask.class.getName() );
 
 		UCM.setContext( UCM.ContextType.CLEARTOOL );
         
-    	StreamAppender app = null;
-    	if( pipe != null ) {
-	    	PrintStream toMaster = new PrintStream( pipe.getOut() );	    	
-	    	app = new StreamAppender( toMaster );
-	    	Logger.addAppender( app );
-	    	app.setSettings( settings );
-    	}
+
 
 		logger.info( "Starting CheckoutTask" );
 
@@ -128,8 +115,8 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 			hudsonOut.println( "[" + Config.nameShort + "] SCM exception: " + e.getMessage() );
 			er.setResultType( ResultType.INITIALIZE_WORKSPACE_ERROR );
 		} catch (UCMException e) {
-			logger.debug( id + "Could not get changes. " + e.getMessage() );
-			logger.info( e );
+			logger.fine( id + "Could not get changes. " + e.getMessage() );
+			logger.log( Level.WARNING, "", e );
 			hudsonOut.println( e.stdout );
 			hudsonOut.println( "[" + Config.nameShort + "] Could not get changes. " + e.getMessage() );
 		}
@@ -138,7 +125,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		er.setMessage( diff );
 		er.setViewtag( viewtag );
 		er.setChangeset( changeset );
-		Logger.removeAppender( app );
+
 		return er;
 	}
 	
@@ -154,9 +141,9 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		// baselinesToBuild()
 
 		if( workspace != null ) {
-			logger.debug( id + "workspace: " + workspace.getAbsolutePath() );
+			logger.fine( id + "workspace: " + workspace.getAbsolutePath() );
 		} else {
-			logger.debug( id + "workspace must be null???" );
+			logger.fine( id + "workspace must be null???" );
 		}
 
 		File viewroot = new File( workspace, "view" );

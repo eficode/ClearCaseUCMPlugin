@@ -72,7 +72,7 @@ import org.kohsuke.stapler.export.Exported;
  */
 public class CCUCMScm extends SCM {
 
-	private Project.Plevel plevel;
+    private Project.Plevel plevel;
     private String levelToPoll;
     private String loadModule;
     private String component;
@@ -89,6 +89,7 @@ public class CCUCMScm extends SCM {
     private Logger logger = null;
     public static CCUCMState ccucm = new CCUCMState();
     private boolean forceDeliver;
+//    private boolean slavePolling = true;
 
     /* Old notifier fields */
     private boolean recommend;
@@ -201,14 +202,14 @@ public class CCUCMScm extends SCM {
         	nameTemplate = nameTemplate.substring( 1, nameTemplate.length()-1 );
         }
         state.setNameTemplate( nameTemplate );
-        
+
         /* Check input */
 		if( !checkInput( listener ) ) {
 			state.setPostBuild( false );
 			Logger.removeAppender( app );
 			return false;
 		}
-        
+
         /* Determining the Baseline modifier */
         String baselineInput = getBaselineValue( build );
 
@@ -261,7 +262,7 @@ public class CCUCMScm extends SCM {
         Logger.removeAppender( app );
         return result;
     }
-    
+
 	private boolean checkInput( TaskListener listener ) {
 		PrintStream out = listener.getLogger();
 
@@ -299,25 +300,16 @@ public class CCUCMScm extends SCM {
 
 		return true;
 	}
-    
+
     private boolean initializeWorkspace( AbstractBuild<?, ?> build, FilePath workspace, File changelogFile, BuildListener listener, State state ) {
 
     	PrintStream consoleOutput = listener.getLogger();
 
     	EstablishResult er = null;
         try {
-
-        	Future<EstablishResult> i = null;
-        	if( workspace.isRemote() ) {
-        		final Pipe pipe = Pipe.createRemoteToLocal();
-        		CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream(), loadModule, state.getBaseline(), buildProject, pipe, Logger.getLoggerSettings( LogLevel.DEBUG ));
-        		i = workspace.actAsync( ct );
-        		logger.redirect( pipe.getIn() );
-        	} else {
-        		CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream(), loadModule, state.getBaseline(), buildProject, null, Logger.getLoggerSettings( LogLevel.DEBUG ));
-        		i = workspace.actAsync( ct );
-        	}
-        	er = i.get();
+        	CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), state.getStream(), loadModule, state.getBaseline(), buildProject );
+        	workspace.act( ct );
+        	er = workspace.act( ct );;
             String changelog = er.getMessage();
 
             this.viewtag = er.getViewtag();
@@ -598,14 +590,14 @@ public class CCUCMScm extends SCM {
                 consoleOutput.printf( "[" + Config.nameShort + "] [%02d] %s ", c, s.getShortname() );
                 c++;
                 //List<Baseline> found = getValidBaselinesFromStream(project, state, Project.getPlevelFromString(levelToPoll), s, component);
-                List<Baseline> found = RemoteUtil.getRemoteBaselinesFromStream( project.getSomeWorkspace(), component, s, plevel );
+                List<Baseline> found = RemoteUtil.getRemoteBaselinesFromStream( project.getSomeWorkspace(), component, s, plevel, this.getSlavePolling() );
                 for (Baseline b : found ) {
                     baselines.add(b);
                 }
                 consoleOutput.println( found.size() + " baseline" + ( found.size() == 1 ? "" : "s" ) + " found" );
             } catch (CCUCMException e) {
             	consoleOutput.println("No baselines found");
-			}
+            }
         }
 
         consoleOutput.println("");
@@ -803,10 +795,10 @@ public class CCUCMScm extends SCM {
         List<Baseline> baselines = null;
 
         try {
-			baselines = RemoteUtil.getRemoteBaselinesFromStream( project.getSomeWorkspace(), component, stream, plevel );
-		} catch (CCUCMException e1) {
-			throw new ScmException( "Unable to get baselines from " + stream.getShortname() + ": " + e1.getMessage() );
-		}
+            baselines = RemoteUtil.getRemoteBaselinesFromStream( project.getSomeWorkspace(), component, stream, plevel, getSlavePolling() );
+        } catch (CCUCMException e1) {
+            throw new ScmException( "Unable to get baselines from " + stream.getShortname() + ": " + e1.getMessage() );
+	}
 
         logger.debug(id + "GetBaseline state:\n" + state.stringify(), id);
 
@@ -996,6 +988,10 @@ public class CCUCMScm extends SCM {
         return forceDeliver;
     }
 
+    public boolean getSlavePolling() {
+        CCUCMScmDescriptor desc = (CCUCMScmDescriptor)this.getDescriptor();
+        return desc.getSlavePolling();
+    }
 
     public boolean isCreateBaseline() {
         return this.createBaseline;
@@ -1030,7 +1026,7 @@ public class CCUCMScm extends SCM {
      */
     @Extension
     public static class CCUCMScmDescriptor extends SCMDescriptor<CCUCMScm> implements hudson.model.ModelObject {
-
+        private boolean slavePolling;
         private List<String> loadModules;
 
         public CCUCMScmDescriptor() {
@@ -1046,6 +1042,15 @@ public class CCUCMScm extends SCM {
          */
         @Override
         public boolean configure(org.kohsuke.stapler.StaplerRequest req, JSONObject json) throws FormException {
+            try {
+                String slave = json.getString("slavePolling");
+                if(slave != null){
+                    slavePolling = Boolean.parseBoolean(slave.trim());
+                }
+            }catch (Exception e){
+                e.getMessage();
+            }
+
             save();
             return true;
         }
@@ -1085,6 +1090,11 @@ public class CCUCMScm extends SCM {
         	/* TODO This is actually where the Notifier check should be!!! */
             return instance;
         }
+
+        public boolean getSlavePolling(){
+            return this.slavePolling;
+        }
+
 
         /**
          * Used by Hudson to display a list of valid promotion levels to build

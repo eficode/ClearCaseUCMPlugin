@@ -19,36 +19,19 @@ public class LoadEntity implements FileCallable<UCMEntity> {
 	private static final long serialVersionUID = -8984877325832486334L;
 
 	private UCMEntity entity;
-	private Pipe pipe;
 	
-	private Set<String> subscriptions;
-	
-	public LoadEntity( UCMEntity entity, Pipe pipe, Set<String> subscriptions ) {
+	public LoadEntity( UCMEntity entity ) {
 		this.entity = entity;
-		this.pipe = pipe;
-		
-		this.subscriptions = subscriptions;
     }
     
     @Override
     public UCMEntity invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
         
-    	StreamAppender app = null;
-    	if( pipe != null ) {
-	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
-	    	app = new StreamAppender( toMaster );
-	    	Logger.addAppender( app );
-	    	app.setSubscriptions( subscriptions );
-    	}
-        
     	try {
 			entity.load();
 		} catch (UCMException e) {
-        	Logger.removeAppender( app );
         	throw new IOException( "Unable to load " + entity.getShortname() + ":" + e.getMessage() );
 		}
-
-    	Logger.removeAppender( app );
 
     	return entity;
     }
