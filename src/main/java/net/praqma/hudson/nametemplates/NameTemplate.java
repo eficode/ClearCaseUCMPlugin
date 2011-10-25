@@ -35,7 +35,7 @@ public class NameTemplate {
 			String r;
 			try {
 				r = templates.get( key ).parse( state, "" );
-				System.out.println( key + " = " + r );
+				//System.out.println( key + " = " + r );
 			} catch (TemplateException e) {
 				System.out.println( "Could not validate " + key );
 			}
