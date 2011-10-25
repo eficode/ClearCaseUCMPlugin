@@ -3,43 +3,39 @@
 	xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
     <f:entry title="Stream" help="/plugin/clearcase-ucm-plugin/scm/help-stream.html">
-        <f:textbox name="stream" value="${scm.stream}"/>
+      <f:textbox name="CCUCM.stream" value="${scm.stream}"/>
     </f:entry>
 
     <f:entry title="Component" help="/plugin/clearcase-ucm-plugin/scm/help-component.html">
-        <f:textbox name="component" value="${scm.component}"/>
+      <f:textbox name="CCUCM.component" value="${scm.component}"/>
     </f:entry>
 
     <j:set var="levels" value="${descriptor.getLevels()}"/>
-    <f:entry  title="Promotion level" help="/plugin/clearcase-ucm-plugin/scm/help-pLevel.html">
-        <select class="setting-input" name="levelToPoll">
-            <j:forEach var="l" items="${levels}">
-                <f:option selected="${scm.levelToPoll==l}" value="${l}">${l}</f:option>
-            </j:forEach>
-        </select>
-    </f:entry>
+      <f:entry  title="Promotion level" help="/plugin/clearcase-ucm-plugin/scm/help-pLevel.html">
+      <select class="setting-input" name="CCUCM.levelToPoll">
+       <j:forEach var="l" items="${levels}">
+        <f:option selected="${scm.levelToPoll==l}" value="${l}">${l}</f:option>
+          </j:forEach>
+         </select>
+       </f:entry>
 
     <f:entry title="Load modules" help="/plugin/clearcase-ucm-plugin/scm/help-loadModules.html">
-        <select class="setting-input" name="loadModule">
+        <select class="setting-input" name="CCUCM.loadModule">
             <j:set var="modules" value="${descriptor.getLoadModules()}"/>
             <j:forEach var="lm" items="${modules}">
                 <f:option selected="${scm.loadModule==lm}" value="${lm}">${lm}</f:option>
             </j:forEach>
         </select>
     </f:entry>
-
-    <f:entry title="Polling" help="/plugin/clearcase-ucm-plugin/scm/help-polling.html">
-        <select class="setting-input" name="CCUCM.polling">
-            <f:option selected="${instance.polling == 'self'}" value="self">Poll self</f:option>
-            <f:option selected="${instance.polling == 'childs'}" value="child">Poll child streams</f:option>
-            <f:option selected="${instance.polling == 'siblings'}" value="sibling">Poll sibling streams</f:option>
-        </select>
-    </f:entry>
-
-    <f:entry title="Newest" help="/plugin/clearcase-ucm-plugin/scm/help-newest.html">
-        <f:checkbox name="CCUCM.newest" checked="${scm.newest}" />
-    </f:entry>
-
+    
+	<f:entry title="Polling" help="/plugin/clearcase-ucm-plugin/scm/help-polling.html">
+		<select class="setting-input" name="CCUCM.polling" checkUrl="'${rootURL}/scm/CCUCMScm/levelCheck?polling='+encodeURIComponent(this.value)+'&amp;level='+encodeURIComponent(Form.findMatchingInput(this,'CCUCM.levelToPoll').value)">
+		    <f:option selected="${instance.polling == 'self'}" value="self">Poll self</f:option>
+			<f:option selected="${instance.polling == 'childs'}" value="child">Poll child streams</f:option>
+			<f:option selected="${instance.polling == 'siblings'}" value="sibling">Poll sibling streams</f:option>
+		</select>
+	</f:entry>
+	
     <f:entry title="Unstable" help="/plugin/clearcase-ucm-plugin/scm/help-unstable.html">
         <select class="setting-input" name="CCUCM.treatUnstable">
             <f:option selected="${instance.treatUnstable == 'successful'}" value="successful">Unstable jobs are treated as successful</f:option>
@@ -70,11 +66,9 @@
     <f:entry title="Set description" help="/plugin/clearcase-ucm-plugin/scm/help-setDescription.html">
         <f:checkbox name="CCUCM.setDescription" checked="${h.defaultToTrue(scm.setDescription)}" default="checked" />
     </f:entry>
-
 	<f:section title="Advanced ClearCase UCM Options">
 
 		<f:advanced>
-
 		    <f:entry title="Build project" help="/plugin/clearcase-ucm-plugin/scm/help-buildProject.html">
 	      		<f:textbox name="buildProject" value="${scm.buildProject}"/>
 	    	</f:entry>

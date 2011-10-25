@@ -56,7 +56,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	private Logger logger;
 	private LoggerSetting settings;
 
-	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, Stream targetStream, String loadModule, Baseline baseline, String buildProject, Pipe pipe, LoggerSetting settings ) {
+	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, Stream targetStream, String loadModule, Baseline baseline, String buildProject, boolean any, Pipe pipe, LoggerSetting settings ) {
 		this.jobname = jobname;
 		this.jobNumber = jobNumber;
 		this.targetStream = targetStream;
@@ -108,7 +108,17 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 			}			
 			makeWorkspace( workspace, viewtag );
 			List<Activity> bldiff = null;
-			bldiff = bl.getDifferences( sv );
+			if( any ) {
+				if( devstream.isCreated() ) {
+					logger.debug( "Diffing newly created stream" );
+					bldiff = Version.getBaselineDiff( targetStream.getFoundationBaseline(), bl, true, sv.getViewRoot() );
+				} else {
+					logger.debug( "Diffing OOOOld stream" );
+					bldiff = Version.getBaselineDiff( foundation, bl, true, sv.getViewRoot() );
+				}
+			} else {
+				bldiff = bl.getDifferences( sv );
+			}
 			//List<Activity> bldiff = Version.getBaselineDiff( bl, null, true, sv.getViewRoot() );
 			diff = Util.createChangelog( bldiff, bl );
 			hudsonOut.print( "[" + Config.nameShort + "] Found " + bldiff.size() + " activit" + ( bldiff.size() == 1 ? "y" : "ies" ) + ". " );
@@ -152,7 +162,6 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	private void makeWorkspace( File workspace, String viewtag ) throws ScmException {
 		// We know we have a stream (st), because it is set in
 		// baselinesToBuild()
-
 		if( workspace != null ) {
 			logger.debug( id + "workspace: " + workspace.getAbsolutePath() );
 		} else {

@@ -13,14 +13,14 @@ public class ProjectTemplate extends Template {
 		try {
 			Baseline bl = null;
 			if( !state.getBaseline().isLoaded() ) {
-				bl = (Baseline) RemoteUtil.loadEntity( state.getWorkspace(), state.getBaseline() );
+				bl = (Baseline) RemoteUtil.loadEntity( state.getWorkspace(), state.getBaseline(), true );
 			} else {
 				bl = state.getBaseline();
 			}
 			
 			Stream st = null;
 			if( !bl.getStream().isLoaded() ) {
-				st = (Stream) RemoteUtil.loadEntity( state.getWorkspace(), state.getBaseline().getStream() );
+				st = (Stream) RemoteUtil.loadEntity( state.getWorkspace(), state.getBaseline().getStream(), true );
 			} else {
 				st = bl.getStream();
 			}
