@@ -108,7 +108,7 @@ public class CCUCMScm extends SCM {
     private Polling polling;
     private String viewtag = "";
     private Set<String> subs;
-    
+
     private Baseline lastBaseline;
 
     /**
@@ -152,7 +152,7 @@ public class CCUCMScm extends SCM {
        this.setDescription = setDescription;
        this.plevel = Util.getLevel( levelToPoll );
    }
-   
+
 
     @Override
     public boolean checkout(AbstractBuild<?, ?> build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile) throws IOException, InterruptedException {
@@ -206,7 +206,7 @@ public class CCUCMScm extends SCM {
     		Logger.removeAppender( app );
         	return false;
         }
-        
+
         /* Determining the Baseline modifier */
         String baselineInput = getBaselineValue(build);
 
@@ -246,7 +246,7 @@ public class CCUCMScm extends SCM {
 
 
         consoleOutput.println( "[" + Config.nameShort + "] Pre build steps done" );
-        
+
         /* If plevel is not null, make sure that the CCUCMNotofier is ON */
         if( plevel != null ) {
 	        boolean used = false;
@@ -257,7 +257,7 @@ public class CCUCMScm extends SCM {
 	        		break;
 	        	}
 	        }
-	        
+
 	        if( !used ) {
 	        	logger.info( "Adding notifier to project", id );
 	        	build.getParent().getPublishersList().add( new CCUCMNotifier() );
@@ -272,11 +272,11 @@ public class CCUCMScm extends SCM {
 	        	}
         	}
         }
-        
+
         Logger.removeAppender( app );
         return result;
     }
-    
+
     private boolean storeLastBaseline( Baseline baseline, AbstractProject<?,?> project ) {
     	FileWriter fw = null;
     	try {
@@ -292,10 +292,10 @@ public class CCUCMScm extends SCM {
 				logger.warning( "Unable to close file" );
 			}
     	}
-    	
+
     	return true;
     }
-    
+
     private Baseline getLastBaseline( AbstractProject<?,?> project, TaskListener listener ) throws ScmException {
     	FileReader fr = null;
     	PrintStream out = listener.getLogger();
@@ -311,7 +311,7 @@ public class CCUCMScm extends SCM {
     		//Baseline loaded = (Baseline) RemoteUtil.loadEntity( project.getSomeWorkspace(), bl, getSlavePolling() );
     		return bl;
     	} catch( FileNotFoundException e ) {
-    		
+
     	} catch( IOException e ) {
     		logger.warning( "Could not read last baseline" );
     		throw new ScmException( "Could not read last baseline" );
@@ -328,13 +328,13 @@ public class CCUCMScm extends SCM {
 				logger.warning( "Unable to close file" );
 			}
     	}
-    	
+
     	return null;
     }
-    
+
     private boolean checkInput( TaskListener listener ) {
     	PrintStream out = listener.getLogger();
-    	
+
     	/* Check baseline template */
         if( createBaseline ) {
         	/* Sanity check */
@@ -354,7 +354,7 @@ public class CCUCMScm extends SCM {
         		out.println("[" + Config.nameShort + "] You cannot create a baseline in this mode" );
         	}
         }
-        
+
         /* Check polling vs plevel */
         if( plevel == null ) {
         	if( polling.isPollingSelf() ) {
@@ -364,10 +364,10 @@ public class CCUCMScm extends SCM {
         		return false;
         	}
         }
-        
+
         return true;
     }
-    
+
     private boolean initializeWorkspace(AbstractBuild<?, ?> build, FilePath workspace, File changelogFile, BuildListener listener, State state) {
 
         PrintStream consoleOutput = listener.getLogger();
@@ -739,13 +739,13 @@ public class CCUCMScm extends SCM {
         printParameters(consoleOut);
 
 
-        PollingResult p = null;
+        PollingResult p = PollingResult.NO_CHANGES;
         consoleOut.println("[" + Config.nameShort + "] polling streams: " + polling);
-        
+
         /* Check input */
         if( checkInput( listener ) ) {
-        	p = PollingResult.NO_CHANGES;
-	        
+        	//p = PollingResult.NO_CHANGES;
+
 	        try {
 		        List<Baseline> baselines = null;
 		    	/* Old skool self polling */
@@ -755,18 +755,18 @@ public class CCUCMScm extends SCM {
 		            /* Find the Baselines and store them */
 		            baselines = getBaselinesFromStreams( project, listener, consoleOut, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
 		    	}
-		            
+
 		        filterBaselines( baselines );
-		
+
 		        if( baselines.size() > 0 ) {
 		            p = PollingResult.BUILD_NOW;
-		            
+
 		            /* Sort by date */
 		            Collections.sort( baselines, new AscendingDateSort() );
-		            
+
 		            state.setBaselines(baselines);
 					state.setBaseline( selectBaseline( state.getBaselines(), plevel ) );
-					
+
 					/* If ANY */
 					if( plevel == null ) {
 						try {
@@ -781,18 +781,18 @@ public class CCUCMScm extends SCM {
 								newer = false;
 							}
 						}
-						
+
 		            	if( !newer ) {
 		            		p = PollingResult.NO_CHANGES;
 		            	}
 		            }
-					
+
 		        } else {
 		            p = PollingResult.NO_CHANGES;
 		        }
-		
+
 		        logger.debug(id + "The POLL state:\n" + state.stringify(), id);
-		
+
 		        /* Remove state if not being built */
 		        if( p == PollingResult.NO_CHANGES ) {
 		            state.remove();
@@ -802,7 +802,7 @@ public class CCUCMScm extends SCM {
 				p = PollingResult.NO_CHANGES;
 			}
         }
-        
+
         /* Remove state if not being built */
         if (p.equals( PollingResult.NO_CHANGES ) ) {
             state.remove();
@@ -1175,8 +1175,8 @@ public class CCUCMScm extends SCM {
 				throw FormValidation.error( "Does not appear to be a valid template: " + e.getMessage() );
 			}
         }
-        
-        
+
+
         public void doLevelCheck(@QueryParameter String polling, @QueryParameter String level) throws FormValidation {
         	System.out.println("LEVEL CHECK: " + polling + " + " + level);
         	if( level.equalsIgnoreCase( "any" ) && !polling.equals( "self" ) ) {
@@ -1189,7 +1189,7 @@ public class CCUCMScm extends SCM {
         	try {
         		String polling = formData.getString( "polling" );
         		String level = formData.getString( "levelToPoll" );
-        		
+
         		if( level.equalsIgnoreCase( "any" ) ) {
         			if( !polling.equalsIgnoreCase( "self" ) ) {
         				throw new FormException("You can only use any with self polling", "polling");
