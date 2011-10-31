@@ -699,7 +699,7 @@ public class CCUCMScm extends SCM {
         env.put("CC_VIEWTAG", viewtag);
         String workspace = env.get("WORKSPACE");
         if (workspace != null) {
-            env.put("CC_VIEWPATH", workspace + File.separator + viewtag);
+            env.put("CC_VIEWPATH", workspace + File.separator + "view");
         }
     }
 
