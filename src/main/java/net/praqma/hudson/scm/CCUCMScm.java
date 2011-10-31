@@ -741,6 +741,13 @@ public class CCUCMScm extends SCM {
 
         PollingResult p = PollingResult.NO_CHANGES;
         consoleOut.println("[" + Config.nameShort + "] polling streams: " + polling);
+        
+        state.setCreatebaseline(createBaseline);
+        /* Trim template, strip out quotes */
+        if (nameTemplate.matches("^\".+\"$")) {
+            nameTemplate = nameTemplate.substring(1, nameTemplate.length() - 1);
+        }
+        state.setNameTemplate(nameTemplate);
 
         /* Check input */
         if( checkInput( listener ) ) {
