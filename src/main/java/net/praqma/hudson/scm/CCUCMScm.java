@@ -284,11 +284,13 @@ public class CCUCMScm extends SCM {
             logger.warning("Could not write last baseline");
             return false;
         } finally {
-            try {
-                fw.close();
-            } catch (IOException e) {
-                logger.warning("Unable to close file");
-            }
+    		if( fw != null ) {
+	    		try {
+					fw.close();
+				} catch( IOException e ) {
+					logger.warning( "Unable to close file" );
+				}
+    		}
         }
 
         return true;
