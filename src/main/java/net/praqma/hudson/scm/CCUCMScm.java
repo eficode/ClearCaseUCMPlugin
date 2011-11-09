@@ -294,41 +294,42 @@ public class CCUCMScm extends SCM {
         return true;
     }
 
-    private Baseline getLastBaseline(AbstractProject<?, ?> project, TaskListener listener) throws ScmException {
-        FileReader fr = null;
-        PrintStream out = listener.getLogger();
-        try {
-            fr = new FileReader(new File(project.getRootDir(), ".lastbaseline"));
-            BufferedReader br = new BufferedReader(fr);
-            String bls = br.readLine();
-            logger.debug("Read " + bls);
-            if (bls == null || bls.length() == 0) {
-                throw new ScmException("No last baseline stored");
-            }
-            Baseline bl = UCMEntity.getBaseline(bls, true);
-            //Baseline loaded = (Baseline) RemoteUtil.loadEntity( project.getSomeWorkspace(), bl, getSlavePolling() );
-            return bl;
-        } catch (FileNotFoundException e) {
-        } catch (IOException e) {
-            logger.warning("Could not read last baseline");
-            throw new ScmException("Could not read last baseline");
-        } catch (UCMException e) {
-            logger.warning("Unable to get last baseline!");
-            throw new ScmException("Unable to get last baseline");
-            //} catch( CCUCMException e ) {
-            //	logger.warning( "Unable to load last baseline" );
-            //	throw new ScmException( "Unable to load last baseline" );
-        } finally {
-            try {
-                if (fr != null) {
-                    fr.close();
-                }
-            } catch (IOException e) {
-                logger.warning("Unable to close file");
-            }
-        }
+    private Baseline getLastBaseline( AbstractProject<?,?> project, TaskListener listener ) throws ScmException {
+    	FileReader fr = null;
+    	PrintStream out = listener.getLogger();
+    	try {
+    		fr = new FileReader( new File( project.getRootDir(), ".lastbaseline" ) );
+    		BufferedReader br = new BufferedReader( fr );
+    		String bls = br.readLine();
+    		logger.debug( "Read " + bls );
+    		if( bls == null || bls.length() == 0 ) {
+    			throw new ScmException( "No last baseline stored" );
+    		}
+    		Baseline bl = UCMEntity.getBaseline( bls, true );
+    		//Baseline loaded = (Baseline) RemoteUtil.loadEntity( project.getSomeWorkspace(), bl, getSlavePolling() );
+    		return bl;
+    	} catch( FileNotFoundException e ) {
 
-        return null;
+    	} catch( IOException e ) {
+    		logger.warning( "Could not read last baseline" );
+    		throw new ScmException( "Could not read last baseline" );
+    	} catch( UCMException e ) {
+			logger.warning( "Unable to get last baseline!" );
+			throw new ScmException( "Unable to get last baseline" );
+		//} catch( CCUCMException e ) {
+		//	logger.warning( "Unable to load last baseline" );
+		//	throw new ScmException( "Unable to load last baseline" );
+		} finally {
+			if( fr != null ) {
+	    		try {
+					fr.close();
+				} catch( IOException e ) {
+					logger.warning( "Unable to close file" );
+				}
+			}
+    	}
+
+    	return null;
     }
 
     private boolean checkInput(TaskListener listener) {
