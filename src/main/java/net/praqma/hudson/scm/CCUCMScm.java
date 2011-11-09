@@ -791,7 +791,7 @@ public class CCUCMScm extends SCM {
 		List<Baseline> baselines = new ArrayList<Baseline>();
 
 		try {
-			streams = RemoteUtil.getRelatedStreams( project.getSomeWorkspace(), listener, stream, pollingChildStreams );
+			streams = RemoteUtil.getRelatedStreams( project.getSomeWorkspace(), listener, stream, pollingChildStreams, this.getSlavePolling() );
 		} catch( CCUCMException e1 ) {
 			e1.printStackTrace( consoleOutput );
 			logger.warning( "Could not retrieve streams: " + e1.getMessage(), id );
