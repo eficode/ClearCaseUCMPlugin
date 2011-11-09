@@ -103,7 +103,6 @@ public class CCUCMScm extends SCM {
 
     /* Threshold in milliseconds */
     public static final long __CCUCM_STORED_BASELINES_THRESHOLD = 5 * 60 * 1000;
-    public static StoredBaselines storedBaselines = new StoredBaselines();
     public static final String CCUCM_LOGGER_STRING = "include_classes";
     private Polling polling;
     private String viewtag = "";
@@ -635,49 +634,6 @@ public class CCUCMScm extends SCM {
         return result;
     }
 
-    /**
-     * Get the {@link Baseline}s from a {@link Stream}s related Streams.
-     * @param build
-     * @param consoleOutput
-     * @param state
-     * @return
-     */
-    private List<Baseline> getBaselinesFromStreams(AbstractProject<?, ?> project, TaskListener listener, PrintStream consoleOutput, State state, Stream stream, Component component, boolean pollingChildStreams) {
-
-        List<Stream> streams = null;
-        List<Baseline> baselines = new ArrayList<Baseline>();
-
-        try {
-            streams = RemoteUtil.getRelatedStreams(project.getSomeWorkspace(), listener, stream, pollingChildStreams);
-        } catch (CCUCMException e1) {
-            e1.printStackTrace(consoleOutput);
-            logger.warning("Could not retrieve streams: " + e1.getMessage(), id);
-            consoleOutput.println("[" + Config.nameShort + "] No streams found");
-            return baselines;
-        }
-
-        consoleOutput.println("[" + Config.nameShort + "] Scanning " + streams.size() + " stream" + (streams.size() == 1 ? "" : "s") + " for baselines.");
-
-        int c = 1;
-        for (Stream s : streams) {
-            try {
-                consoleOutput.printf("[" + Config.nameShort + "] [%02d] %s ", c, s.getShortname());
-                c++;
-                //List<Baseline> found = getValidBaselinesFromStream(project, state, Project.getPlevelFromString(levelToPoll), s, component);
-                List<Baseline> found = RemoteUtil.getRemoteBaselinesFromStream(project.getSomeWorkspace(), component, s, plevel, this.getSlavePolling());
-                for (Baseline b : found) {
-                    baselines.add(b);
-                }
-                consoleOutput.println(found.size() + " baseline" + (found.size() == 1 ? "" : "s") + " found");
-            } catch (CCUCMException e) {
-                consoleOutput.println("No baselines found");
-            }
-        }
-
-        consoleOutput.println("");
-
-        return baselines;
-    }
 
     @Override
     public ChangeLogParser createChangeLogParser() {
@@ -735,24 +691,21 @@ public class CCUCMScm extends SCM {
 
         storeStateParameters(state);
 
-        PrintStream consoleOut = listener.getLogger();
-        printParameters(consoleOut);
-
+        PrintStream out = listener.getLogger();
+        printParameters(out);
 
         PollingResult p = PollingResult.NO_CHANGES;
-        consoleOut.println("[" + Config.nameShort + "] polling streams: " + polling);
+        out.println("[" + Config.nameShort + "] polling streams: " + polling);
         
         state.setCreatebaseline(createBaseline);
         /* Trim template, strip out quotes */
-        if (nameTemplate.matches("^\".+\"$")) {
-            nameTemplate = nameTemplate.substring(1, nameTemplate.length() - 1);
-        }
-        state.setNameTemplate(nameTemplate);
+		if( nameTemplate.matches( "^\".+\"$" ) ) {
+			nameTemplate = nameTemplate.substring( 1, nameTemplate.length() - 1 );
+		}
+		state.setNameTemplate( nameTemplate );
 
         /* Check input */
         if( checkInput( listener ) ) {
-        	//p = PollingResult.NO_CHANGES;
-
 	        try {
 		        List<Baseline> baselines = null;
 		    	/* Old skool self polling */
@@ -760,11 +713,13 @@ public class CCUCMScm extends SCM {
 					baselines = getValidBaselinesFromStream(project, state, plevel, state.getStream(), state.getComponent());
 		    	} else {
 		            /* Find the Baselines and store them */
-		            baselines = getBaselinesFromStreams( project, listener, consoleOut, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
+		            baselines = getBaselinesFromStreams( project, listener, out, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
 		    	}
 
+		    	/* Discard baselines */
 		        filterBaselines( baselines );
-
+		        baselines = filterBuildingBaselines( project, baselines );
+		        
 		        if( baselines.size() > 0 ) {
 		            p = PollingResult.BUILD_NOW;
 
@@ -779,7 +734,7 @@ public class CCUCMScm extends SCM {
 						try {
 							lastBaseline = getLastBaseline( project, listener );
 						} catch( ScmException e ) {
-							consoleOut.println( e.getMessage() );
+							out.println( e.getMessage() );
 						}
 						boolean newer = true;
 						if( lastBaseline != null ) {
@@ -805,7 +760,8 @@ public class CCUCMScm extends SCM {
 		            state.remove();
 		        }
 		    } catch (ScmException e) {
-				logger.warning( "Could not get any baselines: " + e.getMessage(), id );
+		    	out.println( "Error while retrieving baselines: " + e.getMessage() );
+				logger.warning( "Error while retrieving baselines: " + e.getMessage(), id );
 				p = PollingResult.NO_CHANGES;
 			}
         }
@@ -817,9 +773,167 @@ public class CCUCMScm extends SCM {
             state.setAddedByPoller(true);
         }
 
-
         Logger.removeAppender(app);
         return p;
+    }
+    
+
+    /**
+     * Get the {@link Baseline}s from a {@link Stream}s related Streams.
+     * @param build
+     * @param consoleOutput
+     * @param state
+     * @return
+     */
+	private List<Baseline> getBaselinesFromStreams( AbstractProject<?, ?> project, TaskListener listener, PrintStream consoleOutput, State state, Stream stream, Component component, boolean pollingChildStreams ) {
+
+		List<Stream> streams = null;
+		List<Baseline> baselines = new ArrayList<Baseline>();
+
+		try {
+			streams = RemoteUtil.getRelatedStreams( project.getSomeWorkspace(), listener, stream, pollingChildStreams );
+		} catch( CCUCMException e1 ) {
+			e1.printStackTrace( consoleOutput );
+			logger.warning( "Could not retrieve streams: " + e1.getMessage(), id );
+			consoleOutput.println( "[" + Config.nameShort + "] No streams found" );
+			return baselines;
+		}
+
+		consoleOutput.println( "[" + Config.nameShort + "] Scanning " + streams.size() + " stream" + ( streams.size() == 1 ? "" : "s" ) + " for baselines." );
+
+		int c = 1;
+		for( Stream s : streams ) {
+			try {
+				consoleOutput.printf( "[" + Config.nameShort + "] [%02d] %s ", c, s.getShortname() );
+				c++;
+				// List<Baseline> found = getValidBaselinesFromStream(project,
+				// state, Project.getPlevelFromString(levelToPoll), s,
+				// component);
+				List<Baseline> found = RemoteUtil.getRemoteBaselinesFromStream( project.getSomeWorkspace(), component, s, plevel, this.getSlavePolling() );
+				for( Baseline b : found ) {
+					baselines.add( b );
+				}
+				consoleOutput.println( found.size() + " baseline" + ( found.size() == 1 ? "" : "s" ) + " found" );
+			} catch( CCUCMException e ) {
+				consoleOutput.println( "Error while retrieving baselines: " + e.getMessage() );
+			}
+		}
+
+		consoleOutput.println( "" );
+
+		return baselines;
+	}
+
+    /**
+     * Given the {@link Stream}, {@link Component} and {@link Plevel} a list of valid {@link Baseline}s is returned.
+     * @param project The jenkins project
+     * @param state The CCUCM {@link State}
+     * @param plevel The {@link Plevel}
+     * @param stream {@link Stream}
+     * @param component {@link Component}
+     * @return A list of {@link Baseline}s
+     * @throws ScmException
+     */
+    private List<Baseline> getValidBaselinesFromStream(AbstractProject<?, ?> project, State state, Project.Plevel plevel, Stream stream, Component component) throws ScmException {
+        logger.debug(id + "Retrieving valid baselines.", id);
+
+        /* The baseline list */
+        List<Baseline> baselines = new ArrayList<Baseline>();
+
+        try {
+            baselines = RemoteUtil.getRemoteBaselinesFromStream(project.getSomeWorkspace(), component, stream, plevel, this.getSlavePolling());
+        } catch (CCUCMException e1) {
+            throw new ScmException("Unable to get baselines from " + stream.getShortname() + ": " + e1.getMessage());
+        }
+
+        return baselines;
+    }
+    
+    /**
+     * Discards baselines being build
+     * @param project
+     * @param baselines
+     * @return
+     * @throws ScmException
+     */
+	public List<Baseline> filterBuildingBaselines( AbstractProject<?, ?> project, List<Baseline> baselines ) throws ScmException {
+		logger.debug( id + "CCUCM=" + ccucm.stringify(), id );
+
+		List<Baseline> validBaselines = new ArrayList<Baseline>();
+
+		/* For each baseline in the list */
+		for( Baseline b : baselines ) {
+			/* Get the state for the current baseline */
+			State cstate = ccucm.getStateByBaseline( jobName, b.getFullyQualifiedName() );
+
+			/*
+			 * The baseline is in progress, determine if the job is still
+			 * running
+			 */
+			if( cstate != null ) {
+				Integer bnum = cstate.getJobNumber();
+				Object o = project.getBuildByNumber( bnum );
+				Build bld = (Build) o;
+				
+				try {
+					if( b.getPromotionLevel( true ).equals( cstate.getBaseline().getPromotionLevel( true ) ) ) {
+						logger.debug( id + b.getShortname() + " has the same promotion level" );
+						continue;
+					}
+				} catch( UCMException e ) {
+					logger.warning( id + "Unable to compare promotion levels on " + b.getShortname() );
+				}
+
+				/* The job is not running */
+				if( !bld.isLogUpdated() ) {
+					logger.debug( id + "Job " + bld.getNumber() + " is not building", id );
+					validBaselines.add( b );
+				} else {
+					logger.debug( id + "Job " + bld.getNumber() + " is building " + cstate.getBaseline().getFullyQualifiedName(), id );
+				}
+			} else {
+				validBaselines.add( b );
+			}
+		}
+
+		if( validBaselines.isEmpty() ) {
+			logger.log( id + "No baselines available on chosen parameters.", id );
+			throw new ScmException( "No baselines available on chosen parameters." );
+		}
+
+		return validBaselines;
+	}
+
+    /**
+     * Filter out baselines that is involved in a deliver or
+     * does not have a label
+     * @param baselines
+     */
+    private int filterBaselines(List<Baseline> baselines) {
+
+        int pruned = 0;
+
+        /* Remove deliver baselines */
+        Iterator<Baseline> it = baselines.iterator();
+        while (it.hasNext()) {
+            Baseline bl = it.next();
+            if (bl.getShortname().startsWith("deliverbl.")) {
+                it.remove();
+                pruned++;
+            }
+        }
+
+        /* Remove unlabeled baselines */
+        Iterator<Baseline> it2 = baselines.iterator();
+        while (it2.hasNext()) {
+            Baseline bl = it2.next();
+            if (bl.getLabelStatus().equals(LabelStatus.UNLABLED)) {
+                it.remove();
+                pruned++;
+            }
+        }
+
+        return pruned;
     }
 
     /**
@@ -881,126 +995,6 @@ public class CCUCMScm extends SCM {
         }
     }
 
-    /**
-     * Given the {@link Stream}, {@link Component} and {@link Plevel} a list of valid {@link Baseline}s is returned.
-     * @param project The jenkins project
-     * @param state The CCUCM {@link State}
-     * @param plevel The {@link Plevel}
-     * @param stream {@link Stream}
-     * @param component {@link Component}
-     * @return A list of {@link Baseline}s
-     * @throws ScmException
-     */
-    private List<Baseline> getValidBaselinesFromStream(AbstractProject<?, ?> project, State state, Project.Plevel plevel, Stream stream, Component component) throws ScmException {
-        logger.debug(id + "Retrieving valid baselines.", id);
-
-        /* The baseline list */
-        List<Baseline> baselines = null;
-
-        try {
-            baselines = RemoteUtil.getRemoteBaselinesFromStream(project.getSomeWorkspace(), component, stream, plevel, this.getSlavePolling());
-        } catch (CCUCMException e1) {
-            throw new ScmException("Unable to get baselines from " + stream.getShortname() + ": " + e1.getMessage());
-        }
-
-        logger.debug(id + "GetBaseline state:\n" + state.stringify(), id);
-
-        List<Baseline> validBaselines = new ArrayList<Baseline>();
-
-        if (baselines.size() >= 1) {
-            logger.debug(id + "CCUCM=" + ccucm.stringify(), id);
-
-            try {
-                /* For each baseline in the list */
-                for (Baseline b : baselines) {
-                    /* Get the state for the current baseline */
-                    State cstate = ccucm.getStateByBaseline(jobName, b.getFullyQualifiedName());
-
-                    /* Find the stored baseline if multi site, null if not */
-                    StoredBaseline sbl = null;
-
-                    /*
-                     * The baseline is in progress, determine if the job is
-                     * still running
-                     */
-                    if (cstate != null) {
-                        Integer bnum = cstate.getJobNumber();
-                        Object o = project.getBuildByNumber(bnum);
-                        Build bld = (Build) o;
-
-                        /* The job is not running */
-                        if (!bld.isLogUpdated()) {
-                            logger.debug(id + "Job " + bld.getNumber() + " is not building", id);
-
-                            /*
-                             * Verify that the found baseline has the same
-                             * promotion as the stored(if stored)
-                             */
-                            if (sbl == null || sbl.plevel == b.getPromotionLevel(true)) {
-                                logger.debug(id + b + " was added to selected list", id);
-                                validBaselines.add(b);
-                            }
-                        } else {
-                            logger.debug(id + "Job " + bld.getNumber() + " is building " + cstate.getBaseline().getFullyQualifiedName(), id);
-                        }
-                    } /* The baseline is available */ else {
-                        /*
-                         *  Verify that the found baseline has the same promotion
-                         * as the stored(if stored)
-                         */
-                        if (sbl == null || sbl.plevel == b.getPromotionLevel(true)) {
-                            logger.debug(id + b + " was added to selected list", id);
-                            validBaselines.add(b);
-                        }
-                    }
-                }
-
-                if (validBaselines.isEmpty()) {
-                    logger.log(id + "No baselines available on chosen parameters.", id);
-                    throw new ScmException("No baselines available on chosen parameters.");
-                }
-
-            } catch (UCMException e) {
-                throw new ScmException("Could not get recommended baselines. " + e.getMessage());
-            }
-        } else {
-            throw new ScmException("No baselines on chosen parameters.");
-        }
-
-        return validBaselines;
-    }
-
-    /**
-     * Filter out baselines that is involved in a deliver or
-     * does not have a label
-     * @param baselines
-     */
-    private int filterBaselines(List<Baseline> baselines) {
-
-        int pruned = 0;
-
-        /* Remove deliver baselines */
-        Iterator<Baseline> it = baselines.iterator();
-        while (it.hasNext()) {
-            Baseline bl = it.next();
-            if (bl.getShortname().startsWith("deliverbl.")) {
-                it.remove();
-                pruned++;
-            }
-        }
-
-        /* Remove unlabeled baselines */
-        Iterator<Baseline> it2 = baselines.iterator();
-        while (it2.hasNext()) {
-            Baseline bl = it2.next();
-            if (bl.getLabelStatus().equals(LabelStatus.UNLABLED)) {
-                it.remove();
-                pruned++;
-            }
-        }
-
-        return pruned;
-    }
 
     private void printParameters(PrintStream ps) {
         ps.println("[" + Config.nameShort + "] Getting baselines for :");
