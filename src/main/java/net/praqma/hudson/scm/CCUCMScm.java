@@ -321,10 +321,12 @@ public class CCUCMScm extends SCM {
 		//	logger.warning( "Unable to load last baseline" );
 		//	throw new ScmException( "Unable to load last baseline" );
 		} finally {
-    		try {
-				fr.close();
-			} catch( IOException e ) {
-				logger.warning( "Unable to close file" );
+			if( fr != null ) {
+	    		try {
+					fr.close();
+				} catch( IOException e ) {
+					logger.warning( "Unable to close file" );
+				}
 			}
     	}
 
