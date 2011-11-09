@@ -696,7 +696,7 @@ public class CCUCMScm extends SCM {
 
         PollingResult p = PollingResult.NO_CHANGES;
         out.println("[" + Config.nameShort + "] polling streams: " + polling);
-        
+
         state.setCreatebaseline(createBaseline);
         /* Trim template, strip out quotes */
 		if( nameTemplate.matches( "^\".+\"$" ) ) {
@@ -719,7 +719,7 @@ public class CCUCMScm extends SCM {
 		    	/* Discard baselines */
 		        filterBaselines( baselines );
 		        baselines = filterBuildingBaselines( project, baselines );
-		        
+
 		        if( baselines.size() > 0 ) {
 		            p = PollingResult.BUILD_NOW;
 
@@ -776,7 +776,7 @@ public class CCUCMScm extends SCM {
         Logger.removeAppender(app);
         return p;
     }
-    
+
 
     /**
      * Get the {@link Baseline}s from a {@link Stream}s related Streams.
@@ -848,7 +848,7 @@ public class CCUCMScm extends SCM {
 
         return baselines;
     }
-    
+
     /**
      * Discards baselines being build
      * @param project
@@ -874,7 +874,7 @@ public class CCUCMScm extends SCM {
 				Integer bnum = cstate.getJobNumber();
 				Object o = project.getBuildByNumber( bnum );
 				Build bld = (Build) o;
-				
+
 				try {
 					if( b.getPromotionLevel( true ).equals( cstate.getBaseline().getPromotionLevel( true ) ) ) {
 						logger.debug( id + b.getShortname() + " has the same promotion level" );
