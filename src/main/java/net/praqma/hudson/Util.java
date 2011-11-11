@@ -28,7 +28,7 @@ import net.praqma.util.debug.appenders.Appender;
 public abstract class Util {
 
 	private static Logger logger = Logger.getLogger();
-	
+
 	public static Project.Plevel getLevel( String level ) {
 		if( level.equalsIgnoreCase( "any" ) ) {
 			return null;
@@ -39,9 +39,9 @@ public abstract class Util {
 
 	public static String CreateNumber( BuildListener listener, int buildNumber, String versionFrom, String buildnumberMajor, String buildnumberMinor,
 			String buildnumberPatch, String buildnumberSequenceSelector, Stream target, Component component ) throws IOException {
-		
+
 		PrintStream out = listener.getLogger();
-		
+
 		String number = "";
 		/* Get version number from project+component */
 		if (versionFrom.equals("project")) {
@@ -65,10 +65,10 @@ public abstract class Util {
 			logger.debug("Using settings");
 
 			/* Verify settings */
-			if(buildnumberMajor.length() > 0 && 
+			if(buildnumberMajor.length() > 0 &&
 			   buildnumberMinor.length() > 0 &&
 			   buildnumberPatch.length() > 0) {
-				
+
 				number = "__" + buildnumberMajor + "_" + buildnumberMinor + "_"
 						+ buildnumberPatch + "_";
 
@@ -113,7 +113,7 @@ public abstract class Util {
 		} else {
 			/* No op = none */
 		}
-		
+
 		return number;
 	}
 
@@ -294,7 +294,5 @@ public abstract class Util {
 				/* Just don't do it */
 			}
 		}
-
-		System.out.println( "SUBS: " + appender.getSubscriptions() );
 	}
 }
