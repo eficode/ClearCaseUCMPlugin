@@ -55,11 +55,13 @@ public class CCUCMState {
 		return s;
 	}
 
-	public synchronized boolean removeState( String jobName, Integer jobNumber ) {
-		for( State s : states ) {
-			if( s.getJobName().equals( jobName ) && s.getJobNumber() == jobNumber ) {
-				states.remove( s );
-				return true;
+	public boolean removeState( String jobName, Integer jobNumber ) {
+		synchronized(states) {
+			for( State s : states ) {
+				if( s.getJobName().equals( jobName ) && s.getJobNumber() == jobNumber ) {
+					states.remove( s );
+					return true;
+				}
 			}
 		}
 

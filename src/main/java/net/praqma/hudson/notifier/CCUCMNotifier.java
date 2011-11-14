@@ -19,6 +19,7 @@ import net.praqma.hudson.remoting.RemoteUtil;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.scm.CCUCMState.State;
 import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.Logger.LogLevel;
 import net.praqma.util.debug.appenders.FileAppender;
 import net.sf.json.JSONObject;
 
@@ -107,7 +108,8 @@ public class CCUCMNotifier extends Notifier {
     	logger = Logger.getLogger();
     	FileAppender app = new FileAppender( logfile );
     	app.setTag( id );
-    	net.praqma.hudson.Util.initializeAppender( build, app );
+    	//net.praqma.hudson.Util.initializeAppender( build, app );
+    	app.setMinimumLevel(LogLevel.DEBUG);
 	    Logger.addAppender( app );
 
         /* Prepare job variables */
@@ -131,11 +133,11 @@ public class CCUCMNotifier extends Notifier {
         if (result) {
             /* Retrieve the CCUCM state */
             pstate = CCUCMScm.ccucm.getState(jobName, jobNumber);
-            logger.debug( "STATE: " + pstate );
+            out.println( "STATE: " + pstate );
 
             /* Validate the state */
             if (pstate.doPostBuild() && pstate.getBaseline() != null) {
-                logger.debug(id + "Post build", id);
+            	logger.debug( id + "Post build", id);
 
                 /* This shouldn't actually be necessary!?
                  * TODO Maybe the baseline should be re-Load()ed instead of creating a new object?  */
@@ -155,20 +157,22 @@ public class CCUCMNotifier extends Notifier {
                         result = false;
                     }
                 } else {
-                	logger.debug( "Whoops, not a valid baseline" );
+                	out.println( "Whoops, not a valid baseline" );
                     result = false;
                 }
 
             } else {
-            	logger.debug( "Whoops, not a valid state" );
+            	out.println( "Whoops, not a valid state" );
                 // Not performing any post build actions.
                 result = false;
             }
+        } else {
+        	out.println( "WHOA, what happened!?" );
         }
 
         /* There's a valid baseline, lets process it */
         if(result) {
-        	logger.debug( "Processing baseline" );
+        	out.println( "Processing baseline" );
         	status.setErrorMessage( pstate.getError() );
 
             try {
@@ -189,7 +193,7 @@ public class CCUCMNotifier extends Notifier {
                 out.println("[" + Config.nameShort + "] Couldn't set build description.");
             }
         } else {
-        	logger.debug( "Nothing to do!" );
+        	out.println( "Nothing to do!" );
             String d = build.getDescription();
             if (d != null) {
                 build.setDescription((d.length() > 0 ? d + "<br/>" : "") + "Nothing to do");
