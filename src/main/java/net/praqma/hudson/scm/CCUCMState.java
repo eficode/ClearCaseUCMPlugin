@@ -5,8 +5,6 @@ import hudson.model.Build;
 import hudson.model.AbstractProject;
 import hudson.util.CopyOnWriteList;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
