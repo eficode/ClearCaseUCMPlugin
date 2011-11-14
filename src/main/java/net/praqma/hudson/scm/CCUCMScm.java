@@ -269,6 +269,10 @@ public class CCUCMScm extends SCM {
                     it.remove();
                 }
             }
+            
+            /* Removing the state from the list */
+            boolean done = state.remove();
+            logger.debug(id + "Removing job " + build.getNumber() + " from collection: " + done, id);
         }
 
         Logger.removeAppender(app);
@@ -675,7 +679,7 @@ public class CCUCMScm extends SCM {
         File logfile = new File(project.getRootDir(), "polling.log");
         app = new FileAppender(logfile);
         app.setTag(id);
-        app.setMinimumLevel(LogLevel.INFO);
+        app.setMinimumLevel(LogLevel.DEBUG);
         Logger.addAppender(app);
 
         /*
@@ -815,7 +819,7 @@ public class CCUCMScm extends SCM {
                 }
                 consoleOutput.println(found.size() + " baseline" + (found.size() == 1 ? "" : "s") + " found");
             } catch (CCUCMException e) {
-                consoleOutput.println("Error while retrieving baselines: " + e.getMessage());
+                consoleOutput.println("No baselines: " + e.getMessage());
             }
         }
 
@@ -865,6 +869,7 @@ public class CCUCMScm extends SCM {
         for (Baseline b : baselines) {
             /* Get the state for the current baseline */
             State cstate = ccucm.getStateByBaseline(jobName, b.getFullyQualifiedName());
+            logger.debug( "CSTATE: " + cstate );
 
             /*
              * The baseline is in progress, determine if the job is still

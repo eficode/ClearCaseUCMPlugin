@@ -131,7 +131,7 @@ public class CCUCMState {
 	}
 
 	public String stringify() {
-		return states.toString();
+		return states.getView().toString();
 	}
 
 	public class State {
