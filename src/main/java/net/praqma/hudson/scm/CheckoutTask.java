@@ -18,7 +18,7 @@ import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.view.SnapshotView;
-import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
+import net.praqma.clearcase.ucm.view.SnapshotView.Components;
 import net.praqma.hudson.*;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.scm.EstablishResult.ResultType;
@@ -193,7 +193,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		
 		try {
             hudsonOut.println("[" + Config.nameShort + "] Updating view using " + loadModule.toLowerCase() + " modules");
-            sv.Update(true, true, true, false, COMP.valueOf(loadModule.toUpperCase()), null);
+            sv.Update(true, true, true, false, Components.valueOf(loadModule.toUpperCase()), null);
         } catch (UCMException e) {
             if (e.stdout != null) {
                 hudsonOut.println(e.stdout);

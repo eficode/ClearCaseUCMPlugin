@@ -19,7 +19,7 @@ import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.utils.BuildNumber;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.UCMView;
-import net.praqma.clearcase.ucm.view.SnapshotView.COMP;
+import net.praqma.clearcase.ucm.view.SnapshotView.Components;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.util.debug.Logger;
 import net.praqma.util.debug.Logger.LogLevel;
@@ -257,7 +257,7 @@ public abstract class Util {
 		if( update ) {
 			try {
 				hudsonOut.println( "[" + Config.nameShort + "] Updating view using " + loadModule.toLowerCase() + " modules." );
-				snapview.Update( true, true, true, false, COMP.valueOf( loadModule.toUpperCase() ), null );
+				snapview.Update( true, true, true, false, Components.valueOf( loadModule.toUpperCase() ), null );
 			} catch (UCMException e) {
 				if( e.stdout != null ) {
 					hudsonOut.println( e.stdout );
@@ -275,6 +275,7 @@ public abstract class Util {
 		/* Log classes */
 		if( build.getBuildVariables().get( Config.logVar ) != null ) {
 			String[] is = build.getBuildVariables().get( Config.logVar ).toString().split( "," );
+			logger.fatal( "Logging " + is );
 			for( String i : is ) {
 				appender.subscribe( i.trim() );
 			}
@@ -282,6 +283,7 @@ public abstract class Util {
 
 		/* Log all */
 		if( build.getBuildVariables().get( Config.logAllVar ) != null ) {
+			logger.fatal( "Logging all" );
 			appender.setSubscribeAll( true );
 		}
 
@@ -289,6 +291,7 @@ public abstract class Util {
 		if( build.getBuildVariables().get( Config.levelVar ) != null ) {
 			try {
 				LogLevel level = LogLevel.valueOf( build.getBuildVariables().get( Config.levelVar ) );
+				logger.fatal( "Logging " + level );
 				appender.setMinimumLevel( level );
 			} catch (Exception e) {
 				/* Just don't do it */

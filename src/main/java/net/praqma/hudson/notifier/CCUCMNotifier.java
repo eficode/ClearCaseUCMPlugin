@@ -52,11 +52,11 @@ public class CCUCMNotifier extends Notifier {
 
     private Status status;
     private String id = "";
-    private Logger logger = null;
+    transient private Logger logger = null;
     private String jobName = "";
     private Integer jobNumber = 0;
 
-    private SimpleDateFormat logformat  = new SimpleDateFormat( "yyyyMMdd-HHmmss" );
+    //private SimpleDateFormat logformat  = new SimpleDateFormat( "yyyyMMdd-HHmmss" );
 
     public CCUCMNotifier() {
     }
@@ -101,23 +101,21 @@ public class CCUCMNotifier extends Notifier {
 
         status = new Status();
 
-        this.id = "[" + jobName + "::" + jobNumber + "]";
-
         /* Preparing the logger */
-        File logfile = new File( build.getRootDir(), "ccucm.log" );
+        File logfile = new File( build.getRootDir(), "ccucmNOTIFIER.log" );
     	logger = Logger.getLogger();
     	FileAppender app = new FileAppender( logfile );
-    	app.setTag( id );
-    	//net.praqma.hudson.Util.initializeAppender( build, app );
-    	app.setMinimumLevel(LogLevel.DEBUG);
+    	//app.setTag( id );
+    	net.praqma.hudson.Util.initializeAppender( build, app );
+    	//app.setMinimumLevel(LogLevel.DEBUG);
 	    Logger.addAppender( app );
 
         /* Prepare job variables */
-        jobName = build.getParent().getDisplayName().replace(' ', '_');
-        jobNumber = build.getNumber();
+		jobName = build.getParent().getDisplayName().replace( ' ', '_' );
+		jobNumber = build.getNumber();
+		this.id = "[" + jobName + "::" + jobNumber + "]";
 
-
-        SCM scmTemp = build.getProject().getScm();
+		SCM scmTemp = build.getProject().getScm();
         if (!(scmTemp instanceof CCUCMScm)) {
             listener.fatalError("[" + Config.nameShort + "] Not a CCUCM scm. This Post build action can only be used when polling from ClearCase with CCUCM plugin.");
             result = false;

@@ -90,7 +90,7 @@ public class CCUCMScm extends SCM {
     private String jobName = "";
     private Integer jobNumber;
     private String id = "";
-    private Logger logger = null;
+    transient private Logger logger = null;
     public static CCUCMState ccucm = new CCUCMState();
     private boolean forceDeliver;
 
@@ -168,9 +168,9 @@ public class CCUCMScm extends SCM {
         consoleOutput.println("[" + Config.nameShort + "] Forcing deliver: " + forceDeliver);
         /* Preparing the logger */
         logger = Logger.getLogger();
-        File logfile = new File(build.getRootDir(), "ccucm.log");
+        File logfile = new File(build.getRootDir(), "ccucmSCM.log");
         FileAppender app = new FileAppender(logfile);
-        app.setTag(id);
+        //app.setTag(id);
         net.praqma.hudson.Util.initializeAppender(build, app);
         subs = app.getSubscriptions();
         Logger.addAppender(app);
@@ -275,7 +275,7 @@ public class CCUCMScm extends SCM {
             logger.debug(id + "Removing job " + build.getNumber() + " from collection: " + done, id);
         }
 
-        Logger.removeAppender(app);
+        Logger.removeAppender( app );
         return result;
     }
 
@@ -847,7 +847,9 @@ public class CCUCMScm extends SCM {
         try {
             baselines = RemoteUtil.getRemoteBaselinesFromStream(project.getSomeWorkspace(), component, stream, plevel, this.getSlavePolling());
         } catch (CCUCMException e1) {
-            throw new ScmException("Unable to get baselines from " + stream.getShortname() + ": " + e1.getMessage());
+            //throw new ScmException("Unable to get baselines from " + stream.getShortname() + ": " + e1.getMessage());
+        	/* no op */
+        	logger.debug( "No baselines: " + e1.getMessage() );
         }
 
         return baselines;
