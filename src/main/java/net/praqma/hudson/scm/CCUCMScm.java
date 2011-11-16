@@ -274,10 +274,10 @@ public class CCUCMScm extends SCM {
             /* End the view */
             try {
             	logger.debug( "Ending view " + viewtag );
-				SnapshotView.endView( viewtag );
-			} catch( UCMException e ) {
-				consoleOutput.println( "Unable to end the view " + viewtag );
-				logger.warning( "Unable to end the view " + viewtag );
+				RemoteUtil.endView( build.getWorkspace(), viewtag );
+			} catch( CCUCMException e ) {
+				consoleOutput.println( e.getMessage() );
+				logger.warning( e.getMessage() );
 			}
             
             /* Removing the state from the list */

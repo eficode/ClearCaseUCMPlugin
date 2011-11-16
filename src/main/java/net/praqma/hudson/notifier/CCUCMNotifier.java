@@ -14,6 +14,7 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.Config;
+import net.praqma.hudson.exception.CCUCMException;
 import net.praqma.hudson.exception.NotifierException;
 import net.praqma.hudson.nametemplates.NameTemplate;
 import net.praqma.hudson.remoting.RemoteUtil;
@@ -208,10 +209,10 @@ public class CCUCMNotifier extends Notifier {
             /* End the view */
             try {
             	logger.debug( "Ending view " + viewtag );
-				SnapshotView.endView( viewtag );
-			} catch( UCMException e ) {
-				out.println( "Unable to end the view " + viewtag );
-				logger.warning( "Unable to end the view " + viewtag );
+				RemoteUtil.endView( build.getWorkspace(), viewtag );
+			} catch( CCUCMException e ) {
+				out.println( e.getMessage() );
+				logger.warning( e.getMessage() );
 			}
         }
 

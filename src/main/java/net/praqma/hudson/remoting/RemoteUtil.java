@@ -168,4 +168,15 @@ public abstract class RemoteUtil {
             throw new CCUCMException(e.getMessage());
         }
     }
+    
+    public static void endView(FilePath workspace, String viewtag) throws CCUCMException {
+
+        try {
+
+            workspace.act( new EndView( viewtag ) );
+
+        } catch (Exception e) {
+            throw new CCUCMException(e.getMessage());
+        }
+    }
 }
