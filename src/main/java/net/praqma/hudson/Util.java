@@ -223,6 +223,7 @@ public abstract class Util {
 			} catch (UCMException ucmE) {
 				try {
 					hudsonOut.println( "[" + Config.nameShort + "] Regenerating invalid view root" );
+					SnapshotView.endView( viewtag );
 					SnapshotView.regenerateViewDotDat( viewroot, viewtag );
 				} catch (UCMException ucmEx) {
 					if( ucmEx.stdout != null ) {

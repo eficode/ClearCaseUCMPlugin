@@ -12,6 +12,7 @@ import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
+import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.NotifierException;
 import net.praqma.hudson.nametemplates.NameTemplate;
@@ -200,6 +201,18 @@ public class CCUCMNotifier extends Notifier {
             }
 
             build.setResult(Result.NOT_BUILT);
+        }
+        
+        if( pstate != null && pstate.getSnapView() != null ) {
+        	String viewtag = pstate.getSnapView().getViewtag();
+            /* End the view */
+            try {
+            	logger.debug( "Ending view " + viewtag );
+				SnapshotView.endView( viewtag );
+			} catch( UCMException e ) {
+				out.println( "Unable to end the view " + viewtag );
+				logger.warning( "Unable to end the view " + viewtag );
+			}
         }
 
         /*

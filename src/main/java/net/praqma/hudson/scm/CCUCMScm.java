@@ -44,6 +44,7 @@ import net.praqma.clearcase.ucm.entities.Project.Plevel;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.entities.UCMEntity.LabelStatus;
+import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.Util;
 import net.praqma.hudson.exception.CCUCMException;
@@ -269,6 +270,15 @@ public class CCUCMScm extends SCM {
                     it.remove();
                 }
             }
+            
+            /* End the view */
+            try {
+            	logger.debug( "Ending view " + viewtag );
+				SnapshotView.endView( viewtag );
+			} catch( UCMException e ) {
+				consoleOutput.println( "Unable to end the view " + viewtag );
+				logger.warning( "Unable to end the view " + viewtag );
+			}
             
             /* Removing the state from the list */
             boolean done = state.remove();
@@ -559,6 +569,7 @@ public class CCUCMScm extends SCM {
             }
 
             state.setSnapView(er.getView());
+            this.viewtag = er.getViewtag();
 
             /* Write change log */
             try {
