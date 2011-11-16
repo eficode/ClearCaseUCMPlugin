@@ -36,12 +36,7 @@
 		</select>
 	</f:entry>
 	
-    <f:entry title="Unstable" help="/plugin/clearcase-ucm-plugin/scm/help-unstable.html">
-        <select class="setting-input" name="CCUCM.treatUnstable">
-            <f:option selected="${instance.treatUnstable == 'successful'}" value="successful">Unstable jobs are treated as successful</f:option>
-            <f:option selected="${instance.treatUnstable == 'failed'}" value="failed">Unstable jobs are treated as failed</f:option>
-        </select>
-    </f:entry>
+	<!-- unstable -->
 
     <f:entry title="Create baseline" help="/plugin/clearcase-ucm-plugin/scm/help-createBaseline.html">
         <f:checkbox name="CCUCM.createBaseline" checked="${scm.createBaseline}" />
@@ -51,9 +46,7 @@
         <f:textbox name="CCUCM.nameTemplate" value="${scm.nameTemplate}" default="[project]_[date]_[time]" checkUrl="'${rootURL}/scm/CCUCMScm/templateCheck?value='+escape(this.value)"/>
     </f:entry>
 
-    <f:entry title="Force deliver" help="/plugin/clearcase-ucm-plugin/scm/help-forceDeliver.html">
-        <f:checkbox name="CCUCM.forceDeliver" checked="${scm.forceDeliver}" />
-    </f:entry>
+	<!-- Force deliver -->
 
     <f:entry title="Recommend baseline" help="/plugin/clearcase-ucm-plugin/scm/help-recommendBaseline.html">
         <f:checkbox name="CCUCM.recommend" checked="${scm.recommend}" />
@@ -67,8 +60,20 @@
         <f:checkbox name="CCUCM.setDescription" checked="${h.defaultToTrue(scm.setDescription)}" default="checked" />
     </f:entry>
 	<f:section title="Advanced ClearCase UCM Options">
-
+	
 		<f:advanced>
+		
+		    <f:entry title="Unstable" help="/plugin/clearcase-ucm-plugin/scm/help-unstable.html">
+		        <select class="setting-input" name="CCUCM.treatUnstable">
+		            <f:option selected="${instance.treatUnstable == 'successful'}" value="successful">Unstable jobs are treated as successful</f:option>
+		            <f:option selected="${instance.treatUnstable == 'failed'}" value="failed">Unstable jobs are treated as failed</f:option>
+		        </select>
+		    </f:entry>
+		    
+		    <f:entry title="Force deliver" help="/plugin/clearcase-ucm-plugin/scm/help-forceDeliver.html">
+		        <f:checkbox name="CCUCM.forceDeliver" checked="${scm.forceDeliver}" />
+		    </f:entry>
+		
 		    <f:entry title="Build project" help="/plugin/clearcase-ucm-plugin/scm/help-buildProject.html">
 	      		<f:textbox name="buildProject" value="${scm.buildProject}"/>
 	    	</f:entry>
