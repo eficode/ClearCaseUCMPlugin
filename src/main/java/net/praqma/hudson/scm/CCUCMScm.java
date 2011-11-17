@@ -216,7 +216,7 @@ public class CCUCMScm extends SCM {
             result = doBaseline(build, baselineInput, state, listener);
         } else {
             consoleOutput.println("[" + Config.nameShort + "] Polling streams: " + polling.toString());
-            result = pollStream(build, state, listener);
+            result = pollStream( workspace, state, listener );
         }
 
         state.setPolling(polling);
@@ -487,7 +487,7 @@ public class CCUCMScm extends SCM {
         }
     }
 
-    private boolean pollStream(AbstractBuild<?, ?> build, State state, BuildListener listener) {
+    private boolean pollStream( FilePath workspace, State state, BuildListener listener ) {
         boolean result = true;
         PrintStream consoleOutput = listener.getLogger();
 
@@ -501,10 +501,10 @@ public class CCUCMScm extends SCM {
                 List<Baseline> baselines = null;
                 /* Old skool self polling */
                 if (polling.isPollingSelf()) {
-                    baselines = getValidBaselinesFromStream(build.getProject(), state, plevel, state.getStream(), state.getComponent());
+                    baselines = getValidBaselinesFromStream( workspace, state, plevel, state.getStream(), state.getComponent() );
                 } else {
                     /* Find the Baselines and store them */
-                    baselines = getBaselinesFromStreams(build.getProject(), listener, consoleOutput, state, state.getStream(), state.getComponent(), polling.isPollingChilds());
+                    baselines = getBaselinesFromStreams( workspace, listener, consoleOutput, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
                 }
 
                 int total = baselines.size();
@@ -726,10 +726,10 @@ public class CCUCMScm extends SCM {
                 List<Baseline> baselines = null;
                 /* Old skool self polling */
                 if (polling.isPollingSelf()) {
-                    baselines = getValidBaselinesFromStream(project, state, plevel, state.getStream(), state.getComponent());
+                    baselines = getValidBaselinesFromStream( workspace, state, plevel, state.getStream(), state.getComponent() );
                 } else {
                     /* Find the Baselines and store them */
-                    baselines = getBaselinesFromStreams(project, listener, out, state, state.getStream(), state.getComponent(), polling.isPollingChilds());
+                    baselines = getBaselinesFromStreams( workspace, listener, out, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
                 }
 
                 /* Discard baselines */
@@ -800,13 +800,13 @@ public class CCUCMScm extends SCM {
      * @param state
      * @return
      */
-    private List<Baseline> getBaselinesFromStreams(AbstractProject<?, ?> project, TaskListener listener, PrintStream consoleOutput, State state, Stream stream, Component component, boolean pollingChildStreams) {
+    private List<Baseline> getBaselinesFromStreams( FilePath workspace, TaskListener listener, PrintStream consoleOutput, State state, Stream stream, Component component, boolean pollingChildStreams) {
 
         List<Stream> streams = null;
         List<Baseline> baselines = new ArrayList<Baseline>();
 
         try {
-            streams = RemoteUtil.getRelatedStreams(project.getSomeWorkspace(), listener, stream, pollingChildStreams, this.getSlavePolling());
+            streams = RemoteUtil.getRelatedStreams( workspace, listener, stream, pollingChildStreams, this.getSlavePolling() );
         } catch (CCUCMException e1) {
             e1.printStackTrace(consoleOutput);
             logger.warning("Could not retrieve streams: " + e1.getMessage(), id);
@@ -824,7 +824,7 @@ public class CCUCMScm extends SCM {
                 // List<Baseline> found = getValidBaselinesFromStream(project,
                 // state, Project.getPlevelFromString(levelToPoll), s,
                 // component);
-                List<Baseline> found = RemoteUtil.getRemoteBaselinesFromStream(project.getSomeWorkspace(), component, s, plevel, this.getSlavePolling());
+                List<Baseline> found = RemoteUtil.getRemoteBaselinesFromStream( workspace, component, s, plevel, this.getSlavePolling() );
                 for (Baseline b : found) {
                     baselines.add(b);
                 }
@@ -849,14 +849,14 @@ public class CCUCMScm extends SCM {
      * @return A list of {@link Baseline}s
      * @throws ScmException
      */
-    private List<Baseline> getValidBaselinesFromStream(AbstractProject<?, ?> project, State state, Project.Plevel plevel, Stream stream, Component component) throws ScmException {
+    private List<Baseline> getValidBaselinesFromStream( FilePath workspace, State state, Project.Plevel plevel, Stream stream, Component component) throws ScmException {
         logger.debug(id + "Retrieving valid baselines.", id);
 
         /* The baseline list */
         List<Baseline> baselines = new ArrayList<Baseline>();
 
         try {
-            baselines = RemoteUtil.getRemoteBaselinesFromStream(project.getSomeWorkspace(), component, stream, plevel, this.getSlavePolling());
+            baselines = RemoteUtil.getRemoteBaselinesFromStream( workspace, component, stream, plevel, this.getSlavePolling() );
         } catch (CCUCMException e1) {
             //throw new ScmException("Unable to get baselines from " + stream.getShortname() + ": " + e1.getMessage());
         	/* no op */
