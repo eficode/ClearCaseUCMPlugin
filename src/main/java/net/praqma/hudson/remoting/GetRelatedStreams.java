@@ -19,6 +19,7 @@ import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.LoggerSetting;
 import net.praqma.util.debug.appenders.StreamAppender;
 import net.praqma.util.execute.CommandLine;
 
@@ -31,15 +32,15 @@ public class GetRelatedStreams implements FileCallable<List<Stream>> {
 	private TaskListener listener;
 	private Pipe pipe;
 	
-	private Set<String> subscriptions;
+	private LoggerSetting loggerSetting;
 	
-	public GetRelatedStreams( TaskListener listener, Stream stream, boolean pollingChildStreams, Pipe pipe, Set<String> subscriptions ) {
+	public GetRelatedStreams( TaskListener listener, Stream stream, boolean pollingChildStreams, Pipe pipe, LoggerSetting loggerSetting ) {
 		this.stream = stream;
 		this.pollingChildStreams = pollingChildStreams;
 		this.listener = listener;
 		
 		this.pipe = pipe;
-		this.subscriptions = subscriptions;
+		this.loggerSetting = loggerSetting;
     }
     
     @Override
@@ -52,8 +53,9 @@ public class GetRelatedStreams implements FileCallable<List<Stream>> {
     	if( pipe != null ) {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
 	    	app = new StreamAppender( toMaster );
+	    	app.setMinimumLevel( loggerSetting.getMinimumLevel() );
 	    	Logger.addAppender( app );
-	    	app.setSubscriptions( subscriptions );
+	    	app.setSubscriptions( loggerSetting.getSubscriptions() );
     	}
     	
     	

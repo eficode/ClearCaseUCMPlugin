@@ -58,6 +58,7 @@ import net.praqma.hudson.scm.CCUCMState.State;
 import net.praqma.hudson.scm.StoredBaselines.StoredBaseline;
 import net.praqma.util.debug.Logger;
 import net.praqma.util.debug.Logger.LogLevel;
+import net.praqma.util.debug.LoggerSetting;
 import net.praqma.util.debug.appenders.FileAppender;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
@@ -110,8 +111,10 @@ public class CCUCMScm extends SCM {
     private String viewtag = "";
     private Set<String> subs;
     private Baseline lastBaseline;
-
-    /**
+    
+    private RemoteUtil rutil;
+    
+	/**
      * Default constructor, mainly used for unit tests.
      */
     public CCUCMScm() {
@@ -173,8 +176,8 @@ public class CCUCMScm extends SCM {
         FileAppender app = new FileAppender(logfile);
         //app.setTag(id);
         net.praqma.hudson.Util.initializeAppender(build, app);
-        subs = app.getSubscriptions();
-        Logger.addAppender(app);
+		Logger.addAppender( app );
+        this.rutil = new RemoteUtil( Logger.getLoggerSettings( app.getMinimumLevel() ) );
 
         logger.info(id + "CCUCMSCM checkout v. " + net.praqma.hudson.Version.version, id);
 
@@ -205,6 +208,8 @@ public class CCUCMScm extends SCM {
             Logger.removeAppender(app);
             return false;
         }
+        
+        //state.setLoggerSetting( Logger.getLoggerSettings( app.getMinimumLevel() ) );
 
         /* Determining the Baseline modifier */
         String baselineInput = getBaselineValue(build);
@@ -692,9 +697,9 @@ public class CCUCMScm extends SCM {
         logger = Logger.getLogger();
         File logfile = new File(project.getRootDir(), "polling.log");
         app = new FileAppender(logfile);
-        app.setTag(id);
-        app.setMinimumLevel(LogLevel.DEBUG);
-        Logger.addAppender(app);
+        net.praqma.hudson.Util.initializeAppender(build, app);
+		Logger.addAppender( app );
+        this.rutil = new RemoteUtil( Logger.getLoggerSettings( app.getMinimumLevel() ) );
 
         /*
          * Make a state object, which is only temporary, only to determine if

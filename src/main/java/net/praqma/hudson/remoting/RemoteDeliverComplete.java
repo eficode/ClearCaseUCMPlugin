@@ -13,6 +13,7 @@ import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.scm.ClearCaseChangeset;
 import net.praqma.hudson.scm.ClearCaseChangeset.Element;
 import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.LoggerSetting;
 import net.praqma.util.debug.appenders.StreamAppender;
 
 import hudson.FilePath.FileCallable;
@@ -33,9 +34,9 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 	private SnapshotView view;
 	private ClearCaseChangeset changeset;
 
-	private Set<String> subscriptions;
+	private LoggerSetting loggerSetting;
 
-	public RemoteDeliverComplete( Baseline baseline, Stream stream, SnapshotView view, ClearCaseChangeset changeset, boolean complete, BuildListener listener, Pipe pipe, Set<String> subscriptions ) {
+	public RemoteDeliverComplete( Baseline baseline, Stream stream, SnapshotView view, ClearCaseChangeset changeset, boolean complete, BuildListener listener, Pipe pipe, LoggerSetting loggerSetting ) {
 		this.complete = complete;
 		this.listener = listener;
 		this.pipe = pipe;
@@ -45,7 +46,7 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 		this.view = view;
 		this.changeset = changeset;
 
-		this.subscriptions = subscriptions;
+		this.loggerSetting = loggerSetting;
 	}
 
 	@Override
@@ -58,8 +59,9 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
     	if( pipe != null ) {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
 	    	app = new StreamAppender( toMaster );
+	    	app.setMinimumLevel( loggerSetting.getMinimumLevel() );
 	    	Logger.addAppender( app );
-	    	app.setSubscriptions( subscriptions );
+	    	app.setSubscriptions( loggerSetting.getSubscriptions() );
     	}
 
     	if( complete ) {

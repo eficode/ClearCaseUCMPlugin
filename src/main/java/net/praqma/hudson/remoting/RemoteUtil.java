@@ -13,170 +13,176 @@ import net.praqma.clearcase.ucm.entities.Project.Plevel;
 import net.praqma.hudson.exception.CCUCMException;
 import net.praqma.hudson.scm.CCUCMState.State;
 import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.LoggerSetting;
 import hudson.FilePath;
 import hudson.model.BuildListener;
 import hudson.model.TaskListener;
 import hudson.remoting.Future;
 import hudson.remoting.Pipe;
 
-public abstract class RemoteUtil {
+public class RemoteUtil {
 
-    private static Logger logger = Logger.getLogger();
+	private static Logger logger = Logger.getLogger();
+	private LoggerSetting loggerSetting;
+	
+	public RemoteUtil( LoggerSetting loggerSetting ) {
+		this.loggerSetting = loggerSetting;
+	}
 
-    public static void completeRemoteDeliver(FilePath workspace, BuildListener listener, State state, boolean complete) throws CCUCMException {
+	public void completeRemoteDeliver( FilePath workspace, BuildListener listener, State state, boolean complete ) throws CCUCMException {
 
-        try {
-            if (workspace.isRemote()) {
-                final Pipe pipe = Pipe.createRemoteToLocal();
-                Future<Boolean> i = null;
-                i = workspace.actAsync(new RemoteDeliverComplete(state.getBaseline(), state.getStream(), state.getSnapView(), state.getChangeset(), complete, listener, pipe, Logger.getSubscriptions()));
-                logger.redirect(pipe.getIn());
-                i.get();
-            } else {
-                Future<Boolean> i = null;
-                i = workspace.actAsync(new RemoteDeliverComplete(state.getBaseline(), state.getStream(), state.getSnapView(), state.getChangeset(), complete, listener, null, Logger.getSubscriptions()));
-                i.get();
-            }
-            return;
+		try {
+			if( workspace.isRemote() ) {
+				final Pipe pipe = Pipe.createRemoteToLocal();
+				Future<Boolean> i = null;
+				i = workspace.actAsync( new RemoteDeliverComplete( state.getBaseline(), state.getStream(), state.getSnapView(), state.getChangeset(), complete, listener, pipe, loggerSetting ) );
+				logger.redirect( pipe.getIn() );
+				i.get();
+			} else {
+				Future<Boolean> i = null;
+				i = workspace.actAsync( new RemoteDeliverComplete( state.getBaseline(), state.getStream(), state.getSnapView(), state.getChangeset(), complete, listener, null, null ) );
+				i.get();
+			}
+			return;
 
-        } catch (Exception e) {
-            throw new CCUCMException("Failed to " + (complete ? "complete" : "cancel") + " the deliver: " + e.getMessage());
-        }
-    }
+		} catch( Exception e ) {
+			throw new CCUCMException( "Failed to " + ( complete ? "complete" : "cancel" ) + " the deliver: " + e.getMessage() );
+		}
+	}
 
-    public static Baseline createRemoteBaseline(FilePath workspace, BuildListener listener, String baseName, Component component, File view, String username) throws CCUCMException {
+	public Baseline createRemoteBaseline( FilePath workspace, BuildListener listener, String baseName, Component component, File view, String username ) throws CCUCMException {
 
-        try {
-            if (workspace.isRemote()) {
-                final Pipe pipe = Pipe.createRemoteToLocal();
-                Future<Baseline> i = null;
-                i = workspace.actAsync(new CreateRemoteBaseline(baseName, component, view, username, listener, pipe, Logger.getSubscriptions()));
-                logger.redirect(pipe.getIn());
-                return i.get();
-            } else {
-                Future<Baseline> i = null;
-                i = workspace.actAsync(new CreateRemoteBaseline(baseName, component, view, username, listener, null, Logger.getSubscriptions()));
-                return i.get();
-            }
+		try {
+			if( workspace.isRemote() ) {
+				final Pipe pipe = Pipe.createRemoteToLocal();
+				Future<Baseline> i = null;
+				i = workspace.actAsync( new CreateRemoteBaseline( baseName, component, view, username, listener, pipe, loggerSetting ) );
+				logger.redirect( pipe.getIn() );
+				return i.get();
+			} else {
+				Future<Baseline> i = null;
+				i = workspace.actAsync( new CreateRemoteBaseline( baseName, component, view, username, listener, null, null ) );
+				return i.get();
+			}
 
-        } catch (Exception e) {
-            throw new CCUCMException(e.getMessage());
-        }
-    }
+		} catch( Exception e ) {
+			throw new CCUCMException( e.getMessage() );
+		}
+	}
 
-    public static List<Baseline> getRemoteBaselinesFromStream(FilePath workspace, Component component, Stream stream, Plevel plevel, boolean slavePolling) throws CCUCMException {
+	public List<Baseline> getRemoteBaselinesFromStream( FilePath workspace, Component component, Stream stream, Plevel plevel, boolean slavePolling ) throws CCUCMException {
 
-        GetRemoteBaselineFromStream t = new GetRemoteBaselineFromStream(component, stream, plevel, null, Logger.getSubscriptions());
+		GetRemoteBaselineFromStream t = new GetRemoteBaselineFromStream( component, stream, plevel, null, null );
 
-        try {
-            if (slavePolling) {
-                if (workspace.isRemote()) {
-                    final Pipe pipe = Pipe.createRemoteToLocal();
-                    Future<List<Baseline>> i = null;
-                    i = workspace.actAsync(new GetRemoteBaselineFromStream(component, stream, plevel, pipe, Logger.getSubscriptions()));
-                    logger.redirect(pipe.getIn());
-                    return i.get();
-                } else {
-                    Future<List<Baseline>> i = null;
-                    i = workspace.actAsync(new GetRemoteBaselineFromStream(component, stream, plevel, null, Logger.getSubscriptions()));
-                    return i.get();
-                }
-            } else {
-                return t.invoke(null, null);
-            }
+		try {
+			if( slavePolling ) {
+				if( workspace.isRemote() ) {
+					final Pipe pipe = Pipe.createRemoteToLocal();
+					Future<List<Baseline>> i = null;
+					i = workspace.actAsync( new GetRemoteBaselineFromStream( component, stream, plevel, pipe, loggerSetting ) );
+					logger.redirect( pipe.getIn() );
+					return i.get();
+				} else {
+					Future<List<Baseline>> i = null;
+					i = workspace.actAsync( new GetRemoteBaselineFromStream( component, stream, plevel, null, null ) );
+					return i.get();
+				}
+			} else {
+				return t.invoke( null, null );
+			}
 
-        } catch (Exception e) {
-            throw new CCUCMException(e.getMessage());
-        }
-    }
+		} catch( Exception e ) {
+			throw new CCUCMException( e.getMessage() );
+		}
+	}
 
-    public static List<Stream> getRelatedStreams(FilePath workspace, TaskListener listener, Stream stream, boolean pollingChildStreams, boolean slavePolling) throws CCUCMException {
+	public List<Stream> getRelatedStreams( FilePath workspace, TaskListener listener, Stream stream, boolean pollingChildStreams, boolean slavePolling ) throws CCUCMException {
 
-        PrintStream out = listener.getLogger();
+		PrintStream out = listener.getLogger();
 
-        try {
-            if (slavePolling) {
+		try {
+			if( slavePolling ) {
 
-                if (workspace.isRemote()) {
-                    final Pipe pipe = Pipe.createRemoteToLocal();
-                    Future<List<Stream>> i = null;
-                    i = workspace.actAsync(new GetRelatedStreams(listener, stream, pollingChildStreams, pipe, Logger.getSubscriptions()));
-                    logger.redirect(pipe.getIn());
-                    return i.get();
-                } else {
-                    Future<List<Stream>> i = null;
-                    i = workspace.actAsync(new GetRelatedStreams(listener, stream, pollingChildStreams, null, Logger.getSubscriptions()));
-                    return i.get();
+				if( workspace.isRemote() ) {
+					final Pipe pipe = Pipe.createRemoteToLocal();
+					Future<List<Stream>> i = null;
+					i = workspace.actAsync( new GetRelatedStreams( listener, stream, pollingChildStreams, pipe, loggerSetting ) );
+					logger.redirect( pipe.getIn() );
+					return i.get();
+				} else {
+					Future<List<Stream>> i = null;
+					i = workspace.actAsync( new GetRelatedStreams( listener, stream, pollingChildStreams, null, null ) );
+					return i.get();
 
-                }
-            } else {
-                GetRelatedStreams t = new GetRelatedStreams(listener, stream, pollingChildStreams, null, Logger.getSubscriptions());
-                return t.invoke(null, null);
-            }
+				}
+			} else {
+				GetRelatedStreams t = new GetRelatedStreams( listener, stream, pollingChildStreams, null, null );
+				return t.invoke( null, null );
+			}
 
-        } catch (Exception e) {
-            e.printStackTrace(out);
-            throw new CCUCMException(e.getMessage());
-        }
-    }
+		} catch( Exception e ) {
+			e.printStackTrace( out );
+			throw new CCUCMException( e.getMessage() );
+		}
+	}
 
-    public static UCMEntity loadEntity(FilePath workspace, UCMEntity entity, boolean slavePolling) throws CCUCMException {
+	public UCMEntity loadEntity( FilePath workspace, UCMEntity entity, boolean slavePolling ) throws CCUCMException {
 
-        try {
-            if (slavePolling) {
-                Future<UCMEntity> i = null;
-                System.out.println( "Starting" );
-                if (workspace.isRemote()) {
-                    final Pipe pipe = Pipe.createRemoteToLocal();
+		try {
+			if( slavePolling ) {
+				Future<UCMEntity> i = null;
 
-                    i = workspace.actAsync(new LoadEntity(entity, pipe, Logger.getSubscriptions()));
-                    logger.redirect(pipe.getIn());
+				if( workspace.isRemote() ) {
+					final Pipe pipe = Pipe.createRemoteToLocal();
 
-                } else {
-                    i = workspace.actAsync(new LoadEntity(entity, null, Logger.getSubscriptions()));
-                }
-                System.out.println( "Done" );
-                return i.get();
-            } else {
-                LoadEntity t = new LoadEntity(entity, null, Logger.getSubscriptions());
-                return t.invoke(null, null);
-            }
+					i = workspace.actAsync( new LoadEntity( entity, pipe, loggerSetting ) );
+					logger.redirect( pipe.getIn() );
 
-        } catch (Exception e) {
-            throw new CCUCMException(e.getMessage());
-        }
-    }
+				} else {
+					i = workspace.actAsync( new LoadEntity( entity, null, null ) );
+				}
 
-    public static String getClearCaseVersion(FilePath workspace, Project project) throws CCUCMException {
+				return i.get();
+			} else {
+				LoadEntity t = new LoadEntity( entity, null, null );
+				return t.invoke( null, null );
+			}
 
-        try {
-            Future<String> i = null;
+		} catch( Exception e ) {
+			throw new CCUCMException( e.getMessage() );
+		}
+	}
 
-            if (workspace.isRemote()) {
-                final Pipe pipe = Pipe.createRemoteToLocal();
+	public String getClearCaseVersion( FilePath workspace, Project project ) throws CCUCMException {
 
-                i = workspace.actAsync(new GetClearCaseVersion(project, pipe, Logger.getSubscriptions()));
-                logger.redirect(pipe.getIn());
+		try {
+			Future<String> i = null;
 
-            } else {
-                i = workspace.actAsync(new GetClearCaseVersion(project, null, Logger.getSubscriptions()));
-            }
+			if( workspace.isRemote() ) {
+				final Pipe pipe = Pipe.createRemoteToLocal();
 
-            return i.get();
+				i = workspace.actAsync( new GetClearCaseVersion( project, pipe, loggerSetting ) );
+				logger.redirect( pipe.getIn() );
 
-        } catch (Exception e) {
-            throw new CCUCMException(e.getMessage());
-        }
-    }
-    
-    public static void endView(FilePath workspace, String viewtag) throws CCUCMException {
+			} else {
+				i = workspace.actAsync( new GetClearCaseVersion( project, null, null ) );
+			}
 
-        try {
+			return i.get();
 
-            workspace.act( new EndView( viewtag ) );
+		} catch( Exception e ) {
+			throw new CCUCMException( e.getMessage() );
+		}
+	}
 
-        } catch (Exception e) {
-            throw new CCUCMException(e.getMessage());
-        }
-    }
+	public void endView( FilePath workspace, String viewtag ) throws CCUCMException {
+
+		try {
+
+			workspace.act( new EndView( viewtag ) );
+
+		} catch( Exception e ) {
+			throw new CCUCMException( e.getMessage() );
+		}
+	}
 }

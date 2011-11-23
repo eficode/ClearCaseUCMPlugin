@@ -10,6 +10,7 @@ import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.util.debug.Logger;
 import net.praqma.util.debug.Logger.LogLevel;
+import net.praqma.util.debug.LoggerSetting;
 import net.praqma.util.debug.appenders.StreamAppender;
 
 import hudson.FilePath.FileCallable;
@@ -23,13 +24,13 @@ public class LoadEntity implements FileCallable<UCMEntity> {
 	private UCMEntity entity;
 	private Pipe pipe;
 	
-	private Set<String> subscriptions;
+	private LoggerSetting loggerSetting;
 	
-	public LoadEntity( UCMEntity entity, Pipe pipe, Set<String> subscriptions ) {
+	public LoadEntity( UCMEntity entity, Pipe pipe, LoggerSetting loggerSetting ) {
 		this.entity = entity;
 		this.pipe = pipe;
 		
-		this.subscriptions = subscriptions;
+		this.loggerSetting = loggerSetting;
     }
     
     @Override
@@ -39,12 +40,10 @@ public class LoadEntity implements FileCallable<UCMEntity> {
     	if( pipe != null ) {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
 	    	app = new StreamAppender( toMaster );
-	    	app.setMinimumLevel( LogLevel.DEBUG );
+	    	app.setMinimumLevel( loggerSetting.getMinimumLevel() );
 	    	Logger.addAppender( app );
-	    	app.setSubscriptions( subscriptions );
-    	}
-    	
-    	
+	    	app.setSubscriptions( loggerSetting.getSubscriptions() );
+    	}    	
         
     	try {
     		UCM.setContext( UCM.ContextType.CLEARTOOL );

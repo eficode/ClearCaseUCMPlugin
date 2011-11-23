@@ -9,6 +9,7 @@ import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.LoggerSetting;
 import net.praqma.util.debug.appenders.StreamAppender;
 
 import hudson.FilePath.FileCallable;
@@ -26,16 +27,16 @@ public class CreateRemoteBaseline implements FileCallable<Baseline> {
 	private BuildListener listener;
 	private String username;
 	private Pipe pipe;
-	private Set<String> subscriptions;
+	private LoggerSetting loggerSetting;
 
-	public CreateRemoteBaseline( String baseName, Component component, File view, String username, BuildListener listener, Pipe pipe, Set<String> subscriptions ) {
+	public CreateRemoteBaseline( String baseName, Component component, File view, String username, BuildListener listener, Pipe pipe, LoggerSetting loggerSetting ) {
 		this.baseName = baseName;
 		this.component = component;
 		this.view = view;
 		this.listener = listener;
 		this.username = username;
 		this.pipe = pipe;
-		this.subscriptions = subscriptions;
+		this.loggerSetting = loggerSetting;
     }
 
     @Override
@@ -46,8 +47,9 @@ public class CreateRemoteBaseline implements FileCallable<Baseline> {
     	if( pipe != null ) {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
 	    	app = new StreamAppender( toMaster );
+	    	app.setMinimumLevel( loggerSetting.getMinimumLevel() );
 	    	Logger.addAppender( app );
-	    	app.setSubscriptions( subscriptions );
+	    	app.setSubscriptions( loggerSetting.getSubscriptions() );
     	}
 
     	Baseline bl = null;

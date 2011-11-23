@@ -16,6 +16,7 @@ import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.LoggerSetting;
 
 /**
  * This is the state object for the CCUCM jobs
@@ -163,6 +164,8 @@ public class CCUCMState {
 		private boolean makeTag = false;
 		private boolean recommend = false;
         private boolean forceDilever = false;
+        
+        private LoggerSetting loggerSetting;
 
         public boolean getForceDilever() {
             return forceDilever;
@@ -430,6 +433,14 @@ public class CCUCMState {
 
 		public void setWorkspace( FilePath workspace ) {
 			this.workspace = workspace;
+		}
+
+		public LoggerSetting getLoggerSetting() {
+			return loggerSetting;
+		}
+
+		public void setLoggerSetting( LoggerSetting loggerSetting ) {
+			this.loggerSetting = loggerSetting;
 		}
 
 	}

@@ -14,6 +14,7 @@ import net.praqma.clearcase.ucm.entities.Project.Plevel;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.utils.BaselineList;
 import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.LoggerSetting;
 import net.praqma.util.debug.Logger.LogLevel;
 import net.praqma.util.debug.appenders.StreamAppender;
 import net.praqma.util.execute.CommandLine;
@@ -30,15 +31,15 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
 	private Plevel plevel;
 	private Pipe pipe;
 	
-	private Set<String> subscriptions;
+	private LoggerSetting loggerSetting;
 	
-	public GetRemoteBaselineFromStream( Component component, Stream stream, Plevel plevel, Pipe pipe, Set<String> subscriptions ) {
+	public GetRemoteBaselineFromStream( Component component, Stream stream, Plevel plevel, Pipe pipe, LoggerSetting loggerSetting ) {
 		this.component = component;
 		this.stream = stream;
 		this.plevel = plevel;
 		this.pipe = pipe;
 		
-		this.subscriptions = subscriptions;
+		this.loggerSetting = loggerSetting;
     }
     
     @Override
@@ -52,9 +53,9 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
     	if( pipe != null ) {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );	    	
 	    	app = new StreamAppender( toMaster );
-	    	app.setMinimumLevel( LogLevel.DEBUG );
+	    	app.setMinimumLevel( loggerSetting.getMinimumLevel() );
 	    	Logger.addAppender( app );
-	    	app.setSubscriptions( subscriptions );
+	    	app.setSubscriptions( loggerSetting.getSubscriptions() );
     	}
     	
     	logger.info( "Retrieving remote baselines from " + stream.getShortname() );

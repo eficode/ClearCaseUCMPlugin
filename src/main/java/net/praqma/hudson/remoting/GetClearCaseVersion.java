@@ -9,6 +9,7 @@ import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.utils.BuildNumber;
 import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.LoggerSetting;
 import net.praqma.util.debug.appenders.StreamAppender;
 
 import hudson.FilePath.FileCallable;
@@ -21,12 +22,12 @@ public class GetClearCaseVersion implements FileCallable<String> {
 
 	private Project project;
 	private Pipe pipe;
-	private Set<String> subscriptions;
+	private LoggerSetting loggerSetting;
 	
-	public GetClearCaseVersion( Project project, Pipe pipe, Set<String> subscriptions ) {
+	public GetClearCaseVersion( Project project, Pipe pipe, LoggerSetting loggerSetting ) {
 		this.project = project;
 		this.pipe = pipe;
-		this.subscriptions = subscriptions;
+		this.loggerSetting = loggerSetting;
     }
     
     @Override
@@ -36,8 +37,9 @@ public class GetClearCaseVersion implements FileCallable<String> {
     	if( pipe != null ) {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
 	    	app = new StreamAppender( toMaster );
+	    	app.setMinimumLevel( loggerSetting.getMinimumLevel() );
 	    	Logger.addAppender( app );
-	    	app.setSubscriptions( subscriptions );
+	    	app.setSubscriptions( loggerSetting.getSubscriptions() );
     	}
         
     	String version = "";
