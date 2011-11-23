@@ -6,8 +6,10 @@ import java.io.PrintStream;
 import java.util.Set;
 
 import net.praqma.clearcase.ucm.UCMException;
+import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.Logger.LogLevel;
 import net.praqma.util.debug.appenders.StreamAppender;
 
 import hudson.FilePath.FileCallable;
@@ -37,11 +39,15 @@ public class LoadEntity implements FileCallable<UCMEntity> {
     	if( pipe != null ) {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
 	    	app = new StreamAppender( toMaster );
+	    	app.setMinimumLevel( LogLevel.DEBUG );
 	    	Logger.addAppender( app );
 	    	app.setSubscriptions( subscriptions );
     	}
+    	
+    	
         
     	try {
+    		UCM.setContext( UCM.ContextType.CLEARTOOL );
 			entity.load();
 		} catch (UCMException e) {
         	Logger.removeAppender( app );

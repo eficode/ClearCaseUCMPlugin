@@ -14,6 +14,7 @@ import net.praqma.clearcase.ucm.entities.Project.Plevel;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.utils.BaselineList;
 import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.Logger.LogLevel;
 import net.praqma.util.debug.appenders.StreamAppender;
 import net.praqma.util.execute.CommandLine;
 import hudson.FilePath.FileCallable;
@@ -51,6 +52,7 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
     	if( pipe != null ) {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );	    	
 	    	app = new StreamAppender( toMaster );
+	    	app.setMinimumLevel( LogLevel.DEBUG );
 	    	Logger.addAppender( app );
 	    	app.setSubscriptions( subscriptions );
     	}

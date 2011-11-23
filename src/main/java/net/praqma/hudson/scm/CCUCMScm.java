@@ -322,8 +322,8 @@ public class CCUCMScm extends SCM {
                 throw new ScmException("No last baseline stored");
             }
             Baseline bl = UCMEntity.getBaseline(bls, true);
-            //Baseline loaded = (Baseline) RemoteUtil.loadEntity( project.getSomeWorkspace(), bl, getSlavePolling() );
-            return bl;
+            Baseline loaded = (Baseline) RemoteUtil.loadEntity( project.getSomeWorkspace(), bl, getSlavePolling() );
+            return loaded;
         } catch (FileNotFoundException e) {
         } catch (IOException e) {
             logger.warning("Could not read last baseline");
@@ -334,7 +334,10 @@ public class CCUCMScm extends SCM {
             //} catch( CCUCMException e ) {
             //	logger.warning( "Unable to load last baseline" );
             //	throw new ScmException( "Unable to load last baseline" );
-        } finally {
+        } catch( CCUCMException e ) {
+        	out.println( "Unable to load entity: " + e.getMessage() );
+			e.printStackTrace();
+		} finally {
             if (fr != null) {
                 try {
                     fr.close();
@@ -724,6 +727,7 @@ public class CCUCMScm extends SCM {
         if (checkInput(listener)) {
             try {
                 List<Baseline> baselines = null;
+
                 /* Old skool self polling */
                 if (polling.isPollingSelf()) {
                     baselines = getValidBaselinesFromStream( workspace, state, plevel, state.getStream(), state.getComponent() );
@@ -735,10 +739,9 @@ public class CCUCMScm extends SCM {
                 /* Discard baselines */
                 filterBaselines(baselines);
                 baselines = filterBuildingBaselines(project, baselines);
-
+                
                 if (baselines.size() > 0) {
                     p = PollingResult.BUILD_NOW;
-
                     /* Sort by date */
                     Collections.sort(baselines, new AscendingDateSort());
 
@@ -752,12 +755,33 @@ public class CCUCMScm extends SCM {
                         } catch (ScmException e) {
                             out.println(e.getMessage());
                         }
-                        boolean newer = true;
+
+                        boolean newer = false;
+                        
+                        /* if the newest found baseline is newer than the last baseline, build it
+                         * If there's no last baseline, build it */
                         if (lastBaseline != null) {
-                            //if( lastBaseline.getDate().after( state.getBaseline().getDate() ) ) {
-                            if (lastBaseline.getFullyQualifiedName().equals(state.getBaseline().getFullyQualifiedName())) {
-                                newer = false;
+                			
+                        	try {
+                        		out.println( "The last baseline: " + lastBaseline.stringify() );
+                        	} catch( Exception e ) {
+                        		out.println( "Could not stringify last: " + e.getMessage() );
+                        		e.printStackTrace( out );
+                        	}
+                        	
+                        	try {
+                        		out.println( "The found baseline: " + state.getBaseline().stringify() );
+                        	} catch( Exception e ) {
+                        		out.println( "Could not stringify state baseline" );
+                        	}
+                        	
+                        	//if( lastBaseline.getDate().after( state.getBaseline().getDate() ) ) {
+                        	if( state.getBaseline().getDate().after( lastBaseline.getDate() ) ) {
+                            //if (lastBaseline.getFullyQualifiedName().equals(state.getBaseline().getFullyQualifiedName())) {
+                                newer = true;
                             }
+                        } else {
+                        	newer = true;
                         }
 
                         if (!newer) {

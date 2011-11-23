@@ -125,7 +125,7 @@ public abstract class RemoteUtil {
         try {
             if (slavePolling) {
                 Future<UCMEntity> i = null;
-
+                System.out.println( "Starting" );
                 if (workspace.isRemote()) {
                     final Pipe pipe = Pipe.createRemoteToLocal();
 
@@ -135,7 +135,7 @@ public abstract class RemoteUtil {
                 } else {
                     i = workspace.actAsync(new LoadEntity(entity, null, Logger.getSubscriptions()));
                 }
-
+                System.out.println( "Done" );
                 return i.get();
             } else {
                 LoadEntity t = new LoadEntity(entity, null, Logger.getSubscriptions());
