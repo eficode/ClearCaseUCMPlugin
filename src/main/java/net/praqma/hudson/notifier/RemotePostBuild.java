@@ -20,6 +20,7 @@ import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.scm.Unstable;
 import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.LoggerSetting;
 import net.praqma.util.debug.appenders.StreamAppender;
 
 /**
@@ -45,13 +46,13 @@ class RemotePostBuild implements FileCallable<Status> {
     private PrintStream hudsonOut = null;
     private Unstable unstable;
     private Pipe pipe = null;
-    private Set<String> subscriptions;
+    private LoggerSetting loggerSetting;
 
     public RemotePostBuild(Result result, Status status, BuildListener listener,
             /* Values for */
             boolean makeTag, boolean recommended, Unstable unstable,
             /* Common values */
-            Baseline sourcebaseline, Baseline targetbaseline, Stream sourcestream, Stream targetstream, String displayName, String buildNumber, Pipe pipe, Set<String> subscriptions) {
+            Baseline sourcebaseline, Baseline targetbaseline, Stream sourcestream, Stream targetstream, String displayName, String buildNumber, Pipe pipe, LoggerSetting loggerSetting ) {
 
 
         this.displayName = displayName;
@@ -75,7 +76,7 @@ class RemotePostBuild implements FileCallable<Status> {
         this.listener = listener;
 
         this.pipe = pipe;
-        this.subscriptions = subscriptions;
+        this.loggerSetting = loggerSetting;
     }
 
     public Status invoke(File workspace, VirtualChannel channel) throws IOException {
@@ -88,8 +89,8 @@ class RemotePostBuild implements FileCallable<Status> {
         if (pipe != null) {
             PrintStream toMaster = new PrintStream(pipe.getOut());
             app = new StreamAppender(toMaster);
-            Logger.addAppender(app);
-            app.setSubscriptions(subscriptions);
+	    	Logger.addAppender( app );
+	    	app.setSettings( loggerSetting );
         }
 
         String newPLevel = "";

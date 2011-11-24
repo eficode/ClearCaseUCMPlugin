@@ -42,8 +42,14 @@ public class ChangeLogParserImpl extends ChangeLogParser {
 		digester.addBeanPropertySetter( "*/entry/activity/author", "myAuthor" );
 		digester.addSetNext( "*/entry/activity", "add" );
 		FileReader reader = new FileReader( changelogFile );
-		digester.parse( reader );
-		reader.close();
+		try {
+			digester.parse( reader );
+		} catch( Exception e ) {
+			System.out.println( "Whoops, unable to digest. " + e.getMessage() );
+		} finally {
+			reader.close();
+		}
+			
 		return new ChangeLogSetImpl( build, entries );
 	}
 

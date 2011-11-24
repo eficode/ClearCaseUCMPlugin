@@ -47,9 +47,8 @@ public class CreateRemoteBaseline implements FileCallable<Baseline> {
     	if( pipe != null ) {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
 	    	app = new StreamAppender( toMaster );
-	    	app.setMinimumLevel( loggerSetting.getMinimumLevel() );
 	    	Logger.addAppender( app );
-	    	app.setSubscriptions( loggerSetting.getSubscriptions() );
+	    	app.setSettings( loggerSetting );
     	}
 
     	Baseline bl = null;

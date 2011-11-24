@@ -53,12 +53,11 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
     	if( pipe != null ) {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );	    	
 	    	app = new StreamAppender( toMaster );
-	    	app.setMinimumLevel( loggerSetting.getMinimumLevel() );
 	    	Logger.addAppender( app );
-	    	app.setSubscriptions( loggerSetting.getSubscriptions() );
+	    	app.setSettings( loggerSetting );
     	}
     	
-    	logger.info( "Retrieving remote baselines from " + stream.getShortname() );
+    	logger.debug( "Retrieving remote baselines from " + stream.getShortname() );
     	
         /* The baseline list */
         BaselineList baselines = null;

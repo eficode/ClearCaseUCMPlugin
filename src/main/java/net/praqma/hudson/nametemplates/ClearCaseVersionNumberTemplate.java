@@ -12,7 +12,7 @@ public class ClearCaseVersionNumberTemplate extends Template {
 		
 		try {
 			Project project = state.getStream().getProject();
-			return RemoteUtil.getClearCaseVersion( state.getWorkspace(), project );
+			return rutil.getClearCaseVersion( state.getWorkspace(), project );
 		} catch (Exception e) {
 			return "unknownccversion";
 		}

@@ -37,9 +37,8 @@ public class GetClearCaseVersion implements FileCallable<String> {
     	if( pipe != null ) {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
 	    	app = new StreamAppender( toMaster );
-	    	app.setMinimumLevel( loggerSetting.getMinimumLevel() );
 	    	Logger.addAppender( app );
-	    	app.setSubscriptions( loggerSetting.getSubscriptions() );
+	    	app.setSettings( loggerSetting );
     	}
         
     	String version = "";

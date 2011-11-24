@@ -27,6 +27,7 @@ import net.praqma.hudson.Util;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.scm.EstablishResult.ResultType;
 import net.praqma.util.debug.Logger;
+import net.praqma.util.debug.LoggerSetting;
 import net.praqma.util.debug.appenders.StreamAppender;
 
 /**
@@ -52,10 +53,10 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
     private String loadModule;
     private PrintStream hudsonOut = null;
     private Pipe pipe;
-    private Set<String> subscriptions;
+    private LoggerSetting loggerSetting;
     private String viewtag = "";
 
-    public RemoteDeliver(String destinationstream, BuildListener listener, Pipe pipe, Set<String> subscriptions,
+    public RemoteDeliver(String destinationstream, BuildListener listener, Pipe pipe, LoggerSetting loggerSetting,
             /* Common values */
             String component, String loadModule, String baseline, String jobName) {
         this.jobName = jobName;
@@ -69,7 +70,7 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
         this.loadModule = loadModule;
 
         this.pipe = pipe;
-        this.subscriptions = subscriptions;
+        this.loggerSetting = loggerSetting;
     }
 
     public EstablishResult invoke(File workspace, VirtualChannel channel) throws IOException {
@@ -80,8 +81,8 @@ class RemoteDeliver implements FileCallable<EstablishResult> {
         if (pipe != null) {
             PrintStream toMaster = new PrintStream(pipe.getOut());
             app = new StreamAppender(toMaster);
-            Logger.addAppender(app);
-            app.setSubscriptions(subscriptions);
+	    	Logger.addAppender( app );
+	    	app.setSettings( loggerSetting );
         }
 
         //TODO this should not be necessary cause its done in the Config.java file ????.

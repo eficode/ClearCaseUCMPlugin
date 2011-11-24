@@ -142,6 +142,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 			logger.info( e );
 			hudsonOut.println( e.stdout );
 			hudsonOut.println( "[" + Config.nameShort + "] Could not get changes. " + e.getMessage() );
+			er.setResultType( ResultType.INITIALIZE_WORKSPACE_ERROR );
 		}
 
 		er.setLog( log );
@@ -159,7 +160,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		return viewtag;
 	}
 
-	private void makeWorkspace( File workspace, String viewtag ) throws ScmException {
+	private void makeWorkspace( File workspace, String viewtag ) throws ScmException, UCMException {
 		// We know we have a stream (st), because it is set in
 		// baselinesToBuild()
 		if( workspace != null ) {
@@ -182,14 +183,20 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		if( devstream.isRebaseInProgress() ) {
 			hudsonOut.print( "[" + Config.nameShort + "] Cancelling previous rebase." );
 			devstream.cancelRebase();
-			hudsonOut.println( " DONE" );
+			hudsonOut.println( " Done" );
 		}
 		// The last boolean, complete, must always be true from CCUCM
 		// as we are always working on a read-only stream according
 		// to LAK
 		hudsonOut.print( "[" + Config.nameShort + "] Rebasing development stream (" + devstream.getShortname() + ") against parent stream (" + targetStream.getShortname() + ")" );
-		devstream.rebase( sv, bl, true );
-		hudsonOut.println( " DONE" );
+		try {
+			devstream.rebase( sv, bl, true );
+		} catch( UCMException e1 ) {
+			hudsonOut.println( " Failed" );
+			throw e1;
+		}
+		
+		hudsonOut.println( " Done" );
 		
 		try {
             hudsonOut.println("[" + Config.nameShort + "] Updating view using " + loadModule.toLowerCase() + " modules");
