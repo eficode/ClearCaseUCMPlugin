@@ -292,6 +292,7 @@ public class CCUCMState {
 			sb.append( "Added by poll : " + ( this.addedByPoller ? "Yes" : "No" ) + linesep );
 			sb.append( "Multi site    : " + ( this.multiSiteFrequency > 0 ? StoredBaselines.milliToMinute( this.multiSiteFrequency ) : "N/A" ) + linesep );
 			sb.append( "postBuild     : " + this.doPostBuild + linesep );
+			sb.append( "needsToBeComp : " + this.needsToBeCompleted + linesep );
 
 			return sb.toString();
 		}

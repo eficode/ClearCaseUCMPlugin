@@ -137,6 +137,7 @@ public class CCUCMNotifier extends Notifier {
             /* Retrieve the CCUCM state */
             pstate = CCUCMScm.ccucm.getState(jobName, jobNumber);
             logger.debug( "STATE: " + pstate );
+            logger.debug( pstate.stringify() );
 
             /* Validate the state */
             if (pstate.doPostBuild() && pstate.getBaseline() != null) {
@@ -165,7 +166,7 @@ public class CCUCMNotifier extends Notifier {
                 }
 
             } else {
-            	logger.warning( "Whoops, not a valid state, there was no baseline found" );
+            	logger.warning( "Whoops, not a valid state, there was no baseline found or the post build flag was not set" );
                 // Not performing any post build actions.
                 result = false;
             }
