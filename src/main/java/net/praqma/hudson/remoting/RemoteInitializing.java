@@ -34,7 +34,7 @@ public class RemoteInitializing implements FileCallable<List<Baseline>> {
     	/* Initialize entities */
 
         /* The baseline list */
-        BaselineList baselines = null;
+        List<Baseline> baselines = null;
 
         try {
             baselines = component.getBaselines(stream, plevel );

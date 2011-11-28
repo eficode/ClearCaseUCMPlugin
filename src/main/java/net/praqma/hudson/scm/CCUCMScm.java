@@ -950,21 +950,26 @@ public class CCUCMScm extends SCM {
                 Object o = project.getBuildByNumber(bnum);
                 Build bld = (Build) o;
 
-                try {
-                    if (b.getPromotionLevel(true).equals(cstate.getBaseline().getPromotionLevel(true))) {
-                        logger.debug(id + b.getShortname() + " has the same promotion level");
-                        continue;
-                    }
-                } catch (UCMException e) {
-                    logger.warning(id + "Unable to compare promotion levels on " + b.getShortname());
-                }
-
-                /* The job is not running */
-                if (!bld.isLogUpdated()) {
-                    logger.debug(id + "Job " + bld.getNumber() + " is not building", id);
-                    validBaselines.add(b);
+                /* prevent null pointer exceptions */
+                if( bld != null ) {
+	                try {
+	                    if (b.getPromotionLevel(true).equals(cstate.getBaseline().getPromotionLevel(true))) {
+	                        logger.debug(id + b.getShortname() + " has the same promotion level");
+	                        continue;
+	                    }
+	                } catch (UCMException e) {
+	                    logger.warning(id + "Unable to compare promotion levels on " + b.getShortname());
+	                }
+	
+	                /* The job is not running */
+	                if (!bld.isLogUpdated()) {
+	                    logger.debug(id + "Job " + bld.getNumber() + " is not building", id);
+	                    validBaselines.add(b);
+	                } else {
+	                    logger.debug(id + "Job " + bld.getNumber() + " is building " + cstate.getBaseline().getFullyQualifiedName(), id);
+	                }
                 } else {
-                    logger.debug(id + "Job " + bld.getNumber() + " is building " + cstate.getBaseline().getFullyQualifiedName(), id);
+                	/* What to do!? Let's skip it! */
                 }
             } else {
                 validBaselines.add(b);

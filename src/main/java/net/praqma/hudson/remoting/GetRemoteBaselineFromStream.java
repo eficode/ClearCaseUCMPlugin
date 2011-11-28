@@ -60,7 +60,7 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
     	logger.debug( "Retrieving remote baselines from " + stream.getShortname() );
     	
         /* The baseline list */
-        BaselineList baselines = null;
+        List<Baseline> baselines = null;
         
         try {
             baselines = component.getBaselines( stream, plevel );
@@ -72,6 +72,7 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
         /* Load baselines remotely */
         for( Baseline baseline : baselines ) {
         	try {
+        		logger.debug( "Loading the baseline " + baseline );
 				baseline.load();
 			} catch (UCMException e) {
 				logger.warning( "Could not load the baseline " + baseline.getShortname() + ": " + e.getMessage() );
