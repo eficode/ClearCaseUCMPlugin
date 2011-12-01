@@ -303,6 +303,8 @@ public class CCUCMNotifier extends Notifier {
                 if( treatSuccessful && pstate.createBaseline() ) {
 
                 	try {
+                		pstate.setBuild( build );
+                		pstate.setListener( listener );
                         out.print("[" + Config.nameShort + "] Creating baseline on Integration stream. ");
                         pstate.setWorkspace( workspace );
                         NameTemplate.validateTemplates( pstate );

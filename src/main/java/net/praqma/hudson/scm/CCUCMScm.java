@@ -44,7 +44,6 @@ import net.praqma.clearcase.ucm.entities.Project.Plevel;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.entities.UCMEntity.LabelStatus;
-import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.Util;
 import net.praqma.hudson.exception.CCUCMException;
@@ -52,10 +51,9 @@ import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.exception.TemplateException;
 import net.praqma.hudson.nametemplates.NameTemplate;
 import net.praqma.hudson.notifier.CCUCMNotifier;
-import net.praqma.hudson.remoting.RemoteUtil;
+import net.praqma.hudson.remoting.*;
 import net.praqma.hudson.scm.Polling.PollingType;
 import net.praqma.hudson.scm.CCUCMState.State;
-import net.praqma.hudson.scm.StoredBaselines.StoredBaseline;
 import net.praqma.util.debug.Logger;
 import net.praqma.util.debug.Logger.LogLevel;
 import net.praqma.util.debug.LoggerSetting;
@@ -180,6 +178,8 @@ public class CCUCMScm extends SCM {
 		Logger.addAppender( app );
 		this.loggerSetting = Logger.getLoggerSettings( app.getMinimumLevel() );
         this.rutil = new RemoteUtil( loggerSetting );
+        
+        logger.verbose( "Number of appenders: " + Logger.getNumberOfAppenders() );
 
         logger.info(id + "CCUCMSCM checkout v. " + net.praqma.hudson.Version.version, id);
 
@@ -709,6 +709,7 @@ public class CCUCMScm extends SCM {
         
 		File logfile = new File( project.getRootDir(), "polling.log" );
         app = new FileAppender(logfile);
+        app.lockToCurrentThread();
         
         /* If nothing is known, we log all */
         if( project.isParameterized() ) {
@@ -826,7 +827,7 @@ public class CCUCMScm extends SCM {
                     p = PollingResult.NO_CHANGES;
                 }
 
-                logger.debug(id + "The POLL state:\n" + state.stringify(), id);
+                logger.debug(id + "The POLL state:\n" + state.stringify(), id); // 5413_dev_from_BUILT
 
                 /* Remove state if not being built */
                 if (p == PollingResult.NO_CHANGES) {

@@ -272,6 +272,7 @@ public abstract class Util {
 
 	public static void initializeAppender( AbstractBuild<?, ?> build, Appender appender ) {
 		appender.setSubscribeAll( true );
+		appender.lockToCurrentThread();
 
 		/* Log classes */
 		if( build.getBuildVariables().get( Config.logVar ) != null ) {

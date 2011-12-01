@@ -2,6 +2,8 @@ package net.praqma.hudson.scm;
 
 import hudson.FilePath;
 import hudson.model.Build;
+import hudson.model.TaskListener;
+import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.util.CopyOnWriteList;
 
@@ -112,8 +114,12 @@ public class CCUCMState {
 				s = it.next();
 				Integer bnum = s.getJobNumber();
 				Object o = project.getBuildByNumber( bnum );
+				if( o == null ) {
+					logger.debug( "A build was null(" + bnum + ")" );
+					continue;
+				}
+				
 				Build bld = (Build) o;
-
 				/* The job is not running */
 				if( !bld.isLogUpdated() ) {
 					it.remove();
@@ -157,6 +163,9 @@ public class CCUCMState {
 		private SnapshotView deliverView;
 		private boolean createBaseline = true;
 		private String nameTemplate;
+		
+		private AbstractBuild<?, ?> build;
+		private TaskListener listener;
 
 		private ClearCaseChangeset changeset;
 
@@ -442,6 +451,22 @@ public class CCUCMState {
 
 		public void setLoggerSetting( LoggerSetting loggerSetting ) {
 			this.loggerSetting = loggerSetting;
+		}
+
+		public AbstractBuild<?, ?> getBuild() {
+			return build;
+		}
+
+		public void setBuild( AbstractBuild<?, ?> build ) {
+			this.build = build;
+		}
+
+		public TaskListener getListener() {
+			return listener;
+		}
+
+		public void setListener( TaskListener listener ) {
+			this.listener = listener;
 		}
 
 	}

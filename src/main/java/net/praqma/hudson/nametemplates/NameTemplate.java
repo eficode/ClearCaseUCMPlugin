@@ -8,10 +8,12 @@ import java.util.regex.Pattern;
 
 import net.praqma.hudson.exception.TemplateException;
 import net.praqma.hudson.scm.CCUCMState.State;
+import net.praqma.util.debug.Logger;
 
 public class NameTemplate {
 
 	private static Map<String, Template> templates = new HashMap<String, Template>();
+	private static Logger logger = Logger.getLogger();
 
 	static {
 		templates.put( "date", new DateTemplate() );
@@ -23,10 +25,11 @@ public class NameTemplate {
 		templates.put( "ccversion", new ClearCaseVersionNumberTemplate() );
 		templates.put( "number", new NumberTemplate() );
 		templates.put( "user", new UserTemplate() );
+		templates.put( "env", new EnvTemplate() );
 	}
 
 	private static Pattern rx_ = Pattern.compile( "(\\[.*?\\])" );
-	private static Pattern rx_checkFinal = Pattern.compile( "^[\\w\\.-]*$" );
+	private static Pattern rx_checkFinal = Pattern.compile( "^[\\w\\._-]*$" );
 
 	public static void validateTemplates( State state ) {
 
@@ -88,6 +91,8 @@ public class NameTemplate {
 			String replace = m.group(1);
 			String templateName = replace.toLowerCase().substring( 1, replace.length()-1 );
 			String args = null;
+			
+			logger.debug( template );
 
 			/*  Pre-process template */
 			if( templateName.contains( "=" ) ) {
@@ -95,6 +100,8 @@ public class NameTemplate {
 				templateName = s[0];
 				args = s[1];
 			}
+			
+			logger.debug( templateName + ": " + args );
 
 			if( !templates.containsKey( templateName ) ) {
 				throw new TemplateException( "The template " + templateName + " does not exist" );
