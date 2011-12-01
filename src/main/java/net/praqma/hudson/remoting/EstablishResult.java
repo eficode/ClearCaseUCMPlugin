@@ -16,6 +16,7 @@ public class EstablishResult implements Serializable {
 		INTERPROJECT_DELIVER_DENIED,
 		INITIALIZE_WORKSPACE_ERROR,
 		DELIVER_IN_PROGRESS,
+		DELIVER_IN_PROGRESS_NOT_CANCELLED,
 		SUCCESS
 	}
 	
@@ -67,6 +68,10 @@ public class EstablishResult implements Serializable {
 	
 	public boolean isDeliverInProgress() {
 		return type.equals( ResultType.DELIVER_IN_PROGRESS );
+	}
+	
+	public boolean isDeliverInProgressNotCancelled() {
+		return type.equals( ResultType.DELIVER_IN_PROGRESS_NOT_CANCELLED );
 	}
 	
 	public boolean isCancellable() {

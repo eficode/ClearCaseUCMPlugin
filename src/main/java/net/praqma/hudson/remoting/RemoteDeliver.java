@@ -34,254 +34,253 @@ import net.praqma.util.debug.LoggerSetting;
 import net.praqma.util.debug.appenders.StreamAppender;
 
 /**
- *
+ * 
  * @author wolfgang
- *
+ * 
  */
 public class RemoteDeliver implements FileCallable<EstablishResult> {
 
-    private static final long serialVersionUID = 1L;
-    private String jobName;
-    private String baseline;
-    private String destinationstream;
-    private BuildListener listener;
-    private String id = "";
-    private SnapshotView snapview;
+	private static final long serialVersionUID = 1L;
+	
+	private Logger logger = Logger.getLogger();
+	
+	private String jobName;
+	private String baseline;
+	private String destinationstream;
+	private BuildListener listener;
+	private String id = "";
+	private SnapshotView snapview;
 
-    /*
-     * private boolean apply4level; private String alternateTarget; private
-     * String baselineName;
-     */
-    private String component;
-    private String loadModule;
-    private PrintStream hudsonOut = null;
-    private Pipe pipe;
-    private LoggerSetting loggerSetting;
-    private String viewtag = "";
+	/*
+	 * private boolean apply4level; private String alternateTarget; private
+	 * String baselineName;
+	 */
+	private String component;
+	private String loadModule;
+	private PrintStream hudsonOut = null;
+	private Pipe pipe;
+	private LoggerSetting loggerSetting;
+	private String viewtag = "";
 
-    public RemoteDeliver(String destinationstream, BuildListener listener, Pipe pipe, LoggerSetting loggerSetting,
-            /* Common values */
-            String component, String loadModule, String baseline, String jobName) {
-        this.jobName = jobName;
+	private File workspace;
 
-        this.baseline = baseline;
-        this.destinationstream = destinationstream;
+	public RemoteDeliver( String destinationstream, BuildListener listener, Pipe pipe, LoggerSetting loggerSetting,
+	/* Common values */
+	String component, String loadModule, String baseline, String jobName ) {
+		this.jobName = jobName;
 
-        this.listener = listener;
+		this.baseline = baseline;
+		this.destinationstream = destinationstream;
 
-        this.component = component;
-        this.loadModule = loadModule;
+		this.listener = listener;
 
-        this.pipe = pipe;
-        this.loggerSetting = loggerSetting;
-    }
+		this.component = component;
+		this.loadModule = loadModule;
 
-    public EstablishResult invoke(File workspace, VirtualChannel channel) throws IOException {
+		this.pipe = pipe;
+		this.loggerSetting = loggerSetting;
+	}
 
-        hudsonOut = listener.getLogger();
+	public EstablishResult invoke( File workspace, VirtualChannel channel ) throws IOException {
 
-        StreamAppender app = null;
-        if (pipe != null) {
-            PrintStream toMaster = new PrintStream(pipe.getOut());
-            app = new StreamAppender(toMaster);
-            app.lockToCurrentThread();
-	    	Logger.addAppender( app );
-	    	app.setSettings( loggerSetting );
-        }
+		hudsonOut = listener.getLogger();
 
-        //TODO this should not be necessary cause its done in the Config.java file ????.
-        UCM.setContext(UCM.ContextType.CLEARTOOL);
+		StreamAppender app = null;
+		if( pipe != null ) {
+			PrintStream toMaster = new PrintStream( pipe.getOut() );
+			app = new StreamAppender( toMaster );
+			app.lockToCurrentThread();
+			Logger.addAppender( app );
+			app.setSettings( loggerSetting );
+		}
 
-        /* Create the baseline object */
-        Baseline baseline = null;
-        try {
-            baseline = UCMEntity.getBaseline(this.baseline);
-        } catch (UCMException e) {
-            if (e.stdout != null) {
-                hudsonOut.println(e.stdout);
-            }
-            Logger.removeAppender(app);
-            throw new IOException("Could not create Baseline object: " + e.getMessage());
-        }
+		// TODO this should not be necessary cause its done in the Config.java
+		// file ????.
+		UCM.setContext( UCM.ContextType.CLEARTOOL );
 
-        /* Create the development stream object */
-        /* Append vob to dev stream */
+		this.workspace = workspace;
 
-        Stream destinationStream = null;
-        try {
-            destinationStream = UCMEntity.getStream(this.destinationstream);
-        } catch (UCMException e) {
-            if (e.stdout != null) {
-                hudsonOut.println(e.stdout);
-            }
-            Logger.removeAppender(app);
-            throw new IOException("Could not create destination Stream object: " + e.getMessage());
-        }
+		/* Create the baseline object */
+		Baseline baseline = null;
+		try {
+			baseline = UCMEntity.getBaseline( this.baseline );
+		} catch( UCMException e ) {
+			if( e.stdout != null ) {
+				hudsonOut.println( e.stdout );
+			}
+			Logger.removeAppender( app );
+			throw new IOException( "Could not create Baseline object: " + e.getMessage() );
+		}
 
-        /* Make deliver view */
-        try {
-            snapview = makeDeliverView(destinationStream, workspace);
-        } catch (ScmException e) {
-            Logger.removeAppender(app);
-            throw new IOException("Could not create deliver view: " + e.getMessage());
-        }
+		/* Create the development stream object */
+		/* Append vob to dev stream */
 
+		Stream destinationStream = null;
+		try {
+			destinationStream = UCMEntity.getStream( this.destinationstream );
+		} catch( UCMException e ) {
+			if( e.stdout != null ) {
+				hudsonOut.println( e.stdout );
+			}
+			Logger.removeAppender( app );
+			throw new IOException( "Could not create destination Stream object: " + e.getMessage() );
+		}
 
-        String diff = "";
-        ClearCaseChangeset changeset = new ClearCaseChangeset();
+		/* Make deliver view */
+		try {
+			snapview = makeDeliverView( destinationStream, workspace );
+		} catch( ScmException e ) {
+			Logger.removeAppender( app );
+			throw new IOException( "Could not create deliver view: " + e.getMessage() );
+		}
 
-        try {
-            List<Activity> bldiff = Version.getBaselineDiff(destinationStream, baseline, true, snapview.getViewRoot());
-            hudsonOut.print("[" + Config.nameShort + "] Found " + bldiff.size() + " activit" + (bldiff.size() == 1 ? "y" : "ies") + ". ");
+		String diff = "";
+		ClearCaseChangeset changeset = new ClearCaseChangeset();
 
-            int c = 0;
-            for (Activity a : bldiff) {
-                c += a.changeset.versions.size();
-                for (Version version : a.changeset.versions) {
-                    changeset.addChange(version.getFullyQualifiedName(), version.getUser());
-                }
-            }
-            hudsonOut.println(c + " version" + (c == 1 ? "" : "s") + " involved");
-            diff = Util.createChangelog(bldiff, baseline);
-        } catch (UCMException e1) {
-            hudsonOut.println("[" + Config.nameShort + "] Unable to create change log: " + e1.getMessage());
-        }
+		try {
+			List<Activity> bldiff = Version.getBaselineDiff( destinationStream, baseline, true, snapview.getViewRoot() );
+			hudsonOut.print( "[" + Config.nameShort + "] Found " + bldiff.size() + " activit" + ( bldiff.size() == 1 ? "y" : "ies" ) + ". " );
 
-        EstablishResult er = new EstablishResult(viewtag);
-        er.setView(snapview);
-        er.setMessage(diff);
-        er.setChangeset(changeset);
+			int c = 0;
+			for( Activity a : bldiff ) {
+				c += a.changeset.versions.size();
+				for( Version version : a.changeset.versions ) {
+					changeset.addChange( version.getFullyQualifiedName(), version.getUser() );
+				}
+			}
+			hudsonOut.println( c + " version" + ( c == 1 ? "" : "s" ) + " involved" );
+			diff = Util.createChangelog( bldiff, baseline );
+		} catch( UCMException e1 ) {
+			hudsonOut.println( "[" + Config.nameShort + "] Unable to create change log: " + e1.getMessage() );
+		}
 
-        /* Make the deliver */
-        try {
-            hudsonOut.println("[" + Config.nameShort + "] Starting deliver");
-            baseline.deliver(baseline.getStream(), destinationStream, snapview.getViewRoot(), snapview.getViewtag(), true, false, true);
-        } catch (UCMException e) {
-            /* Figure out what happened */
-            if (e.type.equals(UCMType.DELIVER_REQUIRES_REBASE)) {
-                hudsonOut.println(e.getMessage());
-                er.setResultType(ResultType.DELIVER_REQUIRES_REBASE);
-                Logger.removeAppender(app);
-                return er;
-            }
+		EstablishResult er = new EstablishResult( viewtag );
+		er.setView( snapview );
+		er.setMessage( diff );
+		er.setChangeset( changeset );
 
-            if (e.type.equals(UCMType.MERGE_ERROR)) {
-                hudsonOut.println(e.getMessage());
-                er.setResultType(ResultType.MERGE_ERROR);
-                Logger.removeAppender(app);
-                return er;
-            }
+		/* Make the deliver. Inline manipulation of er */
+		hudsonOut.println( "[" + Config.nameShort + "] Starting deliver" );
+		deliver( baseline, destinationStream, er, 2 );
 
-            if (e.type.equals(UCMType.INTERPROJECT_DELIVER_DENIED)) {
-                hudsonOut.println(e.getMessage());
-                er.setResultType(ResultType.INTERPROJECT_DELIVER_DENIED);
-                Logger.removeAppender(app);
-                return er;
-            }
+		/* End of deliver */
+		Logger.removeAppender( app );
+		return er;
+	}
 
-            if (e.type.equals(UCMType.DELIVER_IN_PROGRESS)) {
-                CCUCMState state = new CCUCMState();
-                CCUCMState.State s = state.getStateByBaseline(jobName, baseline.getFullyQualifiedName());
+	private void deliver( Baseline baseline, Stream dstream, EstablishResult er, int triesLeft ) throws IOException {
+		logger.verbose( "Delivering " + baseline.getShortname() + " to " + dstream.getShortname() + ". Tries left: " + triesLeft );
+		if( triesLeft < 1 ) {
+			er.setResultType( ResultType.DELIVER_IN_PROGRESS_NOT_CANCELLED );
+			return;
+		}
 
-                if(!s.getForceDilever()){
-                    hudsonOut.println(e.getMessage());
-                    er.setResultType(ResultType.DELIVER_IN_PROGRESS);
-                    Logger.removeAppender(app);
-                    return er;
-                }
+		try {
+			hudsonOut.println( "[" + Config.nameShort + "] Starting deliver" );
+			baseline.deliver( baseline.getStream(), dstream, snapview.getViewRoot(), snapview.getViewtag(), true, false, true );
+			er.setResultType( ResultType.SUCCESS );
+		} catch( UCMException e ) {
+			/* Figure out what happened */
+			if( e.type.equals( UCMType.DELIVER_REQUIRES_REBASE ) ) {
+				hudsonOut.println( e.getMessage() );
+				er.setResultType( ResultType.DELIVER_REQUIRES_REBASE );
+			}
 
-                /**
-                 * rollback deliver..
-                 * *******A DELIVER OPERATION IS ALREADY IN PROGRESS. Details about the delivery:
-                 *
-                 * <b Deliver operation in progress on stream "stream:pds316_deliver_test@\PDS_PVOB"/>
-                 *      Started by "PDS316" on "2011-09-28T11:23:53+02:00"
-                 *      Using integration activity "deliver.pds316_deliver_test.20110928.112353".
-                 *    <bUsing view "pds316_deliver_test_int" />.
-                 *      Baselines will be delivered to the default target stream "stream:deliver_test_int@\PDS_PVOB"
-                 *    in project "project:deliver_test@\PDS_PVOB".
-                 *
-                 * Baselines to be delivered:
+			if( e.type.equals( UCMType.MERGE_ERROR ) ) {
+				hudsonOut.println( e.getMessage() );
+				er.setResultType( ResultType.MERGE_ERROR );
+			}
 
-                 * *******Please try again later.
-                 */
-                
-                
-//                String msg = e.getMessage();
-//                String stream = "";
-//                String oldViewtag = null;
-//
-//                hudsonOut.println("");
-//                hudsonOut.println("[" + Config.nameShort + "] Deliver already in progess, but we are forcing this anyway.");
-//                hudsonOut.println("");
-//
-//                Pattern STREAM_PATTERN = Pattern.compile("Deliver operation .* on stream \\\"(.*)\\\"", Pattern.MULTILINE);
-//                Pattern TAG_PATTERN = Pattern.compile("Using view \\\"(.*)\\\".", Pattern.MULTILINE);
-//
-//                Matcher mSTREAM = STREAM_PATTERN.matcher(msg);
-//                while (mSTREAM.find()) {
-//                    stream = mSTREAM.group(1);
-//                    stream = "stream:" + stream + "@" + baseline.getPvobString();
-//                }
-//
-//                Matcher mTAG = TAG_PATTERN.matcher(msg);
-//                while (mTAG.find()) {
-//                    oldViewtag = mTAG.group(1);
-//                }
-//
-//                File newView = null;
-//                if (oldViewtag == null) {
-//                    newView = snapview.getViewRoot();
-//                } else {
-//                    newView = new File(workspace + "\\rm_delv_view");
-//                }
-//
-//                try {
-//                    //rolling back the previous deliver operation
-//                    Stream.getStream(stream).deliverRollBack(oldViewtag, newView);
-//
-//                } catch (UCMException ex) {
-//                    hudsonOut.println(ex.getMessage());
-//                    throw new IOException(ex.getMessage(), ex.getCause());
-//                }
-//
-//                //Recursive method call of INVOKE(...);
-//                this.invoke(workspace, channel);
-//
-//                /**
-//                 * Here we must return before the end of the methos
-//                 * cause in anyother case than this exception we whis to return
-//                 * the exception further op in the system.
-//                 *
-//                 * But here we wish to try agian until we succeed.
-//                 */
-//                er.setResultType(ResultType.SUCCESS);
-//                Logger.removeAppender(app);
-//                return er;
-            }
+			if( e.type.equals( UCMType.INTERPROJECT_DELIVER_DENIED ) ) {
+				hudsonOut.println( e.getMessage() );
+				er.setResultType( ResultType.INTERPROJECT_DELIVER_DENIED );
+			}
 
-            Logger.removeAppender(app);
-            throw new IOException(e.getMessage());
-        }
+			if( e.type.equals( UCMType.DELIVER_IN_PROGRESS ) ) {
+				CCUCMState state = new CCUCMState();
+				CCUCMState.State s = state.getStateByBaseline( jobName, baseline.getFullyQualifiedName() );
 
-        /* End of deliver */
-        er.setResultType(ResultType.SUCCESS);
-        Logger.removeAppender(app);
-        return er;
-    }
+				if( !s.getForceDilever() ) {
+					hudsonOut.println( e.getMessage() );
+					logger.debug( "Failed to deliver: " + e.getMessage() );
+					er.setResultType( ResultType.DELIVER_IN_PROGRESS );
+				} else {
+	
+					/**
+					 * rollback deliver.. *******A DELIVER OPERATION IS ALREADY IN
+					 * PROGRESS. Details about the delivery:
+					 * 
+					 * <b Deliver operation in progress on stream
+					 * "stream:pds316_deliver_test@\PDS_PVOB"/> Started by "PDS316"
+					 * on "2011-09-28T11:23:53+02:00" Using integration activity
+					 * "deliver.pds316_deliver_test.20110928.112353". <bUsing view
+					 * "pds316_deliver_test_int" />. Baselines will be delivered to
+					 * the default target stream "stream:deliver_test_int@\PDS_PVOB"
+					 * in project "project:deliver_test@\PDS_PVOB".
+					 * 
+					 * Baselines to be delivered:
+					 * 
+					 * *******Please try again later.
+					 */
+	
+					String msg = e.getMessage();
+					String stream = "";
+					String oldViewtag = null;
+	
+					hudsonOut.println( "" );
+					hudsonOut.println( "[" + Config.nameShort + "] Deliver already in progess, but we are forcing this anyway." );
+					hudsonOut.println( "" );
+	
+					Pattern STREAM_PATTERN = Pattern.compile( "Deliver operation .* on stream \\\"(.*)\\\"", Pattern.MULTILINE );
+					Pattern TAG_PATTERN = Pattern.compile( "Using view \\\"(.*)\\\".", Pattern.MULTILINE );
+	
+					Matcher mSTREAM = STREAM_PATTERN.matcher( msg );
+					while( mSTREAM.find() ) {
+						stream = mSTREAM.group( 1 );
+						stream = "stream:" + stream + "@" + baseline.getPvobString();
+					}
+	
+					Matcher mTAG = TAG_PATTERN.matcher( msg );
+					while( mTAG.find() ) {
+						oldViewtag = mTAG.group( 1 );
+					}
+	
+					File newView = null;
+					if( oldViewtag == null ) {
+						newView = snapview.getViewRoot();
+					} else {
+						newView = new File( workspace + "\\rm_delv_view" );
+					}
+	
+					try {
+						// rolling back the previous deliver operation
+						Stream.getStream( stream ).deliverRollBack( oldViewtag, newView );
+	
+					} catch( UCMException ex ) {
+						hudsonOut.println( ex.getMessage() );
+						throw new IOException( ex.getMessage(), ex.getCause() );
+					}
+	
+					// Recursive method call of INVOKE(...);
+					logger.verbose( "Trying to deliver again..." );
+					deliver( baseline, dstream, er, triesLeft - 1 );
+				}
+			}
+		}
+	}
 
-    private SnapshotView makeDeliverView(Stream stream, File workspace) throws ScmException {
-        /* Replace evil characters with less evil characters */
-        String newJobName = jobName.replaceAll("\\s", "_");
+	private SnapshotView makeDeliverView( Stream stream, File workspace ) throws ScmException {
+		/* Replace evil characters with less evil characters */
+		String newJobName = jobName.replaceAll( "\\s", "_" );
 
-        viewtag = "CCUCM_" + newJobName + "_" + System.getenv("COMPUTERNAME") + "_" + stream.getShortname();
+		viewtag = "CCUCM_" + newJobName + "_" + System.getenv( "COMPUTERNAME" ) + "_" + stream.getShortname();
 
-        File viewroot = new File(workspace, "view");
+		File viewroot = new File( workspace, "view" );
 
-        return Util.makeView(stream, workspace, listener, loadModule, viewroot, viewtag);
-    }
+		return Util.makeView( stream, workspace, listener, loadModule, viewroot, viewtag );
+	}
 
-    public SnapshotView getSnapShotView() {
-        return this.snapview;
-    }
+	public SnapshotView getSnapShotView() {
+		return this.snapview;
+	}
 }

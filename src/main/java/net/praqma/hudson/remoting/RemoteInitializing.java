@@ -12,7 +12,6 @@ import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Project.Plevel;
-import net.praqma.clearcase.ucm.utils.BaselineList;
 
 public class RemoteInitializing implements FileCallable<List<Baseline>> {
 
