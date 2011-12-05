@@ -22,20 +22,21 @@ import net.praqma.util.debug.LoggerSetting;
 
 /**
  * This is the state object for the CCUCM jobs
- *
+ * 
  * @author wolfgang
- *
+ * 
  */
 public class CCUCMState {
 
-	//private List<State> states = Collections.synchronizedList( new ArrayList<State>() );
+	// private List<State> states = Collections.synchronizedList( new
+	// ArrayList<State>() );
 	private CopyOnWriteList<State> states = new CopyOnWriteList<State>();
 	private static final String linesep = System.getProperty( "line.separator" );
 	private Logger logger = Logger.getLogger();
 
 	/**
 	 * Get a state given job name and job number
-	 *
+	 * 
 	 * @param jobName
 	 *            the hudson job name
 	 * @param jobNumber
@@ -59,7 +60,7 @@ public class CCUCMState {
 	}
 
 	public boolean removeState( String jobName, Integer jobNumber ) {
-		synchronized(states) {
+		synchronized( states ) {
 			for( State s : states ) {
 				if( s.getJobName().equals( jobName ) && s.getJobNumber() == jobNumber ) {
 					states.remove( s );
@@ -74,11 +75,11 @@ public class CCUCMState {
 	public synchronized boolean removeState( State state ) {
 		return states.remove( state );
 	}
-	
+
 	public synchronized void addState( State state ) {
 		this.states.add( state );
 	}
-	
+
 	public State getStateByBaseline( String jobName, String baseline ) {
 		for( State s : states ) {
 			if( s.getJobName().equals( jobName ) && s.getBaseline() != null && s.getBaseline().getFullyQualifiedName().equals( baseline ) ) {
@@ -118,7 +119,7 @@ public class CCUCMState {
 					logger.debug( "A build was null(" + bnum + ")" );
 					continue;
 				}
-				
+
 				Build bld = (Build) o;
 				/* The job is not running */
 				if( !bld.isLogUpdated() ) {
@@ -126,9 +127,9 @@ public class CCUCMState {
 					count++;
 				}
 			}
-		} catch (ConcurrentModificationException e) {
+		} catch( ConcurrentModificationException e ) {
 			logger.warning( "Concurrency warning in CCUCMState" );
-		} catch (NullPointerException e) {
+		} catch( NullPointerException e ) {
 			logger.warning( "This should not happen" );
 		}
 
@@ -163,7 +164,7 @@ public class CCUCMState {
 		private SnapshotView deliverView;
 		private boolean createBaseline = true;
 		private String nameTemplate;
-		
+
 		private AbstractBuild<?, ?> build;
 		private TaskListener listener;
 
@@ -172,17 +173,9 @@ public class CCUCMState {
 		private boolean setDescription = false;
 		private boolean makeTag = false;
 		private boolean recommend = false;
-        private boolean forceDilever = false;
-        
-        private LoggerSetting loggerSetting;
+		private boolean forceDeliver = false;
 
-        public boolean getForceDilever() {
-            return forceDilever;
-        }
-
-        public void setForceDilever(boolean forceDilever) {
-            this.forceDilever = forceDilever;
-        }
+		private LoggerSetting loggerSetting;
 
 		private FilePath workspace;
 
@@ -285,7 +278,6 @@ public class CCUCMState {
 		public Project.Plevel getPlevel() {
 			return plevel;
 		}
-
 
 		public String stringify() {
 			StringBuffer sb = new StringBuffer();
@@ -467,6 +459,14 @@ public class CCUCMState {
 
 		public void setListener( TaskListener listener ) {
 			this.listener = listener;
+		}
+
+		public boolean getForceDeliver() {
+			return forceDeliver;
+		}
+
+		public void setForceDeliver( boolean forceDeliver ) {
+			this.forceDeliver = forceDeliver;
 		}
 
 	}

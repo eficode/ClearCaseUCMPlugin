@@ -569,19 +569,20 @@ public class CCUCMScm extends SCM {
             //consoleOutput.println("[" + Config.nameShort + "] Establishing deliver view");
             //RemoteDeliver rmDeliver = new RemoteDeliver(UCMEntity.getStream(stream).getFullyQualifiedName(), listener, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
             RemoteDeliver rmDeliver = null;
+            logger.verbose( "Starting remote deliver" );
             if (workspace.isRemote()) {
                 final Pipe pipe = Pipe.createRemoteToLocal();
                 Future<EstablishResult> i = null;
-                rmDeliver = new RemoteDeliver(state.getStream().getFullyQualifiedName(), listener, pipe, loggerSetting, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
+                rmDeliver = new RemoteDeliver(state.getStream().getFullyQualifiedName(), listener, pipe, loggerSetting, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), state.getForceDeliver());
                 i = workspace.actAsync(rmDeliver);
                 logger.redirect(pipe.getIn());
                 er = i.get();
 
             } else {
-                rmDeliver = new RemoteDeliver(state.getStream().getFullyQualifiedName(), listener, null, loggerSetting, component, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName());
+                rmDeliver = new RemoteDeliver(state.getStream().getFullyQualifiedName(), listener, null, loggerSetting, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), state.getForceDeliver());
                 er = workspace.act(rmDeliver);
             }
-
+            
             state.setSnapView(er.getView());
             this.viewtag = er.getViewtag();
 
@@ -603,6 +604,7 @@ public class CCUCMScm extends SCM {
 
         } catch (IOException e) {
             consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
+            logger.warning(e, id);
             result = false;
         } catch (InterruptedException e) {
             consoleOutput.println("[" + Config.nameShort + "] " + e.getMessage());
@@ -1025,7 +1027,7 @@ public class CCUCMScm extends SCM {
         state.setSetDescription(setDescription);
         state.setMakeTag(makeTag);
         state.setRecommend(recommend);
-        state.setForceDilever(forceDeliver);
+        state.setForceDeliver(forceDeliver);
 
         /*
         try {

@@ -42,7 +42,7 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 
 	private static final long serialVersionUID = 1L;
 	
-	private Logger logger = Logger.getLogger();
+	private Logger logger;
 	
 	private String jobName;
 	private String baseline;
@@ -55,27 +55,27 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 	 * private boolean apply4level; private String alternateTarget; private
 	 * String baselineName;
 	 */
-	private String component;
 	private String loadModule;
-	private PrintStream hudsonOut = null;
+	private PrintStream out = null;
 	private Pipe pipe;
 	private LoggerSetting loggerSetting;
 	private String viewtag = "";
+	private boolean forceDeliver;
 
 	private File workspace;
 
 	public RemoteDeliver( String destinationstream, BuildListener listener, Pipe pipe, LoggerSetting loggerSetting,
 	/* Common values */
-	String component, String loadModule, String baseline, String jobName ) {
+	String loadModule, String baseline, String jobName, boolean forceDeliver ) {
 		this.jobName = jobName;
 
 		this.baseline = baseline;
 		this.destinationstream = destinationstream;
 
 		this.listener = listener;
-
-		this.component = component;
 		this.loadModule = loadModule;
+		
+		this.forceDeliver = forceDeliver;
 
 		this.pipe = pipe;
 		this.loggerSetting = loggerSetting;
@@ -83,7 +83,9 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 
 	public EstablishResult invoke( File workspace, VirtualChannel channel ) throws IOException {
 
-		hudsonOut = listener.getLogger();
+		out = listener.getLogger();
+		
+		logger = Logger.getLogger();
 
 		StreamAppender app = null;
 		if( pipe != null ) {
@@ -97,6 +99,8 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 		// TODO this should not be necessary cause its done in the Config.java
 		// file ????.
 		UCM.setContext( UCM.ContextType.CLEARTOOL );
+		
+		logger.debug( "Starting remote deliver" );
 
 		this.workspace = workspace;
 
@@ -106,11 +110,13 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 			baseline = UCMEntity.getBaseline( this.baseline );
 		} catch( UCMException e ) {
 			if( e.stdout != null ) {
-				hudsonOut.println( e.stdout );
+				out.println( e.stdout );
 			}
 			Logger.removeAppender( app );
 			throw new IOException( "Could not create Baseline object: " + e.getMessage() );
 		}
+		
+		logger.debug( baseline + " created" );
 
 		/* Create the development stream object */
 		/* Append vob to dev stream */
@@ -120,11 +126,13 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 			destinationStream = UCMEntity.getStream( this.destinationstream );
 		} catch( UCMException e ) {
 			if( e.stdout != null ) {
-				hudsonOut.println( e.stdout );
+				out.println( e.stdout );
 			}
 			Logger.removeAppender( app );
 			throw new IOException( "Could not create destination Stream object: " + e.getMessage() );
 		}
+		
+		logger.debug( destinationStream + " created" );
 
 		/* Make deliver view */
 		try {
@@ -133,13 +141,15 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 			Logger.removeAppender( app );
 			throw new IOException( "Could not create deliver view: " + e.getMessage() );
 		}
+		
+		logger.debug( "View: " + workspace );
 
 		String diff = "";
 		ClearCaseChangeset changeset = new ClearCaseChangeset();
 
 		try {
 			List<Activity> bldiff = Version.getBaselineDiff( destinationStream, baseline, true, snapview.getViewRoot() );
-			hudsonOut.print( "[" + Config.nameShort + "] Found " + bldiff.size() + " activit" + ( bldiff.size() == 1 ? "y" : "ies" ) + ". " );
+			out.print( "[" + Config.nameShort + "] Found " + bldiff.size() + " activit" + ( bldiff.size() == 1 ? "y" : "ies" ) + ". " );
 
 			int c = 0;
 			for( Activity a : bldiff ) {
@@ -148,11 +158,13 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 					changeset.addChange( version.getFullyQualifiedName(), version.getUser() );
 				}
 			}
-			hudsonOut.println( c + " version" + ( c == 1 ? "" : "s" ) + " involved" );
+			out.println( c + " version" + ( c == 1 ? "" : "s" ) + " involved" );
 			diff = Util.createChangelog( bldiff, baseline );
 		} catch( UCMException e1 ) {
-			hudsonOut.println( "[" + Config.nameShort + "] Unable to create change log: " + e1.getMessage() );
+			out.println( "[" + Config.nameShort + "] Unable to create change log: " + e1.getMessage() );
 		}
+		
+		logger.debug( "Changeset created" );
 
 		EstablishResult er = new EstablishResult( viewtag );
 		er.setView( snapview );
@@ -160,49 +172,47 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 		er.setChangeset( changeset );
 
 		/* Make the deliver. Inline manipulation of er */
-		hudsonOut.println( "[" + Config.nameShort + "] Starting deliver" );
-		deliver( baseline, destinationStream, er, 2 );
+		deliver( baseline, destinationStream, er, forceDeliver, 2 );
 
 		/* End of deliver */
 		Logger.removeAppender( app );
 		return er;
 	}
 
-	private void deliver( Baseline baseline, Stream dstream, EstablishResult er, int triesLeft ) throws IOException {
+	private void deliver( Baseline baseline, Stream dstream, EstablishResult er, boolean forceDeliver, int triesLeft ) throws IOException {
 		logger.verbose( "Delivering " + baseline.getShortname() + " to " + dstream.getShortname() + ". Tries left: " + triesLeft );
 		if( triesLeft < 1 ) {
+			out.println( "[" + Config.nameShort + "] Unable to deliver, giving up." );
 			er.setResultType( ResultType.DELIVER_IN_PROGRESS_NOT_CANCELLED );
 			return;
 		}
 
 		try {
-			hudsonOut.println( "[" + Config.nameShort + "] Starting deliver" );
+			out.println( "[" + Config.nameShort + "] Starting deliver(tries left: " + triesLeft + ")" );
 			baseline.deliver( baseline.getStream(), dstream, snapview.getViewRoot(), snapview.getViewtag(), true, false, true );
 			er.setResultType( ResultType.SUCCESS );
 		} catch( UCMException e ) {
+			out.println( "[" + Config.nameShort + "] Failed to deliver: " + e.getMessage() );
+			logger.debug( "Failed to deliver: " + e.getMessage() );
+			logger.debug( e );
+			
 			/* Figure out what happened */
 			if( e.type.equals( UCMType.DELIVER_REQUIRES_REBASE ) ) {
-				hudsonOut.println( e.getMessage() );
 				er.setResultType( ResultType.DELIVER_REQUIRES_REBASE );
 			}
 
 			if( e.type.equals( UCMType.MERGE_ERROR ) ) {
-				hudsonOut.println( e.getMessage() );
 				er.setResultType( ResultType.MERGE_ERROR );
 			}
 
 			if( e.type.equals( UCMType.INTERPROJECT_DELIVER_DENIED ) ) {
-				hudsonOut.println( e.getMessage() );
 				er.setResultType( ResultType.INTERPROJECT_DELIVER_DENIED );
 			}
 
 			if( e.type.equals( UCMType.DELIVER_IN_PROGRESS ) ) {
-				CCUCMState state = new CCUCMState();
-				CCUCMState.State s = state.getStateByBaseline( jobName, baseline.getFullyQualifiedName() );
+				out.println( "[" + Config.nameShort + "] Deliver already in progress" );
 
-				if( !s.getForceDilever() ) {
-					hudsonOut.println( e.getMessage() );
-					logger.debug( "Failed to deliver: " + e.getMessage() );
+				if( !forceDeliver ) {
 					er.setResultType( ResultType.DELIVER_IN_PROGRESS );
 				} else {
 	
@@ -227,9 +237,7 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 					String stream = "";
 					String oldViewtag = null;
 	
-					hudsonOut.println( "" );
-					hudsonOut.println( "[" + Config.nameShort + "] Deliver already in progess, but we are forcing this anyway." );
-					hudsonOut.println( "" );
+					out.println( "[" + Config.nameShort + "] Forcing this deliver." );
 	
 					Pattern STREAM_PATTERN = Pattern.compile( "Deliver operation .* on stream \\\"(.*)\\\"", Pattern.MULTILINE );
 					Pattern TAG_PATTERN = Pattern.compile( "Using view \\\"(.*)\\\".", Pattern.MULTILINE );
@@ -257,13 +265,13 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 						Stream.getStream( stream ).deliverRollBack( oldViewtag, newView );
 	
 					} catch( UCMException ex ) {
-						hudsonOut.println( ex.getMessage() );
+						out.println( ex.getMessage() );
 						throw new IOException( ex.getMessage(), ex.getCause() );
 					}
 	
 					// Recursive method call of INVOKE(...);
 					logger.verbose( "Trying to deliver again..." );
-					deliver( baseline, dstream, er, triesLeft - 1 );
+					deliver( baseline, dstream, er, forceDeliver, triesLeft - 1 );
 				}
 			}
 		}
