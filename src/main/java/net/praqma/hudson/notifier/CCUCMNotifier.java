@@ -138,6 +138,8 @@ public class CCUCMNotifier extends Notifier {
         	try {
         		pstate = CCUCMScm.ccucm.getState(jobName, jobNumber);
         	} catch( IllegalStateException e ) {
+        		System.err.println( e.getMessage() );
+        		out.println( "[" + Config.nameShort + "] " + e.getMessage() );
         		Logger.removeAppender( app );
         		logger.error( e, id );
         		
