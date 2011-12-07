@@ -66,7 +66,7 @@ public class CCUCMState {
 	public boolean removeState( String jobName, Integer jobNumber ) {
 		synchronized( states ) {
 			for( State s : states ) {
-				if( s.getJobName().equals( jobName ) && s.getJobNumber() == jobNumber ) {
+				if( s.getJobName().equals( jobName ) && s.getJobNumber().equals( jobNumber ) ) {
 					states.remove( s );
 					return true;
 				}
@@ -121,11 +121,8 @@ public class CCUCMState {
 				Integer bnum = s.getJobNumber();
 				Object o = project.getBuildByNumber( bnum );
 				
-				if( o == null ) {
-					logger.debug( "A build was null(" + bnum + "), removing it" );
-					it.remove();
-					count++;					
-				} else {
+				/* If o is null it is probably because it's still in the polling phase */
+				if( o != null ) {
 					Build bld = (Build) o;
 					/* The job is not running */
 					if( !bld.isLogUpdated() ) {

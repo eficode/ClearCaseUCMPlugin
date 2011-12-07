@@ -196,7 +196,15 @@ public class CCUCMScm extends SCM {
         doPostBuild = true;
 
         /* If we polled, we should get the same object created at that point */
-        State state = ccucm.getState(jobName, jobNumber);
+        State state = null;
+        try {
+        	state = ccucm.getState(jobName, jobNumber);
+        	logger.debug( "The existing state is: " + state.stringify() );
+        } catch( IllegalStateException e) {
+        	logger.debug( e.getMessage() );
+        	state = ccucm.create( jobName, jobNumber );
+        }
+        
         state.setLoadModule(loadModule);
         storeStateParameters(state);
         logger.debug( "STATES: " + ccucm.stringify() );
