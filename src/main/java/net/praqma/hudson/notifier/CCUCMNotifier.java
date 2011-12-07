@@ -135,7 +135,15 @@ public class CCUCMNotifier extends Notifier {
         if (result) {
             /* Retrieve the CCUCM state */
         	logger.debug( "STATES: " + CCUCMScm.ccucm.stringify() );
-            pstate = CCUCMScm.ccucm.getState(jobName, jobNumber);
+        	try {
+        		pstate = CCUCMScm.ccucm.getState(jobName, jobNumber);
+        	} catch( IllegalStateException e ) {
+        		Logger.removeAppender( app );
+        		logger.error( e, id );
+        		
+        		return false;
+        	}
+        	
             logger.debug( "STATE: " + pstate );
             logger.debug( pstate.stringify() );
 
@@ -161,17 +169,17 @@ public class CCUCMNotifier extends Notifier {
                         result = false;
                     }
                 } else {
-                	logger.warning( "Whoops, not a valid baseline" );
+                	logger.warning( "Whoops, not a valid baseline", id );
                     result = false;
                 }
 
             } else {
-            	logger.warning( "Whoops, not a valid state, there was no baseline found or the post build flag was not set" );
+            	logger.warning( "Whoops, not a valid state, there was no baseline found or the post build flag was not set", id );
                 // Not performing any post build actions.
                 result = false;
             }
         } else {
-        	logger.warning( "WHOA, what happened!? Result = false!!!" );
+        	logger.warning( "WHOA, what happened!? Result = false!!!", id );
         }
 
         /* There's a valid baseline, lets process it */
@@ -212,11 +220,11 @@ public class CCUCMNotifier extends Notifier {
         	String viewtag = pstate.getSnapView().getViewtag();
             /* End the view */
             try {
-            	logger.debug( "Ending view " + viewtag );
+            	logger.debug( "Ending view " + viewtag, id );
 				rutil.endView( build.getWorkspace(), viewtag );
 			} catch( CCUCMException e ) {
 				out.println( e.getMessage() );
-				logger.warning( e.getMessage() );
+				logger.warning( e.getMessage(), id );
 			}
         }
 

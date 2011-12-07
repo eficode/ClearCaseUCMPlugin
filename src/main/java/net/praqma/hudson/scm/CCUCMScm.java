@@ -195,6 +195,7 @@ public class CCUCMScm extends SCM {
 
         doPostBuild = true;
 
+        logger.debug( "STATES: " + ccucm.stringify() );
         /* If we polled, we should get the same object created at that point */
         State state = null;
         try {
@@ -207,7 +208,6 @@ public class CCUCMScm extends SCM {
         
         state.setLoadModule(loadModule);
         storeStateParameters(state);
-        logger.debug( "STATES: " + ccucm.stringify() );
         
         logger.info( "Number of states: " + ccucm.size() );
 
