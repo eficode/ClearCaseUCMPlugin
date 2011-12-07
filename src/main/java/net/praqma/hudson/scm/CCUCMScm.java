@@ -200,6 +200,8 @@ public class CCUCMScm extends SCM {
         state.setLoadModule(loadModule);
         storeStateParameters(state);
         logger.debug( "STATES: " + ccucm.stringify() );
+        
+        logger.info( "Number of states: " + ccucm.size() );
 
         logger.debug(id + "The initial state:\n" + state.stringify(), id);
 
@@ -721,7 +723,7 @@ public class CCUCMScm extends SCM {
         /* Preparing the logger */
         logger = Logger.getLogger();
         
-		File logfile = new File( project.getRootDir(), "polling-" + jobName + "--" + jobNumber + ".log" );
+		File logfile = new File( project.getRootDir(), "polling-" + jobName + "-" + jobNumber + ".log" );
         app = new FileAppender(logfile);
         app.lockToCurrentThread();
         
@@ -736,17 +738,18 @@ public class CCUCMScm extends SCM {
         Logger.addAppender( app );
         this.rutil = new RemoteUtil( Logger.getLoggerSettings( app.getMinimumLevel() ) );
         
-        /*
-         * Make a state object, which is only temporary, only to determine if
-         * there's baselines to build this object will be stored in checkout
-         */
-        jobName = project.getDisplayName().replace(' ', '_');
-        jobNumber = project.getNextBuildNumber(); /*
-         * This number is not the
-         * final job number
-         */
-
-        State state = ccucm.getState(jobName, jobNumber);
+        boolean createdByThisPoll = false;
+        State state = null;
+        try {
+        	state = ccucm.getState(jobName, jobNumber);
+        	logger.debug( "The existing state is: " + state.stringify() );
+        } catch( IllegalStateException e) {
+        	logger.debug( e.getMessage() );
+        	state = ccucm.create( jobName, jobNumber );
+        	createdByThisPoll = true;
+        }
+        
+        logger.info( "Number of states: " + ccucm.size() );
 
         storeStateParameters(state);
 
@@ -852,8 +855,11 @@ public class CCUCMScm extends SCM {
 
         /* Remove state if not being built */
         if (p.equals(PollingResult.NO_CHANGES)) {
-        	logger.debug( id + "No new baselines to build, removing: " + state.stringify(), id );
-            state.remove();
+        	logger.debug( id + "No new baselines to build", id );
+        	if( createdByThisPoll ) {
+        		logger.debug( id + "Removing: " + state.stringify(), id );
+        		state.remove();
+        	}
         } else {
             state.setAddedByPoller(true);
         }

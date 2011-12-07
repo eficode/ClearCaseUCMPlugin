@@ -43,7 +43,7 @@ public class CCUCMState {
 	 *            the hudson job number
 	 * @return
 	 */
-	public State getState( String jobName, Integer jobNumber ) {
+	public State getState( String jobName, Integer jobNumber ) throws IllegalStateException {
 		for( State s : states ) {
 			try {
 				if( s.getJobName().equals( jobName ) && s.getJobNumber().equals( jobNumber ) ) {
@@ -53,10 +53,14 @@ public class CCUCMState {
 				/* It's ok, let's move on */
 			}
 		}
-
+		
+		throw new IllegalStateException( jobName + " " + jobNumber + " does not exist" );
+	}
+	
+	public State create( String jobName, Integer jobNumber) {
 		State s = new State( jobName, jobNumber );
 		addState( s );
-		return s;
+		return s;		
 	}
 
 	public boolean removeState( String jobName, Integer jobNumber ) {
