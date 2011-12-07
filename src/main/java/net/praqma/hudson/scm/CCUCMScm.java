@@ -196,10 +196,10 @@ public class CCUCMScm extends SCM {
         doPostBuild = true;
 
         /* If we polled, we should get the same object created at that point */
-        logger.debug( "STATES: " + ccucm.stringify() );
         State state = ccucm.getState(jobName, jobNumber);
         state.setLoadModule(loadModule);
         storeStateParameters(state);
+        logger.debug( "STATES: " + ccucm.stringify() );
 
         logger.debug(id + "The initial state:\n" + state.stringify(), id);
 
@@ -712,13 +712,16 @@ public class CCUCMScm extends SCM {
      */
     @Override
     public PollingResult compareRemoteRevisionWith(AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState rstate) throws IOException, InterruptedException {
-        this.id = "[" + project.getDisplayName() + "::" + project.getNextBuildNumber() + "]";
+    	
+        jobName = project.getDisplayName().replace(' ', '_');
+        jobNumber = project.getNextBuildNumber();
+        this.id = "[" + jobName + "::" + jobNumber + "]";
 
         FileAppender app = null;
         /* Preparing the logger */
         logger = Logger.getLogger();
         
-		File logfile = new File( project.getRootDir(), "polling.log" );
+		File logfile = new File( project.getRootDir(), "polling-" + jobName + "--" + jobNumber + ".log" );
         app = new FileAppender(logfile);
         app.lockToCurrentThread();
         
@@ -733,10 +736,6 @@ public class CCUCMScm extends SCM {
         Logger.addAppender( app );
         this.rutil = new RemoteUtil( Logger.getLoggerSettings( app.getMinimumLevel() ) );
         
-        logger.debug( "STARTING POLLING, debug" );
-        logger.info( "STARTING POLLING, info" );
-        logger.fatal( "STARTING POLLING, fatal" );
-
         /*
          * Make a state object, which is only temporary, only to determine if
          * there's baselines to build this object will be stored in checkout
@@ -853,6 +852,7 @@ public class CCUCMScm extends SCM {
 
         /* Remove state if not being built */
         if (p.equals(PollingResult.NO_CHANGES)) {
+        	logger.debug( id + "No new baselines to build, removing: " + state.stringify(), id );
             state.remove();
         } else {
             state.setAddedByPoller(true);
