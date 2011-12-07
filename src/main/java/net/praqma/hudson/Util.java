@@ -10,6 +10,7 @@ import java.io.PrintStream;
 import java.util.List;
 
 import net.praqma.clearcase.ucm.UCMException;
+import net.praqma.clearcase.ucm.UCMException.UCMType;
 import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
@@ -262,6 +263,9 @@ public abstract class Util {
 			} catch (UCMException e) {
 				if( e.stdout != null ) {
 					hudsonOut.println( e.stdout );
+				}
+				if( e.type.equals( UCMType.VIEW_CURRENTLY_REBASING ) ) {
+					hudsonOut.println( "The view is currently being used to rebase another stream" );
 				}
 				throw new ScmException( "Could not update snapshot view. " + e.getMessage() );
 			}

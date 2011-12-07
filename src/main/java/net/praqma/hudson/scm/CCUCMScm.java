@@ -20,12 +20,15 @@ import hudson.util.FormValidation;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 import net.praqma.clearcase.ucm.UCMException;
 import net.praqma.clearcase.ucm.entities.Baseline;
@@ -163,12 +168,13 @@ public class CCUCMScm extends SCM {
         jobNumber = build.getNumber();
         this.id = "[" + jobName + "::" + jobNumber + "]";
 
-
         boolean result = true;
-
+        
         PrintStream consoleOutput = listener.getLogger();
+        
         consoleOutput.println("[" + Config.nameShort + "] ClearCase UCM Plugin version " + net.praqma.hudson.Version.version);
         consoleOutput.println("[" + Config.nameShort + "] Forcing deliver: " + forceDeliver);
+                
         /* Preparing the logger */
         logger = Logger.getLogger();
         File logfile = new File(build.getRootDir(), "ccucmSCM.log");
@@ -190,6 +196,7 @@ public class CCUCMScm extends SCM {
         doPostBuild = true;
 
         /* If we polled, we should get the same object created at that point */
+        logger.debug( "STATES: " + ccucm.stringify() );
         State state = ccucm.getState(jobName, jobNumber);
         state.setLoadModule(loadModule);
         storeStateParameters(state);
@@ -294,6 +301,8 @@ public class CCUCMScm extends SCM {
             boolean done = state.remove();
             logger.debug(id + "Removing job " + build.getNumber() + " from collection: " + done, id);
         }
+        
+        logger.debug( "FINAL STATES: " + ccucm.stringify() );
 
         Logger.removeAppender( app );
         return result;

@@ -113,18 +113,21 @@ public class CCUCMState {
 
 			while( it.hasNext() ) {
 				s = it.next();
+	
 				Integer bnum = s.getJobNumber();
 				Object o = project.getBuildByNumber( bnum );
+				
 				if( o == null ) {
-					logger.debug( "A build was null(" + bnum + ")" );
-					continue;
-				}
-
-				Build bld = (Build) o;
-				/* The job is not running */
-				if( !bld.isLogUpdated() ) {
+					logger.debug( "A build was null(" + bnum + "), removing it" );
 					it.remove();
-					count++;
+					count++;					
+				} else {
+					Build bld = (Build) o;
+					/* The job is not running */
+					if( !bld.isLogUpdated() ) {
+						it.remove();
+						count++;
+					}
 				}
 			}
 		} catch( ConcurrentModificationException e ) {

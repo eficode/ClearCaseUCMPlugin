@@ -127,7 +127,6 @@ public class CCUCMNotifier extends Notifier {
             listener.fatalError("[" + Config.nameShort + "] Not a CCUCM scm. This Post build action can only be used when polling from ClearCase with CCUCM plugin.");
             result = false;
         }
-        scmTemp.toString();
 
         State pstate = null;
         Baseline baseline = null;
@@ -135,6 +134,7 @@ public class CCUCMNotifier extends Notifier {
         /* Only do this part if a valid CCUCMScm build */
         if (result) {
             /* Retrieve the CCUCM state */
+        	logger.debug( "STATES: " + CCUCMScm.ccucm.stringify() );
             pstate = CCUCMScm.ccucm.getState(jobName, jobNumber);
             logger.debug( "STATE: " + pstate );
             logger.debug( pstate.stringify() );
