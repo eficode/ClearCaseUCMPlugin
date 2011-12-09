@@ -59,6 +59,7 @@ import net.praqma.hudson.notifier.CCUCMNotifier;
 import net.praqma.hudson.remoting.*;
 import net.praqma.hudson.scm.Polling.PollingType;
 import net.praqma.hudson.scm.CCUCMState.State;
+import net.praqma.util.StopWatch;
 import net.praqma.util.debug.Logger;
 import net.praqma.util.debug.Logger.LogLevel;
 import net.praqma.util.debug.LoggerSetting;
@@ -726,154 +727,196 @@ public class CCUCMScm extends SCM {
         jobName = project.getDisplayName().replace(' ', '_');
         jobNumber = project.getNextBuildNumber();
         this.id = "[" + jobName + "::" + jobNumber + "]";
-
-        FileAppender app = null;
-        /* Preparing the logger */
-        logger = Logger.getLogger();
         
-		File logfile = new File( project.getRootDir(), "polling-" + jobName + "-" + jobNumber + ".log" );
-        app = new FileAppender(logfile);
-        app.lockToCurrentThread();
-        
-        /* If nothing is known, we log all */
-        if( project.isParameterized() ) {
-	        net.praqma.hudson.Util.initializeAppender(project.getLastBuild(), app);
-        } else {
-        	app.setEnabled( true );
-        	app.setMinimumLevel( LogLevel.DEBUG );
-        	app.setSubscribeAll( true );
-        }
-        Logger.addAppender( app );
-        this.rutil = new RemoteUtil( Logger.getLoggerSettings( app.getMinimumLevel() ) );
-        
-        boolean createdByThisPoll = false;
-        State state = null;
-        try {
-        	state = ccucm.getState(jobName, jobNumber);
-        	logger.debug( "The existing state is: " + state.stringify() );
-        } catch( IllegalStateException e) {
-        	logger.debug( e.getMessage() );
-        	state = ccucm.create( jobName, jobNumber );
-        	createdByThisPoll = true;
-        }
-        
-        logger.info( "Number of states: " + ccucm.size() );
-
-        storeStateParameters(state);
-
-        PrintStream out = listener.getLogger();
-        printParameters(out);
-
         PollingResult p = PollingResult.NO_CHANGES;
-        out.println("[" + Config.nameShort + "] polling streams: " + polling);
-
-        state.setCreatebaseline(createBaseline);
-        /* Trim template, strip out quotes */
-        if (nameTemplate.matches("^\".+\"$")) {
-            nameTemplate = nameTemplate.substring(1, nameTemplate.length() - 1);
-        }
-        state.setNameTemplate(nameTemplate);
-
-        /* Check input */
-        if (checkInput(listener)) {
-            try {
-                List<Baseline> baselines = null;
-
-                /* Old skool self polling */
-                if (polling.isPollingSelf()) {
-                    baselines = getValidBaselinesFromStream( workspace, state, plevel, state.getStream(), state.getComponent() );
-                } else {
-                    /* Find the Baselines and store them */
-                    baselines = getBaselinesFromStreams( workspace, listener, out, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
-                }
-
-                logger.debug( "I found " + baselines.size() + " baseline" + ( baselines.size() == 1 ? "" : "s" ) );
-                
-                /* Discard baselines */
-                filterBaselines(baselines);
-                baselines = filterBuildingBaselines(project, baselines);
-                
-                logger.debug( "When filtered, I have " + baselines.size() + " baseline" + ( baselines.size() == 1 ? "" : "s" ) );
-                
-                if (baselines.size() > 0) {
-                    p = PollingResult.BUILD_NOW;
-                    /* Sort by date */
-                    Collections.sort(baselines, new AscendingDateSort());
-
-                    state.setBaselines(baselines);
-                    state.setBaseline(selectBaseline(state.getBaselines(), plevel));
-
-                    /* If ANY */
-                    if (plevel == null) {
-                        try {
-                            lastBaseline = getLastBaseline(project, listener);
-                        } catch (ScmException e) {
-                            out.println(e.getMessage());
-                        }
-
-                        boolean newer = false;
-                        
-                        /* if the newest found baseline is newer than the last baseline, build it
-                         * If there's no last baseline, build it */
-                        if (lastBaseline != null) {
-                			
-                        	try {
-                        		out.println( "The last baseline: " + lastBaseline.stringify() );
-                        	} catch( Exception e ) {
-                        		out.println( "Could not stringify last: " + e.getMessage() );
-                        		e.printStackTrace( out );
-                        	}
-                        	
-                        	try {
-                        		out.println( "The found baseline: " + state.getBaseline().stringify() );
-                        	} catch( Exception e ) {
-                        		out.println( "Could not stringify state baseline" );
-                        	}
-                        	
-                        	//if( lastBaseline.getDate().after( state.getBaseline().getDate() ) ) {
-                        	if( state.getBaseline().getDate().after( lastBaseline.getDate() ) ) {
-                            //if (lastBaseline.getFullyQualifiedName().equals(state.getBaseline().getFullyQualifiedName())) {
-                                newer = true;
-                            }
-                        } else {
-                        	newer = true;
-                        }
-
-                        if (!newer) {
-                            p = PollingResult.NO_CHANGES;
-                        }
-                    }
-
-                } else {
-                    p = PollingResult.NO_CHANGES;
-                }
-
-                logger.debug(id + "The POLL state:\n" + state.stringify(), id); // 5413_dev_from_BUILT
-
-                /* Remove state if not being built */
-                if (p == PollingResult.NO_CHANGES) {
-                    state.remove();
-                }
-            } catch (ScmException e) {
-                out.println("Error while retrieving baselines: " + e.getMessage());
-                logger.warning("Error while retrieving baselines: " + e.getMessage(), id);
-                p = PollingResult.NO_CHANGES;
-            }
-        }
-
-        /* Remove state if not being built */
-        if (p.equals(PollingResult.NO_CHANGES)) {
-        	logger.debug( id + "No new baselines to build", id );
-        	if( createdByThisPoll ) {
-        		logger.debug( id + "Removing: " + state.stringify(), id );
-        		state.remove();
-        	}
-        } else {
-            state.setAddedByPoller(true);
-        }
-
-        Logger.removeAppender(app);
+        
+        System.out.println( "Polling " + jobName + " " + jobNumber );
+        Thread.sleep( 600000 ); // 60*1000*10
+        System.out.println( "Finished polling " + jobName + " " + jobNumber );
         return p;
+
+//        FileAppender app = null;
+//        /* Preparing the logger */
+//        logger = Logger.getLogger();
+//        
+//		File logfile = new File( project.getRootDir(), "polling-" + jobName + "-" + jobNumber + ".log" );
+//        app = new FileAppender(logfile);
+//        app.lockToCurrentThread();
+//        
+//        /* If nothing is known, we log all */
+//        if( project.isParameterized() ) {
+//	        net.praqma.hudson.Util.initializeAppender(project.getLastBuild(), app);
+//        } else {
+//        	app.setEnabled( true );
+//        	app.setMinimumLevel( LogLevel.DEBUG );
+//        	app.setSubscribeAll( true );
+//        }
+//        Logger.addAppender( app );
+//        this.rutil = new RemoteUtil( Logger.getLoggerSettings( app.getMinimumLevel() ) );
+//        
+//        logger.info( "Total number of states: " + ccucm.size() );
+//        logger.debug( "THE STATES: " + ccucm.stringify() );
+//        List<State> states = ccucm.getStates( jobName );
+//        /* This is only interesting if there're any states */
+//        logger.debug( "I got " + states.size() + " number of states for " + jobName );
+//        if( states.size() > 0 ) {
+//        	for( State s : states ) {
+//        		try {
+//        			logger.debug( "Checking " + s.getJobNumber() );
+//                    Integer bnum = s.getJobNumber();
+//                    Object o = project.getBuildByNumber(bnum);
+//                    Build<?,?> bld = (Build<?,?>) o;
+//        			if( bld.hasntStartedYet() ) {
+//        				logger.debug( s.getJobNumber() + " is still waiting in queue, no need for polling" );
+//        				return p;
+//        			}
+//        		} catch( Exception e ) {
+//        			logger.debug( "The state " + s.getJobNumber() + " threw " + e.getMessage() );
+//        		}
+//        	}
+//        }
+//        logger.debug( "NEED FOR POLLING!!!" );
+//        
+//        boolean createdByThisPoll = false;
+//        State state = null;
+//        try {
+//        	state = ccucm.getState(jobName, jobNumber);
+//        	logger.debug( "The existing state is: " + state.stringify() );
+//        	logger.info( "Let's NOT poll" );
+//        	System.out.println( "Undo polling for " + jobName + " " + jobNumber );
+//        	return p;
+//        } catch( IllegalStateException e ) {
+//        	logger.debug( e.getMessage() );
+//        	state = ccucm.create( jobName, jobNumber );
+//        	createdByThisPoll = true;
+//        }
+//
+//        storeStateParameters(state);
+//
+//        PrintStream out = listener.getLogger();
+//        printParameters(out);
+//
+//        
+//        out.println("[" + Config.nameShort + "] polling streams: " + polling);
+//
+//        state.setCreatebaseline(createBaseline);
+//        /* Trim template, strip out quotes */
+//        if (nameTemplate.matches("^\".+\"$")) {
+//            nameTemplate = nameTemplate.substring(1, nameTemplate.length() - 1);
+//        }
+//        state.setNameTemplate(nameTemplate);
+//        
+//        StopWatch sw = StopWatch.get( jobName + "-" + jobNumber );
+//        sw.reset();
+//        sw.start();
+//        
+//        logger.debug( "Let's go!" );
+//
+//        /* Check input */
+//        if (checkInput(listener)) {
+//            try {
+//                List<Baseline> baselines = null;
+//
+//                /* Old skool self polling */
+//                if (polling.isPollingSelf()) {
+//                    baselines = getValidBaselinesFromStream( workspace, state, plevel, state.getStream(), state.getComponent() );
+//                } else {
+//                    /* Find the Baselines and store them */
+//                    baselines = getBaselinesFromStreams( workspace, listener, out, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
+//                }
+//
+//                logger.debug( "I found " + baselines.size() + " baseline" + ( baselines.size() == 1 ? "" : "s" ) );
+//                
+//                /* Discard baselines */
+//                filterBaselines(baselines);
+//                baselines = filterBuildingBaselines(project, baselines);
+//                
+//                logger.debug( "When filtered, I have " + baselines.size() + " baseline" + ( baselines.size() == 1 ? "" : "s" ) );
+//                
+//                if (baselines.size() > 0) {
+//                    p = PollingResult.BUILD_NOW;
+//                    /* Sort by date */
+//                    Collections.sort(baselines, new AscendingDateSort());
+//
+//                    state.setBaselines(baselines);
+//                    state.setBaseline(selectBaseline(state.getBaselines(), plevel));
+//
+//                    /* If ANY */
+//                    if (plevel == null) {
+//                        try {
+//                            lastBaseline = getLastBaseline(project, listener);
+//                        } catch (ScmException e) {
+//                            out.println(e.getMessage());
+//                        }
+//
+//                        boolean newer = false;
+//                        
+//                        /* if the newest found baseline is newer than the last baseline, build it
+//                         * If there's no last baseline, build it */
+//                        if (lastBaseline != null) {
+//                			
+//                        	try {
+//                        		out.println( "The last baseline: " + lastBaseline.stringify() );
+//                        	} catch( Exception e ) {
+//                        		out.println( "Could not stringify last: " + e.getMessage() );
+//                        		e.printStackTrace( out );
+//                        	}
+//                        	
+//                        	try {
+//                        		out.println( "The found baseline: " + state.getBaseline().stringify() );
+//                        	} catch( Exception e ) {
+//                        		out.println( "Could not stringify state baseline" );
+//                        	}
+//                        	
+//                        	//if( lastBaseline.getDate().after( state.getBaseline().getDate() ) ) {
+//                        	if( state.getBaseline().getDate().after( lastBaseline.getDate() ) ) {
+//                            //if (lastBaseline.getFullyQualifiedName().equals(state.getBaseline().getFullyQualifiedName())) {
+//                                newer = true;
+//                            }
+//                        } else {
+//                        	newer = true;
+//                        }
+//
+//                        if (!newer) {
+//                            p = PollingResult.NO_CHANGES;
+//                        }
+//                    }
+//
+//                } else {
+//                    p = PollingResult.NO_CHANGES;
+//                }
+//
+//                logger.debug(id + "The POLL state:\n" + state.stringify(), id); // 5413_dev_from_BUILT
+//
+//                /* Remove state if not being built */
+//                if (p == PollingResult.NO_CHANGES) {
+//                    state.remove();
+//                }
+//            } catch (ScmException e) {
+//                out.println("Error while retrieving baselines: " + e.getMessage());
+//                logger.warning("Error while retrieving baselines: " + e.getMessage(), id);
+//                p = PollingResult.NO_CHANGES;
+//            }
+//        }
+//
+//        /* Remove state if not being built */
+//        if (p.equals(PollingResult.NO_CHANGES)) {
+//        	logger.debug( id + "No new baselines to build", id );
+//        	if( createdByThisPoll ) {
+//        		logger.debug( id + "Removing: " + state.stringify(), id );
+//        		state.remove();
+//        	}
+//        } else {
+//            state.setAddedByPoller(true);
+//        }
+//        
+//        sw.stop();
+//        logger.debug( "Polling took " + sw.getSeconds() + " seconds" );
+//        out.println( "Polling took " + sw.getSeconds() + " seconds" );
+//        sw.delete();
+//
+//        Logger.removeAppender(app);
+//        return p;
     }
 
     /**

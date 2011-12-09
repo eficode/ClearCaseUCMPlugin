@@ -7,6 +7,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.util.CopyOnWriteList;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -55,6 +56,22 @@ public class CCUCMState {
 		}
 		
 		throw new IllegalStateException( jobName + " " + jobNumber + " does not exist" );
+	}
+	
+	public List<State> getStates( String jobName ) {
+		List<State> tmpstates = new ArrayList<State>();
+		
+		for( State s : states ) {
+			try {
+				if( s.getJobName().equals( jobName ) ) {
+					tmpstates.add( s );
+				}
+			} catch( NullPointerException e ) {
+				/* It's ok, let's move on */
+			}
+		}
+		
+		return tmpstates;
 	}
 	
 	public State create( String jobName, Integer jobNumber) {
