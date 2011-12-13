@@ -12,8 +12,8 @@ import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.entities.Project.Plevel;
 import net.praqma.hudson.exception.CCUCMException;
 import net.praqma.hudson.scm.CCUCMState.State;
-import net.praqma.util.debug.Logger;
 import net.praqma.util.debug.LoggerSetting;
+import net.praqma.util.debug.appenders.Appender;
 import hudson.FilePath;
 import hudson.model.BuildListener;
 import hudson.model.TaskListener;
@@ -22,11 +22,13 @@ import hudson.remoting.Pipe;
 
 public class RemoteUtil {
 
-	private static Logger logger = Logger.getLogger();
 	private LoggerSetting loggerSetting;
 	
-	public RemoteUtil( LoggerSetting loggerSetting ) {
+	private Appender app;
+	
+	public RemoteUtil( LoggerSetting loggerSetting, Appender app ) {
 		this.loggerSetting = loggerSetting;
+		this.app = app;
 	}
 
 	public void completeRemoteDeliver( FilePath workspace, BuildListener listener, State state, boolean complete ) throws CCUCMException {
@@ -36,7 +38,7 @@ public class RemoteUtil {
 				final Pipe pipe = Pipe.createRemoteToLocal();
 				Future<Boolean> i = null;
 				i = workspace.actAsync( new RemoteDeliverComplete( state.getBaseline(), state.getStream(), state.getSnapView(), state.getChangeset(), complete, listener, pipe, loggerSetting ) );
-				logger.redirect( pipe.getIn() );
+				app.write( pipe.getIn() );
 				i.get();
 			} else {
 				Future<Boolean> i = null;
@@ -57,7 +59,7 @@ public class RemoteUtil {
 				final Pipe pipe = Pipe.createRemoteToLocal();
 				Future<Baseline> i = null;
 				i = workspace.actAsync( new CreateRemoteBaseline( baseName, component, view, username, listener, pipe, loggerSetting ) );
-				logger.redirect( pipe.getIn() );
+				app.write( pipe.getIn() );
 				return i.get();
 			} else {
 				Future<Baseline> i = null;
@@ -80,7 +82,7 @@ public class RemoteUtil {
 					final Pipe pipe = Pipe.createRemoteToLocal();
 					Future<List<Baseline>> i = null;
 					i = workspace.actAsync( new GetRemoteBaselineFromStream( component, stream, plevel, pipe, loggerSetting ) );
-					logger.redirect( pipe.getIn() );
+					app.write( pipe.getIn() );
 					return i.get();
 				} else {
 					Future<List<Baseline>> i = null;
@@ -107,7 +109,7 @@ public class RemoteUtil {
 					final Pipe pipe = Pipe.createRemoteToLocal();
 					Future<List<Stream>> i = null;
 					i = workspace.actAsync( new GetRelatedStreams( listener, stream, pollingChildStreams, pipe, loggerSetting ) );
-					logger.redirect( pipe.getIn() );
+					app.write( pipe.getIn() );
 					return i.get();
 				} else {
 					Future<List<Stream>> i = null;
@@ -136,7 +138,7 @@ public class RemoteUtil {
 					final Pipe pipe = Pipe.createRemoteToLocal();
 
 					i = workspace.actAsync( new LoadEntity( entity, pipe, loggerSetting ) );
-					logger.redirect( pipe.getIn() );
+					app.write( pipe.getIn() );
 
 				} else {
 					i = workspace.actAsync( new LoadEntity( entity, null, null ) );
@@ -162,7 +164,7 @@ public class RemoteUtil {
 				final Pipe pipe = Pipe.createRemoteToLocal();
 
 				i = workspace.actAsync( new GetClearCaseVersion( project, pipe, loggerSetting ) );
-				logger.redirect( pipe.getIn() );
+				app.write( pipe.getIn() );
 
 			} else {
 				i = workspace.actAsync( new GetClearCaseVersion( project, null, null ) );

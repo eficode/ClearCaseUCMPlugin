@@ -7,6 +7,8 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.util.CopyOnWriteList;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -20,6 +22,8 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.util.debug.Logger;
 import net.praqma.util.debug.LoggerSetting;
+import net.praqma.util.debug.Logger.LogLevel;
+import net.praqma.util.debug.appenders.FileAppender;
 
 /**
  * This is the state object for the CCUCM jobs
@@ -29,11 +33,22 @@ import net.praqma.util.debug.LoggerSetting;
  */
 public class CCUCMState {
 
-	// private List<State> states = Collections.synchronizedList( new
-	// ArrayList<State>() );
 	private CopyOnWriteList<State> states = new CopyOnWriteList<State>();
 	private static final String linesep = System.getProperty( "line.separator" );
 	private Logger logger = Logger.getLogger();
+	private static final String tag = "ccucmstate";
+	
+	public CCUCMState() {
+		try {
+			FileAppender fa = new FileAppender( new File( System.getProperty( "user.home" ) + "/ccucmstate.log" ) );
+			fa.setTag( tag );
+			fa.setTemplate( "%datetime [%caller] %message%newline" );
+			fa.setMinimumLevel( LogLevel.DEBUG );
+			Logger.addAppender( fa );
+		} catch( IOException e ) {
+			
+		}
+	}
 
 	/**
 	 * Get a state given job name and job number
@@ -55,6 +70,7 @@ public class CCUCMState {
 			}
 		}
 		
+		logger.info( "missing " + jobName + " " + jobNumber, tag );
 		throw new IllegalStateException( jobName + " " + jobNumber + " does not exist" );
 	}
 	
@@ -76,6 +92,7 @@ public class CCUCMState {
 	
 	public State create( String jobName, Integer jobNumber) {
 		State s = new State( jobName, jobNumber );
+		logger.info( "creating " + jobName + " " + jobNumber, tag );
 		addState( s );
 		return s;		
 	}
@@ -85,6 +102,7 @@ public class CCUCMState {
 			for( State s : states ) {
 				if( s.getJobName().equals( jobName ) && s.getJobNumber().equals( jobNumber ) ) {
 					states.remove( s );
+					logger.info( "removing " + jobName + " " + jobNumber, tag );
 					return true;
 				}
 			}
@@ -94,10 +112,16 @@ public class CCUCMState {
 	}
 
 	public synchronized boolean removeState( State state ) {
+		logger.info( "removing " + state.getJobName() + " " + state.getJobNumber(), tag );
 		return states.remove( state );
+	}
+	
+	public synchronized void signalFault( String jobName, Integer jobNumber ) {
+		logger.info( "FAULT: " + jobName + " " + jobNumber, tag );
 	}
 
 	public synchronized void addState( State state ) {
+		logger.info( "adding " + state.getJobName() + " " + state.getJobNumber(), tag );
 		this.states.add( state );
 	}
 
@@ -142,8 +166,10 @@ public class CCUCMState {
 				if( o != null ) {
 					Build bld = (Build) o;
 					/* The job is not running */
-					if( !bld.isLogUpdated() ) {
+					//if( !bld.isLogUpdated() ) {
+					if( bld.getNextBuild() != null && !bld.getNextBuild().hasntStartedYet() ) {
 						it.remove();
+						logger.info( "removing " + s.getJobName() + " " + s.getJobNumber(), tag );
 						count++;
 					}
 				}
@@ -225,6 +251,7 @@ public class CCUCMState {
 		}
 
 		public boolean remove() {
+			logger.info( "removing " + getJobName() + " " + getJobNumber(), tag );
 			return CCUCMState.this.removeState( this );
 		}
 

@@ -23,6 +23,7 @@ import net.praqma.hudson.scm.CCUCMState.State;
 import net.praqma.util.debug.Logger;
 import net.praqma.util.debug.Logger.LogLevel;
 import net.praqma.util.debug.LoggerSetting;
+import net.praqma.util.debug.appenders.Appender;
 import net.praqma.util.debug.appenders.FileAppender;
 import net.sf.json.JSONObject;
 
@@ -61,6 +62,7 @@ public class CCUCMNotifier extends Notifier {
     
     private RemoteUtil rutil;
     private LoggerSetting loggerSetting;
+    private Appender app;
 
     //private SimpleDateFormat logformat  = new SimpleDateFormat( "yyyyMMdd-HHmmss" );
 
@@ -110,12 +112,12 @@ public class CCUCMNotifier extends Notifier {
         /* Preparing the logger */
         File logfile = new File( build.getRootDir(), "ccucmNOTIFIER.log" );
     	logger = Logger.getLogger();
-    	FileAppender app = new FileAppender( logfile );
+    	app = new FileAppender( logfile );
     	net.praqma.hudson.Util.initializeAppender( build, app );
 	    Logger.addAppender( app );
 	    
 	    this.loggerSetting = Logger.getLoggerSettings( app.getMinimumLevel() );
-	    this.rutil = new RemoteUtil( loggerSetting );	    
+	    this.rutil = new RemoteUtil( loggerSetting, app );	    
 
         /* Prepare job variables */
 		jobName = build.getParent().getDisplayName().replace( ' ', '_' );
@@ -139,6 +141,7 @@ public class CCUCMNotifier extends Notifier {
         		pstate = CCUCMScm.ccucm.getState(jobName, jobNumber);
         	} catch( IllegalStateException e ) {
         		System.err.println( e.getMessage() );
+        		CCUCMScm.ccucm.signalFault( jobName, jobNumber );
         		out.println( "[" + Config.nameShort + "] " + e.getMessage() );
         		Logger.removeAppender( app );
         		logger.error( e, id );
@@ -383,7 +386,7 @@ public class CCUCMNotifier extends Notifier {
             	i = workspace.actAsync( new RemotePostBuild(buildResult, status, listener,
             		                   pstate.isMakeTag(), pstate.doRecommend(), pstate.getUnstable(),
             		                   sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString(build.getNumber()), pipe, loggerSetting ) );
-				logger.redirect( pipe.getIn() );
+				app.write( pipe.getIn() );
             } else {
             	i = workspace.actAsync( new RemotePostBuild(buildResult, status, listener,
                         pstate.isMakeTag(), pstate.doRecommend(), pstate.getUnstable(),
