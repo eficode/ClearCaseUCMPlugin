@@ -774,12 +774,13 @@ public class CCUCMScm extends SCM {
 			/* If there exists some logs, delete those older than seven days */
 			Date seven = new Date();
 			Calendar cal = Calendar.getInstance();
-			cal.add( Calendar.DATE, -7 );
+			//cal.add( Calendar.DATE, -7 );
+			cal.add( Calendar.MINUTE, -1 );
 
 			for( File log : logs ) {
 				int l = log.getName().length();
 				String date = log.getName().substring( l - 12, l - 4 );
-				System.out.println( "DATE FOR " + jobName + " " + log + ": " + date );
+				//System.out.println( "DATE FOR " + jobName + " " + log + ": " + date );
 				try {
 					Date d = dateFormatter.parse( date );
 					if( d.before( cal.getTime() ) ) {
@@ -831,7 +832,7 @@ public class CCUCMScm extends SCM {
 				}
 			}
 		}
-		logger.debug( "NEED FOR POLLING!!!" );
+		
 
 		boolean createdByThisPoll = false;
 		State state = null;
@@ -847,6 +848,8 @@ public class CCUCMScm extends SCM {
 			state = ccucm.create( jobName, jobNumber );
 			createdByThisPoll = true;
 		}
+		
+		logger.debug( "Need for polling" );
 
 		storeStateParameters( state );
 
