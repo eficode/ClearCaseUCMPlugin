@@ -444,11 +444,11 @@ public class CCUCMScm extends SCM {
 			Future<EstablishResult> i = null;
 			if( workspace.isRemote() ) {
 				final Pipe pipe = Pipe.createRemoteToLocal();
-				CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), state.getStream(), loadModule, state.getBaseline(), buildProject, ( plevel == null ), pipe, Logger.getLoggerSettings( LogLevel.DEBUG ) );
+				CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), state.getStream(), loadModule, state.getBaseline(), buildProject, ( plevel == null ), pipe, loggerSetting );
 				i = workspace.actAsync( ct );
 				app.write( pipe.getIn() );
 			} else {
-				CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), state.getStream(), loadModule, state.getBaseline(), buildProject, ( plevel == null ), null, Logger.getLoggerSettings( LogLevel.DEBUG ) );
+				CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), state.getStream(), loadModule, state.getBaseline(), buildProject, ( plevel == null ), null, loggerSetting );
 				i = workspace.actAsync( ct );
 			}
 			er = i.get();
@@ -774,7 +774,8 @@ public class CCUCMScm extends SCM {
 			/* If there exists some logs, delete those older than seven days */
 			Date seven = new Date();
 			Calendar cal = Calendar.getInstance();
-			cal.add( Calendar.DATE, -7 );
+			//cal.add( Calendar.DATE, -7 );
+			cal.add( Calendar.DATE, -1 );
 			//cal.add( Calendar.MINUTE, -1 );
 
 			for( File log : logs ) {
@@ -801,11 +802,15 @@ public class CCUCMScm extends SCM {
 
 		/* If nothing is known, we log all */
 		if( project.isParameterized() ) {
-			net.praqma.hudson.Util.initializeAppender( project.getLastBuild(), app );
+			if( project.getLastBuild() != null ) {
+				net.praqma.hudson.Util.initializeAppender( project.getLastBuild(), app );
+			} else {
+				app.setEnabled( true );
+				app.setMinimumLevel( LogLevel.DEBUG );
+				app.setSubscribeAll( true );
+			}
 		} else {
-			app.setEnabled( true );
-			app.setMinimumLevel( LogLevel.DEBUG );
-			app.setSubscribeAll( true );
+			app.setEnabled( false );
 		}
 		Logger.addAppender( app );
 		this.rutil = new RemoteUtil( Logger.getLoggerSettings( app.getMinimumLevel() ), app );

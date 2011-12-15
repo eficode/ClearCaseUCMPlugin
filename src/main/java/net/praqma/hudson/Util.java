@@ -38,78 +38,65 @@ public abstract class Util {
 		}
 	}
 
-	public static String CreateNumber( BuildListener listener, int buildNumber, String versionFrom, String buildnumberMajor, String buildnumberMinor,
-			String buildnumberPatch, String buildnumberSequenceSelector, Stream target, Component component ) throws IOException {
+	public static String CreateNumber( BuildListener listener, int buildNumber, String versionFrom, String buildnumberMajor, String buildnumberMinor, String buildnumberPatch, String buildnumberSequenceSelector, Stream target, Component component ) throws IOException {
 
 		PrintStream out = listener.getLogger();
 
 		String number = "";
 		/* Get version number from project+component */
-		if (versionFrom.equals("project")) {
-			logger.debug("Using project setting");
+		if( versionFrom.equals( "project" ) ) {
+			logger.debug( "Using project setting" );
 
 			try {
 				Project project = target.getProject();
-				number = BuildNumber.getBuildNumber(project);
-			} catch (UCMException e) {
-				logger.warning("Could not get four level version");
-				logger.warning(e);
-				if (e.stdout != null) {
-					out.println(e.stdout);
+				number = BuildNumber.getBuildNumber( project );
+			} catch( UCMException e ) {
+				logger.warning( "Could not get four level version" );
+				logger.warning( e );
+				if( e.stdout != null ) {
+					out.println( e.stdout );
 				}
-				throw new IOException("Could not get four level version: "
-						+ e.getMessage());
+				throw new IOException( "Could not get four level version: " + e.getMessage() );
 			}
 		}
 		/* Get version number from project+component */
-		else if (versionFrom.equals("settings")) {
-			logger.debug("Using settings");
+		else if( versionFrom.equals( "settings" ) ) {
+			logger.debug( "Using settings" );
 
 			/* Verify settings */
-			if(buildnumberMajor.length() > 0 &&
-			   buildnumberMinor.length() > 0 &&
-			   buildnumberPatch.length() > 0) {
+			if( buildnumberMajor.length() > 0 && buildnumberMinor.length() > 0 && buildnumberPatch.length() > 0 ) {
 
-				number = "__" + buildnumberMajor + "_" + buildnumberMinor + "_"
-						+ buildnumberPatch + "_";
+				number = "__" + buildnumberMajor + "_" + buildnumberMinor + "_" + buildnumberPatch + "_";
 
 				/* Get the sequence number from the component */
-				if (buildnumberSequenceSelector.equals("component")) {
+				if( buildnumberSequenceSelector.equals( "component" ) ) {
 
-					logger.debug("Get sequence from project " + component);
+					logger.debug( "Get sequence from project " + component );
 
 					try {
 						Project project = target.getProject();
-						int seq = BuildNumber.getNextBuildSequence(project);
+						int seq = BuildNumber.getNextBuildSequence( project );
 						number += seq;
-					} catch (UCMException e) {
-						logger.warning("Could not get sequence number from component");
-						logger.warning(e);
-						if (e.stdout != null) {
-							out.println(e.stdout);
+					} catch( UCMException e ) {
+						logger.warning( "Could not get sequence number from component" );
+						logger.warning( e );
+						if( e.stdout != null ) {
+							out.println( e.stdout );
 						}
-						throw new IOException(
-								"Could not get sequence number from component: "
-										+ e.getMessage());
+						throw new IOException( "Could not get sequence number from component: " + e.getMessage() );
 					}
 				}
 				/* Use the current build number from jenkins */
 				else {
-					logger.debug("Getting sequence from build number");
+					logger.debug( "Getting sequence from build number" );
 					number += buildNumber;
 				}
 			} else {
-				logger.warning("Creating error message");
-				String error = (buildnumberMajor.length() == 0 ? "Major missing. "
-						: "")
-						+ (buildnumberMinor.length() == 0 ? "Minor missing. "
-								: "")
-						+ (buildnumberPatch.length() == 0 ? "Patch missing. "
-								: "");
+				logger.warning( "Creating error message" );
+				String error = ( buildnumberMajor.length() == 0 ? "Major missing. " : "" ) + ( buildnumberMinor.length() == 0 ? "Minor missing. " : "" ) + ( buildnumberPatch.length() == 0 ? "Patch missing. " : "" );
 
-				logger.warning("Missing information in build numbers: " + error);
-				throw new IOException("Missing build number information: "
-						+ error);
+				logger.warning( "Missing information in build numbers: " + error );
+				throw new IOException( "Missing build number information: " + error );
 			}
 		} else {
 			/* No op = none */
@@ -127,7 +114,7 @@ public abstract class Util {
 			} else {
 				devstream = Stream.create( buildIntegrationStream, streamname + pvob, true, foundationBaseline );
 			}
-		} catch (Exception e) {
+		} catch( Exception e ) {
 			throw new ScmException( "Could not get stream: " + e.getMessage() );
 		}
 
@@ -147,7 +134,7 @@ public abstract class Util {
 			buffer.append( ( "<actName>" + act.getShortname() + "</actName>" ) );
 			try {
 				buffer.append( ( "<author>" + act.getUser() + "</author>" ) );
-			} catch (UCMException e) {
+			} catch( UCMException e ) {
 				buffer.append( ( "<author>Unknown</author>" ) );
 			}
 			List<Version> versions = act.changeset.versions;
@@ -155,7 +142,7 @@ public abstract class Util {
 			for( Version v : versions ) {
 				try {
 					temp = "<file>" + v.getSFile() + " (" + v.getVersion() + ") user: " + v.blame() + "</file>";
-				} catch (UCMException e) {
+				} catch( UCMException e ) {
 					logger.warning( "Could not generate log" );
 				}
 				buffer.append( temp );
@@ -197,7 +184,7 @@ public abstract class Util {
 					throw new ScmException( "Could not create folder for view root:  " + viewroot.toString() );
 				}
 			}
-		} catch (Exception e) {
+		} catch( Exception e ) {
 			throw new ScmException( "Could not make workspace (for viewroot " + viewroot.toString() + "). Cause: " + e.getMessage() );
 
 		}
@@ -216,17 +203,17 @@ public abstract class Util {
 					FilePath path = new FilePath( viewroot );
 					try {
 						path.deleteRecursive();
-					} catch (Exception e) {
+					} catch( Exception e ) {
 						throw new ScmException( "Unable to recursively prepare view root: " + e.getMessage() );
 					}
 					makeView( stream, workspace, listener, loadModule, viewroot, viewtag );
 				}
-			} catch (UCMException ucmE) {
+			} catch( UCMException ucmE ) {
 				try {
 					hudsonOut.println( "[" + Config.nameShort + "] Regenerating invalid view root" );
 					SnapshotView.endView( viewtag );
 					SnapshotView.regenerateViewDotDat( viewroot, viewtag );
-				} catch (UCMException ucmEx) {
+				} catch( UCMException ucmEx ) {
 					if( ucmEx.stdout != null ) {
 						hudsonOut.println( ucmEx.stdout );
 					}
@@ -237,7 +224,7 @@ public abstract class Util {
 			hudsonOut.println( "[" + Config.nameShort + "] Getting snapshotview" );
 			try {
 				snapview = UCMView.getSnapshotView( viewroot );
-			} catch (UCMException e) {
+			} catch( UCMException e ) {
 				if( e.stdout != null ) {
 					hudsonOut.println( e.stdout );
 				}
@@ -248,7 +235,7 @@ public abstract class Util {
 				snapview = SnapshotView.create( stream, viewroot, viewtag );
 
 				hudsonOut.println( "[" + Config.nameShort + "] Created new view in local workspace: " + viewroot.getAbsolutePath() );
-			} catch (UCMException e) {
+			} catch( UCMException e ) {
 				if( e.stdout != null ) {
 					hudsonOut.println( e.stdout );
 				}
@@ -260,7 +247,7 @@ public abstract class Util {
 			try {
 				hudsonOut.println( "[" + Config.nameShort + "] Updating view using " + loadModule.toLowerCase() + " modules." );
 				snapview.Update( true, true, true, false, Components.valueOf( loadModule.toUpperCase() ), null );
-			} catch (UCMException e) {
+			} catch( UCMException e ) {
 				if( e.stdout != null ) {
 					hudsonOut.println( e.stdout );
 				}
@@ -275,7 +262,7 @@ public abstract class Util {
 	}
 
 	public static void initializeAppender( AbstractBuild<?, ?> build, Appender appender ) {
-		appender.setSubscribeAll( true );
+		appender.setSubscribeAll( false );
 		appender.lockToCurrentThread();
 
 		/* Log classes */
@@ -299,7 +286,7 @@ public abstract class Util {
 				LogLevel level = LogLevel.valueOf( build.getBuildVariables().get( Config.levelVar ) );
 				logger.fatal( "Logging " + level );
 				appender.setMinimumLevel( level );
-			} catch (Exception e) {
+			} catch( Exception e ) {
 				/* Just don't do it */
 			}
 		}
