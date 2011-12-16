@@ -44,6 +44,7 @@ public class CCUCMState {
 			fa.setTag( tag );
 			fa.setTemplate( "%datetime [%caller] %message%newline" );
 			fa.setMinimumLevel( LogLevel.WARNING );
+			//fa.setMinimumLevel( LogLevel.DEBUG );
 			Logger.addAppender( fa );
 		} catch( IOException e ) {
 			
@@ -97,6 +98,13 @@ public class CCUCMState {
 		return s;		
 	}
 
+	/**
+	 * 
+	 * @param jobName
+	 * @param jobNumber
+	 * @return
+	 * @deprecated
+	 */
 	public boolean removeState( String jobName, Integer jobNumber ) {
 		synchronized( states ) {
 			for( State s : states ) {
@@ -149,6 +157,12 @@ public class CCUCMState {
 		return false;
 	}
 
+	/**
+	 * 
+	 * @param project
+	 * @return
+	 * @deprecated
+	 */
 	public int recalculate( AbstractProject<?, ?> project ) {
 		int count = 0;
 
@@ -166,8 +180,8 @@ public class CCUCMState {
 				if( o != null ) {
 					Build bld = (Build) o;
 					/* The job is not running */
-					//if( !bld.isLogUpdated() ) {
-					if( bld.getNextBuild() != null && !bld.getNextBuild().hasntStartedYet() ) {
+					if( !bld.isLogUpdated() ) {
+					//if( bld.getNextBuild() != null && !bld.getNextBuild().hasntStartedYet() ) {
 						it.remove();
 						logger.info( "removing " + s.getJobName() + " " + s.getJobNumber(), tag );
 						count++;

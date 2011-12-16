@@ -210,8 +210,8 @@ public class CCUCMScm extends SCM {
 		logger.info( id + "CCUCMSCM checkout v. " + net.praqma.hudson.Version.version, id );
 
 		/* Recalculate the states */
-		int count = ccucm.recalculate( build.getProject() );
-		logger.debug( id + "Removed " + count + " from states.", id );
+		//int count = ccucm.recalculate( build.getProject() );
+		//logger.debug( id + "Removed " + count + " from states.", id );
 
 		doPostBuild = true;
 
@@ -327,11 +327,11 @@ public class CCUCMScm extends SCM {
 			}
 
 			/* Removing the state from the list */
-			boolean done = state.remove();
-			logger.debug( id + "Removing job " + build.getNumber() + " from collection: " + done, id );
+			//boolean done = state.remove();
+			//logger.debug( id + "Removing job " + build.getNumber() + " from collection: " + done, id );
 		}
 
-		logger.debug( "FINAL STATES: " + ccucm.stringify() );
+		//logger.debug( "FINAL STATES: " + ccucm.stringify() );
 
 		Logger.removeAppender( app );
 		return result;

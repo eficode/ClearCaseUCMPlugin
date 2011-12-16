@@ -237,10 +237,12 @@ public class CCUCMNotifier extends Notifier {
          * Removing baseline and job from collection, do this no matter what as
          * long as the SCM is CCUCM
          */
+        /*
         if ((scmTemp instanceof CCUCMScm) && baseline != null) {
             boolean done2 = pstate.remove();
             logger.debug(id + "Removing job " + build.getNumber() + " from collection: " + done2, id);
         }
+        */
 
         out.println( "[" + Config.nameShort + "] Post build steps done" );
 
