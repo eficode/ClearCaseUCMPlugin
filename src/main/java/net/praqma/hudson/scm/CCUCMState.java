@@ -43,7 +43,7 @@ public class CCUCMState {
 			FileAppender fa = new FileAppender( new File( System.getProperty( "user.home" ) + "/ccucmstate.log" ) );
 			fa.setTag( tag );
 			fa.setTemplate( "%datetime [%caller] %message%newline" );
-			fa.setMinimumLevel( LogLevel.DEBUG );
+			fa.setMinimumLevel( LogLevel.WARNING );
 			Logger.addAppender( fa );
 		} catch( IOException e ) {
 			
@@ -117,7 +117,7 @@ public class CCUCMState {
 	}
 	
 	public synchronized void signalFault( String jobName, Integer jobNumber ) {
-		logger.info( "FAULT: " + jobName + " " + jobNumber, tag );
+		logger.fatal( "FAULT: " + jobName + " " + jobNumber, tag );
 	}
 
 	public synchronized void addState( State state ) {

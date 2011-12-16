@@ -774,8 +774,8 @@ public class CCUCMScm extends SCM {
 			/* If there exists some logs, delete those older than seven days */
 			Date seven = new Date();
 			Calendar cal = Calendar.getInstance();
-			//cal.add( Calendar.DATE, -7 );
-			cal.add( Calendar.DATE, -1 );
+			cal.add( Calendar.DATE, -7 );
+			//cal.add( Calendar.DATE, -1 );
 			//cal.add( Calendar.MINUTE, -1 );
 
 			for( File log : logs ) {
