@@ -754,7 +754,9 @@ public class CCUCMScm extends SCM {
 			String workspace = env.get( "WORKSPACE" );
 			if( workspace != null ) {
 				CC_VIEWPATH = workspace + File.separator + "view";
-			}			 
+			} else {
+				CC_VIEWPATH = "";
+			}
 		}
 
 		env.put( "CC_BASELINE", CC_BASELINE );
