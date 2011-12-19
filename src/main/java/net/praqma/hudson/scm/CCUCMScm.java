@@ -723,24 +723,43 @@ public class CCUCMScm extends SCM {
 	public ChangeLogParser createChangeLogParser() {
 		return new ChangeLogParserImpl();
 	}
+	
+	private String CC_BASELINE = null;
+	private String CC_VIEWPATH = null;
+	private String CC_VIEWTAG  = null;
 
 	@Override
 	public void buildEnvVars( AbstractBuild<?, ?> build, Map<String, String> env ) {
 		super.buildEnvVars( build, env );
 
-		State state = ccucm.getState( jobName, jobNumber );
-
-		if( state.getBaseline() != null ) {
-			env.put( "CC_BASELINE", state.getBaseline().getFullyQualifiedName() );
-		} else {
-			env.put( "CC_BASELINE", "" );
+		if( CC_BASELINE != null ) {
+			try {
+				State state = ccucm.getState( jobName, jobNumber );
+				
+				/* Baseline */
+				if( state.getBaseline() != null ) {
+					CC_BASELINE = state.getBaseline().getFullyQualifiedName();
+				} else {
+					CC_BASELINE = "";
+				}
+			} catch( Exception e ) {
+				/* CC_BASELINE not set */
+				logger.warning( "Baseline not set: " + e.getMessage() );
+			}
+			
+			/* View tag */
+			CC_VIEWTAG = viewtag;
+			
+			/* View path */
+			String workspace = env.get( "WORKSPACE" );
+			if( workspace != null ) {
+				CC_VIEWPATH = workspace + File.separator + "view";
+			}			 
 		}
 
-		env.put( "CC_VIEWTAG", viewtag );
-		String workspace = env.get( "WORKSPACE" );
-		if( workspace != null ) {
-			env.put( "CC_VIEWPATH", workspace + File.separator + "view" );
-		}
+		env.put( "CC_BASELINE", CC_BASELINE );
+		env.put( "CC_VIEWTAG", CC_VIEWTAG );
+		env.put( "CC_VIEWPATH", CC_VIEWPATH );
 	}
 
 	/**
