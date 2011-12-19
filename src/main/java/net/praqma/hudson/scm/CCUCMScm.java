@@ -732,7 +732,7 @@ public class CCUCMScm extends SCM {
 	public void buildEnvVars( AbstractBuild<?, ?> build, Map<String, String> env ) {
 		super.buildEnvVars( build, env );
 
-		if( CC_BASELINE != null ) {
+		if( CC_BASELINE == null ) {
 			try {
 				State state = ccucm.getState( jobName, jobNumber );
 				
