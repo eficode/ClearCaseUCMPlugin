@@ -12,6 +12,7 @@ public class EnvTemplate extends Template {
 	
 	@Override
 	public String parse( State state, String args ) throws TemplateException {
+		logger.debug( "ENV PARSING" );
 		EnvVars vars = null;
 		try {
 			vars = state.getBuild().getEnvironment( state.getListener() );
@@ -19,12 +20,19 @@ public class EnvTemplate extends Template {
 			logger.warning( "I could not get env vars: " + e.getMessage() );
 			return "?";
 		}
+		
+		logger.debug( "ENV VARS: " + vars );
+		logger.debug( "ENV VARS: " + System.getenv() );
+		
 		if( vars.containsKey( args ) ) {
-			logger.debug( args + "=" + vars.get( args ) );
+			logger.debug( "EnvVars: " + args + "=" + vars.get( args ) );
 			return vars.get( args );
 		} else if( state.getBuild().getBuildVariables().containsKey( args ) ) {
-			logger.debug( args + "=" + state.getBuild().getBuildVariables().get( args ) );
+			logger.debug( "BuildVars: " + args + "=" + state.getBuild().getBuildVariables().get( args ) );
 			return state.getBuild().getBuildVariables().get( args );
+		} else if( System.getenv().containsKey( args ) ) {
+			logger.debug( "Vars: " + args + "=" + System.getenv( args ) );
+			return vars.get( args );
 		} else {
 			return "?";
 		}

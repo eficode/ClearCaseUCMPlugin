@@ -192,9 +192,9 @@ public class CCUCMScm extends SCM {
 
 		PrintStream consoleOutput = listener.getLogger();
 
-		consoleOutput.println( "[" + Config.nameShort + "] ClearCase UCM Plugin version " + net.praqma.hudson.Version.version );
+		consoleOutput.println( "[" + Config.nameShort + "] ClearCase UCM Plugin version() " + net.praqma.hudson.Version.version );
 		consoleOutput.println( "[" + Config.nameShort + "] Forcing deliver: " + forceDeliver );
-
+		
 		/* Preparing the logger */
 		logger = Logger.getLogger();
 		File logfile = new File( build.getRootDir(), "ccucmSCM.log" );

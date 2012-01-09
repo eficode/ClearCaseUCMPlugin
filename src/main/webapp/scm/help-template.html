@@ -12,6 +12,7 @@ Keywords are enclosed in square brackets([]).
     <li><b>number</b> - The current Jenkins build number</li>
     <li><b>user</b> - The user created the Baseline</li>
     <li><b>env=?</b> - Retrieve an environment variable. [env=SOME_VAR]</li>
+    <li><b>file=?</b> - Retrieve the content of a file residing in the workspace. [file=SOME_FILE]. [file=myfile] will expand to path/to/workspace/myfile and the content of the file is used.</li>
 </ul>
 Besides the keywords, only the characters <b>[\w-]</b> are permitted.<br /><br />
 Notice that this field is only relevant when <b>Create Baseline</b> is checked.

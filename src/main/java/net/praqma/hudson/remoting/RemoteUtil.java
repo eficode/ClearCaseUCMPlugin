@@ -30,6 +30,10 @@ public class RemoteUtil {
 		this.loggerSetting = loggerSetting;
 		this.app = app;
 	}
+	
+	public void setAppender( Appender appender ) {
+		this.app = appender;
+	}
 
 	public void completeRemoteDeliver( FilePath workspace, BuildListener listener, State state, boolean complete ) throws CCUCMException {
 

@@ -26,6 +26,7 @@ public class NameTemplate {
 		templates.put( "number", new NumberTemplate() );
 		templates.put( "user", new UserTemplate() );
 		templates.put( "env", new EnvTemplate() );
+		templates.put( "file", new FileTemplate() );
 	}
 
 	private static Pattern rx_ = Pattern.compile( "(\\[.*?\\])" );
@@ -86,6 +87,8 @@ public class NameTemplate {
 
 		Matcher m = rx_.matcher( template );
 		String result = template;
+		
+		logger.debug( "PARSING TEMPLATE " + template );
 
 		while( m.find() ) {
 			String replace = m.group(1);
@@ -101,7 +104,7 @@ public class NameTemplate {
 				args = s[1];
 			}
 			
-			logger.debug( templateName + ": " + args );
+			logger.debug( "--->" + templateName + ": " + args );
 
 			if( !templates.containsKey( templateName ) ) {
 				throw new TemplateException( "The template " + templateName + " does not exist" );
@@ -110,6 +113,8 @@ public class NameTemplate {
 				result = result.replace( replace, r );
 			}
 		}
+		
+		logger.debug( "Final template is: " + result );
 
 		Matcher f = rx_checkFinal.matcher( result );
 		if( !f.find() ) {
