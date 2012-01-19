@@ -1087,6 +1087,7 @@ public class CCUCMScm extends SCM {
 			// stream.getShortname() + ": " + e1.getMessage());
 			/* no op */
 			logger.debug( "No baselines: " + e1.getMessage() );
+			throw new ScmException("Unable to get baselines from " + stream.getShortname() + ": " + e1.getMessage());
 		}
 
 		return baselines;
