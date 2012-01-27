@@ -307,6 +307,17 @@ public class CCUCMScm extends SCM {
 				logger.info( "Adding notifier to project", id );
 				build.getParent().getPublishersList().add( new CCUCMNotifier() );
 			}
+			
+			
+			/* If there's a result let's find out whether a baseline is found or not */
+			if( result ) {
+				if( state.getBaseline() == null ) {
+					consoleOutput.println( "[" + Config.nameShort + "] Finished processing; the baseline is null, this could pose a problem!" );
+				} else {
+					consoleOutput.println( "[" + Config.nameShort + "] Finished processing " + state.getBaseline() );
+				}
+			}
+			
 			/* If plevel is null, make sure CCUCMNotofier is not enabled */
 		} else {
 			Iterator<Publisher> it = build.getParent().getPublishersList().iterator();
@@ -744,7 +755,7 @@ public class CCUCMScm extends SCM {
 				}
 			} catch( Exception e ) {
 				/* CC_BASELINE not set */
-				logger.warning( "Baseline not set: " + e.getMessage() );
+				//logger.warning( "Baseline not set: " + e.getMessage() );
 			}
 			
 			/* View tag */
