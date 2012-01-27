@@ -264,6 +264,7 @@ public abstract class Util {
 	public static void initializeAppender( AbstractBuild<?, ?> build, Appender appender ) {
 		appender.setSubscribeAll( false );
 		appender.lockToCurrentThread();
+		appender.setTemplate( "%datetime %level %space %stack %message%newline" );
 
 		/* Log classes */
 		if( build.getBuildVariables().get( Config.logVar ) != null ) {
