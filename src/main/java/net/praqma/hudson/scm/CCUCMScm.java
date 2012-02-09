@@ -199,7 +199,7 @@ public class CCUCMScm extends SCM {
 		logger = Logger.getLogger();
 		File logfile = new File( build.getRootDir(), "ccucmSCM.log" );
 		app = new FileAppender( logfile );
-		// app.setTag(id);
+
 		net.praqma.hudson.Util.initializeAppender( build, app );
 		Logger.addAppender( app );
 		this.loggerSetting = Logger.getLoggerSettings( app.getMinimumLevel() );
@@ -292,7 +292,7 @@ public class CCUCMScm extends SCM {
 
 		consoleOutput.println( "[" + Config.nameShort + "] Pre build steps done" );
 
-		/* If plevel is not null, make sure that the CCUCMNotofier is ON */
+		/* If plevel is not null, make sure that the CCUCMNotifier is ON */
 		if( plevel != null ) {
 			boolean used = false;
 			for( Publisher p : build.getParent().getPublishersList() ) {
@@ -312,7 +312,7 @@ public class CCUCMScm extends SCM {
 			/* If there's a result let's find out whether a baseline is found or not */
 			if( result ) {
 				if( state.getBaseline() == null ) {
-					consoleOutput.println( "[" + Config.nameShort + "] Finished processing; the baseline is null, this could pose a problem!" );
+					consoleOutput.println( "[" + Config.nameShort + "] Finished processing; the baseline is null, this could pose as a problem!" );
 				} else {
 					consoleOutput.println( "[" + Config.nameShort + "] Finished processing " + state.getBaseline() );
 				}
@@ -742,7 +742,7 @@ public class CCUCMScm extends SCM {
 	@Override
 	public void buildEnvVars( AbstractBuild<?, ?> build, Map<String, String> env ) {
 		super.buildEnvVars( build, env );
-
+		
 		if( CC_BASELINE == null ) {
 			try {
 				State state = ccucm.getState( jobName, jobNumber );
@@ -755,7 +755,8 @@ public class CCUCMScm extends SCM {
 				}
 			} catch( Exception e ) {
 				/* CC_BASELINE not set */
-				//logger.warning( "Baseline not set: " + e.getMessage() );
+				System.out.println( "Baseline will not be set: " + e.getMessage() );
+				System.out.println( jobName + ", " + jobNumber );
 			}
 			
 			/* View tag */
@@ -1009,6 +1010,7 @@ public class CCUCMScm extends SCM {
 				state.remove();
 			}
 		} else {
+			logger.debug( id + "New baseline to build", id );
 			state.setAddedByPoller( true );
 		}
 
