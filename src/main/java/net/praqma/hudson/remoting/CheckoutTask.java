@@ -53,11 +53,13 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	
 	private boolean any = false;
 	
+	private PrintStream pstream;
+	
 	
 	private Logger logger;
-	private LoggerSetting settings;
+	private LoggerSetting loggerSetting;
 
-	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, Stream targetStream, String loadModule, Baseline baseline, String buildProject, boolean any, Pipe pipe, LoggerSetting settings ) {
+	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, Stream targetStream, String loadModule, Baseline baseline, String buildProject, boolean any, Pipe pipe, PrintStream pstream, LoggerSetting settings ) {
 		this.jobname = jobname;
 		this.jobNumber = jobNumber;
 		this.targetStream = targetStream;
@@ -66,8 +68,9 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		this.buildProject = buildProject;
 		this.listener = listener;
 		this.pipe = pipe;
+		this.pstream = pstream;
 		
-		this.settings = settings;
+		this.loggerSetting = settings;
 		
 		this.any = any;
 
@@ -89,7 +92,12 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	    	app = new StreamAppender( toMaster );
 	    	app.lockToCurrentThread();
 	    	Logger.addAppender( app );
-	    	app.setSettings( settings );
+	    	app.setSettings( loggerSetting );
+    	} else if( pstream != null ) {
+	    	app = new StreamAppender( pstream );
+	    	app.lockToCurrentThread();
+	    	Logger.addAppender( app );
+	    	app.setSettings( loggerSetting );    		
     	}
 
 		logger.info( id + "Starting CheckoutTask" );

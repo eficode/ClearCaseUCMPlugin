@@ -47,12 +47,13 @@ class RemotePostBuild implements FileCallable<Status> {
 	private Unstable unstable;
 	private Pipe pipe = null;
 	private LoggerSetting loggerSetting;
+	private PrintStream pstream;
 
 	public RemotePostBuild( Result result, Status status, BuildListener listener,
 	/* Values for */
 	boolean makeTag, boolean recommended, Unstable unstable,
 	/* Common values */
-	Baseline sourcebaseline, Baseline targetbaseline, Stream sourcestream, Stream targetstream, String displayName, String buildNumber, Pipe pipe, LoggerSetting loggerSetting ) {
+	Baseline sourcebaseline, Baseline targetbaseline, Stream sourcestream, Stream targetstream, String displayName, String buildNumber, Pipe pipe, PrintStream pstream, LoggerSetting loggerSetting ) {
 
 		this.displayName = displayName;
 		this.buildNumber = buildNumber;
@@ -74,6 +75,7 @@ class RemotePostBuild implements FileCallable<Status> {
 		this.status = status;
 		this.listener = listener;
 
+		this.pstream = pstream;
 		this.pipe = pipe;
 		this.loggerSetting = loggerSetting;
 	}
@@ -90,7 +92,12 @@ class RemotePostBuild implements FileCallable<Status> {
 			app = new StreamAppender( toMaster );
 			Logger.addAppender( app );
 			app.setSettings( loggerSetting );
-		}
+		} else if( pstream != null ) {
+	    	app = new StreamAppender( pstream );
+	    	app.lockToCurrentThread();
+	    	Logger.addAppender( app );
+	    	app.setSettings( loggerSetting );    		
+    	}
 
 		String newPLevel = "";
 
@@ -105,6 +112,10 @@ class RemotePostBuild implements FileCallable<Status> {
 				status.setTagAvailable( true );
 			} catch( UCMException e ) {
 				hudsonOut.println( "[" + Config.nameShort + "] Could not get Tag: " + e.getMessage() );
+				if( e.getCause() != null ) {
+					e.printInformation( hudsonOut );
+					hudsonOut.println( e.getCause().getMessage() );
+				}
 				logger.warning( id + "Could not get Tag: " + e.getMessage() );
 			}
 		}
@@ -233,8 +244,12 @@ class RemotePostBuild implements FileCallable<Status> {
 				try {
 					tag = tag.persist();
 					hudsonOut.println( "[" + Config.nameShort + "] Baseline now marked with tag: \n" + tag.stringify() );
-				} catch( Exception e ) {
+				} catch( UCMException e ) {
 					hudsonOut.println( "[" + Config.nameShort + "] Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
+					if( e.getCause() != null ) {
+						e.printInformation( hudsonOut );
+						hudsonOut.println( e.getCause().getMessage() );
+					}
 				}
 			} else {
 				logger.warning( id + "Tag object was null" );

@@ -23,11 +23,13 @@ public class GetClearCaseVersion implements FileCallable<String> {
 	private Project project;
 	private Pipe pipe;
 	private LoggerSetting loggerSetting;
+	private PrintStream pstream;
 	
-	public GetClearCaseVersion( Project project, Pipe pipe, LoggerSetting loggerSetting ) {
+	public GetClearCaseVersion( Project project, Pipe pipe, PrintStream pstream, LoggerSetting loggerSetting ) {
 		this.project = project;
 		this.pipe = pipe;
 		this.loggerSetting = loggerSetting;
+		this.pstream = pstream;
     }
     
     @Override
@@ -40,6 +42,11 @@ public class GetClearCaseVersion implements FileCallable<String> {
 	    	app.lockToCurrentThread();
 	    	Logger.addAppender( app );
 	    	app.setSettings( loggerSetting );
+    	} else if( pstream != null ) {
+	    	app = new StreamAppender( pstream );
+	    	app.lockToCurrentThread();
+	    	Logger.addAppender( app );
+	    	app.setSettings( loggerSetting );    		
     	}
         
     	String version = "";

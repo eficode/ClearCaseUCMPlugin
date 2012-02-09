@@ -14,6 +14,7 @@ import net.praqma.hudson.scm.ClearCaseChangeset;
 import net.praqma.hudson.scm.ClearCaseChangeset.Element;
 import net.praqma.util.debug.Logger;
 import net.praqma.util.debug.LoggerSetting;
+import net.praqma.util.debug.appenders.Appender;
 import net.praqma.util.debug.appenders.StreamAppender;
 
 import hudson.FilePath.FileCallable;
@@ -33,10 +34,12 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 	private Stream stream;
 	private SnapshotView view;
 	private ClearCaseChangeset changeset;
+	
+	private PrintStream pstream;
 
 	private LoggerSetting loggerSetting;
 
-	public RemoteDeliverComplete( Baseline baseline, Stream stream, SnapshotView view, ClearCaseChangeset changeset, boolean complete, BuildListener listener, Pipe pipe, LoggerSetting loggerSetting ) {
+	public RemoteDeliverComplete( Baseline baseline, Stream stream, SnapshotView view, ClearCaseChangeset changeset, boolean complete, BuildListener listener, Pipe pipe, PrintStream pstream, LoggerSetting loggerSetting ) {
 		this.complete = complete;
 		this.listener = listener;
 		this.pipe = pipe;
@@ -45,6 +48,8 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 		this.stream = stream;
 		this.view = view;
 		this.changeset = changeset;
+		
+		this.pstream = pstream;
 
 		this.loggerSetting = loggerSetting;
 	}
@@ -55,13 +60,18 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 		PrintStream out = listener.getLogger();
 
 		Logger logger = Logger.getLogger();
-    	StreamAppender app = null;
+    	Appender app = null;
     	if( pipe != null ) {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
 	    	app = new StreamAppender( toMaster );
 	    	app.lockToCurrentThread();
 	    	Logger.addAppender( app );
 	    	app.setSettings( loggerSetting );
+    	} else if( pstream != null ) {
+	    	app = new StreamAppender( pstream );
+	    	app.lockToCurrentThread();
+	    	Logger.addAppender( app );
+	    	app.setSettings( loggerSetting );    		
     	}
 
     	if( complete ) {

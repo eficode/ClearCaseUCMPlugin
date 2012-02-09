@@ -61,10 +61,10 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 	private LoggerSetting loggerSetting;
 	private String viewtag = "";
 	private boolean forceDeliver;
-
+	private PrintStream pstream;
 	private File workspace;
 
-	public RemoteDeliver( String destinationstream, BuildListener listener, Pipe pipe, LoggerSetting loggerSetting,
+	public RemoteDeliver( String destinationstream, BuildListener listener, Pipe pipe, PrintStream pstream, LoggerSetting loggerSetting,
 	/* Common values */
 	String loadModule, String baseline, String jobName, boolean forceDeliver ) {
 		this.jobName = jobName;
@@ -76,6 +76,8 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 		this.loadModule = loadModule;
 		
 		this.forceDeliver = forceDeliver;
+		
+		this.pstream = pstream;
 
 		this.pipe = pipe;
 		this.loggerSetting = loggerSetting;
@@ -94,7 +96,12 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 			app.lockToCurrentThread();
 			Logger.addAppender( app );
 			app.setSettings( loggerSetting );
-		}
+		} else if( pstream != null ) {
+	    	app = new StreamAppender( pstream );
+	    	app.lockToCurrentThread();
+	    	Logger.addAppender( app );
+	    	app.setSettings( loggerSetting );    		
+    	}
 
 		// TODO this should not be necessary cause its done in the Config.java
 		// file ????.

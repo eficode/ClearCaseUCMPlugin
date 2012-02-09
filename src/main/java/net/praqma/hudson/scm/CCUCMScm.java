@@ -28,6 +28,8 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.io.PrintStream;
 import java.net.URL;
 import java.text.DateFormat;
@@ -460,12 +462,15 @@ public class CCUCMScm extends SCM {
 			Future<EstablishResult> i = null;
 			if( workspace.isRemote() ) {
 				final Pipe pipe = Pipe.createRemoteToLocal();
-				CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), state.getStream(), loadModule, state.getBaseline(), buildProject, ( plevel == null ), pipe, loggerSetting );
+				CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), state.getStream(), loadModule, state.getBaseline(), buildProject, ( plevel == null ), pipe, null, loggerSetting );
 				i = workspace.actAsync( ct );
 				app.write( pipe.getIn() );
 			} else {
-				CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), state.getStream(), loadModule, state.getBaseline(), buildProject, ( plevel == null ), null, loggerSetting );
+				PipedInputStream in = new PipedInputStream();
+				PipedOutputStream out = new PipedOutputStream( in );
+				CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), state.getStream(), loadModule, state.getBaseline(), buildProject, ( plevel == null ), null, new PrintStream( out ), loggerSetting );
 				i = workspace.actAsync( ct );
+				app.write( in );
 			}
 			er = i.get();
 			String changelog = er.getMessage();
@@ -632,14 +637,19 @@ public class CCUCMScm extends SCM {
 			if( workspace.isRemote() ) {
 				final Pipe pipe = Pipe.createRemoteToLocal();
 				Future<EstablishResult> i = null;
-				rmDeliver = new RemoteDeliver( state.getStream().getFullyQualifiedName(), listener, pipe, loggerSetting, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), state.getForceDeliver() );
+				rmDeliver = new RemoteDeliver( state.getStream().getFullyQualifiedName(), listener, pipe, null, loggerSetting, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), state.getForceDeliver() );
 				i = workspace.actAsync( rmDeliver );
 				app.write( pipe.getIn() );
 				er = i.get();
 
 			} else {
-				rmDeliver = new RemoteDeliver( state.getStream().getFullyQualifiedName(), listener, null, loggerSetting, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), state.getForceDeliver() );
-				er = workspace.act( rmDeliver );
+				Future<EstablishResult> i = null;
+				PipedInputStream in = new PipedInputStream();
+				PipedOutputStream out = new PipedOutputStream( in );
+				rmDeliver = new RemoteDeliver( state.getStream().getFullyQualifiedName(), listener, null, new PrintStream( out ), loggerSetting, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), state.getForceDeliver() );
+				i = workspace.actAsync( rmDeliver );
+				app.write( in );
+				er = i.get();
 			}
 
 			state.setSnapView( er.getView() );
@@ -1131,7 +1141,7 @@ public class CCUCMScm extends SCM {
 		for( Baseline b : baselines ) {
 			/* Get the state for the current baseline */
 			State cstate = ccucm.getStateByBaseline( jobName, b.getFullyQualifiedName() );
-			logger.debug( "CSTATE: " + cstate );
+			//logger.debug( "CSTATE: " + cstate );
 
 			/*
 			 * The baseline is in progress, determine if the job is still

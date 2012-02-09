@@ -13,6 +13,7 @@ import net.praqma.clearcase.ucm.entities.Project.Plevel;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.util.debug.Logger;
 import net.praqma.util.debug.LoggerSetting;
+import net.praqma.util.debug.appenders.Appender;
 import net.praqma.util.debug.appenders.StreamAppender;
 import hudson.FilePath.FileCallable;
 import hudson.remoting.Pipe;
@@ -27,13 +28,17 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
 	private Plevel plevel;
 	private Pipe pipe;
 	
+	private PrintStream pstream;
+	
 	private LoggerSetting loggerSetting;
 	
-	public GetRemoteBaselineFromStream( Component component, Stream stream, Plevel plevel, Pipe pipe, LoggerSetting loggerSetting ) {
+	public GetRemoteBaselineFromStream( Component component, Stream stream, Plevel plevel, Pipe pipe, PrintStream pstream, LoggerSetting loggerSetting ) {
 		this.component = component;
 		this.stream = stream;
 		this.plevel = plevel;
 		this.pipe = pipe;
+		
+		this.pstream = pstream;
 		
 		this.loggerSetting = loggerSetting;
     }
@@ -45,13 +50,18 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
     	
     	UCM.setContext( UCM.ContextType.CLEARTOOL );
 
-    	StreamAppender app = null;
+    	Appender app = null;
     	if( pipe != null ) {
 	    	PrintStream toMaster = new PrintStream( pipe.getOut() );	    	
 	    	app = new StreamAppender( toMaster );
 	    	app.lockToCurrentThread();
 	    	Logger.addAppender( app );
 	    	app.setSettings( loggerSetting );
+    	} else if( pstream != null ) {
+	    	app = new StreamAppender( pstream );
+	    	app.lockToCurrentThread();
+	    	Logger.addAppender( app );
+	    	app.setSettings( loggerSetting );    		
     	}
     	
     	logger.debug( "Retrieving remote baselines from " + stream.getShortname() );

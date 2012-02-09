@@ -1,6 +1,11 @@
 package net.praqma.hudson.remoting;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.io.PrintStream;
 import java.util.List;
 
@@ -41,12 +46,15 @@ public class RemoteUtil {
 			if( workspace.isRemote() ) {
 				final Pipe pipe = Pipe.createRemoteToLocal();
 				Future<Boolean> i = null;
-				i = workspace.actAsync( new RemoteDeliverComplete( state.getBaseline(), state.getStream(), state.getSnapView(), state.getChangeset(), complete, listener, pipe, loggerSetting ) );
+				i = workspace.actAsync( new RemoteDeliverComplete( state.getBaseline(), state.getStream(), state.getSnapView(), state.getChangeset(), complete, listener, pipe, null, loggerSetting ) );
 				app.write( pipe.getIn() );
 				i.get();
 			} else {
 				Future<Boolean> i = null;
-				i = workspace.actAsync( new RemoteDeliverComplete( state.getBaseline(), state.getStream(), state.getSnapView(), state.getChangeset(), complete, listener, null, null ) );
+				PipedInputStream in = new PipedInputStream();
+				PipedOutputStream out = new PipedOutputStream( in );
+				i = workspace.actAsync( new RemoteDeliverComplete( state.getBaseline(), state.getStream(), state.getSnapView(), state.getChangeset(), complete, listener, null, new PrintStream( out ), loggerSetting ) );
+				app.write( in );
 				i.get();
 			}
 			return;
@@ -62,12 +70,15 @@ public class RemoteUtil {
 			if( workspace.isRemote() ) {
 				final Pipe pipe = Pipe.createRemoteToLocal();
 				Future<Baseline> i = null;
-				i = workspace.actAsync( new CreateRemoteBaseline( baseName, component, view, username, listener, pipe, loggerSetting ) );
+				i = workspace.actAsync( new CreateRemoteBaseline( baseName, component, view, username, listener, pipe, null, loggerSetting ) );
 				app.write( pipe.getIn() );
 				return i.get();
 			} else {
 				Future<Baseline> i = null;
-				i = workspace.actAsync( new CreateRemoteBaseline( baseName, component, view, username, listener, null, null ) );
+				PipedInputStream in = new PipedInputStream();
+				PipedOutputStream out = new PipedOutputStream( in );
+				i = workspace.actAsync( new CreateRemoteBaseline( baseName, component, view, username, listener, null, new PrintStream( out ), loggerSetting ) );
+				app.write( in );
 				return i.get();
 			}
 
@@ -78,22 +89,24 @@ public class RemoteUtil {
 
 	public List<Baseline> getRemoteBaselinesFromStream( FilePath workspace, Component component, Stream stream, Plevel plevel, boolean slavePolling ) throws CCUCMException {
 
-		GetRemoteBaselineFromStream t = new GetRemoteBaselineFromStream( component, stream, plevel, null, null );
-
 		try {
 			if( slavePolling ) {
 				if( workspace.isRemote() ) {
 					final Pipe pipe = Pipe.createRemoteToLocal();
 					Future<List<Baseline>> i = null;
-					i = workspace.actAsync( new GetRemoteBaselineFromStream( component, stream, plevel, pipe, loggerSetting ) );
+					i = workspace.actAsync( new GetRemoteBaselineFromStream( component, stream, plevel, pipe, null, loggerSetting ) );
 					app.write( pipe.getIn() );
 					return i.get();
 				} else {
 					Future<List<Baseline>> i = null;
-					i = workspace.actAsync( new GetRemoteBaselineFromStream( component, stream, plevel, null, null ) );
+					PipedInputStream in = new PipedInputStream();
+					PipedOutputStream out = new PipedOutputStream( in );
+					i = workspace.actAsync( new GetRemoteBaselineFromStream( component, stream, plevel, null, new PrintStream( out ), loggerSetting ) );
+					app.write( in );
 					return i.get();
 				}
 			} else {
+				GetRemoteBaselineFromStream t = new GetRemoteBaselineFromStream( component, stream, plevel, null, null, loggerSetting );
 				return t.invoke( null, null );
 			}
 
@@ -104,7 +117,7 @@ public class RemoteUtil {
 
 	public List<Stream> getRelatedStreams( FilePath workspace, TaskListener listener, Stream stream, boolean pollingChildStreams, boolean slavePolling ) throws CCUCMException {
 
-		PrintStream out = listener.getLogger();
+		PrintStream outlogger = listener.getLogger();
 
 		try {
 			if( slavePolling ) {
@@ -112,22 +125,25 @@ public class RemoteUtil {
 				if( workspace.isRemote() ) {
 					final Pipe pipe = Pipe.createRemoteToLocal();
 					Future<List<Stream>> i = null;
-					i = workspace.actAsync( new GetRelatedStreams( listener, stream, pollingChildStreams, pipe, loggerSetting ) );
+					i = workspace.actAsync( new GetRelatedStreams( listener, stream, pollingChildStreams, pipe, null, loggerSetting ) );
 					app.write( pipe.getIn() );
 					return i.get();
 				} else {
 					Future<List<Stream>> i = null;
-					i = workspace.actAsync( new GetRelatedStreams( listener, stream, pollingChildStreams, null, null ) );
+					PipedInputStream in = new PipedInputStream();
+					PipedOutputStream out = new PipedOutputStream( in );
+					i = workspace.actAsync( new GetRelatedStreams( listener, stream, pollingChildStreams, null, new PrintStream( out ), loggerSetting ) );
+					app.write( in );
 					return i.get();
 
 				}
 			} else {
-				GetRelatedStreams t = new GetRelatedStreams( listener, stream, pollingChildStreams, null, null );
+				GetRelatedStreams t = new GetRelatedStreams( listener, stream, pollingChildStreams, null, null, loggerSetting );
 				return t.invoke( null, null );
 			}
 
 		} catch( Exception e ) {
-			e.printStackTrace( out );
+			e.printStackTrace( outlogger );
 			throw new CCUCMException( e.getMessage() );
 		}
 	}
@@ -141,16 +157,19 @@ public class RemoteUtil {
 				if( workspace.isRemote() ) {
 					final Pipe pipe = Pipe.createRemoteToLocal();
 
-					i = workspace.actAsync( new LoadEntity( entity, pipe, loggerSetting ) );
+					i = workspace.actAsync( new LoadEntity( entity, pipe, null, loggerSetting ) );
 					app.write( pipe.getIn() );
 
 				} else {
-					i = workspace.actAsync( new LoadEntity( entity, null, null ) );
+					PipedInputStream in = new PipedInputStream();
+					PipedOutputStream out = new PipedOutputStream( in );
+					i = workspace.actAsync( new LoadEntity( entity, null, new PrintStream( out ), loggerSetting ) );
+					app.write( in );
 				}
 
 				return i.get();
 			} else {
-				LoadEntity t = new LoadEntity( entity, null, null );
+				LoadEntity t = new LoadEntity( entity, null, null, loggerSetting );
 				return t.invoke( null, null );
 			}
 
@@ -166,12 +185,14 @@ public class RemoteUtil {
 
 			if( workspace.isRemote() ) {
 				final Pipe pipe = Pipe.createRemoteToLocal();
-
-				i = workspace.actAsync( new GetClearCaseVersion( project, pipe, loggerSetting ) );
+				i = workspace.actAsync( new GetClearCaseVersion( project, pipe, null, loggerSetting ) );
 				app.write( pipe.getIn() );
 
 			} else {
-				i = workspace.actAsync( new GetClearCaseVersion( project, null, null ) );
+				PipedInputStream in = new PipedInputStream();
+				PipedOutputStream out = new PipedOutputStream( in );
+				i = workspace.actAsync( new GetClearCaseVersion( project, null, new PrintStream( out ), loggerSetting ) );
+				app.write( in );
 			}
 
 			return i.get();

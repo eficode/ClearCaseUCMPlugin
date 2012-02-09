@@ -33,12 +33,13 @@ public class GetRelatedStreams implements FileCallable<List<Stream>> {
 	private Pipe pipe;
 	
 	private LoggerSetting loggerSetting;
+	private PrintStream pstream;
 	
-	public GetRelatedStreams( TaskListener listener, Stream stream, boolean pollingChildStreams, Pipe pipe, LoggerSetting loggerSetting ) {
+	public GetRelatedStreams( TaskListener listener, Stream stream, boolean pollingChildStreams, Pipe pipe, PrintStream pstream, LoggerSetting loggerSetting ) {
 		this.stream = stream;
 		this.pollingChildStreams = pollingChildStreams;
 		this.listener = listener;
-		
+		this.pstream = pstream;
 		this.pipe = pipe;
 		this.loggerSetting = loggerSetting;
     }
@@ -56,6 +57,11 @@ public class GetRelatedStreams implements FileCallable<List<Stream>> {
 	    	app.lockToCurrentThread();
 	    	Logger.addAppender( app );
 	    	app.setSettings( loggerSetting );
+    	} else if( pstream != null ) {
+	    	app = new StreamAppender( pstream );
+	    	app.lockToCurrentThread();
+	    	Logger.addAppender( app );
+	    	app.setSettings( loggerSetting );    		
     	}
     	
     	

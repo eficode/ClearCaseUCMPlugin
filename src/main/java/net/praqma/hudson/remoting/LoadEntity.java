@@ -25,10 +25,13 @@ public class LoadEntity implements FileCallable<UCMEntity> {
 	private Pipe pipe;
 	
 	private LoggerSetting loggerSetting;
+	private PrintStream pstream;
 	
-	public LoadEntity( UCMEntity entity, Pipe pipe, LoggerSetting loggerSetting ) {
+	public LoadEntity( UCMEntity entity, Pipe pipe, PrintStream pstream, LoggerSetting loggerSetting ) {
 		this.entity = entity;
 		this.pipe = pipe;
+		
+		this.pstream = pstream;
 		
 		this.loggerSetting = loggerSetting;
     }
@@ -43,7 +46,12 @@ public class LoadEntity implements FileCallable<UCMEntity> {
 	    	app.lockToCurrentThread();
 	    	Logger.addAppender( app );
 	    	app.setSettings( loggerSetting );
-    	}    	
+    	} else if( pstream != null ) {
+	    	app = new StreamAppender( pstream );
+	    	app.lockToCurrentThread();
+	    	Logger.addAppender( app );
+	    	app.setSettings( loggerSetting );    		
+    	}
         
     	try {
     		UCM.setContext( UCM.ContextType.CLEARTOOL );

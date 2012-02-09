@@ -28,8 +28,9 @@ public class CreateRemoteBaseline implements FileCallable<Baseline> {
 	private String username;
 	private Pipe pipe;
 	private LoggerSetting loggerSetting;
+	private PrintStream pstream;
 
-	public CreateRemoteBaseline( String baseName, Component component, File view, String username, BuildListener listener, Pipe pipe, LoggerSetting loggerSetting ) {
+	public CreateRemoteBaseline( String baseName, Component component, File view, String username, BuildListener listener, Pipe pipe, PrintStream pstream, LoggerSetting loggerSetting ) {
 		this.baseName = baseName;
 		this.component = component;
 		this.view = view;
@@ -37,6 +38,7 @@ public class CreateRemoteBaseline implements FileCallable<Baseline> {
 		this.username = username;
 		this.pipe = pipe;
 		this.loggerSetting = loggerSetting;
+		this.pstream = pstream;
     }
 
     @Override
@@ -50,6 +52,11 @@ public class CreateRemoteBaseline implements FileCallable<Baseline> {
 	    	app.lockToCurrentThread();
 	    	Logger.addAppender( app );
 	    	app.setSettings( loggerSetting );
+    	} else if( pstream != null ) {
+	    	app = new StreamAppender( pstream );
+	    	app.lockToCurrentThread();
+	    	Logger.addAppender( app );
+	    	app.setSettings( loggerSetting );    		
     	}
 
     	Baseline bl = null;

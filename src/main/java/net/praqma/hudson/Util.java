@@ -189,8 +189,7 @@ public abstract class Util {
 
 		}
 
-		/* Only do this is if the path existed */
-
+		hudsonOut.println( "[" + Config.nameShort + "] Determine if view tag exists" );
 		if( UCMView.viewExists( viewtag ) ) {
 			hudsonOut.println( "[" + Config.nameShort + "] Reusing view tag" );
 			try {
@@ -201,6 +200,7 @@ public abstract class Util {
 					hudsonOut.println( "[" + Config.nameShort + "] View tag is not the same as " + vt );
 					/* Delete view */
 					FilePath path = new FilePath( viewroot );
+					hudsonOut.println( "[" + Config.nameShort + "] Trying to delete " + path );
 					try {
 						path.deleteRecursive();
 					} catch( Exception e ) {
@@ -219,6 +219,9 @@ public abstract class Util {
 					}
 					throw new ScmException( "Could not make workspace - could not regenerate view: " + ucmEx.getMessage() + " Type: " + "" );
 				}
+			} catch( Exception e ) {
+				hudsonOut.println( "[" + Config.nameShort + "] Failed making workspace: " + e.getMessage() );
+				throw new ScmException( "Failed making workspace: " + e.getMessage() );
 			}
 
 			hudsonOut.println( "[" + Config.nameShort + "] Getting snapshotview" );
@@ -232,6 +235,7 @@ public abstract class Util {
 			}
 		} else {
 			try {
+				hudsonOut.println( "[" + Config.nameShort + "] Creating new view" );
 				snapview = SnapshotView.create( stream, viewroot, viewtag );
 
 				hudsonOut.println( "[" + Config.nameShort + "] Created new view in local workspace: " + viewroot.getAbsolutePath() );
@@ -264,7 +268,7 @@ public abstract class Util {
 	public static void initializeAppender( AbstractBuild<?, ?> build, Appender appender ) {
 		appender.setSubscribeAll( false );
 		appender.lockToCurrentThread();
-		appender.setTemplate( "%datetime %level %space %stack %message%newline" );
+		//appender.setTemplate( "%datetime %level %space %stack %message%newline" );
 
 		/* Log classes */
 		if( build.getBuildVariables().get( Config.logVar ) != null ) {
