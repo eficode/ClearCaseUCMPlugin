@@ -208,7 +208,7 @@ public class CCUCMScm extends SCM {
 		logger.verbose( "Number of appenders: " + Logger.getNumberOfAppenders() );
 
 		logger.info( id + "CCUCMSCM checkout v. " + net.praqma.hudson.Version.version, id );
-
+		
 		/* Recalculate the states */
 		//int count = ccucm.recalculate( build.getProject() );
 		//logger.debug( id + "Removed " + count + " from states.", id );
@@ -278,13 +278,16 @@ public class CCUCMScm extends SCM {
 			 */
 
 			if( polling.isPollingSelf() || !polling.isPolling() ) {
+				logger.debug( "Initializing workspace" );
 				result = initializeWorkspace( build, workspace, changelogFile, listener, state );
 				if( plevel == null ) {
 					/* Save */
+					logger.debug( "Storing last baseline" );
 					storeLastBaseline( state.getBaseline(), build.getProject() );
 				}
 			} else {
 				/* Only start deliver when NOT polling self */
+				logger.debug( "Deliver" );
 				result = beginDeliver( build, state, listener, changelogFile );
 			}
 
@@ -343,6 +346,8 @@ public class CCUCMScm extends SCM {
 		}
 
 		//logger.debug( "FINAL STATES: " + ccucm.stringify() );
+		
+		System.out.println( "This is(SCM) " + this );
 
 		Logger.removeAppender( app );
 		return result;
@@ -558,6 +563,7 @@ public class CCUCMScm extends SCM {
 			state.setStream( UCMEntity.getStream( stream ) );
 
 			if( !state.isAddedByPoller() ) {
+				logger.debug( "This job was not added by a poller" );
 
 				List<Baseline> baselines = null;
 				/* Old skool self polling */
@@ -742,6 +748,8 @@ public class CCUCMScm extends SCM {
 	@Override
 	public void buildEnvVars( AbstractBuild<?, ?> build, Map<String, String> env ) {
 		super.buildEnvVars( build, env );
+		
+		System.out.println( "This is(ENV) " + this );
 		
 		if( CC_BASELINE == null ) {
 			try {

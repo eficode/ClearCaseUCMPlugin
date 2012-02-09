@@ -61,6 +61,10 @@ public class Polling {
 		}
 	}
 	
+	/**
+	 * This is actually only important if the polling type is not set. This is typically only if the default constructor is used.
+	 * @return whether or not the type is polling
+	 */
 	public boolean isPolling() {
 		if( !this.type.equals( PollingType.none ) ) {
 			return true;
