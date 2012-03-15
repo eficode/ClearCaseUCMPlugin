@@ -79,15 +79,13 @@ public class GetRelatedStreams implements FileCallable<List<Stream>> {
         	}
         } catch( UCMException e1 ) {
         	e1.printStackTrace( out );
-        	if( pipe != null ) {
-        		Logger.removeAppender( app );
-        	}
+       		Logger.removeAppender( app );
+        
         	throw new IOException( "Could not find any related streams: " + e1.getMessage() );
         }
         
-        if( pipe != null ) {
-        	Logger.removeAppender( app );
-        }
+    	Logger.removeAppender( app );
+    	
         return streams;
     }
 }

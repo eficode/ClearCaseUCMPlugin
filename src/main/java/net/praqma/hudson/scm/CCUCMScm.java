@@ -1469,7 +1469,7 @@ public class CCUCMScm extends SCM {
 			return FormValidation.validateExecutable( value );
 		}
 
-		public FormValidation doTemplateCheck( @QueryParameter String value ) throws FormValidation {
+		public FormValidation doCheckTemplate( @QueryParameter String value ) throws FormValidation {
 			try {
 				NameTemplate.testTemplate( NameTemplate.trim( value ) );
 				return FormValidation.ok( "The template seems ok" );
