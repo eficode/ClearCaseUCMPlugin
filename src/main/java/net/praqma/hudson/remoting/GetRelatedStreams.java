@@ -34,14 +34,16 @@ public class GetRelatedStreams implements FileCallable<List<Stream>> {
 	
 	private LoggerSetting loggerSetting;
 	private PrintStream pstream;
+	private boolean multisitePolling;
 	
-	public GetRelatedStreams( TaskListener listener, Stream stream, boolean pollingChildStreams, Pipe pipe, PrintStream pstream, LoggerSetting loggerSetting ) {
+	public GetRelatedStreams( TaskListener listener, Stream stream, boolean pollingChildStreams, Pipe pipe, PrintStream pstream, LoggerSetting loggerSetting, boolean multisitePolling ) {
 		this.stream = stream;
 		this.pollingChildStreams = pollingChildStreams;
 		this.listener = listener;
 		this.pstream = pstream;
 		this.pipe = pipe;
 		this.loggerSetting = loggerSetting;
+		this.multisitePolling = multisitePolling;
     }
     
     @Override
@@ -71,7 +73,7 @@ public class GetRelatedStreams implements FileCallable<List<Stream>> {
     	
     	try {
         	if( pollingChildStreams ) {
-        		streams = stream.getChildStreams();
+        		streams = stream.getChildStreams(multisitePolling);
         	} else {
         		streams = stream.getSiblingStreams();
         	}

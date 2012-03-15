@@ -128,10 +128,15 @@ class RemotePostBuild implements FileCallable<Status> {
 			}
 
 			try {
-				Project.Plevel pl = sourcebaseline.promote();
-				status.setPromotedLevel( pl );
-				hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " promoted to " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
-			} catch( UCMException e ) {
+				if(!sourcebaseline.getMastership().equals(targetbaseline.getMastership())) {
+					hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " was a posted delivery, and has a different mastership." );
+					hudsonOut.println( "[" + Config.nameShort + "] Its promotion level cannot be updated, but is left as INITIAL" );
+				} else {
+					Project.Plevel pl = sourcebaseline.promote();
+					status.setPromotedLevel( pl );
+					hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " promoted to " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
+				}
+				} catch( UCMException e ) {
 				status.setStable( false );
 				/*
 				 * as it will not make sense to recommend if we cannot promote,
@@ -176,10 +181,15 @@ class RemotePostBuild implements FileCallable<Status> {
 				}
 
 				try {
-					logger.warning( id + "Demoting baseline" );
-					Project.Plevel pl = sourcebaseline.demote();
-					status.setPromotedLevel( pl );
-					hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
+					if(!sourcebaseline.getMastership().equals(targetbaseline.getMastership())) {
+						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " was a posted delivery, and has a different mastership." );
+						hudsonOut.println( "[" + Config.nameShort + "] Its promotion level cannot be updated, but is left as INITIAL" );
+					} else {
+						logger.warning( id + "Demoting baseline" );
+						Project.Plevel pl = sourcebaseline.demote();
+						status.setPromotedLevel( pl );
+						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
+					}
 				} catch( Exception e ) {
 					status.setStable( false );
 					// throw new NotifierException(
