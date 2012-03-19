@@ -103,6 +103,8 @@ class RemotePostBuild implements FileCallable<Status> {
 
 		logger.info( "Starting PostBuild task" );
 
+		String noticeString = "";
+
 		/* Create the Tag object */
 		Tag tag = null;
 		if( makeTag ) {
@@ -129,8 +131,8 @@ class RemotePostBuild implements FileCallable<Status> {
 
 			try {
 				if(!sourcebaseline.getMastership().equals(targetbaseline.getMastership())) {
-					hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " was a posted delivery, and has a different mastership." );
-					hudsonOut.println( "[" + Config.nameShort + "] Its promotion level cannot be updated, but is left as INITIAL" );
+					printPostedOutput(sourcebaseline);
+					noticeString = "*";
 				} else {
 					Project.Plevel pl = sourcebaseline.promote();
 					status.setPromotedLevel( pl );
@@ -182,8 +184,8 @@ class RemotePostBuild implements FileCallable<Status> {
 
 				try {
 					if(!sourcebaseline.getMastership().equals(targetbaseline.getMastership())) {
-						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " was a posted delivery, and has a different mastership." );
-						hudsonOut.println( "[" + Config.nameShort + "] Its promotion level cannot be updated, but is left as INITIAL" );
+						printPostedOutput(sourcebaseline);
+						noticeString = "*";
 					} else {
 						logger.warning( id + "Demoting baseline" );
 						Project.Plevel pl = sourcebaseline.demote();
@@ -252,8 +254,12 @@ class RemotePostBuild implements FileCallable<Status> {
 		if( makeTag ) {
 			if( tag != null ) {
 				try {
-					tag = tag.persist();
-					hudsonOut.println( "[" + Config.nameShort + "] Baseline now marked with tag: \n" + tag.stringify() );
+					if(!sourcebaseline.getMastership().equals(targetbaseline.getMastership())) {
+						hudsonOut.println( "[" + Config.nameShort + "] Baseline not marked with tag as it has different mastership");
+					} else {
+						tag = tag.persist();
+						hudsonOut.println( "[" + Config.nameShort + "] Baseline now marked with tag: \n" + tag.stringify() );
+					}
 				} catch( UCMException e ) {
 					hudsonOut.println( "[" + Config.nameShort + "] Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
 					if( e.getCause() != null ) {
@@ -274,14 +280,19 @@ class RemotePostBuild implements FileCallable<Status> {
 		}
 
 		if( this.sourcestream.equals( this.targetstream ) ) {
-			status.setBuildDescr( setDisplaystatusSelf( newPLevel, targetbaseline.getShortname() ) );
+			status.setBuildDescr( setDisplaystatusSelf( newPLevel + noticeString, targetbaseline.getShortname() ) );
 		} else {
-			status.setBuildDescr( setDisplaystatus( sourcebaseline.getShortname(), newPLevel, targetbaseline.getShortname(), status.getErrorMessage() ) );
+			status.setBuildDescr( setDisplaystatus( sourcebaseline.getShortname(), newPLevel + noticeString, targetbaseline.getShortname(), status.getErrorMessage() ) );
 		}
 
 		logger.info( id + "Remote post build finished normally" );
 		Logger.removeAppender( app );
 		return status;
+	}
+
+	private void printPostedOutput(Baseline sourcebaseline ) throws UCMException  {
+		hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " was a posted delivery, and has a different mastership." );
+		hudsonOut.println( "[" + Config.nameShort + "] Its promotion level cannot be updated, but is left as " + sourcebaseline.getPromotionLevel( true ).toString() );
 	}
 
 	private String setDisplaystatusSelf( String plevel, String fqn ) {

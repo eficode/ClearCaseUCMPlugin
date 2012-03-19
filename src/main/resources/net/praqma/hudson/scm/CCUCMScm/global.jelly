@@ -4,7 +4,7 @@
     <f:entry title="Allow polling on slaves" help="/plugin/clearcase-ucm-plugin/help-globalslavepolling.html">
         <f:checkbox name="CCUCM.slavePolling" checked="${descriptor.slavePolling}" />
     </f:entry>
-    <f:entry title="Support Posted Deliveries" help="/plugin/clearcase-ucm-plugin/help-multisitepolling.html">
+    <f:entry title="Poll for Posted Deliveries" help="/plugin/clearcase-ucm-plugin/help-multisitepolling.html">
         <f:checkbox name="CCUCM.multisitePolling" checked="${descriptor.multisitePolling}" />
     </f:entry>
   </f:section>
