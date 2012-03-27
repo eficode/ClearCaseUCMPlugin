@@ -22,8 +22,8 @@
 
     <repositories>
         <repository>
-            <id>m.g.o-public</id>
-            <url>http://maven.glassfish.org/content/groups/public/</url>
+          <id>repo.jenkins-ci.org</id>
+          <url>http://repo.jenkins-ci.org/public/</url>
         </repository>
 
         <repository>
@@ -58,12 +58,8 @@
             <name>Christian Wolfgang</name>
         </developer>
         <developer>
-            <id>t4s</id>
-            <name>Troels Selch</name>
-        </developer>
-        <developer>
-            <id>MargitB</id>
-            <name>Margit Bennetzen</name>
+            <id>les-praqma</id>
+            <name>Leif Sørensen</name>
         </developer>
         <developer>
             <id>lak-praqma</id>
