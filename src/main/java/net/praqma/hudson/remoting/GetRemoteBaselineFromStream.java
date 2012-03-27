@@ -31,8 +31,9 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
 	private PrintStream pstream;
 	
 	private LoggerSetting loggerSetting;
-	
-	public GetRemoteBaselineFromStream( Component component, Stream stream, Plevel plevel, Pipe pipe, PrintStream pstream, LoggerSetting loggerSetting ) {
+	private boolean multisitePolling;	
+
+	public GetRemoteBaselineFromStream( Component component, Stream stream, Plevel plevel, Pipe pipe, PrintStream pstream, LoggerSetting loggerSetting, boolean multisitePolling ) {
 		this.component = component;
 		this.stream = stream;
 		this.plevel = plevel;
@@ -41,7 +42,8 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
 		this.pstream = pstream;
 		
 		this.loggerSetting = loggerSetting;
-    }
+		this.multisitePolling = multisitePolling;
+	}
     
     @Override
     public List<Baseline> invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
@@ -70,7 +72,7 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
         List<Baseline> baselines = null;
         
         try {
-            baselines = component.getBaselines( stream, plevel );
+            baselines = component.getBaselines( stream, plevel, multisitePolling );
         } catch (UCMException e) {
        		Logger.removeAppender( app );
             throw new IOException("Could not retrieve baselines from repository. " + e.getMessage());

@@ -14,7 +14,7 @@
 
 
     <artifactId>clearcase-ucm-plugin</artifactId>
-    <version>1.0.6-SNAPSHOT</version>
+    <version>1.0.8-SNAPSHOT</version>
     <name>ClearCase UCM Plugin</name>
     <description>Integrates Jenkins to ClearCase UCM</description>
     <url>https://wiki.jenkins-ci.org/display/JENKINS/ClearCase+UCM+Plugin</url>
@@ -171,7 +171,7 @@
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>COOL</artifactId>
-            <version>0.3.40</version>
+            <version>0.3.41</version>
             <type>jar</type>
             <scope>compile</scope>
         </dependency>

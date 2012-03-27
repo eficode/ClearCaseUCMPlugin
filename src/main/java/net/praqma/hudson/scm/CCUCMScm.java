@@ -1074,7 +1074,7 @@ public class CCUCMScm extends SCM {
 		List<Baseline> baselines = new ArrayList<Baseline>();
 
 		try {
-			streams = rutil.getRelatedStreams( workspace, listener, stream, pollingChildStreams, this.getSlavePolling() );
+			streams = rutil.getRelatedStreams( workspace, listener, stream, pollingChildStreams, this.getSlavePolling(), this.getMultisitePolling() );
 		} catch( CCUCMException e1 ) {
 			e1.printStackTrace( consoleOutput );
 			logger.warning( "Could not retrieve streams: " + e1.getMessage(), id );
@@ -1092,7 +1092,7 @@ public class CCUCMScm extends SCM {
 				// List<Baseline> found = getValidBaselinesFromStream(project,
 				// state, Project.getPlevelFromString(levelToPoll), s,
 				// component);
-				List<Baseline> found = rutil.getRemoteBaselinesFromStream( workspace, component, s, plevel, this.getSlavePolling() );
+				List<Baseline> found = rutil.getRemoteBaselinesFromStream( workspace, component, s, plevel, this.getSlavePolling(), this.getMultisitePolling() );
 				for( Baseline b : found ) {
 					baselines.add( b );
 				}
@@ -1131,7 +1131,7 @@ public class CCUCMScm extends SCM {
 		List<Baseline> baselines = new ArrayList<Baseline>();
 
 		try {
-			baselines = rutil.getRemoteBaselinesFromStream( workspace, component, stream, plevel, this.getSlavePolling() );
+			baselines = rutil.getRemoteBaselinesFromStream( workspace, component, stream, plevel, this.getSlavePolling(), this.getMultisitePolling() );
 		} catch( CCUCMException e1 ) {
 			// throw new ScmException("Unable to get baselines from " +
 			// stream.getShortname() + ": " + e1.getMessage());
@@ -1345,6 +1345,12 @@ public class CCUCMScm extends SCM {
 
 	}
 
+	public boolean getMultisitePolling() {
+		CCUCMScmDescriptor desc = (CCUCMScmDescriptor) this.getDescriptor();
+		return desc.getMultisitePolling();
+
+	}
+
 	@Exported
 	public String getPolling() {
 		return polling.toString();
@@ -1403,6 +1409,7 @@ public class CCUCMScm extends SCM {
 	public static class CCUCMScmDescriptor extends SCMDescriptor<CCUCMScm> implements hudson.model.ModelObject {
 
 		private boolean slavePolling;
+		private boolean multisitePolling;
 		private List<String> loadModules;
 
 		public CCUCMScmDescriptor() {
@@ -1423,6 +1430,10 @@ public class CCUCMScm extends SCM {
 				if( s != null ) {
 					slavePolling = Boolean.parseBoolean( s );
 				}
+				s = json.getString( "multisitePolling" );
+				if( s != null ) {
+					multisitePolling = Boolean.parseBoolean( s );
+				}
 			} catch( Exception e ) {
 				e.getMessage();
 			}
@@ -1436,6 +1447,9 @@ public class CCUCMScm extends SCM {
 			return slavePolling;
 		}
 
+		public boolean getMultisitePolling() {
+			return multisitePolling;
+		}
 		/**
 		 * This is called by Hudson to discover the plugin name
 		 */
