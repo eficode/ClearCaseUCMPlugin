@@ -136,26 +136,40 @@ class RemotePostBuild implements FileCallable<Status> {
 			}
 
 			try {
-				if(isPostedDelivery()) {
+				if(hasRemoteMastership()) {
 					printPostedOutput(sourcebaseline);
 					noticeString = "*";
 				} else {
-					/* Treat the build as successful */
 					Project.Plevel pl;
 					if(!status.isStable() && !unstable.treatSuccessful()) {
+						/* Treat the not stable build as unsuccessful */
 						pl = sourcebaseline.demote();
 						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + pl.toString() + "." );
 					} else {
+						/* Treat the build as successful */
 						pl = sourcebaseline.promote();
+						hudsonOut.print( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " promoted to " + pl.toString() );
 						if(!status.isStable()) {
-							hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " promoted to " + pl.toString() + ", even though the build is unstable." );
+							hudsonOut.println( ", even though the build is unstable." );
 						} else {
-							hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " promoted to " + pl.toString() + "." );
+							hudsonOut.println( "." );
 						}
 					}
 					status.setPromotedLevel( pl );
 				}
-				} catch( UCMException e ) {
+				/* Recommend the Baseline */
+				if( recommend ) {
+					try {
+						targetstream.recommendBaseline( targetbaseline );
+						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + targetbaseline.getShortname() + " is now recommended." );
+					} catch( UCMException e ) {
+						status.setStable( false );
+						status.setRecommended( false );
+						hudsonOut.println( "[" + Config.nameShort + "] Could not recommend Baseline " + targetbaseline.getShortname() + ": " + e.getMessage() );
+						logger.warning( id + "Could not recommend baseline: " + e.getMessage() );
+					}
+				}
+			} catch( UCMException e ) {
 				status.setStable( false );
 				/*
 				 * as it will not make sense to recommend if we cannot promote,
@@ -175,18 +189,6 @@ class RemotePostBuild implements FileCallable<Status> {
 				}
 			}
 
-			/* Recommend the Baseline */
-			if( recommend ) {
-				try {
-					targetstream.recommendBaseline( targetbaseline );
-					hudsonOut.println( "[" + Config.nameShort + "] Baseline " + targetbaseline.getShortname() + " is now recommended." );
-				} catch( UCMException e ) {
-					status.setStable( false );
-					status.setRecommended( false );
-					hudsonOut.println( "[" + Config.nameShort + "] Could not recommend Baseline " + targetbaseline.getShortname() + ": " + e.getMessage() );
-					logger.warning( id + "Could not recommend baseline: " + e.getMessage() );
-				}
-			}
 		} else { /* The build failed */
 			status.setRecommended( false );
 
@@ -197,7 +199,7 @@ class RemotePostBuild implements FileCallable<Status> {
 			}
 
 			try {
-				if(isPostedDelivery()) {
+				if(hasRemoteMastership()) {
 					printPostedOutput(sourcebaseline);
 					noticeString = "*";
 				} else {
@@ -220,7 +222,7 @@ class RemotePostBuild implements FileCallable<Status> {
 		if( makeTag ) {
 			if( tag != null ) {
 				try {
-					if(isPostedDelivery()) {
+					if(hasRemoteMastership()) {
 						hudsonOut.println( "[" + Config.nameShort + "] Baseline not marked with tag as it has different mastership");
 					} else {
 						tag = tag.persist();
@@ -251,6 +253,17 @@ class RemotePostBuild implements FileCallable<Status> {
 			status.setBuildDescr( setDisplaystatus( sourcebaseline.getShortname(), newPLevel + noticeString, targetbaseline.getShortname(), status.getErrorMessage() ) );
 		}
 
+		try {
+			if( this.isPostedDelivery() )  {
+				hudsonOut.println( "[" + Config.nameShort + "] Resetting mastership for baseline "  + sourcebaseline.getShortname() + ". ");
+				//sourcebaseline... todo 
+			}
+			
+		} catch( UCMException e ) {
+			logger.warning( id + "Could not reset mastership for baseline. " + e.getMessage() );
+			hudsonOut.println( "[" + Config.nameShort + "] Could not reset mastership for baseline "  + sourcebaseline.getShortname() + ". " + e.getMessage() );
+		}
+
 		logger.info( id + "Remote post build finished normally" );
 		Logger.removeAppender( app );
 		return status;
@@ -261,8 +274,12 @@ class RemotePostBuild implements FileCallable<Status> {
 		hudsonOut.println( "[" + Config.nameShort + "] Its promotion level cannot be updated, but is left as " + sourcebaseline.getPromotionLevel( true ).toString() );
 	}
 
-	private boolean isPostedDelivery() throws UCMException  {
+	private boolean hasRemoteMastership() throws UCMException  {
 		return !sourcebaseline.getMastership().equals(targetbaseline.getMastership());
+	}
+
+	private boolean isPostedDelivery() throws UCMException  {
+		return sourcebaseline.getStream().hasPostedDelivery();
 	}
 
 	private String setDisplaystatusSelf( String plevel, String fqn ) {
