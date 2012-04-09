@@ -123,20 +123,37 @@ class RemotePostBuild implements FileCallable<Status> {
 		}
 
 		/* The build was a success and the deliver did not fail */
-		if( result.equals( Result.SUCCESS ) && status.isStable() ) {
+		if( result.equals( Result.SUCCESS )) {
+
+			status.setRecommended( true );
 
 			if( status.isTagAvailable() ) {
-				tag.setEntry( "buildstatus", "SUCCESS" );
+				if(status.isStable()) { 
+					tag.setEntry( "buildstatus", "SUCCESS" );
+				} else {
+					tag.setEntry( "buildstatus", "UNSTABLE" );
+				}
 			}
 
 			try {
-				if(!sourcebaseline.getMastership().equals(targetbaseline.getMastership())) {
+				if(isPostedDelivery()) {
 					printPostedOutput(sourcebaseline);
 					noticeString = "*";
 				} else {
-					Project.Plevel pl = sourcebaseline.promote();
+					/* Treat the build as successful */
+					Project.Plevel pl;
+					if(!status.isStable() && !unstable.treatSuccessful()) {
+						pl = sourcebaseline.demote();
+						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + pl.toString() + "." );
+					} else {
+						pl = sourcebaseline.promote();
+						if(!status.isStable()) {
+							hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " promoted to " + pl.toString() + ", even though the build is unstable." );
+						} else {
+							hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " promoted to " + pl.toString() + "." );
+						}
+					}
 					status.setPromotedLevel( pl );
-					hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " promoted to " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
 				}
 				} catch( UCMException e ) {
 				status.setStable( false );
@@ -170,91 +187,40 @@ class RemotePostBuild implements FileCallable<Status> {
 					logger.warning( id + "Could not recommend baseline: " + e.getMessage() );
 				}
 			}
-		} /* The build did not succeed or the deliver failed */else {
-			
+		} else { /* The build failed */
 			status.setRecommended( false );
 
-			/* The build failed */
-			if( result.equals( Result.FAILURE ) ) {
-				hudsonOut.println( "[" + Config.nameShort + "] Build failed." );
+			hudsonOut.println( "[" + Config.nameShort + "] Build failed." );
 
-				if( status.isTagAvailable() ) {
-					tag.setEntry( "buildstatus", "FAILURE" );
-				}
+			if( status.isTagAvailable() ) {
+				tag.setEntry( "buildstatus", "FAILURE" );
+			}
 
-				try {
-					if(!sourcebaseline.getMastership().equals(targetbaseline.getMastership())) {
-						printPostedOutput(sourcebaseline);
-						noticeString = "*";
-					} else {
-						logger.warning( id + "Demoting baseline" );
-						Project.Plevel pl = sourcebaseline.demote();
-						status.setPromotedLevel( pl );
-						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
-					}
-				} catch( Exception e ) {
-					status.setStable( false );
-					// throw new NotifierException(
-					// "Could not demote baseline. " + e.getMessage() );
-					hudsonOut.println( "[" + Config.nameShort + "] Could not demote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
-					logger.warning( id + "Could not demote baseline. " + e.getMessage() );
-				}
-
-			} /*
-			 * The build is unstable, or something in the middle.... TODO Maybe
-			 * not else if
-			 */else if( !result.equals( Result.FAILURE ) ) {
-				if( status.isTagAvailable() ) {
-					tag.setEntry( "buildstatus", "UNSTABLE" );
-				}
-				
-				/* Let's treat it like it was successful */
-				status.setRecommended( true );
-
-				try {
-					Project.Plevel pl = Project.Plevel.INITIAL;
-
-					/* Treat the build as successful */
-					if( unstable.treatSuccessful() ) {
-						/* Promote */
-						pl = sourcebaseline.promote();
-						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is promoted, even though the build is unstable." );
-						
-						/* Recommend the Baseline */
-						if( recommend ) {
-							try {
-								targetstream.recommendBaseline( targetbaseline );
-								hudsonOut.println( "[" + Config.nameShort + "] Baseline " + targetbaseline.getShortname() + " is now recommended." );
-							} catch( Exception e ) {
-								status.setStable( false );
-								status.setRecommended( false );
-								hudsonOut.println( "[" + Config.nameShort + "] Could not recommend baseline " + targetbaseline.getShortname() + ": " + e.getMessage() );
-								logger.warning( id + "Could not recommend baseline. Reason: " + e.getMessage() );
-							}
-						}
-					} else {
-						pl = sourcebaseline.demote();
-					}
+			try {
+				if(isPostedDelivery()) {
+					printPostedOutput(sourcebaseline);
+					noticeString = "*";
+				} else {
+					logger.warning( id + "Demoting baseline" );
+					Project.Plevel pl = sourcebaseline.demote();
 					status.setPromotedLevel( pl );
 					hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
-				} catch( Exception e ) {
-					status.setStable( false );
-					hudsonOut.println( "[" + Config.nameShort + "] Could not demote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
-					logger.warning( id + "Could not demote baseline. " + e.getMessage() );
 				}
-
-			} /* Result not handled by CCUCM */else {
-				tag.setEntry( "buildstatus", result.toString() );
-				logger.log( id + "Buildstatus (Result) was " + result + ". Not handled by plugin." );
-				hudsonOut.println( "[" + Config.nameShort + "] Baselines not changed. Buildstatus: " + result );
+			} catch( Exception e ) {
+				status.setStable( false );
+				// throw new NotifierException(
+				// "Could not demote baseline. " + e.getMessage() );
+				hudsonOut.println( "[" + Config.nameShort + "] Could not demote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
+				logger.warning( id + "Could not demote baseline. " + e.getMessage() );
 			}
+
 		}
 
 		/* Persist the Tag */
 		if( makeTag ) {
 			if( tag != null ) {
 				try {
-					if(!sourcebaseline.getMastership().equals(targetbaseline.getMastership())) {
+					if(isPostedDelivery()) {
 						hudsonOut.println( "[" + Config.nameShort + "] Baseline not marked with tag as it has different mastership");
 					} else {
 						tag = tag.persist();
@@ -293,6 +259,10 @@ class RemotePostBuild implements FileCallable<Status> {
 	private void printPostedOutput(Baseline sourcebaseline ) throws UCMException  {
 		hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " was a posted delivery, and has a different mastership." );
 		hudsonOut.println( "[" + Config.nameShort + "] Its promotion level cannot be updated, but is left as " + sourcebaseline.getPromotionLevel( true ).toString() );
+	}
+
+	private boolean isPostedDelivery() throws UCMException  {
+		return !sourcebaseline.getMastership().equals(targetbaseline.getMastership());
 	}
 
 	private String setDisplaystatusSelf( String plevel, String fqn ) {
