@@ -254,9 +254,14 @@ class RemotePostBuild implements FileCallable<Status> {
 		}
 
 		try {
-			if( this.isPostedDelivery() )  {
-				hudsonOut.println( "[" + Config.nameShort + "] Resetting mastership for baseline "  + sourcebaseline.getShortname() + ". ");
-				//sourcebaseline... todo 
+			logger.log( id + "Baseline " + sourcebaseline.getFullyQualifiedName() +
+					" Source Mastership " + sourcebaseline.getMastership() +
+					" Target Mastership " + targetbaseline.getMastership() +
+					" Original mastership " + sourcebaseline.getStream().getOriginalMastership());
+			if( sourcebaseline.shouldResetMastership() ) {
+				hudsonOut.println( "[" + Config.nameShort + "] Resetting mastership for baseline "  + sourcebaseline.getShortname() + 
+						" to " + sourcebaseline.getStream().getOriginalMastership() +  ". ");
+				sourcebaseline.resetMastership();
 			}
 			
 		} catch( UCMException e ) {
@@ -276,10 +281,6 @@ class RemotePostBuild implements FileCallable<Status> {
 
 	private boolean hasRemoteMastership() throws UCMException  {
 		return !sourcebaseline.getMastership().equals(targetbaseline.getMastership());
-	}
-
-	private boolean isPostedDelivery() throws UCMException  {
-		return sourcebaseline.getStream().hasPostedDelivery();
 	}
 
 	private String setDisplaystatusSelf( String plevel, String fqn ) {

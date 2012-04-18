@@ -195,7 +195,12 @@ public class CCUCMScm extends SCM {
 		PrintStream consoleOutput = listener.getLogger();
 
 		consoleOutput.println( "[" + Config.nameShort + "] ClearCase UCM Plugin version() " + net.praqma.hudson.Version.version );
+
+		consoleOutput.println( "[" + Config.nameShort + "] Allow for slave polling: " + this.getSlavePolling() );
+		consoleOutput.println( "[" + Config.nameShort + "] Poll for posted deliveries: " + this.getMultisitePolling() );
+		
 		consoleOutput.println( "[" + Config.nameShort + "] Forcing deliver: " + forceDeliver );
+
 		
 		/* Preparing the logger */
 		logger = Logger.getLogger();
