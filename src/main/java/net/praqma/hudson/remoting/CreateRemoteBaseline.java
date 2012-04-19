@@ -5,8 +5,9 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Set;
 
-import net.praqma.clearcase.ucm.UCMException;
+import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.ucm.entities.Baseline;
+import net.praqma.clearcase.ucm.entities.Baseline.LabelBehaviour;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.util.debug.Logger;
 import net.praqma.util.debug.LoggerSetting;
@@ -61,8 +62,9 @@ public class CreateRemoteBaseline implements FileCallable<Baseline> {
 
     	Baseline bl = null;
     	try {
-			bl = Baseline.create( baseName, component, view, true, false );
-		} catch (UCMException e) {
+			//bl = Baseline.create( baseName, component, view, true, false );
+    		bl = Baseline.create( baseName, component, view, LabelBehaviour.INCREMENTAL, false );
+		} catch (ClearCaseException e) {
         	Logger.removeAppender( app );
         	throw new IOException( "Unable to create Baseline:" + e.getMessage() );
 		}
