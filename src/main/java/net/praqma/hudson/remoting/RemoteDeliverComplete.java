@@ -5,7 +5,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Set;
 
-import net.praqma.clearcase.ucm.UCMException;
+import net.praqma.clearcase.Deliver;
+import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
@@ -34,7 +35,7 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 	private Stream stream;
 	private SnapshotView view;
 	private ClearCaseChangeset changeset;
-	
+
 	private PrintStream pstream;
 
 	private LoggerSetting loggerSetting;
@@ -48,7 +49,7 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 		this.stream = stream;
 		this.view = view;
 		this.changeset = changeset;
-		
+
 		this.pstream = pstream;
 
 		this.loggerSetting = loggerSetting;
@@ -60,47 +61,50 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 		PrintStream out = listener.getLogger();
 
 		Logger logger = Logger.getLogger();
-    	Appender app = null;
-    	if( pipe != null ) {
-	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
-	    	app = new StreamAppender( toMaster );
-	    	app.lockToCurrentThread();
-	    	Logger.addAppender( app );
-	    	app.setSettings( loggerSetting );
-    	} else if( pstream != null ) {
-	    	app = new StreamAppender( pstream );
-	    	app.lockToCurrentThread();
-	    	Logger.addAppender( app );
-	    	app.setSettings( loggerSetting );    		
-    	}
+		Appender app = null;
+		if( pipe != null ) {
+			PrintStream toMaster = new PrintStream( pipe.getOut() );
+			app = new StreamAppender( toMaster );
+			app.lockToCurrentThread();
+			Logger.addAppender( app );
+			app.setSettings( loggerSetting );
+		} else if( pstream != null ) {
+			app = new StreamAppender( pstream );
+			app.lockToCurrentThread();
+			Logger.addAppender( app );
+			app.setSettings( loggerSetting );
+		}
 
-    	if( complete ) {
+		Deliver deliver = new Deliver( baseline, baseline.getStream(), stream, view.getViewRoot(), view.getViewtag() );
+		if( complete ) {
 
 			try {
-				baseline.deliver( baseline.getStream(), stream, view.getViewRoot(), view.getViewtag(), true, true, true );
-			} catch (UCMException ex) {
+				deliver.complete();
+				//baseline.deliver( baseline.getStream(), stream, view.getViewRoot(), view.getViewtag(), true, true, true );
+			} catch( ClearCaseException ex ) {
 
 				try {
-					baseline.cancel( view.getViewRoot() );
-				} catch (UCMException ex1) {
-	        		Logger.removeAppender( app );
+					//baseline.cancel( view.getViewRoot() );
+					deliver.cancel();
+				} catch( ClearCaseException ex1 ) {
+					Logger.removeAppender( app );
 					throw new IOException( "Completing the deliver failed. Could not cancel." );
 				}
-	        	Logger.removeAppender( app );
-				throw new IOException( "Completing the deliver failed. Deliver was cancelled." );
+				Logger.removeAppender( app );
+				throw new IOException( "Completing the deliver failed. Deliver was cancelled.", ex );
 			}
 
 		} else {
 			out.println( "Cancelling" );
 			try {
-				baseline.cancel( view.getViewRoot() );
-			} catch (UCMException ex) {
+				//baseline.cancel( view.getViewRoot() );
+				deliver.cancel();
+			} catch( ClearCaseException ex ) {
 				Logger.removeAppender( app );
-				throw new IOException( "Could not cancel the deliver." );
+				throw new IOException( "Could not cancel the deliver.", ex );
 			}
 		}
 
-       
 		Logger.removeAppender( app );
 		return true;
 	}
