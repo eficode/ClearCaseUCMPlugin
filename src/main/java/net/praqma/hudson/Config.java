@@ -2,12 +2,11 @@ package net.praqma.hudson;
 
 import java.util.List;
 
-import net.praqma.clearcase.ucm.UCMException;
+import net.praqma.clearcase.exceptions.ClearCaseException;
+import net.praqma.clearcase.exceptions.CleartoolException;
 import net.praqma.clearcase.ucm.entities.Baseline;
-import net.praqma.clearcase.Cool;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
-import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.util.debug.Logger;
@@ -31,21 +30,6 @@ public class Config {
         return levels;
     }
 
-    public static void setContext() {
-        boolean useTestbase = false;
-        if (useTestbase) {
-            /*
-             * Examples to use from testbase.xml: stream =
-             * "STREAM_TEST1@\PDS_PVOB" component = "COMPONENT_TEST1@\PDS_PVOB"
-             * Level to poll = "INITIAL"
-             */
-            Cool.setContext(UCM.ContextType.XML);
-            System.out.println( Config.nameShort + " is running on a testbase");
-        } else {
-            UCM.setContext(UCM.ContextType.CLEARTOOL);
-        }
-    }
-
     /*Below method is obsolete - remove when everything works*/
     /**
      * @deprecated
@@ -53,8 +37,9 @@ public class Config {
     public static Stream devStream(String pvob) throws ScmException {
         Stream devStream = null;
         try {
-            devStream = UCMEntity.getStream("Hudson_Server_dev@" + pvob, false);
-        } catch (UCMException e) {
+            devStream = Stream.get("Hudson_Server_dev@" + pvob);
+            devStream.load();
+        } catch (ClearCaseException e) {
             throw new ScmException("Could not get developer stream. " + e.getMessage());
         }
         return devStream;
@@ -69,23 +54,23 @@ public class Config {
          * hudson, Hudson, jenkins or Jenkins */
         if (buildProject == null) {
             try {
-                project = UCMEntity.getProject("hudson@" + bl.getPvobString(), false);
-            } catch (UCMException eh) {
+                project = UCMEntity.getProject("hudson", bl.getPvob());
+            } catch (CleartoolException eh) {
                 try {
-                    project = UCMEntity.getProject("Hudson@" + bl.getPvobString(), false);
-                } catch (UCMException eH) {
+                    project = UCMEntity.getProject("Hudson@" + bl.getPvobString());
+                } catch (CleartoolException eH) {
                     try {
-                        project = UCMEntity.getProject("jenkins@" + bl.getPvobString(), false);
-                    } catch (UCMException ej) {
+                        project = UCMEntity.getProject("jenkins@" + bl.getPvobString());
+                    } catch (CleartoolException ej) {
                         try {
-                            project = UCMEntity.getProject("Jenkins@" + bl.getPvobString(), false);
-                        } catch (UCMException eJ) {
+                            project = UCMEntity.getProject("Jenkins@" + bl.getPvobString());
+                        } catch (CleartoolException eJ) {
                             logger.warning("The build Project was not found.");
 
                             /* Use the integration stream */
                             try {
                                 project = bl.getStream().getProject();
-                            } catch (UCMException ucme) {
+                            } catch (CleartoolException ucme) {
                                 throw new ScmException("Could not get the build Project.");
                             }
                         }
@@ -101,7 +86,7 @@ public class Config {
 
                 try {
                     project = bl.getStream().getProject();
-                } catch (UCMException ucme) {
+                } catch (CleartoolException ucme) {
                     throw new ScmException("Could not get the Project.");
                 }
             }
