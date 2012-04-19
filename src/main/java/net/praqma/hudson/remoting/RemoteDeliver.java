@@ -13,8 +13,13 @@ import java.util.Set;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.praqma.clearcase.ucm.UCMException;
-import net.praqma.clearcase.ucm.UCMException.UCMType;
+
+import com.sun.org.apache.bcel.internal.generic.Type;
+
+import net.praqma.clearcase.Deliver;
+import net.praqma.clearcase.exceptions.ClearCaseException;
+import net.praqma.clearcase.exceptions.CleartoolException;
+import net.praqma.clearcase.exceptions.DeliverException;
 import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
@@ -102,10 +107,6 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 	    	Logger.addAppender( app );
 	    	app.setSettings( loggerSetting );    		
     	}
-
-		// TODO this should not be necessary cause its done in the Config.java
-		// file ????.
-		UCM.setContext( UCM.ContextType.CLEARTOOL );
 		
 		logger.debug( "Starting remote deliver" );
 
@@ -114,13 +115,11 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 		/* Create the baseline object */
 		Baseline baseline = null;
 		try {
-			baseline = UCMEntity.getBaseline( this.baseline );
-		} catch( UCMException e ) {
-			if( e.stdout != null ) {
-				out.println( e.stdout );
-			}
+			baseline = Baseline.get( this.baseline );
+			baseline.load();
+		} catch( ClearCaseException e ) {
 			Logger.removeAppender( app );
-			throw new IOException( "Could not create Baseline object: " + e.getMessage() );
+			throw new IOException( "Could not create Baseline object: " + e.getMessage(), e );
 		}
 		
 		logger.debug( baseline + " created" );
@@ -130,13 +129,10 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 
 		Stream destinationStream = null;
 		try {
-			destinationStream = UCMEntity.getStream( this.destinationstream );
-		} catch( UCMException e ) {
-			if( e.stdout != null ) {
-				out.println( e.stdout );
-			}
+			destinationStream = Stream.get( this.destinationstream );
+		} catch( ClearCaseException e ) {
 			Logger.removeAppender( app );
-			throw new IOException( "Could not create destination Stream object: " + e.getMessage() );
+			throw new IOException( "Could not create destination Stream object: " + e.getMessage(), e );
 		}
 		
 		logger.debug( destinationStream + " created" );
@@ -167,7 +163,7 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 			}
 			out.println( c + " version" + ( c == 1 ? "" : "s" ) + " involved" );
 			diff = Util.createChangelog( bldiff, baseline );
-		} catch( UCMException e1 ) {
+		} catch( ClearCaseException e1 ) {
 			out.println( "[" + Config.nameShort + "] Unable to create change log: " + e1.getMessage() );
 		}
 		
@@ -194,29 +190,32 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 			return;
 		}
 
+		Deliver deliver = null;
 		try {
 			out.println( "[" + Config.nameShort + "] Starting deliver(tries left: " + triesLeft + ")" );
-			baseline.deliver( baseline.getStream(), dstream, snapview.getViewRoot(), snapview.getViewtag(), true, false, true );
+			deliver = new Deliver( baseline, baseline.getStream(), dstream, snapview.getViewRoot(), snapview.getViewtag() );
+			deliver.deliver( true, false, true, false );
+			//baseline.deliver( baseline.getStream(), dstream, snapview.getViewRoot(), snapview.getViewtag(), true, false, true );
 			er.setResultType( ResultType.SUCCESS );
-		} catch( UCMException e ) {
+		} catch( DeliverException e ) {
 			out.println( "[" + Config.nameShort + "] Failed to deliver: " + e.getMessage() );
 			logger.debug( "Failed to deliver: " + e.getMessage() );
 			logger.debug( e );
 			
 			/* Figure out what happened */
-			if( e.type.equals( UCMType.DELIVER_REQUIRES_REBASE ) ) {
+			if( e.getType().equals( DeliverException.Type.REQUIRES_REBASE ) ) {
 				er.setResultType( ResultType.DELIVER_REQUIRES_REBASE );
 			}
 
-			if( e.type.equals( UCMType.MERGE_ERROR ) ) {
+			if( e.getType().equals( DeliverException.Type.MERGE_ERROR ) ) {
 				er.setResultType( ResultType.MERGE_ERROR );
 			}
 
-			if( e.type.equals( UCMType.INTERPROJECT_DELIVER_DENIED ) ) {
+			if( e.getType().equals( DeliverException.Type.INTERPROJECT_DELIVER_DENIED ) ) {
 				er.setResultType( ResultType.INTERPROJECT_DELIVER_DENIED );
 			}
 
-			if( e.type.equals( UCMType.DELIVER_IN_PROGRESS ) ) {
+			if( e.getType().equals( DeliverException.Type.DELIVER_IN_PROGRESS ) ) {
 				out.println( "[" + Config.nameShort + "] Deliver already in progress" );
 
 				if( !forceDeliver ) {
@@ -252,7 +251,6 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 					Matcher mSTREAM = STREAM_PATTERN.matcher( msg );
 					while( mSTREAM.find() ) {
 						stream = mSTREAM.group( 1 );
-						stream = "stream:" + stream + "@" + baseline.getPvobString();
 					}
 	
 					Matcher mTAG = TAG_PATTERN.matcher( msg );
@@ -269,9 +267,9 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 	
 					try {
 						// rolling back the previous deliver operation
-						Stream.getStream( stream ).deliverRollBack( oldViewtag, newView );
-	
-					} catch( UCMException ex ) {
+						Stream ostream = Stream.get( stream, baseline.getPVob() ).load(); //.deliverRollBack( oldViewtag, newView );
+						Deliver.rollBack( oldViewtag, ostream, newView );
+					} catch( ClearCaseException ex ) {
 						out.println( ex.getMessage() );
 						throw new IOException( ex.getMessage(), ex.getCause() );
 					}
@@ -281,6 +279,9 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 					deliver( baseline, dstream, er, forceDeliver, triesLeft - 1 );
 				}
 			}
+		} catch( CleartoolException e ) {
+			logger.warning( "Unable to get status from stream: " + e.getMessage() );
+			throw new IOException( e );
 		}
 	}
 
