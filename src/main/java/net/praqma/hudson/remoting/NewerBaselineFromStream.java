@@ -6,7 +6,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.Set;
 
-import net.praqma.clearcase.ucm.UCMException;
+import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.Stream;
@@ -39,8 +39,6 @@ public class NewerBaselineFromStream implements FileCallable<Boolean> {
     	
     	Logger logger = Logger.getLogger();
     	boolean newer = true;
-    	
-    	UCM.setContext( UCM.ContextType.CLEARTOOL );
 
     	StreamAppender app = null;
     	if( pipe != null ) {
@@ -62,7 +60,7 @@ public class NewerBaselineFromStream implements FileCallable<Boolean> {
 					break;
 				}
 			}
-		} catch( UCMException e ) {
+		} catch( ClearCaseException e ) {
 			logger.warning( "Could not match baselines" );
 		}
         
