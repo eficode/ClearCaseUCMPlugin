@@ -232,12 +232,7 @@ class RemotePostBuild implements FileCallable<Status> {
 				hudsonOut.println( "[" + Config.nameShort + "] Tag object was null, tag not set." );
 			}
 		}
-		try {
-			newPLevel = sourcebaseline.getPromotionLevel( true ).toString();
-		} catch( ClearCaseException e ) {
-			logger.log( id + " Could not get promotionlevel." );
-			hudsonOut.println( "[" + Config.nameShort + "] Could not get promotion level." );
-		}
+		newPLevel = sourcebaseline.getPromotionLevel( true ).toString();
 
 		if( this.sourcestream.equals( this.targetstream ) ) {
 			status.setBuildDescr( setDisplaystatusSelf( newPLevel + noticeString, targetbaseline.getShortname() ) );
