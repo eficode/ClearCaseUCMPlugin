@@ -16,7 +16,7 @@ public class ScmTest extends ClearCaseJenkinsTestCase {
 	public void test1() throws Exception {
 		String uniqueTestVobName = "ccucm" + coolTest.uniqueTimeStamp;
 		coolTest.variables.put( "vobname", uniqueTestVobName );
-		coolTest.variables.put( "pvobname", uniqueTestVobName );
+		coolTest.variables.put( "pvobname", uniqueTestVobName + "_PVOB" );
 		
 		coolTest.bootStrap();
 		FreeStyleProject project = createFreeStyleProject( "ccucm" );
@@ -44,7 +44,7 @@ public class ScmTest extends ClearCaseJenkinsTestCase {
 	public void testWrongStream() throws Exception {
 		String uniqueTestVobName = "ccucm" + coolTest.uniqueTimeStamp;
 		coolTest.variables.put( "vobname", uniqueTestVobName );
-		coolTest.variables.put( "pvobname", uniqueTestVobName );
+		coolTest.variables.put( "pvobname", uniqueTestVobName + "_PVOB" );
 		
 		coolTest.bootStrap();
 		FreeStyleProject project = createFreeStyleProject( "ccucm" );
