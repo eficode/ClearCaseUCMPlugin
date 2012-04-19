@@ -4,6 +4,8 @@ import java.util.List;
 
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.exceptions.CleartoolException;
+import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
+import net.praqma.clearcase.exceptions.UnableToLoadEntityException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
@@ -54,43 +56,40 @@ public class Config {
          * hudson, Hudson, jenkins or Jenkins */
         if (buildProject == null) {
             try {
-                project = UCMEntity.getProject("hudson", bl.getPvob());
-            } catch (CleartoolException eh) {
+                project = Project.get("hudson", bl.getPVob());
+            } catch (ClearCaseException eh) {
                 try {
-                    project = UCMEntity.getProject("Hudson@" + bl.getPvobString());
-                } catch (CleartoolException eH) {
+                    project = Project.get("Hudson", bl.getPVob());
+                } catch (ClearCaseException eH) {
                     try {
-                        project = UCMEntity.getProject("jenkins@" + bl.getPvobString());
-                    } catch (CleartoolException ej) {
+                        project = Project.get("jenkins", bl.getPVob());
+                    } catch (ClearCaseException ej) {
                         try {
-                            project = UCMEntity.getProject("Jenkins@" + bl.getPvobString());
-                        } catch (CleartoolException eJ) {
+                            project = Project.get("Jenkins", bl.getPVob());
+                        } catch (ClearCaseException eJ) {
                             logger.warning("The build Project was not found.");
-
-                            /* Use the integration stream */
-                            try {
-                                project = bl.getStream().getProject();
-                            } catch (CleartoolException ucme) {
-                                throw new ScmException("Could not get the build Project.");
-                            }
+                            project = bl.getStream().getProject();
                         }
                     }
                 }
             }
         } else {
             try {
-                project = UCMEntity.getProject(buildProject + "@" + bl.getPvobString(), false);
+                project = Project.get(buildProject, bl.getPVob() );
             } catch (Exception e) {
                 //throw new ScmException( "Could not find project 'hudson' in " + pvob + ". You can install the Poject with: \"cleartool mkproject -c \"The special Hudson Project\" -in rootFolder@\\your_pvob hudson@\\your_pvob\"." );
                 logger.warning("The build Project was not found.");
 
-                try {
-                    project = bl.getStream().getProject();
-                } catch (CleartoolException ucme) {
-                    throw new ScmException("Could not get the Project.");
-                }
+                project = bl.getStream().getProject();
             }
         }
+        
+        try {
+			project.load();
+		} catch( ClearCaseException e1 ) {
+			project = bl.getStream().getProject();
+			logger.warning("The project could not be loaded, using " + project.getNormalizedName());
+		}
 
         try {
             stream = project.getIntegrationStream();
@@ -101,8 +100,4 @@ public class Config {
         return stream;
     }
 
-    public static String getPvob(Stream stream) {
-
-        return "@" + stream.getPvobString();
-    }
 }
