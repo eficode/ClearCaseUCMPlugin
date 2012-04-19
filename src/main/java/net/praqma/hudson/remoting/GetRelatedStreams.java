@@ -14,8 +14,7 @@ import java.util.List;
 import java.util.Set;
 
 import net.praqma.clearcase.Cool;
-import net.praqma.clearcase.Cool.ContextType;
-import net.praqma.clearcase.ucm.UCMException;
+import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.util.debug.Logger;
@@ -31,11 +30,11 @@ public class GetRelatedStreams implements FileCallable<List<Stream>> {
 	private boolean pollingChildStreams;
 	private TaskListener listener;
 	private Pipe pipe;
-	
+
 	private LoggerSetting loggerSetting;
 	private PrintStream pstream;
 	private boolean multisitePolling;
-	
+
 	public GetRelatedStreams( TaskListener listener, Stream stream, boolean pollingChildStreams, Pipe pipe, PrintStream pstream, LoggerSetting loggerSetting, boolean multisitePolling ) {
 		this.stream = stream;
 		this.pollingChildStreams = pollingChildStreams;
@@ -44,48 +43,45 @@ public class GetRelatedStreams implements FileCallable<List<Stream>> {
 		this.pipe = pipe;
 		this.loggerSetting = loggerSetting;
 		this.multisitePolling = multisitePolling;
-    }
-    
-    @Override
-    public List<Stream> invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
-    	
-    	PrintStream out = listener.getLogger();
-    	Logger logger = Logger.getLogger();
+	}
 
-    	StreamAppender app = null;
-    	if( pipe != null ) {
-	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
-	    	app = new StreamAppender( toMaster );
-	    	app.lockToCurrentThread();
-	    	Logger.addAppender( app );
-	    	app.setSettings( loggerSetting );
-    	} else if( pstream != null ) {
-	    	app = new StreamAppender( pstream );
-	    	app.lockToCurrentThread();
-	    	Logger.addAppender( app );
-	    	app.setSettings( loggerSetting );    		
-    	}
-    	
-    	
-    	Cool.setContext( ContextType.CLEARTOOL );
-    	
-    	List<Stream> streams = null;
-    	
-    	try {
-        	if( pollingChildStreams ) {
-        		streams = stream.getChildStreams(multisitePolling);
-        	} else {
-        		streams = stream.getSiblingStreams();
-        	}
-        } catch( UCMException e1 ) {
-        	e1.printStackTrace( out );
-       		Logger.removeAppender( app );
-        
-        	throw new IOException( "Could not find any related streams: " + e1.getMessage() );
-        }
-        
-    	Logger.removeAppender( app );
-    	
-        return streams;
-    }
+	@Override
+	public List<Stream> invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
+
+		PrintStream out = listener.getLogger();
+		Logger logger = Logger.getLogger();
+
+		StreamAppender app = null;
+		if( pipe != null ) {
+			PrintStream toMaster = new PrintStream( pipe.getOut() );
+			app = new StreamAppender( toMaster );
+			app.lockToCurrentThread();
+			Logger.addAppender( app );
+			app.setSettings( loggerSetting );
+		} else if( pstream != null ) {
+			app = new StreamAppender( pstream );
+			app.lockToCurrentThread();
+			Logger.addAppender( app );
+			app.setSettings( loggerSetting );
+		}
+
+		List<Stream> streams = null;
+
+		try {
+			if( pollingChildStreams ) {
+				streams = stream.getChildStreams( multisitePolling );
+			} else {
+				streams = stream.getSiblingStreams();
+			}
+		} catch( ClearCaseException e1 ) {
+			e1.printStackTrace( out );
+			Logger.removeAppender( app );
+
+			throw new IOException( "Could not find any related streams: " + e1.getMessage() );
+		}
+
+		Logger.removeAppender( app );
+
+		return streams;
+	}
 }
