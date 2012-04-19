@@ -37,5 +37,6 @@ public class ScmTest extends ClearCaseJenkinsTestCase {
 			System.out.println( "[JENKINS] " + line );
 		}
 
+		br.close();
 	}
 }
