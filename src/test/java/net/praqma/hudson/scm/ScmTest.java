@@ -14,7 +14,7 @@ public class ScmTest extends ClearCaseJenkinsTestCase {
 	
 	@Test
 	public void test1() throws Exception {
-		String uniqueTestVobName = "ccucm" + uniqueTimeStamp;
+		String uniqueTestVobName = "ccucm" + coolTest.uniqueTimeStamp;
 		coolTest.variables.put( "vobname", uniqueTestVobName );
 		coolTest.variables.put( "pvobname", uniqueTestVobName );
 		
