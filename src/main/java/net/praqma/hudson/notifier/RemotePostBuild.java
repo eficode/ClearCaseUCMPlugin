@@ -135,7 +135,7 @@ class RemotePostBuild implements FileCallable<Status> {
 					printPostedOutput(sourcebaseline);
 					noticeString = "*";
 				} else {
-					Project.Plevel pl;
+					Project.PromotionLevel pl;
 					if(!status.isStable() && !unstable.treatSuccessful()) {
 						/* Treat the not stable build as unsuccessful */
 						pl = sourcebaseline.demote();
@@ -157,14 +157,14 @@ class RemotePostBuild implements FileCallable<Status> {
 					try {
 						targetstream.recommendBaseline( targetbaseline );
 						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + targetbaseline.getShortname() + " is now recommended." );
-					} catch( UCMException e ) {
+					} catch( ClearCaseException e ) {
 						status.setStable( false );
 						status.setRecommended( false );
 						hudsonOut.println( "[" + Config.nameShort + "] Could not recommend Baseline " + targetbaseline.getShortname() + ": " + e.getMessage() );
 						logger.warning( id + "Could not recommend baseline: " + e.getMessage() );
 					}
 				}
-			} catch( UCMException e ) {
+			} catch( ClearCaseException e ) {
 				status.setStable( false );
 				/*
 				 * as it will not make sense to recommend if we cannot promote,
@@ -199,7 +199,7 @@ class RemotePostBuild implements FileCallable<Status> {
 					noticeString = "*";
 				} else {
 					logger.warning( id + "Demoting baseline" );
-					Project.Plevel pl = sourcebaseline.demote();
+					Project.PromotionLevel pl = sourcebaseline.demote();
 					status.setPromotedLevel( pl );
 					hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
 				}
@@ -223,12 +223,9 @@ class RemotePostBuild implements FileCallable<Status> {
 						tag = tag.persist();
 						hudsonOut.println( "[" + Config.nameShort + "] Baseline now marked with tag: \n" + tag.stringify() );
 					}
-				} catch( UCMException e ) {
+				} catch( ClearCaseException e ) {
 					hudsonOut.println( "[" + Config.nameShort + "] Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
-					if( e.getCause() != null ) {
-						e.printInformation( hudsonOut );
-						hudsonOut.println( e.getCause().getMessage() );
-					}
+					e.print( hudsonOut );
 				}
 			} else {
 				logger.warning( id + "Tag object was null" );
@@ -237,7 +234,7 @@ class RemotePostBuild implements FileCallable<Status> {
 		}
 		try {
 			newPLevel = sourcebaseline.getPromotionLevel( true ).toString();
-		} catch( UCMException e ) {
+		} catch( ClearCaseException e ) {
 			logger.log( id + " Could not get promotionlevel." );
 			hudsonOut.println( "[" + Config.nameShort + "] Could not get promotion level." );
 		}
@@ -259,7 +256,7 @@ class RemotePostBuild implements FileCallable<Status> {
 				sourcebaseline.resetMastership();
 			}
 			
-		} catch( UCMException e ) {
+		} catch( ClearCaseException e ) {
 			logger.warning( id + "Could not reset mastership for baseline. " + e.getMessage() );
 			hudsonOut.println( "[" + Config.nameShort + "] Could not reset mastership for baseline "  + sourcebaseline.getShortname() + ". " + e.getMessage() );
 		}

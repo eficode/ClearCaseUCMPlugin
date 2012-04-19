@@ -9,7 +9,8 @@ import java.text.SimpleDateFormat;
 
 import org.kohsuke.stapler.StaplerRequest;
 
-import net.praqma.clearcase.ucm.UCMException;
+import net.praqma.clearcase.exceptions.ClearCaseException;
+import net.praqma.clearcase.exceptions.UnableToPromoteBaselineException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
@@ -175,8 +176,8 @@ public class CCUCMNotifier extends Notifier {
 				 */
 				if( bl != null ) {
 					try {
-						baseline = UCMEntity.getBaseline( bl );
-					} catch( UCMException e ) {
+						baseline = Baseline.get( bl );
+					} catch( ClearCaseException e ) {
 						logger.warning( id + "Could not initialize baseline.", id );
 						baseline = null;
 					}
@@ -300,11 +301,7 @@ public class CCUCMNotifier extends Notifier {
 
 		/* Initialize variables for post build steps */
 		Stream targetstream = null;
-		try {
-			targetstream = pstate.getBaseline().getStream();
-		} catch( UCMException e2 ) {
-			logger.error( "The target stream could not be resolved: " + e2.getMessage(), id );
-		}
+		targetstream = pstate.getBaseline().getStream();
 		Stream sourcestream = targetstream;
 		Baseline sourcebaseline = pstate.getBaseline();
 		Baseline targetbaseline = sourcebaseline;
@@ -426,8 +423,13 @@ public class CCUCMNotifier extends Notifier {
 
 		/* If the promotion level of the baseline was changed on the remote */
 		if( status.getPromotedLevel() != null ) {
-			pstate.getBaseline().setPromotionLevel( status.getPromotedLevel() );
-			logger.debug( id + "Baselines promotion level sat to " + status.getPromotedLevel().toString(), id );
+			try {
+				pstate.getBaseline().setPromotionLevel( status.getPromotedLevel() );
+				logger.debug( id + "Baselines promotion level sat to " + status.getPromotedLevel().toString(), id );
+			} catch( UnableToPromoteBaselineException e ) {
+				logger.warning( "Unable to set promotion level of baseline: " + e.getMessage() );
+				e.print( out );
+			}
 		}
 
 		status.setBuildStatus( buildResult );
