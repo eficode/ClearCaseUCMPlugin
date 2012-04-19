@@ -56,6 +56,7 @@ import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.entities.UCMEntity.LabelStatus;
+import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.Util;
 import net.praqma.hudson.exception.CCUCMException;
@@ -678,10 +679,12 @@ public class CCUCMScm extends SCM {
 		} catch( IOException e ) {
 			consoleOutput.println( "[" + Config.nameShort + "] " + e.getMessage() );
 			logger.warning( e, id );
+			ExceptionUtils.print( e, consoleOutput, false );
 			result = false;
 		} catch( InterruptedException e ) {
 			consoleOutput.println( "[" + Config.nameShort + "] " + e.getMessage() );
 			logger.warning( e, id );
+			ExceptionUtils.print( e, consoleOutput, false );
 			result = false;
 		} catch( ExecutionException e ) {
 			consoleOutput.println( "[" + Config.nameShort + "] " + e.getMessage() );
