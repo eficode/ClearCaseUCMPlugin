@@ -211,7 +211,7 @@ public class CCUCMState {
 		private Stream stream;
 		private Component component;
 		private boolean doPostBuild = true;
-		private Project.Plevel plevel;
+		private Project.PromotionLevel plevel;
 		private String loadModule;
 		private String jobName;
 		private Integer jobNumber;
@@ -333,11 +333,11 @@ public class CCUCMState {
 			this.jobNumber = jobNumber;
 		}
 
-		public void setPlevel( Project.Plevel plevel ) {
+		public void setPlevel( Project.PromotionLevel plevel ) {
 			this.plevel = plevel;
 		}
 
-		public Project.Plevel getPlevel() {
+		public Project.PromotionLevel getPlevel() {
 			return plevel;
 		}
 

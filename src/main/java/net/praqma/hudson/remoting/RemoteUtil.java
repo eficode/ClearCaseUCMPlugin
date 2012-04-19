@@ -12,9 +12,9 @@ import java.util.List;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
+import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
-import net.praqma.clearcase.ucm.entities.Project.Plevel;
 import net.praqma.hudson.exception.CCUCMException;
 import net.praqma.hudson.scm.CCUCMState.State;
 import net.praqma.util.debug.LoggerSetting;
@@ -87,7 +87,7 @@ public class RemoteUtil {
 		}
 	}
 
-	public List<Baseline> getRemoteBaselinesFromStream( FilePath workspace, Component component, Stream stream, Plevel plevel, boolean slavePolling, boolean multisitePolling ) throws CCUCMException {
+	public List<Baseline> getRemoteBaselinesFromStream( FilePath workspace, Component component, Stream stream, PromotionLevel plevel, boolean slavePolling, boolean multisitePolling ) throws CCUCMException {
 
 		try {
 			if( slavePolling ) {

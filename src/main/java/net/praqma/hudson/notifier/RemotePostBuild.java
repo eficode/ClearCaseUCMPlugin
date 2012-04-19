@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Set;
 
-import net.praqma.clearcase.ucm.UCMException;
+import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
@@ -82,7 +82,6 @@ class RemotePostBuild implements FileCallable<Status> {
 
 	public Status invoke( File workspace, VirtualChannel channel ) throws IOException {
 		hudsonOut = listener.getLogger();
-		UCM.setContext( UCM.ContextType.CLEARTOOL );
 
 		Logger logger = Logger.getLogger();
 
@@ -112,12 +111,8 @@ class RemotePostBuild implements FileCallable<Status> {
 				// Getting tag to set buildstatus
 				tag = sourcebaseline.getTag( this.displayName, this.buildNumber );
 				status.setTagAvailable( true );
-			} catch( UCMException e ) {
-				hudsonOut.println( "[" + Config.nameShort + "] Could not get Tag: " + e.getMessage() );
-				if( e.getCause() != null ) {
-					e.printInformation( hudsonOut );
-					hudsonOut.println( e.getCause().getMessage() );
-				}
+			} catch( ClearCaseException e ) {
+				e.print( hudsonOut );
 				logger.warning( id + "Could not get Tag: " + e.getMessage() );
 			}
 		}
@@ -274,12 +269,12 @@ class RemotePostBuild implements FileCallable<Status> {
 		return status;
 	}
 
-	private void printPostedOutput(Baseline sourcebaseline ) throws UCMException  {
+	private void printPostedOutput(Baseline sourcebaseline ) throws ClearCaseException  {
 		hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " was a posted delivery, and has a different mastership." );
 		hudsonOut.println( "[" + Config.nameShort + "] Its promotion level cannot be updated, but is left as " + sourcebaseline.getPromotionLevel( true ).toString() );
 	}
 
-	private boolean hasRemoteMastership() throws UCMException  {
+	private boolean hasRemoteMastership() throws ClearCaseException  {
 		return !sourcebaseline.getMastership().equals(targetbaseline.getMastership());
 	}
 

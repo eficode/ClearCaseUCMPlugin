@@ -5,12 +5,13 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 
-import net.praqma.clearcase.ucm.UCMException;
+import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
+import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.UCM;
-import net.praqma.clearcase.ucm.entities.Project.Plevel;
 import net.praqma.clearcase.ucm.entities.Stream;
+import net.praqma.clearcase.ucm.utils.Baselines;
 import net.praqma.util.debug.Logger;
 import net.praqma.util.debug.LoggerSetting;
 import net.praqma.util.debug.appenders.Appender;
@@ -25,7 +26,7 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
 
 	private Component component;
 	private Stream stream;
-	private Plevel plevel;
+	private Project.PromotionLevel plevel;
 	private Pipe pipe;
 	
 	private PrintStream pstream;
@@ -33,7 +34,7 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
 	private LoggerSetting loggerSetting;
 	private boolean multisitePolling;	
 
-	public GetRemoteBaselineFromStream( Component component, Stream stream, Plevel plevel, Pipe pipe, PrintStream pstream, LoggerSetting loggerSetting, boolean multisitePolling ) {
+	public GetRemoteBaselineFromStream( Component component, Stream stream, Project.PromotionLevel plevel, Pipe pipe, PrintStream pstream, LoggerSetting loggerSetting, boolean multisitePolling ) {
 		this.component = component;
 		this.stream = stream;
 		this.plevel = plevel;
@@ -49,8 +50,6 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
     public List<Baseline> invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
     	
     	Logger logger = Logger.getLogger();
-    	
-    	UCM.setContext( UCM.ContextType.CLEARTOOL );
 
     	Appender app = null;
     	if( pipe != null ) {
@@ -72,10 +71,10 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
         List<Baseline> baselines = null;
         
         try {
-            baselines = component.getBaselines( stream, plevel, multisitePolling );
-        } catch (UCMException e) {
+        	baselines = Baselines.get( stream, component, plevel );
+        } catch (ClearCaseException e) {
        		Logger.removeAppender( app );
-            throw new IOException("Could not retrieve baselines from repository. " + e.getMessage());
+            throw new IOException("Could not retrieve baselines from repository. " + e.getMessage(), e);
         }
         
         /* Load baselines remotely */
@@ -83,7 +82,7 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
         	try {
         		logger.debug( "Loading the baseline " + baseline );
 				baseline.load();
-			} catch (UCMException e) {
+			} catch (ClearCaseException e) {
 				logger.warning( "Could not load the baseline " + baseline.getShortname() + ": " + e.getMessage() );
 				/* Maybe it should be removed from the list... In fact, this shouldn't happen */
 			}

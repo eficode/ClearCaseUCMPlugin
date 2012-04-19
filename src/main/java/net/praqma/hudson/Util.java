@@ -9,8 +9,12 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 
-import net.praqma.clearcase.ucm.UCMException;
-import net.praqma.clearcase.ucm.UCMException.UCMType;
+import net.praqma.clearcase.PVob;
+import net.praqma.clearcase.exceptions.ClearCaseException;
+import net.praqma.clearcase.exceptions.CleartoolException;
+import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
+import net.praqma.clearcase.exceptions.UnableToLoadEntityException;
+import net.praqma.clearcase.exceptions.ViewException;
 import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
@@ -19,6 +23,7 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.utils.BuildNumber;
 import net.praqma.clearcase.ucm.view.SnapshotView;
+import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.ucm.view.SnapshotView.Components;
 import net.praqma.hudson.exception.ScmException;
@@ -30,7 +35,7 @@ public abstract class Util {
 
 	private static Logger logger = Logger.getLogger();
 
-	public static Project.Plevel getLevel( String level ) {
+	public static Project.PromotionLevel getLevel( String level ) {
 		if( level.equalsIgnoreCase( "any" ) ) {
 			return null;
 		} else {
@@ -38,82 +43,17 @@ public abstract class Util {
 		}
 	}
 
-	public static String CreateNumber( BuildListener listener, int buildNumber, String versionFrom, String buildnumberMajor, String buildnumberMinor, String buildnumberPatch, String buildnumberSequenceSelector, Stream target, Component component ) throws IOException {
-
-		PrintStream out = listener.getLogger();
-
-		String number = "";
-		/* Get version number from project+component */
-		if( versionFrom.equals( "project" ) ) {
-			logger.debug( "Using project setting" );
-
-			try {
-				Project project = target.getProject();
-				number = BuildNumber.getBuildNumber( project );
-			} catch( UCMException e ) {
-				logger.warning( "Could not get four level version" );
-				logger.warning( e );
-				if( e.stdout != null ) {
-					out.println( e.stdout );
-				}
-				throw new IOException( "Could not get four level version: " + e.getMessage() );
-			}
-		}
-		/* Get version number from project+component */
-		else if( versionFrom.equals( "settings" ) ) {
-			logger.debug( "Using settings" );
-
-			/* Verify settings */
-			if( buildnumberMajor.length() > 0 && buildnumberMinor.length() > 0 && buildnumberPatch.length() > 0 ) {
-
-				number = "__" + buildnumberMajor + "_" + buildnumberMinor + "_" + buildnumberPatch + "_";
-
-				/* Get the sequence number from the component */
-				if( buildnumberSequenceSelector.equals( "component" ) ) {
-
-					logger.debug( "Get sequence from project " + component );
-
-					try {
-						Project project = target.getProject();
-						int seq = BuildNumber.getNextBuildSequence( project );
-						number += seq;
-					} catch( UCMException e ) {
-						logger.warning( "Could not get sequence number from component" );
-						logger.warning( e );
-						if( e.stdout != null ) {
-							out.println( e.stdout );
-						}
-						throw new IOException( "Could not get sequence number from component: " + e.getMessage() );
-					}
-				}
-				/* Use the current build number from jenkins */
-				else {
-					logger.debug( "Getting sequence from build number" );
-					number += buildNumber;
-				}
-			} else {
-				logger.warning( "Creating error message" );
-				String error = ( buildnumberMajor.length() == 0 ? "Major missing. " : "" ) + ( buildnumberMinor.length() == 0 ? "Minor missing. " : "" ) + ( buildnumberPatch.length() == 0 ? "Patch missing. " : "" );
-
-				logger.warning( "Missing information in build numbers: " + error );
-				throw new IOException( "Missing build number information: " + error );
-			}
-		} else {
-			/* No op = none */
-		}
-
-		return number;
-	}
-
-	public Stream getDeveloperStream( String streamname, String pvob, Stream buildIntegrationStream, Baseline foundationBaseline ) throws ScmException {
+	public Stream getDeveloperStream( String streamname, PVob pvob, Stream buildIntegrationStream, Baseline foundationBaseline ) throws ScmException {
 		Stream devstream = null;
 
 		try {
 			if( Stream.streamExists( streamname + pvob ) ) {
-				devstream = Stream.getStream( streamname + pvob, false );
+				devstream = Stream.get( streamname, pvob );
 			} else {
 				devstream = Stream.create( buildIntegrationStream, streamname + pvob, true, foundationBaseline );
 			}
+			
+			devstream.load();
 		} catch( Exception e ) {
 			throw new ScmException( "Could not get stream: " + e.getMessage() );
 		}
@@ -132,17 +72,13 @@ public abstract class Util {
 		for( Activity act : changes ) {
 			buffer.append( "<activity>" );
 			buffer.append( ( "<actName>" + act.getShortname() + "</actName>" ) );
-			try {
-				buffer.append( ( "<author>" + act.getUser() + "</author>" ) );
-			} catch( UCMException e ) {
-				buffer.append( ( "<author>Unknown</author>" ) );
-			}
+			buffer.append( ( "<author>" + act.getUser() + "</author>" ) );
 			List<Version> versions = act.changeset.versions;
 			String temp = null;
 			for( Version v : versions ) {
 				try {
 					temp = "<file>" + v.getSFile() + " (" + v.getVersion() + ") user: " + v.blame() + "</file>";
-				} catch( UCMException e ) {
+				} catch( ClearCaseException e ) {
 					logger.warning( "Could not generate log" );
 				}
 				buffer.append( temp );
@@ -208,16 +144,16 @@ public abstract class Util {
 					}
 					makeView( stream, workspace, listener, loadModule, viewroot, viewtag );
 				}
-			} catch( UCMException ucmE ) {
+			} catch( ClearCaseException ucmE ) {
 				try {
 					hudsonOut.println( "[" + Config.nameShort + "] Regenerating invalid view root" );
-					SnapshotView.endView( viewtag );
+					UCMView.end( viewtag );
 					SnapshotView.regenerateViewDotDat( viewroot, viewtag );
-				} catch( UCMException ucmEx ) {
-					if( ucmEx.stdout != null ) {
-						hudsonOut.println( ucmEx.stdout );
-					}
+				} catch( ClearCaseException ucmEx ) {
+					ucmEx.print( hudsonOut );
 					throw new ScmException( "Could not make workspace - could not regenerate view: " + ucmEx.getMessage() + " Type: " + "" );
+				} catch( IOException e ) {
+					throw new ScmException( "Could not make workspace - could not regenerate view: " + e.getMessage() );
 				}
 			} catch( Exception e ) {
 				hudsonOut.println( "[" + Config.nameShort + "] Failed making workspace: " + e.getMessage() );
@@ -226,11 +162,11 @@ public abstract class Util {
 
 			hudsonOut.println( "[" + Config.nameShort + "] Getting snapshotview" );
 			try {
-				snapview = UCMView.getSnapshotView( viewroot );
-			} catch( UCMException e ) {
-				if( e.stdout != null ) {
-					hudsonOut.println( e.stdout );
-				}
+				snapview = SnapshotView.get( viewroot );
+			} catch( ClearCaseException e ) {
+				e.print( hudsonOut );
+				throw new ScmException( "Could not get view for workspace. " + e.getMessage() );
+			} catch( IOException e ) {
 				throw new ScmException( "Could not get view for workspace. " + e.getMessage() );
 			}
 		} else {
@@ -239,24 +175,24 @@ public abstract class Util {
 				snapview = SnapshotView.create( stream, viewroot, viewtag );
 
 				hudsonOut.println( "[" + Config.nameShort + "] Created new view in local workspace: " + viewroot.getAbsolutePath() );
-			} catch( UCMException e ) {
-				if( e.stdout != null ) {
-					hudsonOut.println( e.stdout );
-				}
+			} catch( ClearCaseException e ) {
+				e.print( hudsonOut );
 				throw new ScmException( "View not found in this region, but views with viewtag '" + viewtag + "' might exist in the other regions. Try changing the region Hudson or the slave runs in." );
+			} catch( IOException e ) {
+				throw new ScmException( "Unable to create view: " + e.getMessage() );
 			}
 		}
 
 		if( update ) {
 			try {
 				hudsonOut.println( "[" + Config.nameShort + "] Updating view using " + loadModule.toLowerCase() + " modules." );
-				snapview.Update( true, true, true, false, Components.valueOf( loadModule.toUpperCase() ), null );
-			} catch( UCMException e ) {
-				if( e.stdout != null ) {
-					hudsonOut.println( e.stdout );
-				}
-				if( e.type.equals( UCMType.VIEW_CURRENTLY_REBASING ) ) {
-					hudsonOut.println( "The view is currently being used to rebase another stream" );
+				snapview.Update( true, true, true, false, new LoadRules( snapview, Components.valueOf( loadModule.toUpperCase() ) ) );
+			} catch( ClearCaseException e ) {
+				e.print( hudsonOut );
+				if( e instanceof ViewException ) {
+					if( ((ViewException)e).getType().equals( ViewException.Type.REBASING ) ) {
+						hudsonOut.println( "The view is currently being used to rebase another stream" );
+					}
 				}
 				throw new ScmException( "Could not update snapshot view. " + e.getMessage() );
 			}

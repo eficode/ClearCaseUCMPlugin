@@ -15,7 +15,7 @@ public class Status implements Serializable {
 	private String errorMessage = "";
 	private String buildDescr = "";
 
-	private Project.Plevel promotedLevel = null;
+	private Project.PromotionLevel promotedLevel = null;
 
 	private boolean stable = true;
 
@@ -71,11 +71,11 @@ public class Status implements Serializable {
 		return buildDescr;
 	}
 
-	public void setPromotedLevel( Project.Plevel promotedLevel ) {
+	public void setPromotedLevel( Project.PromotionLevel promotedLevel ) {
 		this.promotedLevel = promotedLevel;
 	}
 
-	public Project.Plevel getPromotedLevel() {
+	public Project.PromotionLevel getPromotedLevel() {
 		return promotedLevel;
 	}
 

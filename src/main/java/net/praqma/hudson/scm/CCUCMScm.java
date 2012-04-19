@@ -49,11 +49,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-import net.praqma.clearcase.ucm.UCMException;
+import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
-import net.praqma.clearcase.ucm.entities.Project.Plevel;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.entities.UCMEntity.LabelStatus;
@@ -92,7 +91,7 @@ import org.kohsuke.stapler.export.Exported;
  */
 public class CCUCMScm extends SCM {
 
-	private Project.Plevel plevel;
+	private Project.PromotionLevel plevel;
 	private String levelToPoll;
 	private String loadModule;
 	private String component;
@@ -392,14 +391,14 @@ public class CCUCMScm extends SCM {
 			if( bls == null || bls.length() == 0 ) {
 				throw new ScmException( "No last baseline stored" );
 			}
-			Baseline bl = UCMEntity.getBaseline( bls, true );
+			Baseline bl = Baseline.get( bls );
 			Baseline loaded = (Baseline) rutil.loadEntity( project.getSomeWorkspace(), bl, getSlavePolling() );
 			return loaded;
 		} catch( FileNotFoundException e ) {
 		} catch( IOException e ) {
 			logger.warning( "Could not read last baseline" );
 			throw new ScmException( "Could not read last baseline" );
-		} catch( UCMException e ) {
+		} catch( ClearCaseException e ) {
 			logger.warning( "Unable to get last baseline!" );
 			throw new ScmException( "Unable to get last baseline" );
 			// } catch( CCUCMException e ) {
@@ -518,14 +517,14 @@ public class CCUCMScm extends SCM {
 
 		String baselinename = (String) build.getBuildVariables().get( baselineInput );
 		try {
-			state.setBaseline( UCMEntity.getBaseline( baselinename ) );
+			state.setBaseline( Baseline.get( baselinename ) );
 			state.setStream( state.getBaseline().getStream() );
 			consoleOutput.println( "[" + Config.nameShort + "] Starting parameterized build with a CCUCM_baseline." );
 			/* The component could be used in the post build section */
 			state.setComponent( state.getBaseline().getComponent() );
 			state.setStream( state.getBaseline().getStream() );
 			logger.debug( id + "Saving the component for later use", id );
-		} catch( UCMException e ) {
+		} catch( ClearCaseException e ) {
 			consoleOutput.println( "[" + Config.nameShort + "] Could not find baseline from parameter '" + baselinename + "'." );
 			state.setPostBuild( false );
 			result = false;
@@ -570,7 +569,7 @@ public class CCUCMScm extends SCM {
 		try {
 
 			printParameters( out );
-			state.setStream( UCMEntity.getStream( stream ) );
+			state.setStream( Stream.get( stream ) );
 
 			if( !state.isAddedByPoller() ) {
 				logger.debug( "This job was not added by a poller" );
@@ -741,8 +740,8 @@ public class CCUCMScm extends SCM {
 		}
 
 		try {
-			state.setStream( UCMEntity.getStream( stream ) );
-		} catch( UCMException e ) {
+			state.setStream( Stream.get( stream ) );
+		} catch( ClearCaseException e ) {
 			consoleOutput.println( "[" + Config.nameShort + "] " + e.getMessage() );
 			logger.warning( e, id );
 			result = false;
@@ -1129,7 +1128,7 @@ public class CCUCMScm extends SCM {
 	 * @return A list of {@link Baseline}s
 	 * @throws ScmException
 	 */
-	private List<Baseline> getValidBaselinesFromStream( FilePath workspace, State state, Project.Plevel plevel, Stream stream, Component component ) throws ScmException {
+	private List<Baseline> getValidBaselinesFromStream( FilePath workspace, State state, Project.PromotionLevel plevel, Stream stream, Component component ) throws ScmException {
 		logger.debug( id + "Retrieving valid baselines.", id );
 
 		/* The baseline list */
@@ -1178,13 +1177,9 @@ public class CCUCMScm extends SCM {
 
 				/* prevent null pointer exceptions */
 				if( bld != null ) {
-					try {
-						if( b.getPromotionLevel( true ).equals( cstate.getBaseline().getPromotionLevel( true ) ) ) {
-							logger.debug( id + b.getShortname() + " has the same promotion level" );
-							continue;
-						}
-					} catch( UCMException e ) {
-						logger.warning( id + "Unable to compare promotion levels on " + b.getShortname() );
+					if( b.getPromotionLevel( true ).equals( cstate.getBaseline().getPromotionLevel( true ) ) ) {
+						logger.debug( id + b.getShortname() + " has the same promotion level" );
+						continue;
 					}
 
 					/* The job is not running */
@@ -1235,14 +1230,14 @@ public class CCUCMScm extends SCM {
 	private void storeStateParameters( State state ) {
 
 		try {
-			state.setStream( UCMEntity.getStream( stream, true ) );
-		} catch( UCMException e ) {
+			state.setStream( Stream.get( stream ) );
+		} catch( ClearCaseException e ) {
 			logger.warning( e, id );
 		}
 
 		try {
-			state.setComponent( UCMEntity.getComponent( component, true ) );
-		} catch( UCMException e ) {
+			state.setComponent( Component.get( component ) );
+		} catch( ClearCaseException e ) {
 			logger.warning( e, id );
 		}
 
@@ -1271,7 +1266,7 @@ public class CCUCMScm extends SCM {
 		return scmRS;
 	}
 
-	private Baseline selectBaseline( List<Baseline> baselines, Project.Plevel plevel ) {
+	private Baseline selectBaseline( List<Baseline> baselines, Project.PromotionLevel plevel ) {
 		if( baselines.size() > 0 ) {
 			if( plevel != null ) {
 				return baselines.get( 0 );
@@ -1421,7 +1416,6 @@ public class CCUCMScm extends SCM {
 			super( CCUCMScm.class, null );
 			loadModules = getLoadModules();
 			load();
-			Config.setContext();
 		}
 
 		/**
