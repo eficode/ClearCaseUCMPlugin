@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Set;
 
-import net.praqma.clearcase.ucm.UCMException;
+import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.utils.BuildNumber;
 import net.praqma.util.debug.Logger;
@@ -53,7 +53,7 @@ public class GetClearCaseVersion implements FileCallable<String> {
     	
     	try {
 			version = BuildNumber.getBuildNumber(project);
-		} catch (UCMException e) {
+		} catch( ClearCaseException e) {
         	Logger.removeAppender( app );
         	throw new IOException( "Unable to load " + project.getShortname() + ":" + e.getMessage() );
 		}
