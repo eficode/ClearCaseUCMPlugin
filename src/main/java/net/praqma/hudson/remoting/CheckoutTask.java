@@ -240,13 +240,13 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		Stream devstream = null;
 
 		try {
-			if( Stream.streamExists( streamname + pvob ) ) {
+			if( Stream.streamExists( streamname + "@" + pvob ) ) {
 				devstream = Stream.get( streamname, pvob );
 			} else {
 				if( buildProject.equals( "" ) ) {
 					buildProject = null;
 				}
-				devstream = Stream.create( Config.getIntegrationStream( bl, buildProject ), streamname + pvob, true, bl );
+				devstream = Stream.create( Config.getIntegrationStream( bl, buildProject ), streamname + "@" + pvob, true, bl );
 			}
 		}
 		/*
