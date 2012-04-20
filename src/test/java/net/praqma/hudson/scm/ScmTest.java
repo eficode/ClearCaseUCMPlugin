@@ -3,10 +3,13 @@ package net.praqma.hudson.scm;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.List;
 
 import org.junit.Test;
 
+import hudson.FilePath;
 import hudson.model.FreeStyleBuild;
+import hudson.model.Result;
 import hudson.model.FreeStyleProject;
 import net.praqma.jenkins.utils.test.ClearCaseJenkinsTestCase;
 
@@ -38,6 +41,20 @@ public class ScmTest extends ClearCaseJenkinsTestCase {
 		}
 
 		br.close();
+		
+		/* Validation */
+		assertTrue( b.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
+		
+		/* Workspace validation */
+		int check = 0;
+		List<FilePath> rootDirs = b.getWorkspace().listDirectories();
+		for( FilePath f : rootDirs ) {
+			if( f.getBaseName().equals( "Model" ) ) {
+				check |= 1;
+			}
+		}
+		
+		assertEquals( 1, check );
 	}
 	
 	@Test

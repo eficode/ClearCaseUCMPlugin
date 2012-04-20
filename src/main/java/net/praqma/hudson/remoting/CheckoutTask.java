@@ -115,8 +115,10 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 			logger.debug( id + "Getting dev stream" );
 			Stream devstream = getDeveloperStream( "stream:" + viewtag, targetStream.getPVob() );
 			devstream.load();
+			
 			logger.debug( id + "Getting foundation baseline" );
 			Baseline foundation = devstream.getFoundationBaseline();
+			foundation.load();
 			
 			if( !foundation.getStream().equals( targetStream ) ) {
 				hudsonOut.println( "[" + Config.nameShort + "] The foundation baseline " + foundation.getShortname() + " does not match the stream " + targetStream.getShortname() + ". Changelog will probably be bogus." );
