@@ -114,6 +114,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		try {
 			logger.debug( id + "Getting dev stream" );
 			Stream devstream = getDeveloperStream( "stream:" + viewtag, targetStream.getPVob() );
+			devstream.load();
 			logger.debug( id + "Getting foundation baseline" );
 			Baseline foundation = devstream.getFoundationBaseline();
 			
