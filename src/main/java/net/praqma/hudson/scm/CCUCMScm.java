@@ -57,6 +57,7 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.entities.UCMEntity.LabelStatus;
 import net.praqma.clearcase.util.ExceptionUtils;
+import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.Util;
 import net.praqma.hudson.exception.CCUCMException;
@@ -152,16 +153,8 @@ public class CCUCMScm extends SCM {
 	 * @param multiSite
 	 */
 	@DataBoundConstructor
-	public CCUCMScm( String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable /*
-																																				 * Baseline
-																																				 * creation
-																																				 */, boolean createBaseline, String nameTemplate, boolean forceDeliver /*
-																																																						 * Notifier
-																																																						 * options
-																																																						 */, boolean recommend, boolean makeTag, boolean setDescription /*
-																																																																						 * Build
-																																																																						 * options
-																																																																						 */, String buildProject ) {
+	public CCUCMScm( String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable, 
+			         boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject ) {
 
 		this.component = component;
 		this.levelToPoll = levelToPoll;
@@ -235,6 +228,10 @@ public class CCUCMScm extends SCM {
 
 		state.setLoadModule( loadModule );
 		storeStateParameters( state );
+		
+		/* Make build action */
+		CCUCMBuildAction action = new CCUCMBuildAction( state.getStream(), state.getComponent() );
+		build.addAction( action );
 
 		logger.info( "Number of states: " + ccucm.size() );
 
@@ -275,6 +272,9 @@ public class CCUCMScm extends SCM {
 		}
 
 		state.setPolling( polling );
+		
+		/* Add the found baseline to the action */
+		action.setBaseline( state.getBaseline() );
 
 		/* If a baseline is found */
 		if( state.getBaseline() != null && result ) {
