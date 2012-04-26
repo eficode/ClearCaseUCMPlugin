@@ -9,7 +9,6 @@ import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
-import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.utils.Baselines;
 import net.praqma.util.debug.Logger;

@@ -8,7 +8,6 @@ import java.util.Set;
 
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.ucm.entities.Baseline;
-import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.util.debug.Logger;
 import net.praqma.util.debug.appenders.StreamAppender;

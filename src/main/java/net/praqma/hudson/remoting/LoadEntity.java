@@ -6,7 +6,6 @@ import java.io.PrintStream;
 import java.util.Set;
 
 import net.praqma.clearcase.exceptions.ClearCaseException;
-import net.praqma.clearcase.ucm.entities.UCM;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.util.debug.Logger;
 import net.praqma.util.debug.Logger.LogLevel;
