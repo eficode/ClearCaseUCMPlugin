@@ -53,13 +53,19 @@ public class ScmTest extends ClearCaseJenkinsTestCase {
 		logger.info( "Checking workspace" );
 		int check = 0;
 		List<FilePath> rootDirs = b.getWorkspace().listDirectories();
+		logger.debug( "Checking file paths" );
 		for( FilePath f : rootDirs ) {
+			logger.debug( "Checking file path " + f );
 			if( f.getBaseName().equals( "Model" ) ) {
 				check |= 1;
 			}
 		}
 		
+		logger.debug( "Check = " + check );
+		
 		assertEquals( 1, check );
+		
+		logger.debug( "Checked" );
 		
 		/* Check the build baseline */
 		logger.info( "Getting action" );
