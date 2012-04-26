@@ -111,8 +111,7 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 		/* Create the baseline object */
 		Baseline baseline = null;
 		try {
-			baseline = Baseline.get( this.baseline );
-			baseline.load();
+			baseline = Baseline.get( this.baseline ).load();
 		} catch( ClearCaseException e ) {
 			Logger.removeAppender( app );
 			throw new IOException( "Could not create Baseline object: " + e.getMessage(), e );
@@ -125,7 +124,7 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 
 		Stream destinationStream = null;
 		try {
-			destinationStream = Stream.get( this.destinationstream );
+			destinationStream = Stream.get( this.destinationstream ).load();
 		} catch( ClearCaseException e ) {
 			Logger.removeAppender( app );
 			throw new IOException( "Could not create destination Stream object: " + e.getMessage(), e );
