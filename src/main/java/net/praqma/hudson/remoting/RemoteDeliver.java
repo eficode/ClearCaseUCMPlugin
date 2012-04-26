@@ -9,12 +9,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
-import java.util.Set;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import com.sun.org.apache.bcel.internal.generic.Type;
 
 import net.praqma.clearcase.Deliver;
 import net.praqma.clearcase.exceptions.ClearCaseException;
