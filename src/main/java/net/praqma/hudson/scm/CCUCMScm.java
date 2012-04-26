@@ -686,9 +686,10 @@ public class CCUCMScm extends SCM {
 			logger.warning( e, id );
 			ExceptionUtils.print( e, consoleOutput, false );
 			result = false;
-		} catch( ExecutionException e ) {
+		} catch( Exception e ) {
 			consoleOutput.println( "[" + Config.nameShort + "] " + e.getMessage() );
 			logger.warning( e, id );
+			ExceptionUtils.print( e, consoleOutput, false );
 			result = false;
 		}
 

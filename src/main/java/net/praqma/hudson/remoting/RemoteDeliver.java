@@ -277,7 +277,11 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 		} catch( CleartoolException e ) {
 			logger.warning( "Unable to get status from stream: " + e.getMessage() );
 			throw new IOException( e );
-		}
+		} catch( Exception e ) {
+			logger.warning( "Unable deliver: " + e.getMessage() );
+			
+			throw new IOException( e );
+		} 
 	}
 
 	private SnapshotView makeDeliverView( Stream stream, File workspace ) throws ScmException {

@@ -52,7 +52,8 @@ public class ScmTest extends ClearCaseJenkinsTestCase {
 		/* Workspace validation */
 		logger.info( "Checking workspace" );
 		int check = 0;
-		List<FilePath> rootDirs = b.getWorkspace().listDirectories();
+		FilePath viewPath = new FilePath( b.getWorkspace(), "view" );
+		List<FilePath> rootDirs = viewPath.listDirectories();
 		logger.debug( "Checking file paths" );
 		for( FilePath f : rootDirs ) {
 			logger.debug( "Checking file path " + f );
