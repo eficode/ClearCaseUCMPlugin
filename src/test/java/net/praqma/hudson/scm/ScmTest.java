@@ -22,6 +22,8 @@ import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.view.SnapshotView;
+import net.praqma.clearcase.ucm.view.SnapshotView.Components;
+import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.jenkins.utils.test.ClearCaseJenkinsTestCase;
 import net.praqma.util.debug.Logger;
@@ -115,6 +117,9 @@ public class ScmTest extends ClearCaseJenkinsTestCase {
 		System.out.println( "FILE: " + rebaseView );
 		System.out.println( "FILE(DIR): " + rebaseView.isDirectory() );
 		SnapshotView view = SnapshotView.create( devStream, rebaseView, uniqueTestVobName + "-my-view" );
+		
+		view.Update( false, true, true, false, new LoadRules( view, Components.ALL ) );
+		
 		Rebase rebase = new Rebase( devStream, view, Baseline.get( "_System_2.0", coolTest.getPVob() ) );
 		rebase.rebase( true );
 		
@@ -123,6 +128,7 @@ public class ScmTest extends ClearCaseJenkinsTestCase {
 		logger.debug( "Component: " + component );
 		
 		/**/
+		String filename = coolTest.uniqueTimeStamp + "/Model/model.h";
 		File cfile = new File( "Model/model.h" );
 		Version.checkOut( cfile, rebaseView );
 		File fullfile = new File( rebaseView, "Model/model.h" );
