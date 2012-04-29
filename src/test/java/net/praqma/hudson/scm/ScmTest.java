@@ -1,7 +1,9 @@
 package net.praqma.hudson.scm;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
@@ -11,6 +13,15 @@ import hudson.FilePath;
 import hudson.model.FreeStyleBuild;
 import hudson.model.Result;
 import hudson.model.FreeStyleProject;
+import net.praqma.clearcase.Rebase;
+import net.praqma.clearcase.exceptions.ClearCaseException;
+import net.praqma.clearcase.exceptions.CleartoolException;
+import net.praqma.clearcase.ucm.entities.Baseline;
+import net.praqma.clearcase.ucm.entities.Baseline.LabelBehaviour;
+import net.praqma.clearcase.ucm.entities.Component;
+import net.praqma.clearcase.ucm.entities.Stream;
+import net.praqma.clearcase.ucm.entities.Version;
+import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.jenkins.utils.test.ClearCaseJenkinsTestCase;
 import net.praqma.util.debug.Logger;
@@ -28,7 +39,7 @@ public class ScmTest extends ClearCaseJenkinsTestCase {
 		coolTest.bootStrap();
 		FreeStyleProject project = createFreeStyleProject( "ccucm-project-" + uniqueTestVobName );
 		
-		CCUCMScm scm = new CCUCMScm( "Model@" + coolTest.getPVob(), "INITIAL", "ALL", false, "self", uniqueTestVobName + "_one_dev@" + coolTest.getPVob(), "successful", false, "", true, true, false, true, "jenkins" );
+		CCUCMScm scm = new CCUCMScm( "Model@" + coolTest.getPVob(), "INITIAL", "ALL", false, "self", uniqueTestVobName + "_one_int@" + coolTest.getPVob(), "successful", false, "", true, true, false, true, "jenkins" );
 		
 		project.setScm( scm );
 		
@@ -90,6 +101,54 @@ public class ScmTest extends ClearCaseJenkinsTestCase {
 		coolTest.variables.put( "pvobname", uniqueTestVobName + "_PVOB" );
 		
 		coolTest.bootStrap();
+		
+		/* Prepare dev stream */
+		Stream devStream = Stream.get( uniqueTestVobName + "_one_dev", coolTest.getPVob() ).load();
+		File rebaseView = File.createTempFile( "ccucm-rebase-", "view" );
+		System.out.println( "FILE: " + rebaseView );
+		System.out.println( "FILE(DIR): " + rebaseView.isDirectory() );
+		SnapshotView view = SnapshotView.create( devStream, rebaseView, uniqueTestVobName + "-my-view" );
+		Rebase rebase = new Rebase( devStream, view, Baseline.get( "_System_2.0", coolTest.getPVob() ) );
+		rebase.rebase( true );
+		
+
+		Component component = devStream.getSingleTopComponent();
+		logger.debug( "Component: " + component );
+		
+		/**/
+		File cfile = new File( "Model/model.h" );
+		Version.checkOut( cfile, rebaseView );
+		File fullfile = new File( rebaseView, "Model/model.h" );
+		FileWriter fw = null;
+		try {
+			fw = new FileWriter( fullfile, true );
+			fw.write( "Content---" );
+		} catch( IOException e1 ) {
+			throw new ClearCaseException( e1 );
+		} finally {
+			try {
+				fw.close();
+			} catch( IOException e1 ) {
+				throw new ClearCaseException( e1 );
+			}
+		}
+		try {
+			List<File> files = Version.getUncheckedIn( rebaseView );
+			for( File f : files ) {
+				logger.debug( "Checking in " + f );
+				try {
+					Version.checkIn( f, false, rebaseView );
+				} catch( CleartoolException e1 ) {
+					logger.debug( "Unable to checkin " + f );
+					/* No op */
+				}
+			}
+		} catch( CleartoolException e1 ) {
+			logger.error( e1.getMessage() );				
+		}
+		Baseline nbl = Baseline.create( "Model-4", component, rebaseView, LabelBehaviour.INCREMENTAL, false );
+		logger.debug( "Created " + nbl );
+		
 		FreeStyleProject project = createFreeStyleProject( "ccucm-project-" + uniqueTestVobName );
 		
 		CCUCMScm scm = new CCUCMScm( "Model@" + coolTest.getPVob(), "INITIAL", "ALL", false, "child", uniqueTestVobName + "_one_int@" + coolTest.getPVob(), "successful", false, "My-super-hot-baseline", true, true, false, true, "jenkins" );
