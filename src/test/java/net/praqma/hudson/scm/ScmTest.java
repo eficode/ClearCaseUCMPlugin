@@ -112,7 +112,7 @@ public class ScmTest extends ClearCaseJenkinsTestCase {
 		rebase.rebase( true );
 		
 
-		Component component = devStream.getSingleTopComponent();
+		Component component = Component.get( "_System", coolTest.getPVob() ).load();
 		logger.debug( "Component: " + component );
 		
 		/**/
