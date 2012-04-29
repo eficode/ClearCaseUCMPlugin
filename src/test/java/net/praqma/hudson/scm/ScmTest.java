@@ -26,6 +26,7 @@ import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.view.SnapshotView;
+import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.ucm.view.SnapshotView.Components;
 import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules;
 import net.praqma.hudson.CCUCMBuildAction;
@@ -133,6 +134,7 @@ public class ScmTest extends ClearCaseJenkinsTestCase {
 		
 		/**/
 		Activity rebaseActivity = Activity.create( "rebaseTestActivity", devStream, coolTest.getPVob(), true, null, null, rebaseView );
+		UCMView.setActivity( rebaseActivity, rebaseView, null, null );
 		String filename = uniqueTestVobName + "/Model/model.h";
 		File cfile = new File( filename );
 		Version.checkOut( cfile, rebaseView );
