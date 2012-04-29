@@ -5,9 +5,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
+
+import com.google.common.collect.Lists;
 
 import hudson.FilePath;
 import hudson.model.FreeStyleBuild;
@@ -119,6 +122,8 @@ public class ScmTest extends ClearCaseJenkinsTestCase {
 		SnapshotView view = SnapshotView.create( devStream, rebaseView, uniqueTestVobName + "-my-view" );
 		
 		view.Update( false, true, true, false, new LoadRules( view, Components.ALL ) );
+		
+		logger.debug( "VIEW LIST:" + Arrays.asList( rebaseView.list() ) );
 		
 		Rebase rebase = new Rebase( devStream, view, Baseline.get( "_System_2.0", coolTest.getPVob() ) );
 		rebase.rebase( true );
