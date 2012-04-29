@@ -105,6 +105,7 @@ public class ScmTest extends ClearCaseJenkinsTestCase {
 		/* Prepare dev stream */
 		Stream devStream = Stream.get( uniqueTestVobName + "_one_dev", coolTest.getPVob() ).load();
 		File rebaseView = File.createTempFile( "ccucm-rebase-", "view" );
+		rebaseView.mkdirs();
 		System.out.println( "FILE: " + rebaseView );
 		System.out.println( "FILE(DIR): " + rebaseView.isDirectory() );
 		SnapshotView view = SnapshotView.create( devStream, rebaseView, uniqueTestVobName + "-my-view" );
