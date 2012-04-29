@@ -19,6 +19,7 @@ import hudson.model.FreeStyleProject;
 import net.praqma.clearcase.Rebase;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.exceptions.CleartoolException;
+import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Baseline.LabelBehaviour;
 import net.praqma.clearcase.ucm.entities.Component;
@@ -131,6 +132,7 @@ public class ScmTest extends ClearCaseJenkinsTestCase {
 		logger.debug( "Component: " + component );
 		
 		/**/
+		Activity rebaseActivity = Activity.create( "rebaseTestActivity", devStream, coolTest.getPVob(), true, null, null, rebaseView );
 		String filename = uniqueTestVobName + "/Model/model.h";
 		File cfile = new File( filename );
 		Version.checkOut( cfile, rebaseView );
