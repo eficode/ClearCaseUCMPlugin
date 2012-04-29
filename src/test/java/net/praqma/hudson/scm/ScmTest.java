@@ -171,7 +171,7 @@ public class ScmTest extends ClearCaseJenkinsTestCase {
 		
 		FreeStyleProject project = createFreeStyleProject( "ccucm-project-" + uniqueTestVobName );
 		
-		CCUCMScm scm = new CCUCMScm( "Model@" + coolTest.getPVob(), "INITIAL", "ALL", false, "child", uniqueTestVobName + "_one_int@" + coolTest.getPVob(), "successful", false, "My-super-hot-baseline", true, true, false, true, "jenkins" );
+		CCUCMScm scm = new CCUCMScm( "_System@" + coolTest.getPVob(), "INITIAL", "ALL", false, "child", uniqueTestVobName + "_one_int@" + coolTest.getPVob(), "successful", false, "My-super-hot-baseline", true, true, false, true, "jenkins" );
 		
 		project.setScm( scm );
 		
