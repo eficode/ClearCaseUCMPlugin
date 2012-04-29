@@ -168,55 +168,7 @@ public class ScmTest extends ClearCaseJenkinsTestCase {
 		}
 		Baseline nbl = Baseline.create( "Model-4", component, rebaseView, LabelBehaviour.INCREMENTAL, false );
 		logger.debug( "Created " + nbl );
-		
-		FreeStyleProject project = createFreeStyleProject( "ccucm-project-" + uniqueTestVobName );
-		
-		CCUCMScm scm = new CCUCMScm( "_System@" + coolTest.getPVob(), "INITIAL", "ALL", false, "child", uniqueTestVobName + "_one_int@" + coolTest.getPVob(), "successful", false, "My-super-hot-baseline", true, true, false, true, "jenkins" );
-		
-		project.setScm( scm );
-		
-		FreeStyleBuild b = project.scheduleBuild2( 0 ).get();
-		
-		System.out.println( "Workspace: " + b.getWorkspace() );
-		
-		System.out.println( "Logfile: " + b.getLogFile() );
-		
-		BufferedReader br = new BufferedReader( new FileReader( b.getLogFile() ) );
-		String line = "";
-		while( ( line = br.readLine() ) != null ) {
-			System.out.println( "[JENKINS] " + line );
-		}
-
-		br.close();
-		
-		/* Validation */
-		assertTrue( b.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
-		
-		/* Workspace validation */
-		logger.info( "Checking workspace" );
-		int check = 0;
-		FilePath viewPath = new FilePath( b.getWorkspace(), "view/" + uniqueTestVobName );
-		List<FilePath> rootDirs = viewPath.listDirectories();
-		logger.debug( "Checking file paths for " + viewPath );
-		for( FilePath f : rootDirs ) {
-			logger.debug( "Checking file path " + f );
-			if( f.getBaseName().equals( "Model" ) ) {
-				check |= 1;
 			}
-		}
-		
-		assertEquals( 1, check );
-		
-		/* Check the build baseline */
-		logger.info( "Getting action" );
-		CCUCMBuildAction action = b.getAction( CCUCMBuildAction.class );
-		logger.debug( "Asserting baseline" );
-		assertNotNull( action.getBaseline() );
-		if( action.getBaseline() != null ) {
-			logger.debug( "Asserting baseline promotion level" );
-			action.getBaseline().getPromotionLevel( true );
-		}
-	}
 	
 	/*
 	@Test
