@@ -131,7 +131,7 @@ public class ScmTest extends ClearCaseJenkinsTestCase {
 		logger.debug( "Component: " + component );
 		
 		/**/
-		String filename = coolTest.uniqueTimeStamp + "/Model/model.h";
+		String filename = uniqueTestVobName + "/Model/model.h";
 		File cfile = new File( filename );
 		Version.checkOut( cfile, rebaseView );
 		File fullfile = new File( rebaseView, filename );
