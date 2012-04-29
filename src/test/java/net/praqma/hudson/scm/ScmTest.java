@@ -123,8 +123,6 @@ public class ScmTest extends ClearCaseJenkinsTestCase {
 		
 		view.Update( false, true, true, false, new LoadRules( view, Components.ALL ) );
 		
-		logger.debug( "VIEW LIST:" + Arrays.asList( rebaseView.list() ) );
-		
 		Rebase rebase = new Rebase( devStream, view, Baseline.get( "_System_2.0", coolTest.getPVob() ) );
 		rebase.rebase( true );
 		
@@ -134,9 +132,9 @@ public class ScmTest extends ClearCaseJenkinsTestCase {
 		
 		/**/
 		String filename = coolTest.uniqueTimeStamp + "/Model/model.h";
-		File cfile = new File( "Model/model.h" );
+		File cfile = new File( filename );
 		Version.checkOut( cfile, rebaseView );
-		File fullfile = new File( rebaseView, "Model/model.h" );
+		File fullfile = new File( rebaseView, filename );
 		FileWriter fw = null;
 		try {
 			fw = new FileWriter( fullfile, true );
