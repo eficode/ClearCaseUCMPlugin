@@ -6,6 +6,8 @@ import java.io.PrintStream;
 import java.util.List;
 
 import net.praqma.clearcase.exceptions.ClearCaseException;
+import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
+import net.praqma.clearcase.exceptions.UnableToListBaselinesException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
@@ -70,8 +72,14 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
         List<Baseline> baselines = null;
         
         try {
-        	baselines = Baselines.get( stream, component, plevel );
-        } catch (ClearCaseException e) {
+            baselines = Baselines.get( stream, component, plevel, multisitePolling );
+        } catch (UnableToInitializeEntityException e) {
+        	logger.fatal(e);
+       		Logger.removeAppender( app );
+            throw new IOException("Could not retrieve baselines from repository. " + e.getMessage(), e);
+        }
+    	catch (UnableToListBaselinesException e) {
+        	logger.fatal(e);
        		Logger.removeAppender( app );
             throw new IOException("Could not retrieve baselines from repository. " + e.getMessage(), e);
         }

@@ -239,22 +239,6 @@ class RemotePostBuild implements FileCallable<Status> {
 			status.setBuildDescr( setDisplaystatus( sourcebaseline.getShortname(), newPLevel + noticeString, targetbaseline.getShortname(), status.getErrorMessage() ) );
 		}
 
-		try {
-			logger.log( id + "Baseline " + sourcebaseline.getFullyQualifiedName() +
-					" Source Mastership " + sourcebaseline.getMastership() +
-					" Target Mastership " + targetbaseline.getMastership() +
-					" Original mastership " + sourcebaseline.getStream().getOriginalMastership());
-			if( sourcebaseline.shouldResetMastership() ) {
-				hudsonOut.println( "[" + Config.nameShort + "] Resetting mastership for baseline "  + sourcebaseline.getShortname() + 
-						" to " + sourcebaseline.getStream().getOriginalMastership() +  ". ");
-				sourcebaseline.resetMastership();
-			}
-			
-		} catch( ClearCaseException e ) {
-			logger.warning( id + "Could not reset mastership for baseline. " + e.getMessage() );
-			hudsonOut.println( "[" + Config.nameShort + "] Could not reset mastership for baseline "  + sourcebaseline.getShortname() + ". " + e.getMessage() );
-		}
-
 		logger.info( id + "Remote post build finished normally" );
 		Logger.removeAppender( app );
 		return status;
