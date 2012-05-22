@@ -8,6 +8,7 @@ import hudson.model.BuildListener;
 import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.Hudson;
 import hudson.remoting.Future;
 import hudson.remoting.Pipe;
 import hudson.scm.ChangeLogParser;
@@ -187,7 +188,8 @@ public class CCUCMScm extends SCM {
 
 		PrintStream consoleOutput = listener.getLogger();
 
-		consoleOutput.println( "[" + Config.nameShort + "] ClearCase UCM Plugin version() " + net.praqma.hudson.Version.version );
+		String version = Hudson.getInstance().getPlugin( "clearcase-ucm-plugin" ).getWrapper().getVersion();
+		consoleOutput.println( "[" + Config.nameShort + "] ClearCase UCM Plugin version " + version );
 
 		consoleOutput.println( "[" + Config.nameShort + "] Allow for slave polling: " + this.getSlavePolling() );
 		consoleOutput.println( "[" + Config.nameShort + "] Poll for posted deliveries: " + this.getMultisitePolling() );
@@ -207,7 +209,7 @@ public class CCUCMScm extends SCM {
 
 		logger.verbose( "Number of appenders: " + Logger.getNumberOfAppenders() );
 
-		logger.info( id + "CCUCMSCM checkout v. " + net.praqma.hudson.Version.version, id );
+		logger.info( id + "CCUCMSCM checkout v. " + version, id );
 		
 		/* Recalculate the states */
 		//int count = ccucm.recalculate( build.getProject() );
