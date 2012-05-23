@@ -159,7 +159,7 @@
 
         <dependency>
             <groupId>net.praqma</groupId>
-            <artifactId>COOL</artifactId>
+            <artifactId>cool</artifactId>
             <version>0.4.1-SNAPSHOT</version>
             <type>jar</type>
             <scope>compile</scope>

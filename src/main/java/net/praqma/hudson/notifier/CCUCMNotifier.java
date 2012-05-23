@@ -337,7 +337,7 @@ public class CCUCMNotifier extends Notifier {
 						pstate.setListener( listener );
 						out.print( "[" + Config.nameShort + "] Creating baseline on Integration stream. " );
 						pstate.setWorkspace( workspace );
-						NameTemplate.validateTemplates( pstate );
+						//NameTemplate.validateTemplates( pstate );
 						String name = NameTemplate.parseTemplate( pstate.getNameTemplate(), pstate );
 
 						targetbaseline = rutil.createRemoteBaseline( workspace, listener, name, pstate.getBaseline().getComponent(), pstate.getSnapView().getViewRoot(), pstate.getBaseline().getUser() );

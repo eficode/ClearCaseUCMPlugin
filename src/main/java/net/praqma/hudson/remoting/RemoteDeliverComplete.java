@@ -75,6 +75,8 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 			app.setSettings( loggerSetting );
 		}
 
+		logger.debug( "Remote deliver complete" );
+		
 		Deliver deliver = new Deliver( baseline, baseline.getStream(), stream, view.getViewRoot(), view.getViewtag() );
 		if( complete ) {
 
@@ -104,6 +106,8 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 				throw new IOException( "Could not cancel the deliver.", ex );
 			}
 		}
+		
+		logger.debug( "ENDING REMOTE EDLELDEL COMWEDOE" );
 
 		Logger.removeAppender( app );
 		return true;
