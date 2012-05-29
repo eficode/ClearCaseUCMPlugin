@@ -33,15 +33,15 @@ public class NameTemplate {
 	private static Pattern rx_checkFinal = Pattern.compile( "^[\\w\\._-]*$" );
 
 	public static void validateTemplates( State state ) {
-
+		logger.debug( "Validating templates for " + state );
 		Set<String> keys = templates.keySet();
 		for( String key : keys ) {
 			String r;
 			try {
+				logger.debug( "Validating " + key );
 				r = templates.get( key ).parse( state, "" );
-				//System.out.println( key + " = " + r );
 			} catch (TemplateException e) {
-				System.out.println( "Could not validate " + key );
+				logger.warning( "Could not validate " + key );
 			}
 		}
 	}
@@ -84,7 +84,7 @@ public class NameTemplate {
 	}
 
 	public static String parseTemplate( String template, State state ) throws TemplateException {
-
+		logger.debug( "Parsing template for " + state );
 		Matcher m = rx_.matcher( template );
 		String result = template;
 		

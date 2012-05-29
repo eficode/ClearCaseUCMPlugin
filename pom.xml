@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.jenkins-ci.plugins</groupId>
 		<artifactId>plugin</artifactId>
-		<version>1.456</version>
+		<version>1.426</version>
 	</parent>
 
     <properties>
@@ -28,6 +28,12 @@
 			<id>praqma-repo</id>
 			<url>http://code.praqma.net/repo/maven/</url>
 		</repository>
+		
+        <repository>
+            <id>ubuntu</id>
+            <name>ubuntu-releases</name>
+            <url>http://217.116.243.220:8081/artifactory/repo</url>
+        </repository>
 	</repositories>
 
 	<pluginRepositories>
@@ -159,7 +165,7 @@
 
         <dependency>
             <groupId>net.praqma</groupId>
-            <artifactId>COOL</artifactId>
+            <artifactId>cool</artifactId>
             <version>0.4.1-SNAPSHOT</version>
             <type>jar</type>
             <scope>compile</scope>

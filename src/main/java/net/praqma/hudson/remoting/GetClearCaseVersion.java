@@ -18,49 +18,50 @@ import hudson.remoting.VirtualChannel;
 
 public class GetClearCaseVersion implements FileCallable<String> {
 
-	private static final long serialVersionUID = -8984877325832486334L;
+	private static Logger logger = Logger.getLogger();
 
 	private Project project;
 	private Pipe pipe;
 	private LoggerSetting loggerSetting;
 	private PrintStream pstream;
-	
+
 	public GetClearCaseVersion( Project project, Pipe pipe, PrintStream pstream, LoggerSetting loggerSetting ) {
 		this.project = project;
 		this.pipe = pipe;
 		this.loggerSetting = loggerSetting;
 		this.pstream = pstream;
-    }
-    
-    @Override
-    public String invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
-        
-    	StreamAppender app = null;
-    	if( pipe != null ) {
-	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
-	    	app = new StreamAppender( toMaster );
-	    	app.lockToCurrentThread();
-	    	Logger.addAppender( app );
-	    	app.setSettings( loggerSetting );
-    	} else if( pstream != null ) {
-	    	app = new StreamAppender( pstream );
-	    	app.lockToCurrentThread();
-	    	Logger.addAppender( app );
-	    	app.setSettings( loggerSetting );    		
-    	}
-        
-    	String version = "";
-    	
-    	try {
-			version = BuildNumber.getBuildNumber(project);
-		} catch( ClearCaseException e) {
-        	Logger.removeAppender( app );
-        	throw new IOException( "Unable to load " + project.getShortname() + ":" + e.getMessage() );
+	}
+
+	@Override
+	public String invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
+
+		StreamAppender app = null;
+		if( pipe != null ) {
+			PrintStream toMaster = new PrintStream( pipe.getOut() );
+			app = new StreamAppender( toMaster );
+			app.lockToCurrentThread();
+			Logger.addAppender( app );
+			app.setSettings( loggerSetting );
+		} else if( pstream != null ) {
+			app = new StreamAppender( pstream );
+			app.lockToCurrentThread();
+			Logger.addAppender( app );
+			app.setSettings( loggerSetting );
 		}
 
-    	Logger.removeAppender( app );
+		String version = "";
 
-    	return version;
-    }
+		try {
+			version = BuildNumber.getBuildNumber( project );
+		} catch( Exception e ) {
+			logger.warning( "get clearcase version: " + e.getMessage() );
+			Logger.removeAppender( app );
+			throw new IOException( "Unable to load " + project.getShortname() + ":" + e.getMessage(), e );
+		}
+
+		Logger.removeAppender( app );
+
+		return version;
+	}
 
 }

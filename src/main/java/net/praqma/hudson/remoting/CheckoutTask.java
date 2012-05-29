@@ -98,7 +98,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	    	app = new StreamAppender( pstream );
 	    	app.lockToCurrentThread();
 	    	Logger.addAppender( app );
-	    	app.setSettings( loggerSetting );    		
+	    	app.setSettings( loggerSetting );		
     	}
 
 		logger.info( id + "Starting CheckoutTask" );
