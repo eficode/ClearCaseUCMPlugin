@@ -133,8 +133,8 @@ public class CCUCMNotifier extends Notifier {
 
 		SCM scmTemp = build.getProject().getScm();
 		if( !( scmTemp instanceof CCUCMScm ) ) {
-			listener.fatalError( "[" + Config.nameShort + "] Not a CCUCM scm. This Post build action can only be used when polling from ClearCase with CCUCM plugin." );
-			result = false;
+			/* SCM is not ClearCase ucm, just move it along... Not fail it, duh! */
+			return true;
 		}
 
 		State pstate = null;

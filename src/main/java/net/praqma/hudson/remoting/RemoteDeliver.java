@@ -158,7 +158,7 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 			}
 			out.println( c + " version" + ( c == 1 ? "" : "s" ) + " involved" );
 			diff = Util.createChangelog( bldiff, baseline );
-		} catch( ClearCaseException e1 ) {
+		} catch( Exception e1 ) {
 			out.println( "[" + Config.nameShort + "] Unable to create change log: " + e1.getMessage() );
 		}
 		
