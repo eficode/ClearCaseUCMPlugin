@@ -157,14 +157,17 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 			
 			logger.info( "CheckoutTask finished normally" );
 			
-		} catch (net.praqma.hudson.exception.ScmException e) {
-			logger.warning( id + "SCM exception: " + e.getMessage() );
-			hudsonOut.println( "[" + Config.nameShort + "] SCM exception: " + e.getMessage() );
+		} catch (ScmException e) {
+			logger.warning( e );
+			e.printStackTrace();
 			er.setResultType( ResultType.INITIALIZE_WORKSPACE_ERROR );
 		} catch (ClearCaseException e) {
-			logger.debug( id + "Could not get changes. " + e.getMessage() );
-			logger.info( e );
+			e.log();
 			e.print( hudsonOut );
+			er.setResultType( ResultType.INITIALIZE_WORKSPACE_ERROR );
+		} catch (Exception e) {
+			logger.warning( e );
+			e.printStackTrace();
 			er.setResultType( ResultType.INITIALIZE_WORKSPACE_ERROR );
 		}
 

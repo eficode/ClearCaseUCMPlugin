@@ -40,38 +40,38 @@ public class CreateRemoteBaseline implements FileCallable<Baseline> {
 		this.pipe = pipe;
 		this.loggerSetting = loggerSetting;
 		this.pstream = pstream;
-    }
+	}
 
-    @Override
-    public Baseline invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
-        PrintStream out = listener.getLogger();
+	@Override
+	public Baseline invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
+		PrintStream out = listener.getLogger();
 
-    	StreamAppender app = null;
-    	if( pipe != null ) {
-	    	PrintStream toMaster = new PrintStream( pipe.getOut() );
-	    	app = new StreamAppender( toMaster );
-	    	app.lockToCurrentThread();
-	    	Logger.addAppender( app );
-	    	app.setSettings( loggerSetting );
-    	} else if( pstream != null ) {
-	    	app = new StreamAppender( pstream );
-	    	app.lockToCurrentThread();
-	    	Logger.addAppender( app );
-	    	app.setSettings( loggerSetting );    		
-    	}
-
-    	Baseline bl = null;
-    	try {
-			//bl = Baseline.create( baseName, component, view, true, false );
-    		bl = Baseline.create( baseName, component, view, LabelBehaviour.INCREMENTAL, false );
-		} catch (ClearCaseException e) {
-        	Logger.removeAppender( app );
-        	throw new IOException( "Unable to create Baseline:" + e.getMessage() );
+		StreamAppender app = null;
+		if( pipe != null ) {
+			PrintStream toMaster = new PrintStream( pipe.getOut() );
+			app = new StreamAppender( toMaster );
+			app.lockToCurrentThread();
+			Logger.addAppender( app );
+			app.setSettings( loggerSetting );
+		} else if( pstream != null ) {
+			app = new StreamAppender( pstream );
+			app.lockToCurrentThread();
+			Logger.addAppender( app );
+			app.setSettings( loggerSetting );
 		}
-    	
-    	Logger.removeAppender( app );
 
-    	return bl;
-    }
+		Baseline bl = null;
+		try {
+			//bl = Baseline.create( baseName, component, view, true, false );
+			bl = Baseline.create( baseName, component, view, LabelBehaviour.INCREMENTAL, false );
+		} catch( Exception e ) {
+			Logger.removeAppender( app );
+			throw new IOException( "Unable to create Baseline:" + e.getMessage(), e );
+		}
+
+		Logger.removeAppender( app );
+
+		return bl;
+	}
 
 }

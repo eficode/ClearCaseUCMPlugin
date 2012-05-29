@@ -54,7 +54,7 @@ public class LoadEntity implements FileCallable<UCMEntity> {
 
 		try {
 			entity.load();
-		} catch( ClearCaseException e ) {
+		} catch( Exception e ) {
 			Logger.removeAppender( app );
 			throw new IOException( "Unable to load " + entity.getShortname() + ":" + e.getMessage() );
 		}

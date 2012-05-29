@@ -91,11 +91,11 @@ class RemotePostBuild implements FileCallable<Status> {
 			Logger.addAppender( app );
 			app.setSettings( loggerSetting );
 		} else if( pstream != null ) {
-	    	app = new StreamAppender( pstream );
-	    	app.lockToCurrentThread();
-	    	Logger.addAppender( app );
-	    	app.setSettings( loggerSetting );    		
-    	}
+			app = new StreamAppender( pstream );
+			app.lockToCurrentThread();
+			Logger.addAppender( app );
+			app.setSettings( loggerSetting );
+		}
 
 		String newPLevel = "";
 
@@ -112,17 +112,22 @@ class RemotePostBuild implements FileCallable<Status> {
 				status.setTagAvailable( true );
 			} catch( ClearCaseException e ) {
 				e.print( hudsonOut );
+				logger.warning( e );
+				logger.warning( id + "Could not get Tag: " + e.getMessage() );
+			} catch( Exception e ) {
+				e.printStackTrace( hudsonOut );
+				logger.warning( e );
 				logger.warning( id + "Could not get Tag: " + e.getMessage() );
 			}
 		}
 
 		/* The build was a success and the deliver did not fail */
-		if( result.equals( Result.SUCCESS )) {
+		if( result.equals( Result.SUCCESS ) ) {
 
 			status.setRecommended( true );
 
 			if( status.isTagAvailable() ) {
-				if(status.isStable()) { 
+				if( status.isStable() ) {
 					tag.setEntry( "buildstatus", "SUCCESS" );
 				} else {
 					tag.setEntry( "buildstatus", "UNSTABLE" );
@@ -130,12 +135,12 @@ class RemotePostBuild implements FileCallable<Status> {
 			}
 
 			try {
-				if(hasRemoteMastership()) {
-					printPostedOutput(sourcebaseline);
+				if( hasRemoteMastership() ) {
+					printPostedOutput( sourcebaseline );
 					noticeString = "*";
 				} else {
 					Project.PromotionLevel pl;
-					if(!status.isStable() && !unstable.treatSuccessful()) {
+					if( !status.isStable() && !unstable.treatSuccessful() ) {
 						/* Treat the not stable build as unsuccessful */
 						pl = sourcebaseline.demote();
 						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + pl.toString() + "." );
@@ -143,7 +148,7 @@ class RemotePostBuild implements FileCallable<Status> {
 						/* Treat the build as successful */
 						pl = sourcebaseline.promote();
 						hudsonOut.print( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " promoted to " + pl.toString() );
-						if(!status.isStable()) {
+						if( !status.isStable() ) {
 							hudsonOut.println( ", even though the build is unstable." );
 						} else {
 							hudsonOut.println( "." );
@@ -163,7 +168,7 @@ class RemotePostBuild implements FileCallable<Status> {
 						logger.warning( id + "Could not recommend baseline: " + e.getMessage() );
 					}
 				}
-			} catch( ClearCaseException e ) {
+			} catch( Exception e ) {
 				status.setStable( false );
 				/*
 				 * as it will not make sense to recommend if we cannot promote,
@@ -193,8 +198,8 @@ class RemotePostBuild implements FileCallable<Status> {
 			}
 
 			try {
-				if(hasRemoteMastership()) {
-					printPostedOutput(sourcebaseline);
+				if( hasRemoteMastership() ) {
+					printPostedOutput( sourcebaseline );
 					noticeString = "*";
 				} else {
 					logger.warning( id + "Demoting baseline" );
@@ -216,15 +221,16 @@ class RemotePostBuild implements FileCallable<Status> {
 		if( makeTag ) {
 			if( tag != null ) {
 				try {
-					if(hasRemoteMastership()) {
-						hudsonOut.println( "[" + Config.nameShort + "] Baseline not marked with tag as it has different mastership");
+					if( hasRemoteMastership() ) {
+						hudsonOut.println( "[" + Config.nameShort + "] Baseline not marked with tag as it has different mastership" );
 					} else {
 						tag = tag.persist();
 						hudsonOut.println( "[" + Config.nameShort + "] Baseline now marked with tag: \n" + tag.stringify() );
 					}
-				} catch( ClearCaseException e ) {
+				} catch( Exception e ) {
 					hudsonOut.println( "[" + Config.nameShort + "] Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
-					e.print( hudsonOut );
+					e.printStackTrace( hudsonOut );
+					logger.warning( e );
 				}
 			} else {
 				logger.warning( id + "Tag object was null" );
@@ -240,19 +246,15 @@ class RemotePostBuild implements FileCallable<Status> {
 		}
 
 		try {
-			logger.log( id + "Baseline " + sourcebaseline.getFullyQualifiedName() +
-					" Source Mastership " + sourcebaseline.getMastership() +
-					" Target Mastership " + targetbaseline.getMastership() +
-					" Original mastership " + sourcebaseline.getStream().getOriginalMastership());
+			logger.log( id + "Baseline " + sourcebaseline.getFullyQualifiedName() + " Source Mastership " + sourcebaseline.getMastership() + " Target Mastership " + targetbaseline.getMastership() + " Original mastership " + sourcebaseline.getStream().getOriginalMastership() );
 			if( sourcebaseline.shouldResetMastership() ) {
-				hudsonOut.println( "[" + Config.nameShort + "] Resetting mastership for baseline "  + sourcebaseline.getShortname() + 
-						" to " + sourcebaseline.getStream().getOriginalMastership() +  ". ");
+				hudsonOut.println( "[" + Config.nameShort + "] Resetting mastership for baseline " + sourcebaseline.getShortname() + " to " + sourcebaseline.getStream().getOriginalMastership() + ". " );
 				sourcebaseline.resetMastership();
 			}
-			
-		} catch( ClearCaseException e ) {
+
+		} catch( Exception e ) {
 			logger.warning( id + "Could not reset mastership for baseline. " + e.getMessage() );
-			hudsonOut.println( "[" + Config.nameShort + "] Could not reset mastership for baseline "  + sourcebaseline.getShortname() + ". " + e.getMessage() );
+			hudsonOut.println( "[" + Config.nameShort + "] Could not reset mastership for baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
 		}
 
 		logger.info( id + "Remote post build finished normally" );
@@ -260,13 +262,13 @@ class RemotePostBuild implements FileCallable<Status> {
 		return status;
 	}
 
-	private void printPostedOutput(Baseline sourcebaseline ) throws ClearCaseException  {
+	private void printPostedOutput( Baseline sourcebaseline ) throws ClearCaseException {
 		hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " was a posted delivery, and has a different mastership." );
 		hudsonOut.println( "[" + Config.nameShort + "] Its promotion level cannot be updated, but is left as " + sourcebaseline.getPromotionLevel( true ).toString() );
 	}
 
-	private boolean hasRemoteMastership() throws ClearCaseException  {
-		return !sourcebaseline.getMastership().equals(targetbaseline.getMastership());
+	private boolean hasRemoteMastership() throws ClearCaseException {
+		return !sourcebaseline.getMastership().equals( targetbaseline.getMastership() );
 	}
 
 	private String setDisplaystatusSelf( String plevel, String fqn ) {
