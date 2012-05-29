@@ -38,10 +38,10 @@ public class NameTemplate {
 		for( String key : keys ) {
 			String r;
 			try {
+				logger.debug( "Validating " + key );
 				r = templates.get( key ).parse( state, "" );
-				//System.out.println( key + " = " + r );
 			} catch (TemplateException e) {
-				System.out.println( "Could not validate " + key );
+				logger.warning( "Could not validate " + key );
 			}
 		}
 	}
