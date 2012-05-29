@@ -134,6 +134,7 @@ public class CCUCMNotifier extends Notifier {
 		SCM scmTemp = build.getProject().getScm();
 		if( !( scmTemp instanceof CCUCMScm ) ) {
 			/* SCM is not ClearCase ucm, just move it along... Not fail it, duh! */
+			Logger.removeAppender( app );
 			return true;
 		}
 
