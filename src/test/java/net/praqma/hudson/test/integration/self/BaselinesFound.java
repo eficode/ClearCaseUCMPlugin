@@ -7,12 +7,18 @@ import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import net.praqma.clearcase.exceptions.ClearCaseException;
+import net.praqma.clearcase.exceptions.CleartoolException;
+import net.praqma.clearcase.exceptions.TagException;
 import net.praqma.clearcase.exceptions.UCMEntityNotFoundException;
+import net.praqma.clearcase.exceptions.UnableToCreateEntityException;
+import net.praqma.clearcase.exceptions.UnableToGetEntityException;
 import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
 import net.praqma.clearcase.exceptions.UnableToLoadEntityException;
 import net.praqma.clearcase.test.junit.CoolTestCase;
 import net.praqma.clearcase.ucm.entities.Baseline;
+import net.praqma.clearcase.ucm.entities.HyperLink;
 import net.praqma.clearcase.ucm.entities.Stream;
+import net.praqma.clearcase.ucm.entities.Tag;
 import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.scm.CCUCMScm;
@@ -102,6 +108,23 @@ public class BaselinesFound extends ClearCaseJenkinsTestCase {
 		return false;
 	}
 	
+	public void makeTagType() throws CleartoolException {
+		logger.info( "Creating hyper link type TAG" );
+		HyperLink.createType( Tag.__TAG_NAME, coolTest.getPVob(), null );
+	}
+	
+	public Tag getTag( Baseline baseline, AbstractBuild<?, ?> build ) throws ClearCaseException {
+		Tag tag = Tag.getTag( baseline, build.getDisplayName(), build.getNumber()+"", false );
+		
+		if( tag != null ) {
+			logger.info( "TAG: " + tag.stringify() );
+		} else {
+			logger.info( "TAG WAS NULL" );
+		}
+		
+		return tag;
+	}
+	
 	public void testNoOptions() throws Exception {
 		AbstractBuild<?, ?> build = initiateBuild( false, false, false, false );
 		
@@ -114,8 +137,8 @@ public class BaselinesFound extends ClearCaseJenkinsTestCase {
 		Baseline baseline = CoolTestCase.context.baselines.get( "model-1" );
 		
 		assertBuildBaseline( baseline, build );
-				
 		assertFalse( isRecommended( baseline, build ) );
+		assertNull( getTag( baseline, build ) );
 	}
 	
 	
@@ -131,7 +154,7 @@ public class BaselinesFound extends ClearCaseJenkinsTestCase {
 		Baseline baseline = CoolTestCase.context.baselines.get( "model-1" );
 		
 		assertBuildBaseline( baseline, build );
-				
 		assertTrue( isRecommended( baseline, build ) );
+		assertNull( getTag( baseline, build ) );
 	}
 }
