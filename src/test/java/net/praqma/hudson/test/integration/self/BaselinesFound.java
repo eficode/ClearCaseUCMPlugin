@@ -83,7 +83,7 @@ public class BaselinesFound extends ClearCaseJenkinsTestCase {
 		Stream stream = action.getStream().load();
 		
 		try {
-			List<Baseline> baselines = baseline.getStream().getRecommendedBaselines();
+			List<Baseline> baselines = stream.getRecommendedBaselines();
 			
 			logger.info( "Recommended baselines: " + baselines );
 			
