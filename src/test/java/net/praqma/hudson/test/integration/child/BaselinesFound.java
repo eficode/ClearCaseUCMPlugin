@@ -40,8 +40,8 @@ public class BaselinesFound extends CCUCMTestCase {
 		Activity activity = Activity.create( "ccucm-activity", stream, coolTest.getPVob(), true, "ccucm activity", null, path );
 		UCMView.setActivity( activity, path, null, null );
 		
-		DynamicView dv = new DynamicView();
-		String cmd = "update -overwrite -force";
+		Baseline s = CoolTestCase.context.baselines.get( "_System_2.0" );
+		String cmd = "rebase -baseline " + s + " -view " + viewtag + " -stream " + stream + " " + " -complete ";
 		try {
 			Cleartool.run( cmd, path );
 		} catch( Exception e ) {
