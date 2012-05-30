@@ -69,7 +69,7 @@ public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
 			project.getBuildersList().add(new TestBuilder() {
 				@Override
 			    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-			        throw new IOException( "Wah!" );
+			        return false;
 			    }
 			});
 		}
