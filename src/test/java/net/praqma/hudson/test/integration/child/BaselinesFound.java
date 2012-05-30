@@ -39,7 +39,7 @@ public class BaselinesFound extends CCUCMTestCase {
 		UCMView.setActivity( activity, path, null, null );
 		
 		try {
-			coolTest.addNewContent( CoolTestCase.context.components.get( "Model" ), path, "test.txt" );
+			coolTest.addNewContent( CoolTestCase.context.components.get( "Model" ), path, "test2.txt" );
 		} catch( ClearCaseException e ) {
 			ExceptionUtils.print( e, System.out, true );
 		}
