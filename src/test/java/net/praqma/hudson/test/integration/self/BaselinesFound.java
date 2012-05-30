@@ -13,7 +13,8 @@ public class BaselinesFound extends CCUCMTestCase {
 	private static Logger logger = Logger.getLogger();
 
 	public void testNoOptions() throws Exception {
-		AbstractBuild<?, ?> build = initiateBuild( false, false, false, false );
+		String un = setupCC( false );
+		AbstractBuild<?, ?> build = initiateBuild( "no-options", un, false, false, false, false );
 		
 		/* Build validation */
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
@@ -31,7 +32,8 @@ public class BaselinesFound extends CCUCMTestCase {
 	
 	
 	public void testRecommended() throws Exception {
-		AbstractBuild<?, ?> build = initiateBuild( true, false, false, false );
+		String un = setupCC( false );
+		AbstractBuild<?, ?> build = initiateBuild( "recommended", un, true, false, false, false );
 		
 		/* Build validation */
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
@@ -48,8 +50,8 @@ public class BaselinesFound extends CCUCMTestCase {
 	}
 	
 	public void testTagged() throws Exception {
-		makeTagType();
-		AbstractBuild<?, ?> build = initiateBuild( false, true, false, false );
+		String un = setupCC( true );
+		AbstractBuild<?, ?> build = initiateBuild( "tagged", un, false, true, false, false );
 		
 		/* Build validation */
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
@@ -66,7 +68,8 @@ public class BaselinesFound extends CCUCMTestCase {
 	}
 	
 	public void testDescription() throws Exception {
-		AbstractBuild<?, ?> build = initiateBuild( false, false, true, false );
+		String un = setupCC( false );
+		AbstractBuild<?, ?> build = initiateBuild( "description", un, false, false, true, false );
 		
 		/* Build validation */
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );

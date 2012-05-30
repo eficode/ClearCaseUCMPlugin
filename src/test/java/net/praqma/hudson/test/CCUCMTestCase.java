@@ -31,7 +31,7 @@ public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
 	
 	private static Logger logger = Logger.getLogger();
 	
-	public FreeStyleProject setupProject( boolean recommend, boolean tag, boolean description ) throws Exception {
+	public String setupCC( boolean installTag ) throws Exception {
 		//String uniqueTestVobName = "ccucm" + coolTest.uniqueTimeStamp;
 		String uniqueTestVobName = "ccucm" + CoolTestCase.getUniqueTimestamp();
 		coolTest.variables.put( "vobname", uniqueTestVobName );
@@ -39,9 +39,15 @@ public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
 		
 		coolTest.bootStrap();
 		
+		return uniqueTestVobName;
+	}
+	
+	public FreeStyleProject setupProject( String projectName, String uniqueTestVobName, boolean recommend, boolean tag, boolean description ) throws Exception {
+
+		
 		logger.info( "Setting up build for self polling, recommend:" + recommend + ", tag:" + tag + ", description:" + description );
 		
-		FreeStyleProject project = createFreeStyleProject( "ccucm-project-" + uniqueTestVobName );
+		FreeStyleProject project = createFreeStyleProject( "ccucm-project-" + projectName );
 		
 		// boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription
 		CCUCMScm scm = new CCUCMScm( "Model@" + coolTest.getPVob(), "INITIAL", "ALL", false, "self", uniqueTestVobName + "_one_int@" + coolTest.getPVob(), "successful", false, "", true, recommend, tag, description, "jenkins" );
@@ -51,8 +57,8 @@ public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
 		return project;
 	}
 	
-	public AbstractBuild<?, ?> initiateBuild( boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
-		FreeStyleProject project = setupProject( recommend, tag, description );
+	public AbstractBuild<?, ?> initiateBuild( String projectName, String uniqueTestVobName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
+		FreeStyleProject project = setupProject( projectName, uniqueTestVobName, recommend, tag, description );
 		
 		if( fail ) {
 			project.getBuildersList().add(new TestBuilder() {
