@@ -89,11 +89,13 @@ public class BaselinesFound extends ClearCaseJenkinsTestCase {
 			logger.info( "Recommended baselines: " + baselines );
 			
 			for( Baseline rb : baselines ) {
-				if( baselines.equals( rb ) ) {
+				logger.debug( "BRB: " + rb );
+				if( baseline.equals( rb ) ) {
 					return true;
 				}
 			}
 		} catch( Exception e ) {
+			logger.debug( "" );
 			ExceptionUtils.log( e, true );
 		}
 		
