@@ -1,4 +1,4 @@
-Unit tests:
+Integration tests:
 
 	* Self polling
 		- Baseline found
@@ -22,8 +22,23 @@ Unit tests:
 	* Child polling
 		- Baseline found
 			# Succesful build
-				¤ Check for promotion + check newly created baseline (2)
+				¤ No options
+				¤ Recommend
+				¤ Tag
+				¤ Description
+				¤ Create baseline
+			# Failed build
+				¤ No options
+				¤ Recommend
+				¤ Tag
+				¤ Description
+				¤ NO baseline created
 				
+				
+Asserts for all tests:
+ * Is the baseline promoted/demoted correctly
+ * 
+
 
 String component, 
 String levelToPoll, 
