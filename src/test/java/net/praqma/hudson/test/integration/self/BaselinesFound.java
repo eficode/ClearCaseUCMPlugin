@@ -48,6 +48,7 @@ public class BaselinesFound extends CCUCMTestCase {
 	}
 	
 	public void testTagged() throws Exception {
+		makeTagType();
 		AbstractBuild<?, ?> build = initiateBuild( false, true, false, false );
 		
 		/* Build validation */
