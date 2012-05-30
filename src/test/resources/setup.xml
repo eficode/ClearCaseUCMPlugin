@@ -104,6 +104,10 @@
     <stream name="${vobname}_one_int" pvob="${pvobname}" />
   </view>
   
+  <view tag="${vobname}_one_dev" stgloc="-auto">
+    <stream name="${vobname}_one_dev" pvob="${pvobname}" />
+  </view>
+  
   <context mvfs="m:\" view="${vobname}_one_int" vob="${vobname}"/>
   
   <activity comment="" headline="Adding initial files into components" in="${vobname}_one_int" name="initial_files" pvob="${pvobname}" />
