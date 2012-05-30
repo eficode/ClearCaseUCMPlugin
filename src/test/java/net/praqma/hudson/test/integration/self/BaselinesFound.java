@@ -24,7 +24,8 @@ public class BaselinesFound extends ClearCaseJenkinsTestCase {
 	private static Logger logger = Logger.getLogger();
 	
 	public FreeStyleProject setupProject( boolean recommend, boolean tag, boolean description ) throws Exception {
-		String uniqueTestVobName = "ccucm" + coolTest.uniqueTimeStamp;
+		//String uniqueTestVobName = "ccucm" + coolTest.uniqueTimeStamp;
+		String uniqueTestVobName = "ccucm" + CoolTestCase.getUniqueTimestamp();
 		coolTest.variables.put( "vobname", uniqueTestVobName );
 		coolTest.variables.put( "pvobname", uniqueTestVobName + "_PVOB" );
 		
