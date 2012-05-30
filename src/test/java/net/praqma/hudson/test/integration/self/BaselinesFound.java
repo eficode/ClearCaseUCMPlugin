@@ -13,6 +13,7 @@ import net.praqma.clearcase.exceptions.UnableToLoadEntityException;
 import net.praqma.clearcase.test.junit.CoolTestCase;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
+import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.jenkins.utils.test.ClearCaseJenkinsTestCase;
@@ -46,9 +47,13 @@ public class BaselinesFound extends ClearCaseJenkinsTestCase {
 		
 		FreeStyleBuild build = project.scheduleBuild2( 0 ).get();
 		
+		logger.info( "Build info for: " + build );
+		
 		logger.info( "Workspace: " + build.getWorkspace() );
 		
 		logger.info( "Logfile: " + build.getLogFile() );
+		
+		logger.info( "DESCRIPTION: " + build.getDescription() );
 		
 		logger.info( "-------------------------------------------------\nJENKINS LOG: " + getLog( build ) + "\n-------------------------------------------------\n" );
 		
@@ -77,15 +82,37 @@ public class BaselinesFound extends ClearCaseJenkinsTestCase {
 		CCUCMBuildAction action = getBuildAction( build );
 		Stream stream = action.getStream().load();
 		
-		List<Baseline> baselines = baseline.getStream().getRecommendedBaselines();
-		
-		for( Baseline rb : baselines ) {
-			if( baselines.equals( rb ) ) {
-				return true;
+		try {
+			List<Baseline> baselines = baseline.getStream().getRecommendedBaselines();
+			
+			logger.info( "Recommended baselines: " + baselines );
+			
+			for( Baseline rb : baselines ) {
+				if( baselines.equals( rb ) ) {
+					return true;
+				}
 			}
+		} catch( Exception e ) {
+			ExceptionUtils.log( e, true );
 		}
 		
 		return false;
+	}
+	
+	public void testNoOptions() throws Exception {
+		AbstractBuild<?, ?> build = initiateBuild( false, false, false, false );
+		
+		/* Build validation */
+		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
+		
+		/* Expected build baseline */
+		logger.info( "Build baseline: " + getBuildBaseline( build ) );
+		
+		Baseline baseline = CoolTestCase.context.baselines.get( "model-1" );
+		
+		assertBuildBaseline( baseline, build );
+				
+		assertFalse( isRecommended( baseline, build ) );
 	}
 	
 	
@@ -103,7 +130,5 @@ public class BaselinesFound extends ClearCaseJenkinsTestCase {
 		assertBuildBaseline( baseline, build );
 				
 		assertTrue( isRecommended( baseline, build ) );
-		
-		logger.info( "DESCRIPTION: " + build.getDescription() );
 	}
 }
