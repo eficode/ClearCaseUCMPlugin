@@ -4,6 +4,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
+import net.praqma.clearcase.test.junit.CoolTestCase;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.scm.CCUCMScm;
@@ -47,21 +48,30 @@ public class BaselinesFound extends ClearCaseJenkinsTestCase {
 		return action.getBaseline();
 	}
 	
+	public void assertBuildBaseline( Baseline baseline, AbstractBuild<?, ?> build ) {
+		assertEquals( baseline, getBuildBaseline( build ) );
+	}
+	
 	
 	public void testRecommend() throws Exception {
 		FreeStyleProject project = setupProject( true, false, false );
 		
-		FreeStyleBuild b = project.scheduleBuild2( 0 ).get();
+		FreeStyleBuild build = project.scheduleBuild2( 0 ).get();
 		
-		logger.info( "Workspace: " + b.getWorkspace() );
+		logger.info( "Workspace: " + build.getWorkspace() );
 		
-		logger.info( "Logfile: " + b.getLogFile() );
+		logger.info( "Logfile: " + build.getLogFile() );
 		
-		logger.info( "JENKINS::: " + getLog( b ) );
+		logger.info( "JENKINS::: " + getLog( build ) );
 		
 		/* Build validation */
-		assertTrue( b.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
+		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
 		
-		logger.info( "Build baseline: " + getBuildBaseline( b ) );
+		/* Expected build baseline */
+		logger.info( "Build baseline: " + getBuildBaseline( build ) );
+		
+		Baseline baseline = CoolTestCase.context.baselines.get( "model-1" );
+		
+		assertBuildBaseline( baseline, build );
 	}
 }
