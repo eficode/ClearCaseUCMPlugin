@@ -6,6 +6,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.Result;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.test.junit.CoolTestCase;
+import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Baseline.LabelBehaviour;
@@ -31,6 +32,9 @@ public class BaselinesFound extends CCUCMTestCase {
 		File path = new File( CoolTestCase.context.mvfs + "/" + un + "_one_dev/" + un );
 				
 		System.out.println( "PATH: " + path );
+		
+		Stream stream = Stream.get( un + "_one_dev", coolTest.getPVob() );
+		Activity.create( "ccucm-activity", stream, coolTest.getPVob(), true, "ccucm activity", null, path );
 		
 		try {
 			coolTest.addNewContent( CoolTestCase.context.components.get( "Model" ), path, "test.txt" );
