@@ -11,6 +11,7 @@ import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Baseline.LabelBehaviour;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
+import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.test.CCUCMTestCase;
 import net.praqma.util.debug.Logger;
@@ -34,7 +35,8 @@ public class BaselinesFound extends CCUCMTestCase {
 		System.out.println( "PATH: " + path );
 		
 		Stream stream = Stream.get( un + "_one_dev", coolTest.getPVob() );
-		Activity.create( "ccucm-activity", stream, coolTest.getPVob(), true, "ccucm activity", null, path );
+		Activity activity = Activity.create( "ccucm-activity", stream, coolTest.getPVob(), true, "ccucm activity", null, path );
+		UCMView.setActivity( activity, path, null, null );
 		
 		try {
 			coolTest.addNewContent( CoolTestCase.context.components.get( "Model" ), path, "test.txt" );
