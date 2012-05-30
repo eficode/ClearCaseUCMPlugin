@@ -39,12 +39,15 @@ public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
 		
 		coolTest.bootStrap();
 		
+		if( installTag ) {
+			makeTagType();
+		}
+		
 		return uniqueTestVobName;
 	}
 	
 	public FreeStyleProject setupProject( String projectName, String uniqueTestVobName, boolean recommend, boolean tag, boolean description ) throws Exception {
 
-		
 		logger.info( "Setting up build for self polling, recommend:" + recommend + ", tag:" + tag + ", description:" + description );
 		
 		FreeStyleProject project = createFreeStyleProject( "ccucm-project-" + projectName );
