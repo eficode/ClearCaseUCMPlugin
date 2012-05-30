@@ -63,6 +63,8 @@ public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
 	public AbstractBuild<?, ?> initiateBuild( String projectName, String uniqueTestVobName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
 		FreeStyleProject project = setupProject( projectName, uniqueTestVobName, recommend, tag, description );
 		
+		FreeStyleBuild build = null;
+		
 		if( fail ) {
 			project.getBuildersList().add(new TestBuilder() {
 				@Override
@@ -72,7 +74,11 @@ public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
 			});
 		}
 		
-		FreeStyleBuild build = project.scheduleBuild2( 0 ).get();
+		try {
+			build = project.scheduleBuild2( 0 ).get();
+		} catch( Exception e ) {
+			logger.info( "Build failed(" + (fail?"on purpose":"it should not?") + "): " + e.getMessage() );
+		}
 		
 		logger.info( "Build info for: " + build );
 		
