@@ -148,6 +148,8 @@ public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
 	}
 	
 	public Tag getTag( Baseline baseline, AbstractBuild<?, ?> build ) throws ClearCaseException {
+		logger.fatal( "Getting tag with \"" + build.getDisplayName() + "\" - \"" + build.getNumber() + "\"" );
+		logger.fatal( "--->" + build.getParent().getDisplayName() );
 		Tag tag = Tag.getTag( baseline, build.getDisplayName(), build.getNumber()+"", false );
 		
 		if( tag != null ) {
