@@ -88,9 +88,17 @@ public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
 		
 		logger.info( "DESCRIPTION: " + build.getDescription() );
 		
-		logger.info( "-------------------------------------------------\nJENKINS LOG: " + getLog( build ) + "\n-------------------------------------------------\n" );
+		logger.info( "-------------------------------------------------\nJENKINS LOG: " );
+		printList( getLog( build ) );
+		logger.info( "\n-------------------------------------------------\n" );
 		
 		return build;
+	}
+	
+	public void printList( List<String> list ) {
+		for( String l : list ) {
+			logger.debug( l );
+		}
 	}
 	
 	public CCUCMBuildAction getBuildAction( AbstractBuild<?, ?> build ) {
