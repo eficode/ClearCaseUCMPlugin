@@ -12,60 +12,60 @@ public class BaselinesFound extends CCUCMTestCase {
 
 	private static Logger logger = Logger.getLogger();
 
-//	public void testNoOptions() throws Exception {
-//		String un = setupCC( false );
-//		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + un, un, false, false, false, false );
-//		
-//		/* Build validation */
-//		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
-//		
-//		/* Expected build baseline */
-//		logger.info( "Build baseline: " + getBuildBaseline( build ) );
-//		
-//		Baseline baseline = CoolTestCase.context.baselines.get( "model-1" );
-//		
-//		assertBuildBaseline( baseline, build );
-//		assertFalse( isRecommended( baseline, build ) );
-//		assertNull( getTag( baseline, build ) );
-//		samePromotionLevel( baseline, PromotionLevel.BUILT );
-//	}
-//	
-//	
-//	public void testRecommended() throws Exception {
-//		String un = setupCC( false );
-//		AbstractBuild<?, ?> build = initiateBuild( "recommended-" + un, un, true, false, false, false );
-//		
-//		/* Build validation */
-//		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
-//		
-//		/* Expected build baseline */
-//		logger.info( "Build baseline: " + getBuildBaseline( build ) );
-//		
-//		Baseline baseline = CoolTestCase.context.baselines.get( "model-1" );
-//		
-//		assertBuildBaseline( baseline, build );
-//		assertTrue( isRecommended( baseline, build ) );
-//		assertNull( getTag( baseline, build ) );
-//		samePromotionLevel( baseline, PromotionLevel.BUILT );
-//	}
-//	
-//	public void testDescription() throws Exception {
-//		String un = setupCC( false );
-//		AbstractBuild<?, ?> build = initiateBuild( "description-" + un, un, false, false, true, false );
-//		
-//		/* Build validation */
-//		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
-//		
-//		/* Expected build baseline */
-//		logger.info( "Build baseline: " + getBuildBaseline( build ) );
-//		
-//		Baseline baseline = CoolTestCase.context.baselines.get( "model-1" );
-//		
-//		assertBuildBaseline( baseline, build );
-//		assertFalse( isRecommended( baseline, build ) );
-//		assertNull( getTag( baseline, build ) );
-//		samePromotionLevel( baseline, PromotionLevel.BUILT );
-//	}
+	public void testNoOptions() throws Exception {
+		String un = setupCC( false );
+		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + un, un, false, false, false, false );
+		
+		/* Build validation */
+		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
+		
+		/* Expected build baseline */
+		logger.info( "Build baseline: " + getBuildBaseline( build ) );
+		
+		Baseline baseline = CoolTestCase.context.baselines.get( "model-1" );
+		
+		assertBuildBaseline( baseline, build );
+		assertFalse( isRecommended( baseline, build ) );
+		assertNull( getTag( baseline, build ) );
+		samePromotionLevel( baseline, PromotionLevel.BUILT );
+	}
+	
+	
+	public void testRecommended() throws Exception {
+		String un = setupCC( false );
+		AbstractBuild<?, ?> build = initiateBuild( "recommended-" + un, un, true, false, false, false );
+		
+		/* Build validation */
+		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
+		
+		/* Expected build baseline */
+		logger.info( "Build baseline: " + getBuildBaseline( build ) );
+		
+		Baseline baseline = CoolTestCase.context.baselines.get( "model-1" );
+		
+		assertBuildBaseline( baseline, build );
+		assertTrue( isRecommended( baseline, build ) );
+		assertNull( getTag( baseline, build ) );
+		samePromotionLevel( baseline, PromotionLevel.BUILT );
+	}
+	
+	public void testDescription() throws Exception {
+		String un = setupCC( false );
+		AbstractBuild<?, ?> build = initiateBuild( "description-" + un, un, false, false, true, false );
+		
+		/* Build validation */
+		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
+		
+		/* Expected build baseline */
+		logger.info( "Build baseline: " + getBuildBaseline( build ) );
+		
+		Baseline baseline = CoolTestCase.context.baselines.get( "model-1" );
+		
+		assertBuildBaseline( baseline, build );
+		assertFalse( isRecommended( baseline, build ) );
+		assertNull( getTag( baseline, build ) );
+		samePromotionLevel( baseline, PromotionLevel.BUILT );
+	}
 	
 	public void testTagged() throws Exception {
 		String un = setupCC( true );
