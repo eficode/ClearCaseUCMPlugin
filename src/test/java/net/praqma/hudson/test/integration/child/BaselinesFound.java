@@ -26,7 +26,7 @@ public class BaselinesFound extends CCUCMTestCase {
 		String un = setupCC( false );
 		
 		/**/
-		String viewtag = un + "_one_int";
+		String viewtag = un + "_one_dev";
 		System.out.println( "VIEW: " + CoolTestCase.context.views.get( viewtag ) );
 		File path = new File( CoolTestCase.context.mvfs + "/" + un + "_one_dev/" + un );
 				
