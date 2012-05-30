@@ -1,10 +1,16 @@
 package net.praqma.hudson.test.integration.child;
 
+import java.io.File;
+
 import hudson.model.AbstractBuild;
 import hudson.model.Result;
+import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.test.junit.CoolTestCase;
 import net.praqma.clearcase.ucm.entities.Baseline;
+import net.praqma.clearcase.ucm.entities.Stream;
+import net.praqma.clearcase.ucm.entities.Baseline.LabelBehaviour;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
+import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.test.CCUCMTestCase;
 import net.praqma.util.debug.Logger;
 
@@ -18,6 +24,21 @@ public class BaselinesFound extends CCUCMTestCase {
 
 	public void testNoOptions() throws Exception {
 		String un = setupCC( false );
+		
+		/**/
+		String viewtag = un + "_one_int";
+		System.out.println( "VIEW: " + CoolTestCase.context.views.get( viewtag ) );
+		File path = new File( CoolTestCase.context.mvfs + "/" + un + "_one_dev/" + un );
+				
+		System.out.println( "PATH: " + path );
+		
+		try {
+			coolTest.addNewContent( CoolTestCase.context.components.get( "Model" ), path, "test.txt" );
+		} catch( ClearCaseException e ) {
+			ExceptionUtils.print( e, System.out, true );
+		}
+		Baseline.create( "baseline-for-test", CoolTestCase.context.components.get( "_System" ), path, LabelBehaviour.FULL, false );
+		
 		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + un, un, false, false, false, false );
 		
 		/* Build validation */
