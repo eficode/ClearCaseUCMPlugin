@@ -4,6 +4,7 @@ import java.io.File;
 
 import hudson.model.AbstractBuild;
 import hudson.model.Result;
+import net.praqma.clearcase.cleartool.Cleartool;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.test.junit.CoolTestCase;
 import net.praqma.clearcase.ucm.entities.Activity;
@@ -11,6 +12,7 @@ import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Baseline.LabelBehaviour;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
+import net.praqma.clearcase.ucm.view.DynamicView;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.test.CCUCMTestCase;
@@ -37,6 +39,15 @@ public class BaselinesFound extends CCUCMTestCase {
 		Stream stream = Stream.get( un + "_one_dev", coolTest.getPVob() );
 		Activity activity = Activity.create( "ccucm-activity", stream, coolTest.getPVob(), true, "ccucm activity", null, path );
 		UCMView.setActivity( activity, path, null, null );
+		
+		DynamicView dv = new DynamicView();
+		String cmd = "update -overwrite -force";
+		try {
+			Cleartool.run( cmd, path );
+		} catch( Exception e ) {
+			logger.fatal( e );
+		}
+		
 		
 		try {
 			coolTest.addNewContent( CoolTestCase.context.components.get( "Model" ), path, "test2.txt" );
