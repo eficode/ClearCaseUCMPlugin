@@ -46,22 +46,22 @@ public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
 		return uniqueTestVobName;
 	}
 	
-	public FreeStyleProject setupProject( String projectName, String uniqueTestVobName, boolean recommend, boolean tag, boolean description ) throws Exception {
+	public FreeStyleProject setupProject( String projectName, String uniqueTestVobName, String type, boolean recommend, boolean tag, boolean description ) throws Exception {
 
 		logger.info( "Setting up build for self polling, recommend:" + recommend + ", tag:" + tag + ", description:" + description );
 		
 		FreeStyleProject project = createFreeStyleProject( "ccucm-project-" + projectName );
 		
 		// boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription
-		CCUCMScm scm = new CCUCMScm( "Model@" + coolTest.getPVob(), "INITIAL", "ALL", false, "self", uniqueTestVobName + "_one_int@" + coolTest.getPVob(), "successful", false, "", true, recommend, tag, description, "jenkins" );
+		CCUCMScm scm = new CCUCMScm( "Model@" + coolTest.getPVob(), "INITIAL", "ALL", false, type, uniqueTestVobName + "_one_int@" + coolTest.getPVob(), "successful", false, "", true, recommend, tag, description, "jenkins" );
 		
 		project.setScm( scm );
 		
 		return project;
 	}
 	
-	public AbstractBuild<?, ?> initiateBuild( String projectName, String uniqueTestVobName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
-		FreeStyleProject project = setupProject( projectName, uniqueTestVobName, recommend, tag, description );
+	public AbstractBuild<?, ?> initiateBuild( String projectName, String uniqueTestVobName, String type, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
+		FreeStyleProject project = setupProject( projectName, uniqueTestVobName, type, recommend, tag, description );
 		
 		FreeStyleBuild build = null;
 		
@@ -166,5 +166,10 @@ public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
 		baseline.load();
 		logger.info( "Future promotion level: " + baseline.getPromotionLevel( false ) );
 		assertEquals( level, baseline.getPromotionLevel( false ) );
+	}
+	
+	public void testCreatedBaseline( AbstractBuild<?, ?> build ) {
+		CCUCMBuildAction action = getBuildAction( build );
+		assertNotNull( action.getCreatedBaseline() );
 	}
 }

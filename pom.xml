@@ -151,7 +151,8 @@
                         </dependencies>
                         <configuration>
                             <includes>
-                                <include>net/praqma/hudson/test/integration/*/*.java</include>
+                                <include>net/praqma/hudson/test/integration/child/*.java</include>
+                                <!-- <include>net/praqma/hudson/test/integration/*/*.java</include> -->
                             </includes>
                         </configuration>
                     </plugin>

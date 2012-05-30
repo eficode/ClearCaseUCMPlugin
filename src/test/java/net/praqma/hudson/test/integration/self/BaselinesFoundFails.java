@@ -1,6 +1,7 @@
 package net.praqma.hudson.test.integration.self;
 
 import hudson.model.AbstractBuild;
+import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import net.praqma.clearcase.test.junit.CoolTestCase;
 import net.praqma.clearcase.ucm.entities.Baseline;
@@ -11,6 +12,10 @@ import net.praqma.util.debug.Logger;
 public class BaselinesFoundFails extends CCUCMTestCase {
 
 	private static Logger logger = Logger.getLogger();
+	
+	public AbstractBuild<?, ?> initiateBuild( String projectName, String uniqueTestVobName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
+		return initiateBuild( projectName, uniqueTestVobName, "self", recommend, tag, description, fail );
+	}
 
 	public void testNoOptions() throws Exception {
 		String un = setupCC( false );

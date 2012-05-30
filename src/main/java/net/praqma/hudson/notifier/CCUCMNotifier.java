@@ -15,6 +15,7 @@ import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.view.SnapshotView;
+import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.CCUCMException;
 import net.praqma.hudson.exception.NotifierException;
@@ -317,6 +318,8 @@ public class CCUCMNotifier extends Notifier {
 		 * Fail: - deliver cancel
 		 */
 		boolean treatSuccessful = buildResult.isBetterThan( pstate.getUnstable().treatSuccessful() ? Result.FAILURE : Result.UNSTABLE );
+		
+		CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
 
 		/*
 		 * Finalize CCUCM, deliver + baseline Only do this for child and sibling
@@ -348,6 +351,11 @@ public class CCUCMNotifier extends Notifier {
 
 						targetbaseline = rutil.createRemoteBaseline( workspace, listener, name, pstate.getBaseline().getComponent(), pstate.getSnapView().getViewRoot(), pstate.getBaseline().getUser() );
 
+						/**/
+						if( action != null ) {
+							action.setCreatedBaseline( targetbaseline );
+						}
+						
 						out.println( targetbaseline );
 					} catch( Exception e ) {
 						out.println( "Failed: " + e.getMessage() );

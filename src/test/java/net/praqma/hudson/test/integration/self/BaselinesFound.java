@@ -11,6 +11,10 @@ import net.praqma.util.debug.Logger;
 public class BaselinesFound extends CCUCMTestCase {
 
 	private static Logger logger = Logger.getLogger();
+	
+	public AbstractBuild<?, ?> initiateBuild( String projectName, String uniqueTestVobName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
+		return initiateBuild( projectName, uniqueTestVobName, "self", recommend, tag, description, fail );
+	}
 
 	public void testNoOptions() throws Exception {
 		String un = setupCC( false );
