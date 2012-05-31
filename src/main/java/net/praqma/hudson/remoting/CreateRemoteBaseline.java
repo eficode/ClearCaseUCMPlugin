@@ -62,10 +62,8 @@ public class CreateRemoteBaseline implements FileCallable<Baseline> {
 
 		Baseline bl = null;
 		try {
-			//bl = Baseline.create( baseName, component, view, true, false );
 			bl = Baseline.create( baseName, component, view, LabelBehaviour.INCREMENTAL, false );
 		} catch( Exception e ) {
-			e.printStackTrace( out );
 			Logger.removeAppender( app );
 			throw new IOException( "Unable to create Baseline:" + e.getMessage(), e );
 		}
