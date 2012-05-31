@@ -57,19 +57,19 @@ public class Config {
 		 */
 		if( buildProject == null ) {
 			try {
-				project = Project.get( "hudson", bl.getPVob() );
+				project = Project.get( "hudson", bl.getPVob() ).load();
 			} catch( Exception eh ) {
 				try {
-					project = Project.get( "Hudson", bl.getPVob() );
+					project = Project.get( "Hudson", bl.getPVob() ).load();
 				} catch( Exception eH ) {
 					try {
-						project = Project.get( "jenkins", bl.getPVob() );
+						project = Project.get( "jenkins", bl.getPVob() ).load();
 					} catch( Exception ej ) {
 						try {
-							project = Project.get( "Jenkins", bl.getPVob() );
+							project = Project.get( "Jenkins", bl.getPVob() ).load();
 						} catch( Exception eJ ) {
 							logger.warning( "The build Project was not found." );
-							project = bl.getStream().getProject();
+							project = bl.getStream().getProject().load();
 						}
 					}
 				}
