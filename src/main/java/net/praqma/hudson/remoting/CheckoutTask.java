@@ -11,6 +11,9 @@ import java.util.Set;
 
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.exceptions.RebaseException;
+import net.praqma.clearcase.exceptions.UCMEntityNotFoundException;
+import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
+import net.praqma.clearcase.exceptions.UnableToLoadEntityException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.Cool;
 import net.praqma.clearcase.PVob;
@@ -22,6 +25,7 @@ import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.SnapshotView.Components;
 import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules;
+import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.*;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.remoting.EstablishResult.ResultType;
@@ -109,6 +113,16 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		EstablishResult er = new EstablishResult();
 		er.setResultType( ResultType.SUCCESS );
 		ClearCaseChangeset changeset = new ClearCaseChangeset();
+		
+		/* We need to load target stream */
+		try {
+			targetStream.load();
+		} catch( Exception e1 ) {
+			ExceptionUtils.print( e1, hudsonOut, false );
+			ExceptionUtils.log( e1, true );
+			
+			throw new IOException( e1 );
+		}
 
 		try {
 			logger.debug( id + "Getting dev stream" );
