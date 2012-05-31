@@ -16,6 +16,7 @@ import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Tag;
+import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.scm.Unstable;
 import net.praqma.util.debug.Logger;
@@ -110,14 +111,10 @@ class RemotePostBuild implements FileCallable<Status> {
 				// Getting tag to set buildstatus
 				tag = sourcebaseline.getTag( this.displayName, this.buildNumber );
 				status.setTagAvailable( true );
-			} catch( ClearCaseException e ) {
-				e.print( hudsonOut );
-				logger.warning( e );
-				logger.warning( id + "Could not get Tag: " + e.getMessage() );
 			} catch( Exception e ) {
-				e.printStackTrace( hudsonOut );
-				logger.warning( e );
-				logger.warning( id + "Could not get Tag: " + e.getMessage() );
+				//e.printStackTrace( hudsonOut );
+				ExceptionUtils.print( e, hudsonOut, false );
+				ExceptionUtils.log( e, true );
 			}
 		}
 
@@ -229,8 +226,9 @@ class RemotePostBuild implements FileCallable<Status> {
 					}
 				} catch( Exception e ) {
 					hudsonOut.println( "[" + Config.nameShort + "] Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
-					e.printStackTrace( hudsonOut );
-					logger.warning( e );
+					//e.printStackTrace( hudsonOut );
+					ExceptionUtils.print( e, hudsonOut, false );
+					ExceptionUtils.log( e, true );
 				}
 			} else {
 				logger.warning( id + "Tag object was null" );

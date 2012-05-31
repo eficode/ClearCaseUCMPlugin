@@ -21,83 +21,84 @@ public class Config {
 	public static String levelVar = "ccucm_loglevel";
 	public static String logAllVar = "ccucm_logall";
 
-    protected static Logger logger = Logger.getLogger();
+	protected static Logger logger = Logger.getLogger();
 
-    private Config() {
-    }
+	private Config() {
+	}
 
-    public static List<String> getLevels() {
-        List<String> levels = Project.getPromotionLevels();
-        levels.add( "ANY" );
-        return levels;
-    }
+	public static List<String> getLevels() {
+		List<String> levels = Project.getPromotionLevels();
+		levels.add( "ANY" );
+		return levels;
+	}
 
-    /*Below method is obsolete - remove when everything works*/
-    /**
-     * @deprecated
-     */
-    public static Stream devStream(String pvob) throws ScmException {
-        Stream devStream = null;
-        try {
-            devStream = Stream.get("Hudson_Server_dev@" + pvob);
-            devStream.load();
-        } catch (ClearCaseException e) {
-            throw new ScmException("Could not get developer stream. " + e.getMessage());
-        }
-        return devStream;
-    }
+	/* Below method is obsolete - remove when everything works */
+	/**
+	 * @deprecated
+	 */
+	public static Stream devStream( String pvob ) throws ScmException {
+		Stream devStream = null;
+		try {
+			devStream = Stream.get( "Hudson_Server_dev@" + pvob );
+			devStream.load();
+		} catch( ClearCaseException e ) {
+			throw new ScmException( "Could not get developer stream. " + e.getMessage() );
+		}
+		return devStream;
+	}
 
-    public static Stream getIntegrationStream(Baseline bl, String buildProject) throws ScmException {
-        Stream stream = null;
-        Project project = null;
+	public static Stream getIntegrationStream( Baseline bl, String buildProject ) throws ScmException {
+		Stream stream = null;
+		Project project = null;
 
+		/*
+		 * If the build project was not given as a parameter to the job, try to
+		 * find hudson, Hudson, jenkins or Jenkins
+		 */
+		if( buildProject == null ) {
+			try {
+				project = Project.get( "hudson", bl.getPVob() ).load();
+			} catch( Exception eh ) {
+				try {
+					project = Project.get( "Hudson", bl.getPVob() ).load();
+				} catch( Exception eH ) {
+					try {
+						project = Project.get( "jenkins", bl.getPVob() ).load();
+					} catch( Exception ej ) {
+						try {
+							project = Project.get( "Jenkins", bl.getPVob() ).load();
+						} catch( Exception eJ ) {
+							logger.warning( "The build Project was not found." );
+							project = bl.getStream().getProject();
+						}
+					}
+				}
+			}
+		} else {
+			try {
+				project = Project.get( buildProject, bl.getPVob() );
+			} catch( Exception e ) {
+				//throw new ScmException( "Could not find project 'hudson' in " + pvob + ". You can install the Poject with: \"cleartool mkproject -c \"The special Hudson Project\" -in rootFolder@\\your_pvob hudson@\\your_pvob\"." );
+				logger.warning( "The build Project was not found." );
 
-        /* If the build project was not given as a parameter to the job, try to find
-         * hudson, Hudson, jenkins or Jenkins */
-        if (buildProject == null) {
-            try {
-                project = Project.get("hudson", bl.getPVob());
-            } catch (ClearCaseException eh) {
-                try {
-                    project = Project.get("Hudson", bl.getPVob());
-                } catch (ClearCaseException eH) {
-                    try {
-                        project = Project.get("jenkins", bl.getPVob());
-                    } catch (ClearCaseException ej) {
-                        try {
-                            project = Project.get("Jenkins", bl.getPVob());
-                        } catch (ClearCaseException eJ) {
-                            logger.warning("The build Project was not found.");
-                            project = bl.getStream().getProject();
-                        }
-                    }
-                }
-            }
-        } else {
-            try {
-                project = Project.get(buildProject, bl.getPVob() );
-            } catch (Exception e) {
-                //throw new ScmException( "Could not find project 'hudson' in " + pvob + ". You can install the Poject with: \"cleartool mkproject -c \"The special Hudson Project\" -in rootFolder@\\your_pvob hudson@\\your_pvob\"." );
-                logger.warning("The build Project was not found.");
+				project = bl.getStream().getProject();
+			}
+		}
 
-                project = bl.getStream().getProject();
-            }
-        }
-        
-        try {
+		try {
 			project.load();
 		} catch( ClearCaseException e1 ) {
 			project = bl.getStream().getProject();
-			logger.warning("The project could not be loaded, using " + project.getNormalizedName());
+			logger.warning( "The project could not be loaded, using " + project.getNormalizedName() );
 		}
 
-        try {
-            stream = project.getIntegrationStream();
-        } catch (Exception e) {
-            throw new ScmException("Could not get integration stream from " + project.getShortname());
-        }
+		try {
+			stream = project.getIntegrationStream();
+		} catch( Exception e ) {
+			throw new ScmException( "Could not get integration stream from " + project.getShortname() );
+		}
 
-        return stream;
-    }
+		return stream;
+	}
 
 }
