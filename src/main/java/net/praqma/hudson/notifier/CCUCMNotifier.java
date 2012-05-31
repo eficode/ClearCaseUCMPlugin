@@ -359,7 +359,7 @@ public class CCUCMNotifier extends Notifier {
 						
 						out.println( targetbaseline );
 					} catch( Exception e ) {
-						ExceptionUtils.print( e, out, false );
+						ExceptionUtils.print( e, out, true );
 						logger.warning( "Failed to create baseline on stream", id );
 						logger.warning( e, id );
 						/* We cannot recommend a baseline that is not created */
