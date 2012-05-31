@@ -69,7 +69,7 @@ public class Config {
 							project = Project.get( "Jenkins", bl.getPVob() ).load();
 						} catch( Exception eJ ) {
 							logger.warning( "The build Project was not found." );
-							project = bl.getStream().getProject().load();
+							project = bl.getStream().getProject();
 						}
 					}
 				}
