@@ -2,10 +2,12 @@ package net.praqma.hudson.test;
 
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -46,22 +48,22 @@ public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
 		return uniqueTestVobName;
 	}
 	
-	public FreeStyleProject setupProject( String projectName, String uniqueTestVobName, String type, boolean recommend, boolean tag, boolean description ) throws Exception {
+	public FreeStyleProject setupProject( String projectName, String uniqueTestVobName, String type, String stream, boolean recommend, boolean tag, boolean description ) throws Exception {
 
 		logger.info( "Setting up build for self polling, recommend:" + recommend + ", tag:" + tag + ", description:" + description );
 		
 		FreeStyleProject project = createFreeStyleProject( "ccucm-project-" + projectName );
 		
 		// boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription
-		CCUCMScm scm = new CCUCMScm( "Model@" + coolTest.getPVob(), "INITIAL", "ALL", false, type, uniqueTestVobName + "_one_int@" + coolTest.getPVob(), "successful", false, "", true, recommend, tag, description, "jenkins" );
+		CCUCMScm scm = new CCUCMScm( "Model@" + coolTest.getPVob(), "INITIAL", "ALL", false, type, stream, "successful", false, "", true, recommend, tag, description, "jenkins" );
 		
 		project.setScm( scm );
 		
 		return project;
 	}
 	
-	public AbstractBuild<?, ?> initiateBuild( String projectName, String uniqueTestVobName, String type, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
-		FreeStyleProject project = setupProject( projectName, uniqueTestVobName, type, recommend, tag, description );
+	public AbstractBuild<?, ?> initiateBuild( String projectName, String uniqueTestVobName, String type, String stream, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
+		FreeStyleProject project = setupProject( projectName, uniqueTestVobName, type, stream, recommend, tag, description );
 		
 		FreeStyleBuild build = null;
 		
@@ -171,5 +173,19 @@ public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
 	public void testCreatedBaseline( AbstractBuild<?, ?> build ) {
 		CCUCMBuildAction action = getBuildAction( build );
 		assertNotNull( action.getCreatedBaseline() );
+	}
+	// build.getRootDir(), "ccucmSCM.log"
+	public void testLogExistence( AbstractBuild<?, ?> build ) {
+		File scmLog = new File( build.getRootDir(), "ccucmSCM.log" );
+		File pubLog = new File( build.getRootDir(), "ccucmNOTIFIER.log" );
+		
+		assertTrue( scmLog.exists() );
+		assertTrue( pubLog.exists() );
+	}
+	
+	public void testCCUCMPolling( AbstractProject<?, ?> project ) {
+		File polldir = new File( project.getRootDir(), "ccucm-poll-logs" );
+		
+		assertTrue( polldir.exists() );
 	}
 }

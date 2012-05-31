@@ -23,7 +23,7 @@ public class BaselinesFound extends CCUCMTestCase {
 	private static Logger logger = Logger.getLogger();
 	
 	public AbstractBuild<?, ?> initiateBuild( String projectName, String uniqueTestVobName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
-		return initiateBuild( projectName, uniqueTestVobName, "child", recommend, tag, description, fail );
+		return initiateBuild( projectName, uniqueTestVobName, "child", uniqueTestVobName + "_one_int@" + coolTest.getPVob(), recommend, tag, description, fail );
 	}
 
 	public void testNoOptions() throws Exception {
@@ -41,12 +41,15 @@ public class BaselinesFound extends CCUCMTestCase {
 		UCMView.setActivity( activity, path, null, null );
 		
 		Baseline s = CoolTestCase.context.baselines.get( "_System_2.0" );
+		
+		/*
 		String cmd = "rebase -baseline " + s + " -view " + viewtag + " -stream " + stream + " " + " -complete ";
 		try {
 			Cleartool.run( cmd, path );
 		} catch( Exception e ) {
 			logger.fatal( e );
 		}
+		*/
 		
 		
 		try {

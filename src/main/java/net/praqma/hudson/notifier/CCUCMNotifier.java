@@ -15,6 +15,7 @@ import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.view.SnapshotView;
+import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.CCUCMException;
@@ -358,7 +359,7 @@ public class CCUCMNotifier extends Notifier {
 						
 						out.println( targetbaseline );
 					} catch( Exception e ) {
-						out.println( "Failed: " + e.getMessage() );
+						ExceptionUtils.print( e, out, false );
 						logger.warning( "Failed to create baseline on stream", id );
 						logger.warning( e, id );
 						/* We cannot recommend a baseline that is not created */
