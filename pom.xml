@@ -207,14 +207,14 @@
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>cool</artifactId>
-            <version>0.4.2-SNAPSHOT</version>
+            <version>0.4.2</version>
             <type>jar</type>
         </dependency>
 
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>cool-jenkins-test</artifactId>
-            <version>0.1.1-SNAPSHOT</version>
+            <version>0.1.1</version>
             <scope>test</scope>
         </dependency>
 
