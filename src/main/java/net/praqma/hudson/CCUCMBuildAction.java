@@ -11,6 +11,8 @@ public class CCUCMBuildAction implements Action {
 	private Component component;
 	private Baseline baseline;
 	
+	private String viewTag;
+	
 	private Baseline createdBaseline;
 	
 	public CCUCMBuildAction( Stream stream, Component component ) {
@@ -32,6 +34,14 @@ public class CCUCMBuildAction implements Action {
 
 	public void setCreatedBaseline( Baseline createdBaseline ) {
 		this.createdBaseline = createdBaseline;
+	}
+
+	public String getViewTag() {
+		return viewTag;
+	}
+
+	public void setViewTag( String viewTag ) {
+		this.viewTag = viewTag;
 	}
 
 	public Stream getStream() {
