@@ -769,31 +769,14 @@ public class CCUCMScm extends SCM {
 	public void buildEnvVars( AbstractBuild<?, ?> build, Map<String, String> env ) {
 		super.buildEnvVars( build, env );
 		
-		System.out.println( "Th1s is(ENV) " + this );
-
 		if( CC_BASELINE == null ) {
 			try {
-				State state = ccucm.getState( jobName, jobNumber );
-				
-				/* Baseline */
-				if( state.getBaseline() != null ) {
-					CC_BASELINE = state.getBaseline().getFullyQualifiedName();
-				} else {
-					CC_BASELINE = "";
-				}
-			} catch( Exception e ) {
-				System.out.println( "Variables not available: " + e.getMessage() );
-				
-				/* Try env vars */
+				CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
+				CC_BASELINE = action.getBaseline().getFullyQualifiedName();
+			} catch( Exception e1 ) {
+				System.out.println( "Failed to get baseline: " + e1.getMessage() );
 				try {
-					System.out.println( "Trying with env vars" );
-					String VAR_JOBNAME = env.get( "JOB_NAME" );
-					String n = env.get( "BUILD_NUMBER" );
-					int VAR_BUILDNUMBER = Integer.parseInt( n );
-					
-					System.out.println( "VARS: " + VAR_JOBNAME + ", " + VAR_BUILDNUMBER );
-					
-					State state = ccucm.getState( VAR_JOBNAME, VAR_BUILDNUMBER );
+					State state = ccucm.getState( jobName, jobNumber );
 					
 					/* Baseline */
 					if( state.getBaseline() != null ) {
@@ -801,8 +784,29 @@ public class CCUCMScm extends SCM {
 					} else {
 						CC_BASELINE = "";
 					}
-				} catch( Exception e1 ) {
-					System.out.println( "Not possible to retrieve variables: " + e1.getMessage() );
+				} catch( Exception e2 ) {
+					System.out.println( "Variables not available: " + e2.getMessage() );
+					
+					/* Try env vars */
+					try {
+						System.out.println( "Trying with env vars" );
+						String VAR_JOBNAME = env.get( "JOB_NAME" );
+						String n = env.get( "BUILD_NUMBER" );
+						int VAR_BUILDNUMBER = Integer.parseInt( n );
+						
+						System.out.println( "VARS: " + VAR_JOBNAME + ", " + VAR_BUILDNUMBER );
+						
+						State state = ccucm.getState( VAR_JOBNAME, VAR_BUILDNUMBER );
+						
+						/* Baseline */
+						if( state.getBaseline() != null ) {
+							CC_BASELINE = state.getBaseline().getFullyQualifiedName();
+						} else {
+							CC_BASELINE = "";
+						}
+					} catch( Exception e3 ) {
+						System.out.println( "Not possible to retrieve variables: " + e3.getMessage() );
+					}
 				}
 			}
 			
