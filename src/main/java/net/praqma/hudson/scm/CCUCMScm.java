@@ -275,12 +275,16 @@ public class CCUCMScm extends SCM {
 
 		state.setPolling( polling );
 		
-		/* Add the found baseline to the action */
-		action.setBaseline( state.getBaseline() );
-
 		/* If a baseline is found */
 		if( state.getBaseline() != null && result ) {
 			consoleOutput.println( "[" + Config.nameShort + "] Using " + state.getBaseline() );
+			
+			/* Add the found baseline to the action */
+			action.setBaseline( state.getBaseline() );
+			action.setViewTag( viewtag );
+			
+			baselineName = state.getBaseline().getFullyQualifiedName();
+			
 			/*
 			 * if( setDescription ) { build.setDescription("<small>" +
 			 * state.getBaseline().getShortname() + "</small>"); }
@@ -761,22 +765,48 @@ public class CCUCMScm extends SCM {
 		return new ChangeLogParserImpl();
 	}
 	
-	private String CC_BASELINE = null;
-	private String CC_VIEWPATH = null;
-	private String CC_VIEWTAG  = null;
+	private String baselineName = "";
+	
+	public String getBaselineName() {
+		return baselineName;
+	}
 
 	@Override
 	public void buildEnvVars( AbstractBuild<?, ?> build, Map<String, String> env ) {
 		super.buildEnvVars( build, env );
 		
-		if( CC_BASELINE == null ) {
+		String CC_BASELINE = "";
+		String CC_VIEWPATH = "";
+		String CC_VIEWTAG  = "";
+		
+		try {
+			
+			CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
+			CC_BASELINE = action.getBaseline().getFullyQualifiedName();
+		} catch( Exception e1 ) {
+			System.out.println( "Failed to get baseline: " + e1.getMessage() );
 			try {
-				CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
-				CC_BASELINE = action.getBaseline().getFullyQualifiedName();
-			} catch( Exception e1 ) {
-				System.out.println( "Failed to get baseline: " + e1.getMessage() );
+				State state = ccucm.getState( jobName, jobNumber );
+				
+				/* Baseline */
+				if( state.getBaseline() != null ) {
+					CC_BASELINE = state.getBaseline().getFullyQualifiedName();
+				} else {
+					CC_BASELINE = "";
+				}
+			} catch( Exception e2 ) {
+				System.out.println( "Variables not available: " + e2.getMessage() );
+				
+				/* Try env vars */
 				try {
-					State state = ccucm.getState( jobName, jobNumber );
+					System.out.println( "Trying with env vars" );
+					String VAR_JOBNAME = env.get( "JOB_NAME" );
+					String n = env.get( "BUILD_NUMBER" );
+					int VAR_BUILDNUMBER = Integer.parseInt( n );
+					
+					System.out.println( "VARS: " + VAR_JOBNAME + ", " + VAR_BUILDNUMBER );
+					
+					State state = ccucm.getState( VAR_JOBNAME, VAR_BUILDNUMBER );
 					
 					/* Baseline */
 					if( state.getBaseline() != null ) {
@@ -784,42 +814,21 @@ public class CCUCMScm extends SCM {
 					} else {
 						CC_BASELINE = "";
 					}
-				} catch( Exception e2 ) {
-					System.out.println( "Variables not available: " + e2.getMessage() );
-					
-					/* Try env vars */
-					try {
-						System.out.println( "Trying with env vars" );
-						String VAR_JOBNAME = env.get( "JOB_NAME" );
-						String n = env.get( "BUILD_NUMBER" );
-						int VAR_BUILDNUMBER = Integer.parseInt( n );
-						
-						System.out.println( "VARS: " + VAR_JOBNAME + ", " + VAR_BUILDNUMBER );
-						
-						State state = ccucm.getState( VAR_JOBNAME, VAR_BUILDNUMBER );
-						
-						/* Baseline */
-						if( state.getBaseline() != null ) {
-							CC_BASELINE = state.getBaseline().getFullyQualifiedName();
-						} else {
-							CC_BASELINE = "";
-						}
-					} catch( Exception e3 ) {
-						System.out.println( "Not possible to retrieve variables: " + e3.getMessage() );
-					}
+				} catch( Exception e3 ) {
+					System.out.println( "Not possible to retrieve variables: " + e3.getMessage() );
 				}
 			}
-			
-			/* View tag */
-			CC_VIEWTAG = viewtag;
-			
-			/* View path */
-			String workspace = env.get( "WORKSPACE" );
-			if( workspace != null ) {
-				CC_VIEWPATH = workspace + File.separator + "view";
-			} else {
-				CC_VIEWPATH = "";
-			}
+		}
+		
+		/* View tag */
+		CC_VIEWTAG = viewtag;
+		
+		/* View path */
+		String workspace = env.get( "WORKSPACE" );
+		if( workspace != null ) {
+			CC_VIEWPATH = workspace + File.separator + "view";
+		} else {
+			CC_VIEWPATH = "";
 		}
 
 		env.put( "CC_BASELINE", CC_BASELINE );
