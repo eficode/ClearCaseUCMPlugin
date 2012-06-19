@@ -1,5 +1,6 @@
 package net.praqma.hudson.scm;
 
+import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -75,6 +76,7 @@ import net.praqma.util.debug.Logger.LogLevel;
 import net.praqma.util.debug.LoggerSetting;
 import net.praqma.util.debug.appenders.Appender;
 import net.praqma.util.debug.appenders.FileAppender;
+import net.praqma.util.execute.AbnormalProcessTerminationException;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 
@@ -211,9 +213,13 @@ public class CCUCMScm extends SCM {
 
 		logger.info( id + "CCUCMSCM checkout v. " + version, id );
 		
-		/* Recalculate the states */
-		//int count = ccucm.recalculate( build.getProject() );
-		//logger.debug( id + "Removed " + count + " from states.", id );
+		/**/
+		try {
+			workspace.act( new RemoteClearCaseCheck() );
+		} catch( AbnormalProcessTerminationException e )  {
+			build.setDescription( e.getMessage() );
+			throw new AbortException( e.getMessage() );
+		}
 
 		doPostBuild = true;
 
@@ -844,6 +850,13 @@ public class CCUCMScm extends SCM {
 	@Override
 	public PollingResult compareRemoteRevisionWith( AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState rstate ) throws IOException, InterruptedException {
 
+		/**/
+		try {
+			workspace.act( new RemoteClearCaseCheck() );
+		} catch( AbnormalProcessTerminationException e )  {
+			throw new AbortException( e.getMessage() );
+		}
+		
 		jobName = project.getDisplayName().replace( ' ', '_' );
 		jobNumber = project.getNextBuildNumber();
 		this.id = "[" + jobName + "::" + jobNumber + "]";
