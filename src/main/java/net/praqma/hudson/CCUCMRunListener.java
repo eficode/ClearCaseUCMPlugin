@@ -33,9 +33,13 @@ public class CCUCMRunListener extends RunListener<Run> {
 			if( scm instanceof CCUCMScm ) {
 				String jobName = build.getParent().getDisplayName().replace( ' ', '_' );
 				int jobNumber = build.getNumber();
-				State state = CCUCMScm.ccucm.getState( jobName, jobNumber );
-				
-				state.remove();
+				try {
+					State state = CCUCMScm.ccucm.getState( jobName, jobNumber );
+					
+					state.remove();
+				} catch( Exception e ) {
+					/* Not found, nothing to do */
+				}
 			}
 		}
 	}
