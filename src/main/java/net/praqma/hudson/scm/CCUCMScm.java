@@ -216,7 +216,8 @@ public class CCUCMScm extends SCM {
 		/**/
 		try {
 			workspace.act( new RemoteClearCaseCheck() );
-		} catch( AbnormalProcessTerminationException e )  {
+		} catch( AbnormalProcessTerminationException e ) {
+			ExceptionUtils.print( e, consoleOutput, true );
 			build.setDescription( e.getMessage() );
 			throw new AbortException( e.getMessage() );
 		}
