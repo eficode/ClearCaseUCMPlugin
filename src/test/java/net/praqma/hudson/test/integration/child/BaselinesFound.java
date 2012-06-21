@@ -60,7 +60,7 @@ public class BaselinesFound extends CCUCMTestCase {
 		}
 		Baseline.create( "baseline-for-test", CoolTestCase.context.components.get( "_System" ), path, LabelBehaviour.FULL, false );
 		
-		AbstractBuild<?, ?> build = initiateBuild( "no-options", false, false, false, false );
+		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + un, false, false, false, false );
 		//interactiveBreak();
 		/* Build validation */
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
