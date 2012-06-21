@@ -48,7 +48,7 @@ public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
 		return uniqueTestVobName;
 	}
 	
-	public FreeStyleProject setupProject( String projectName, String uniqueTestVobName, String type, String stream, boolean recommend, boolean tag, boolean description ) throws Exception {
+	public FreeStyleProject setupProject( String projectName, String type, String stream, boolean recommend, boolean tag, boolean description ) throws Exception {
 
 		logger.info( "Setting up build for self polling, recommend:" + recommend + ", tag:" + tag + ", description:" + description );
 		
@@ -62,8 +62,8 @@ public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
 		return project;
 	}
 	
-	public AbstractBuild<?, ?> initiateBuild( String projectName, String uniqueTestVobName, String type, String stream, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
-		FreeStyleProject project = setupProject( projectName, uniqueTestVobName, type, stream, recommend, tag, description );
+	public AbstractBuild<?, ?> initiateBuild( String projectName, String type, String stream, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
+		FreeStyleProject project = setupProject( projectName, type, stream, recommend, tag, description );
 		
 		FreeStyleBuild build = null;
 		

@@ -22,8 +22,8 @@ public class BaselinesFound extends CCUCMTestCase {
 
 	private static Logger logger = Logger.getLogger();
 	
-	public AbstractBuild<?, ?> initiateBuild( String projectName, String uniqueTestVobName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
-		return initiateBuild( projectName, uniqueTestVobName, "child", uniqueTestVobName + "_one_int@" + coolTest.getPVob(), recommend, tag, description, fail );
+	public AbstractBuild<?, ?> initiateBuild( String projectName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
+		return initiateBuild( projectName, "child", "one_int@" + coolTest.getPVob(), recommend, tag, description, fail );
 	}
 
 	public void testNoOptions() throws Exception {
@@ -36,7 +36,7 @@ public class BaselinesFound extends CCUCMTestCase {
 				
 		System.out.println( "PATH: " + path );
 		
-		Stream stream = Stream.get( un + "_one_dev", coolTest.getPVob() );
+		Stream stream = Stream.get( "one_dev", coolTest.getPVob() );
 		Activity activity = Activity.create( "ccucm-activity", stream, coolTest.getPVob(), true, "ccucm activity", null, path );
 		UCMView.setActivity( activity, path, null, null );
 		
@@ -60,8 +60,8 @@ public class BaselinesFound extends CCUCMTestCase {
 		}
 		Baseline.create( "baseline-for-test", CoolTestCase.context.components.get( "_System" ), path, LabelBehaviour.FULL, false );
 		
-		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + un, un, false, false, false, false );
-		interactiveBreak();
+		AbstractBuild<?, ?> build = initiateBuild( "no-options", false, false, false, false );
+		//interactiveBreak();
 		/* Build validation */
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
 		
