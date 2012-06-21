@@ -110,7 +110,7 @@
   
   <context mvfs="m:\" view="${vobname}_one_int" vob="${vobname}"/>
   
-  <activity comment="" headline="Adding initial files into components" in="${vobname}_one_int" name="initial_files" pvob="${pvobname}" />
+  <activity comment="" headline="Adding initial files into components" in="one_int" name="initial_files" pvob="${pvobname}" />
   
   <setactivity activity="initial_files" pvob="${pvobname}" />
   
