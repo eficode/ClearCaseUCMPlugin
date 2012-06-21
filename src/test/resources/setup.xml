@@ -78,7 +78,7 @@
     </policies>
   </project>
   
-  <stream name="one_int" in="${vobname}_one" comment="" pvob="${pvobname}" type="integration">
+  <stream name="one_int" in="one" comment="" pvob="${pvobname}" type="integration">
     <baselines>
       <baseline name="_System_1.0" pvob="${pvobname}" />
     </baselines>
