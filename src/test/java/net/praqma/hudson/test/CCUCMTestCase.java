@@ -48,22 +48,22 @@ public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
 		return uniqueTestVobName;
 	}
 	
-	public FreeStyleProject setupProject( String projectName, String type, String stream, boolean recommend, boolean tag, boolean description ) throws Exception {
+	public FreeStyleProject setupProject( String projectName, String type, String stream, boolean recommend, boolean tag, boolean description, boolean createBaseline ) throws Exception {
 
 		logger.info( "Setting up build for self polling, recommend:" + recommend + ", tag:" + tag + ", description:" + description );
 		
 		FreeStyleProject project = createFreeStyleProject( "ccucm-project-" + projectName );
 		
 		// boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription
-		CCUCMScm scm = new CCUCMScm( "_System@" + coolTest.getPVob(), "INITIAL", "ALL", false, type, stream, "successful", false, "", true, recommend, tag, description, "jenkins" );
+		CCUCMScm scm = new CCUCMScm( "_System@" + coolTest.getPVob(), "INITIAL", "ALL", false, type, stream, "successful", createBaseline, "", true, recommend, tag, description, "jenkins" );
 		
 		project.setScm( scm );
 		
 		return project;
 	}
 	
-	public AbstractBuild<?, ?> initiateBuild( String projectName, String type, String stream, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
-		FreeStyleProject project = setupProject( projectName, type, stream, recommend, tag, description );
+	public AbstractBuild<?, ?> initiateBuild( String projectName, String type, String stream, boolean recommend, boolean tag, boolean description, boolean fail, boolean createBaseline ) throws Exception {
+		FreeStyleProject project = setupProject( projectName, type, stream, recommend, tag, description, createBaseline );
 		
 		FreeStyleBuild build = null;
 		

@@ -14,7 +14,7 @@ public class BaselinesFoundFails extends CCUCMTestCase {
 	private static Logger logger = Logger.getLogger();
 	
 	public AbstractBuild<?, ?> initiateBuild( String projectName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
-		return initiateBuild( projectName, "self", "one_int@" + coolTest.getPVob(), recommend, tag, description, fail );
+		return initiateBuild( projectName, "self", "one_int@" + coolTest.getPVob(), recommend, tag, description, fail, false );
 	}
 
 	public void testNoOptions() throws Exception {

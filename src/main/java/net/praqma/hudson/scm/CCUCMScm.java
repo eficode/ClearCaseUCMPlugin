@@ -241,7 +241,7 @@ public class CCUCMScm extends SCM {
 		/* Make build action */
 		CCUCMBuildAction action = new CCUCMBuildAction( state.getStream(), state.getComponent() );
 		build.addAction( action );
-
+		
 		logger.info( "Number of states: " + ccucm.size() );
 
 		logger.debug( id + "The initial state:\n" + state.stringify(), id );

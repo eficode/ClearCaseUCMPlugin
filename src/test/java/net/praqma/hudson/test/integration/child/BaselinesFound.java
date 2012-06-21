@@ -23,7 +23,7 @@ public class BaselinesFound extends CCUCMTestCase {
 	private static Logger logger = Logger.getLogger();
 	
 	public AbstractBuild<?, ?> initiateBuild( String projectName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
-		return initiateBuild( projectName, "child", "one_int@" + coolTest.getPVob(), recommend, tag, description, fail );
+		return initiateBuild( projectName, "child", "one_int@" + coolTest.getPVob(), recommend, tag, description, fail, true );
 	}
 
 	public void testNoOptions() throws Exception {
