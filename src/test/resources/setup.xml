@@ -115,15 +115,11 @@
   <setactivity activity="initial_files" pvob="${pvobname}" />
   
   <!-- First -->
-  <checkout comment="" file="Model" />
-  
   <add file="Model/model.h" content="#1" />
   
   <baseline name="model-1" label="full" comment="" component="Model" pvob="${pvobname}" />
   
   <!-- Second -->
-  <checkout comment="" file="Clientapp" />
-  
   <add file="Clientapp/client.h" content="#1" />
   
   <baseline name="client-1" label="full" comment="" component="Clientapp" pvob="${pvobname}" />
