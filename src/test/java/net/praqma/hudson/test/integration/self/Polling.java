@@ -28,7 +28,7 @@ public class Polling extends CCUCMTestCase {
 		
 		PollingResult result = project.poll( tasklistener );
 		
-		assertEquals( PollingResult.BUILD_NOW, result );
+		assertTrue( result.hasChanges() );
 		testCCUCMPolling( project );
 	}
 	
@@ -43,7 +43,7 @@ public class Polling extends CCUCMTestCase {
 		
 		PollingResult result = project.poll( tasklistener );
 		
-		assertEquals( PollingResult.NO_CHANGES, result );
+		assertFalse( result.hasChanges() );
 	}
 	
 }
