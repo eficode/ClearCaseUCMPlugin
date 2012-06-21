@@ -18,7 +18,7 @@ public class Polling extends CCUCMTestCase {
 	private static Logger logger = Logger.getLogger();
 
 	public void testPollingSelfWithBaselines() throws Exception {
-		String un = setupCC( false );
+		String un = setupCC( "testPollingSelfWithBaselines", false );
 		FreeStyleProject project = setupProject( "polling-test-with-baselines-" + un, "self", "one_int@" + coolTest.getPVob(), false, false, false, false );
 		
 		TaskListener tasklistener = Mockito.mock( TaskListener.class );
@@ -33,7 +33,7 @@ public class Polling extends CCUCMTestCase {
 	}
 	
 	public void testPollingSelfWithNoBaselines() throws Exception {
-		String un = setupCC( false );
+		String un = setupCC( "testPollingSelfWithNoBaselines", false );
 		FreeStyleProject project = setupProject( "polling-test-with-baselines-" + un, "self", "one_dev@" + coolTest.getPVob(), false, false, false, false );
 		
 		TaskListener tasklistener = Mockito.mock( TaskListener.class );

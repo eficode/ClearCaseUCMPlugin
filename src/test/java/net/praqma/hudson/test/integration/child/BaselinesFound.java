@@ -27,7 +27,7 @@ public class BaselinesFound extends CCUCMTestCase {
 	}
 
 	public void testNoOptions() throws Exception {
-		String un = setupCC( false );
+		String un = setupCC( "testNoOptions", false );
 		
 		/**/
 		String viewtag = un + "_one_dev";
