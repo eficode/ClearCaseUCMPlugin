@@ -54,7 +54,7 @@ public class BaselinesFound extends CCUCMTestCase {
 		
 		try {
 			//coolTest.addNewContent( CoolTestCase.context.components.get( "Model" ), path, "test2.txt" );
-			coolTest.addNewElement( CoolTestCase.context.components.get( "_System" ), path, "test2.txt" );
+			coolTest.addNewElement( CoolTestCase.context.components.get( "Model" ), path, "test2.txt" );
 		} catch( ClearCaseException e ) {
 			ExceptionUtils.print( e, System.out, true );
 		}
