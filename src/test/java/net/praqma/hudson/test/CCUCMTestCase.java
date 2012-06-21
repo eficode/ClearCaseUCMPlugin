@@ -55,7 +55,7 @@ public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
 		FreeStyleProject project = createFreeStyleProject( "ccucm-project-" + projectName );
 		
 		// boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription
-		CCUCMScm scm = new CCUCMScm( "Model@" + coolTest.getPVob(), "INITIAL", "ALL", false, type, stream, "successful", false, "", true, recommend, tag, description, "jenkins" );
+		CCUCMScm scm = new CCUCMScm( "_System@" + coolTest.getPVob(), "INITIAL", "ALL", false, type, stream, "successful", false, "", true, recommend, tag, description, "jenkins" );
 		
 		project.setScm( scm );
 		
