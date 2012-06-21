@@ -53,14 +53,15 @@ public class BaselinesFound extends CCUCMTestCase {
 		
 		
 		try {
-			coolTest.addNewContent( CoolTestCase.context.components.get( "Model" ), path, "test2.txt" );
+			//coolTest.addNewContent( CoolTestCase.context.components.get( "Model" ), path, "test2.txt" );
+			coolTest.addNewElement( CoolTestCase.context.components.get( "Model" ), path, "test2.txt" );
 		} catch( ClearCaseException e ) {
 			ExceptionUtils.print( e, System.out, true );
 		}
 		Baseline.create( "baseline-for-test", CoolTestCase.context.components.get( "_System" ), path, LabelBehaviour.FULL, false );
 		
 		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + un, un, false, false, false, false );
-		
+		interactiveBreak();
 		/* Build validation */
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
 		
