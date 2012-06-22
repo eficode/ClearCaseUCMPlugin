@@ -1,5 +1,11 @@
 package net.praqma.hudson.test.integration.self;
 
+import static org.junit.Assert.*;
+
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
 import org.mockito.Mockito;
 
 import hudson.model.AbstractBuild;
@@ -7,42 +13,40 @@ import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.TaskListener;
 import hudson.scm.PollingResult;
-import net.praqma.clearcase.test.junit.CoolTestCase;
+import net.praqma.clearcase.Environment;
+import net.praqma.clearcase.test.ClearCaseTest;
+import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
-import net.praqma.hudson.test.CCUCMTestCase;
+import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.util.debug.Logger;
 
-public class Polling extends CCUCMTestCase {
+public class Polling {
+	
+	@ClassRule
+	public static CCUCMRule jenkins = new CCUCMRule();
+	
+	@Rule
+	public static ClearCaseRule ccenv = new ClearCaseRule( "clearcaserule", "cool" + Environment.getUniqueTimestamp() );
 
 	private static Logger logger = Logger.getLogger();
 
+	@Test
+	@ClearCaseTest( name = "" )
 	public void testPollingSelfWithBaselines() throws Exception {
-		String un = setupCC( "9", false );
-		FreeStyleProject project = setupProject( "polling-test-with-baselines-" + un, "self", "one_int@" + coolTest.getPVob(), false, false, false, false );
+		FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getVobName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
 		
-		TaskListener tasklistener = Mockito.mock( TaskListener.class );
-		
-		/* Behaviour */
-		Mockito.when( tasklistener.getLogger() ).thenReturn( System.out );
-		
-		PollingResult result = project.poll( tasklistener );
+		PollingResult result = project.poll( jenkins.createTaskListener() );
 		
 		assertTrue( result.hasChanges() );
 		//testCCUCMPolling( project );
 	}
-	
+
 	/*
 	public void testPollingSelfWithNoBaselines() throws Exception {
-		String un = setupCC( "10", false );
-		FreeStyleProject project = setupProject( "polling-test-with-baselines-" + un, "self", "one_dev@" + coolTest.getPVob(), false, false, false, false );
+		FreeStyleProject project = setupProject( "polling-test-with-baselines-" + ccenv.getVobName(), "self", "one_dev@" + ccenv.getPVob(), false, false, false, false );
 		
-		TaskListener tasklistener = Mockito.mock( TaskListener.class );
-		
-		// Behaviour
-		Mockito.when( tasklistener.getLogger() ).thenReturn( System.out );
-		
-		PollingResult result = project.poll( tasklistener );
+		PollingResult result = project.poll( createTaskListener() );
 		
 		assertFalse( result.hasChanges() );
 	}

@@ -11,13 +11,18 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestBuilder;
 
+import net.praqma.clearcase.Environment;
+import net.praqma.clearcase.PVob;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.exceptions.CleartoolException;
 import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
 import net.praqma.clearcase.exceptions.UnableToLoadEntityException;
-import net.praqma.clearcase.test.junit.CoolTestCase;
+import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.HyperLink;
 import net.praqma.clearcase.ucm.entities.Stream;
@@ -26,13 +31,15 @@ import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.scm.CCUCMScm;
-import net.praqma.jenkins.utils.test.ClearCaseJenkinsTestCase;
 import net.praqma.util.debug.Logger;
 
-public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
+import static org.junit.Assert.*;
+
+public class CCUCMRule extends JenkinsRule {
 	
 	private static Logger logger = Logger.getLogger();
 	
+	/*
 	public String setupCC( String name, boolean installTag ) throws Exception {
 		//String uniqueTestVobName = "ccucm" + coolTest.uniqueTimeStamp;
 		String uniqueTestVobName = "ccucm_" + name + "_" + CoolTestCase.getUniqueTimestamp();
@@ -47,23 +54,24 @@ public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
 		
 		return uniqueTestVobName;
 	}
+	*/
 	
-	public FreeStyleProject setupProject( String projectName, String type, String stream, boolean recommend, boolean tag, boolean description, boolean createBaseline ) throws Exception {
+	public FreeStyleProject setupProject( String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean createBaseline ) throws Exception {
 
 		logger.info( "Setting up build for self polling, recommend:" + recommend + ", tag:" + tag + ", description:" + description );
 		
 		FreeStyleProject project = createFreeStyleProject( "ccucm-project-" + projectName );
 		
 		// boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription
-		CCUCMScm scm = new CCUCMScm( "_System@" + coolTest.getPVob(), "INITIAL", "ALL", false, type, stream, "successful", createBaseline, "[project]_build_[number]", true, recommend, tag, description, "jenkins" );
+		CCUCMScm scm = new CCUCMScm( component, "INITIAL", "ALL", false, type, stream, "successful", createBaseline, "[project]_build_[number]", true, recommend, tag, description, "jenkins" );
 		
 		project.setScm( scm );
 		
 		return project;
 	}
 	
-	public AbstractBuild<?, ?> initiateBuild( String projectName, String type, String stream, boolean recommend, boolean tag, boolean description, boolean fail, boolean createBaseline ) throws Exception {
-		FreeStyleProject project = setupProject( projectName, type, stream, recommend, tag, description, createBaseline );
+	public AbstractBuild<?, ?> initiateBuild( String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean fail, boolean createBaseline ) throws Exception {
+		FreeStyleProject project = setupProject( projectName, type, component, stream, recommend, tag, description, createBaseline );
 		
 		FreeStyleBuild build = null;
 		
@@ -91,7 +99,7 @@ public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
 		logger.info( "DESCRIPTION: " + build.getDescription() );
 		
 		logger.info( "-------------------------------------------------\nJENKINS LOG: " );
-		printList( getLog( build ) );
+		logger.info( getLog( build ) );
 		logger.info( "\n-------------------------------------------------\n" );
 		
 		return build;
@@ -144,9 +152,9 @@ public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
 		return false;
 	}
 	
-	public void makeTagType() throws CleartoolException {
+	public void makeTagType( PVob pvob) throws CleartoolException {
 		logger.info( "Creating hyper link type TAG" );
-		HyperLink.createType( Tag.__TAG_NAME, coolTest.getPVob(), null );
+		HyperLink.createType( Tag.__TAG_NAME, pvob, null );
 	}
 	
 	public Tag getTag( Baseline baseline, AbstractBuild<?, ?> build ) throws ClearCaseException {
