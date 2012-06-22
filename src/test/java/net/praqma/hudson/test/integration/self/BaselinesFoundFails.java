@@ -18,7 +18,7 @@ public class BaselinesFoundFails extends CCUCMTestCase {
 	}
 
 	public void testNoOptions() throws Exception {
-		String un = setupCC( "testNoOptions3", false );
+		String un = setupCC( "6", false );
 		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + un, false, false, false, true );
 		
 		/* Build validation */
@@ -40,7 +40,7 @@ public class BaselinesFoundFails extends CCUCMTestCase {
 	
 	
 	public void testRecommended() throws Exception {
-		String un = setupCC( "testRecommended3", false );
+		String un = setupCC( "7", false );
 		AbstractBuild<?, ?> build = initiateBuild( "recommended-" + un, true, false, false, true );
 		
 		/* Build validation */
@@ -58,7 +58,7 @@ public class BaselinesFoundFails extends CCUCMTestCase {
 	}
 	
 	public void testTagged() throws Exception {
-		String un = setupCC( "testTagged3", true );
+		String un = setupCC( "8", true );
 		AbstractBuild<?, ?> build = initiateBuild( "tagged-" + un, false, true, false, true );
 		
 		/* Build validation */
