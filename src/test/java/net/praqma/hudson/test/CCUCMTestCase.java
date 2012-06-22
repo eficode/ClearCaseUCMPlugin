@@ -35,7 +35,7 @@ public class CCUCMTestCase extends ClearCaseJenkinsTestCase {
 	
 	public String setupCC( String name, boolean installTag ) throws Exception {
 		//String uniqueTestVobName = "ccucm" + coolTest.uniqueTimeStamp;
-		String uniqueTestVobName = "ccucm-" + name + "-" + CoolTestCase.getUniqueTimestamp();
+		String uniqueTestVobName = "ccucm_" + name + "_" + CoolTestCase.getUniqueTimestamp();
 		coolTest.variables.put( "vobname", uniqueTestVobName );
 		coolTest.variables.put( "pvobname", uniqueTestVobName + "_PVOB" );
 		
