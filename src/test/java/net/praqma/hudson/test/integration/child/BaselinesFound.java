@@ -41,7 +41,7 @@ public class BaselinesFound {
 	}
 
 	@Test
-	@ClearCaseTest( name = "" )
+	@ClearCaseTest( name = "polling" )
 	public void testNoOptions() throws Exception {
 		
 		/**/
