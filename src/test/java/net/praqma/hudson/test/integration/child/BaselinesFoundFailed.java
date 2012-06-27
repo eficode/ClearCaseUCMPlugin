@@ -126,7 +126,7 @@ public class BaselinesFoundFailed {
 		assertNotNull( jenkins.getTag( baseline, build ) );
 		jenkins.samePromotionLevel( baseline, PromotionLevel.REJECTED );
 		
-		jenkins.testCreatedBaseline( build );
+		jenkins.testNotCreatedBaseline( build );
 	}
 	
 	
