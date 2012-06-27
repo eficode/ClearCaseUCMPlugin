@@ -57,9 +57,9 @@ public class BaselinesFound {
 		
 		/* Expected build baseline */
 		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
-		
+
 		jenkins.assertBuildBaseline( baseline, build );
-		assertFalse( jenkins.isRecommended( baseline, build ) );
+		assertFalse( jenkins.isRecommended( jenkins.getCreatedBaseline( build ), build ) );
 		assertNull( jenkins.getTag( baseline, build ) );
 		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
 		
@@ -81,7 +81,7 @@ public class BaselinesFound {
 		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
 		
 		jenkins.assertBuildBaseline( baseline, build );
-		assertTrue( jenkins.isRecommended( baseline, build ) );
+		assertTrue( jenkins.isRecommended( jenkins.getCreatedBaseline( build ), build ) );
 		assertNull( jenkins.getTag( baseline, build ) );
 		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
 		
@@ -103,7 +103,7 @@ public class BaselinesFound {
 		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
 		
 		jenkins.assertBuildBaseline( baseline, build );
-		assertFalse( jenkins.isRecommended( baseline, build ) );
+		assertFalse( jenkins.isRecommended( jenkins.getCreatedBaseline( build ), build ) );
 		assertNull( jenkins.getTag( baseline, build ) );
 		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
 		
@@ -126,7 +126,7 @@ public class BaselinesFound {
 		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
 		
 		jenkins.assertBuildBaseline( baseline, build );
-		assertFalse( jenkins.isRecommended( baseline, build ) );
+		assertFalse( jenkins.isRecommended( jenkins.getCreatedBaseline( build ), build ) );
 		assertNull( jenkins.getTag( baseline, build ) );
 		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
 		

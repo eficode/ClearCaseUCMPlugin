@@ -125,6 +125,12 @@ public class CCUCMRule extends JenkinsRule {
 		return action.getBaseline();
 	}
 	
+
+	public Baseline getCreatedBaseline( AbstractBuild<?, ?> build ) {
+		CCUCMBuildAction action = getBuildAction( build );
+		return action.getCreatedBaseline();
+	}
+	
 	public void assertBuildBaseline( Baseline baseline, AbstractBuild<?, ?> build ) {
 		assertEquals( baseline, getBuildBaseline( build ) );
 	}
@@ -182,7 +188,13 @@ public class CCUCMRule extends JenkinsRule {
 		CCUCMBuildAction action = getBuildAction( build );
 		assertNotNull( action.getCreatedBaseline() );
 	}
-	// build.getRootDir(), "ccucmSCM.log"
+	
+	public void testNotCreatedBaseline( AbstractBuild<?, ?> build ) {
+		CCUCMBuildAction action = getBuildAction( build );
+		assertNull( action.getCreatedBaseline() );
+	}
+		
+	
 	public void testLogExistence( AbstractBuild<?, ?> build ) {
 		File scmLog = new File( build.getRootDir(), "ccucmSCM.log" );
 		File pubLog = new File( build.getRootDir(), "ccucmNOTIFIER.log" );
