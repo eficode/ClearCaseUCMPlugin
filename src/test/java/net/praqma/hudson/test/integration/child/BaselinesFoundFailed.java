@@ -30,7 +30,7 @@ import net.praqma.clearcase.test.junit.ClearCaseRule;
 
 import static org.junit.Assert.*;
 
-public class BaselinesFound {
+public class BaselinesFoundFailed {
 
 	@ClassRule
 	public static CCUCMRule jenkins = new CCUCMRule();
@@ -50,10 +50,10 @@ public class BaselinesFound {
 		
 		Baseline baseline = getNewBaseline();
 		
-		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getVobName(), false, false, false, false );
+		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getVobName(), false, false, false, true );
 
 		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
+		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );
 		
 		/* Expected build baseline */
 		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
@@ -61,7 +61,7 @@ public class BaselinesFound {
 		jenkins.assertBuildBaseline( baseline, build );
 		assertFalse( jenkins.isRecommended( baseline, build ) );
 		assertNull( jenkins.getTag( baseline, build ) );
-		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
+		jenkins.samePromotionLevel( baseline, PromotionLevel.REJECTED );
 		
 		jenkins.testCreatedBaseline( build );
 	}
@@ -72,10 +72,10 @@ public class BaselinesFound {
 		
 		Baseline baseline = getNewBaseline();
 		
-		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getVobName(), true, false, false, false );
+		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getVobName(), true, false, false, true );
 
 		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
+		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );
 		
 		/* Expected build baseline */
 		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
@@ -83,7 +83,7 @@ public class BaselinesFound {
 		jenkins.assertBuildBaseline( baseline, build );
 		assertTrue( jenkins.isRecommended( baseline, build ) );
 		assertNull( jenkins.getTag( baseline, build ) );
-		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
+		jenkins.samePromotionLevel( baseline, PromotionLevel.REJECTED );
 		
 		jenkins.testCreatedBaseline( build );
 	}
@@ -94,10 +94,10 @@ public class BaselinesFound {
 		
 		Baseline baseline = getNewBaseline();
 		
-		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getVobName(), false, false, true, false );
+		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getVobName(), false, false, true, true );
 
 		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
+		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );
 		
 		/* Expected build baseline */
 		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
@@ -105,7 +105,7 @@ public class BaselinesFound {
 		jenkins.assertBuildBaseline( baseline, build );
 		assertFalse( jenkins.isRecommended( baseline, build ) );
 		assertNull( jenkins.getTag( baseline, build ) );
-		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
+		jenkins.samePromotionLevel( baseline, PromotionLevel.REJECTED );
 		
 		jenkins.testCreatedBaseline( build );
 	}
@@ -117,10 +117,10 @@ public class BaselinesFound {
 		jenkins.makeTagType( ccenv.getPVob() );
 		Baseline baseline = getNewBaseline();
 		
-		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getVobName(), false, true, false, false );
+		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getVobName(), false, true, false, true );
 
 		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
+		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );
 		
 		/* Expected build baseline */
 		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
@@ -128,7 +128,7 @@ public class BaselinesFound {
 		jenkins.assertBuildBaseline( baseline, build );
 		assertFalse( jenkins.isRecommended( baseline, build ) );
 		assertNull( jenkins.getTag( baseline, build ) );
-		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
+		jenkins.samePromotionLevel( baseline, PromotionLevel.REJECTED );
 		
 		jenkins.testCreatedBaseline( build );
 	}
