@@ -71,7 +71,7 @@ public class BaselinesFoundFailed {
 		
 		Baseline baseline = getNewBaseline();
 		
-		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getVobName(), true, false, false, true );
+		AbstractBuild<?, ?> build = initiateBuild( "recommended-" + ccenv.getVobName(), true, false, false, true );
 
 		/* Build validation */
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );
@@ -92,7 +92,7 @@ public class BaselinesFoundFailed {
 		
 		Baseline baseline = getNewBaseline();
 		
-		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getVobName(), false, false, true, true );
+		AbstractBuild<?, ?> build = initiateBuild( "description-" + ccenv.getVobName(), false, false, true, true );
 
 		/* Build validation */
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );
@@ -114,7 +114,7 @@ public class BaselinesFoundFailed {
 		jenkins.makeTagType( ccenv.getPVob() );
 		Baseline baseline = getNewBaseline();
 		
-		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getVobName(), false, true, false, true );
+		AbstractBuild<?, ?> build = initiateBuild( "tagged-" + ccenv.getVobName(), false, true, false, true );
 
 		/* Build validation */
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );
