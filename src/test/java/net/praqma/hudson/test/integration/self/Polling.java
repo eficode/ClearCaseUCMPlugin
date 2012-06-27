@@ -102,7 +102,7 @@ public class Polling {
 		
 		PollingResult result = project.poll( jenkins.createTaskListener() );
 		
-		assertTrue( result.hasChanges() );
+		assertTrue( !result.hasChanges() );
 	}
 	
 }
