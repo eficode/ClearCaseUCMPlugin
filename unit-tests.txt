@@ -1,0 +1,56 @@
+Integration tests:
+
+	* Self polling
+		- Baseline found
+			# Succesful build
+				¤ No options, 1
+				¤ Recommend, 2
+				¤ Tag, 3
+				¤ Description, 4
+			# Failed build
+				¤ No options, 5
+				¤ Recommend, 6
+				¤ Tag, 7
+				¤ Description, 8
+			# Unstable build
+				¤ No options, 9
+				¤ Recommend, 10
+				¤ Tag, 11
+				¤ Description, 12
+		- Baseline not found
+			¤ No options, 13
+	* Child polling
+		- Baseline found
+			# Succesful build
+				¤ No options
+				¤ Recommend
+				¤ Tag
+				¤ Description
+				¤ Create baseline
+			# Failed build
+				¤ No options
+				¤ Recommend
+				¤ Tag
+				¤ Description
+				¤ NO baseline created
+				
+				
+Asserts for all tests:
+ * Is the baseline promoted/demoted correctly
+ * 
+
+
+String component, 
+String levelToPoll, 
+String loadModule, 
+boolean newest, 
+String polling, 
+String stream, 
+String treatUnstable, 
+boolean createBaseline, 
+String nameTemplate, 
+boolean forceDeliver, 
+boolean recommend, 
+boolean makeTag, 
+boolean setDescription, 
+String buildProject

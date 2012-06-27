@@ -89,7 +89,7 @@ public class GetRemoteBaselineFromStream implements FileCallable<List<Baseline>>
         	try {
         		logger.debug( "Loading the baseline " + baseline );
 				baseline.load();
-			} catch (ClearCaseException e) {
+			} catch (Exception e) {
 				logger.warning( "Could not load the baseline " + baseline.getShortname() + ": " + e.getMessage() );
 				/* Maybe it should be removed from the list... In fact, this shouldn't happen */
 			}

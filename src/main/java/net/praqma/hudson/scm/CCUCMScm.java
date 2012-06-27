@@ -1,5 +1,6 @@
 package net.praqma.hudson.scm;
 
+import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -75,6 +76,7 @@ import net.praqma.util.debug.Logger.LogLevel;
 import net.praqma.util.debug.LoggerSetting;
 import net.praqma.util.debug.appenders.Appender;
 import net.praqma.util.debug.appenders.FileAppender;
+import net.praqma.util.execute.AbnormalProcessTerminationException;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 
@@ -211,9 +213,14 @@ public class CCUCMScm extends SCM {
 
 		logger.info( id + "CCUCMSCM checkout v. " + version, id );
 		
-		/* Recalculate the states */
-		//int count = ccucm.recalculate( build.getProject() );
-		//logger.debug( id + "Removed " + count + " from states.", id );
+		/**/
+		try {
+			workspace.act( new RemoteClearCaseCheck() );
+		} catch( AbnormalProcessTerminationException e ) {
+			ExceptionUtils.print( e, consoleOutput, true );
+			build.setDescription( e.getMessage() );
+			throw new AbortException( e.getMessage() );
+		}
 
 		doPostBuild = true;
 
@@ -234,7 +241,7 @@ public class CCUCMScm extends SCM {
 		/* Make build action */
 		CCUCMBuildAction action = new CCUCMBuildAction( state.getStream(), state.getComponent() );
 		build.addAction( action );
-
+		
 		logger.info( "Number of states: " + ccucm.size() );
 
 		logger.debug( id + "The initial state:\n" + state.stringify(), id );
@@ -275,12 +282,16 @@ public class CCUCMScm extends SCM {
 
 		state.setPolling( polling );
 		
-		/* Add the found baseline to the action */
-		action.setBaseline( state.getBaseline() );
-
 		/* If a baseline is found */
 		if( state.getBaseline() != null && result ) {
 			consoleOutput.println( "[" + Config.nameShort + "] Using " + state.getBaseline() );
+			
+			/* Add the found baseline to the action */
+			action.setBaseline( state.getBaseline() );
+			action.setViewTag( viewtag );
+			
+			baselineName = state.getBaseline().getFullyQualifiedName();
+			
 			/*
 			 * if( setDescription ) { build.setDescription("<small>" +
 			 * state.getBaseline().getShortname() + "</small>"); }
@@ -761,17 +772,26 @@ public class CCUCMScm extends SCM {
 		return new ChangeLogParserImpl();
 	}
 	
-	private String CC_BASELINE = null;
-	private String CC_VIEWPATH = null;
-	private String CC_VIEWTAG  = null;
+	private String baselineName = "";
+	
+	public String getBaselineName() {
+		return baselineName;
+	}
 
 	@Override
 	public void buildEnvVars( AbstractBuild<?, ?> build, Map<String, String> env ) {
 		super.buildEnvVars( build, env );
 		
-		System.out.println( "Th1s is(ENV) " + this );
-
-		if( CC_BASELINE == null ) {
+		String CC_BASELINE = "";
+		String CC_VIEWPATH = "";
+		String CC_VIEWTAG  = "";
+		
+		try {
+			
+			CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
+			CC_BASELINE = action.getBaseline().getFullyQualifiedName();
+		} catch( Exception e1 ) {
+			System.out.println( "Failed to get baseline: " + e1.getMessage() );
 			try {
 				State state = ccucm.getState( jobName, jobNumber );
 				
@@ -781,8 +801,8 @@ public class CCUCMScm extends SCM {
 				} else {
 					CC_BASELINE = "";
 				}
-			} catch( Exception e ) {
-				System.out.println( "Variables not available: " + e.getMessage() );
+			} catch( Exception e2 ) {
+				System.out.println( "Variables not available: " + e2.getMessage() );
 				
 				/* Try env vars */
 				try {
@@ -801,21 +821,21 @@ public class CCUCMScm extends SCM {
 					} else {
 						CC_BASELINE = "";
 					}
-				} catch( Exception e1 ) {
-					System.out.println( "Not possible to retrieve variables: " + e1.getMessage() );
+				} catch( Exception e3 ) {
+					System.out.println( "Not possible to retrieve variables: " + e3.getMessage() );
 				}
 			}
-			
-			/* View tag */
-			CC_VIEWTAG = viewtag;
-			
-			/* View path */
-			String workspace = env.get( "WORKSPACE" );
-			if( workspace != null ) {
-				CC_VIEWPATH = workspace + File.separator + "view";
-			} else {
-				CC_VIEWPATH = "";
-			}
+		}
+		
+		/* View tag */
+		CC_VIEWTAG = viewtag;
+		
+		/* View path */
+		String workspace = env.get( "WORKSPACE" );
+		if( workspace != null ) {
+			CC_VIEWPATH = workspace + File.separator + "view";
+		} else {
+			CC_VIEWPATH = "";
 		}
 
 		env.put( "CC_BASELINE", CC_BASELINE );
@@ -831,6 +851,13 @@ public class CCUCMScm extends SCM {
 	@Override
 	public PollingResult compareRemoteRevisionWith( AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState rstate ) throws IOException, InterruptedException {
 
+		/**/
+		try {
+			workspace.act( new RemoteClearCaseCheck() );
+		} catch( AbnormalProcessTerminationException e )  {
+			throw new AbortException( e.getMessage() );
+		}
+		
 		jobName = project.getDisplayName().replace( ' ', '_' );
 		jobNumber = project.getNextBuildNumber();
 		this.id = "[" + jobName + "::" + jobNumber + "]";

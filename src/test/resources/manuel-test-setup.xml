@@ -67,7 +67,7 @@
   </baseline>
   
   
-  <project name="one" comment="" pvob="${pvobname}" in="${vobname}">
+  <project name="${vobname}_one" comment="" pvob="${pvobname}" in="${vobname}">
     <components>
       <component name="Service" pvob="${pvobname}" />
       <component name="Model" pvob="${pvobname}" />
@@ -78,7 +78,7 @@
     </policies>
   </project>
   
-  <stream name="one_int" in="one" comment="" pvob="${pvobname}" type="integration">
+  <stream name="${vobname}_one_int" in="${vobname}_one" comment="" pvob="${pvobname}" type="integration">
     <baselines>
       <baseline name="_System_1.0" pvob="${pvobname}" />
     </baselines>
@@ -93,34 +93,41 @@
   <stream name="jenkins_int" in="jenkins" comment="" pvob="${pvobname}" type="integration">
   </stream>
   
-  <stream name="one_dev" in="one_int" comment="" pvob="${pvobname}">
+  <stream name="${vobname}_one_dev" in="${vobname}_one_int" comment="" pvob="${pvobname}">
     <baselines>
       <baseline name="_System_1.0" pvob="${pvobname}" />
     </baselines>
   </stream>
-  
-  
-  <view tag="${vobname}_one_int" stgloc="-auto">
-    <stream name="one_int" pvob="${pvobname}" />
-  </view>
-  
+
   <view tag="${vobname}_one_dev" stgloc="-auto">
-    <stream name="one_dev" pvob="${pvobname}" />
+    <stream name="${vobname}_one_dev" pvob="${pvobname}" />
   </view>
   
-  <context mvfs="m:\" view="${vobname}_one_int" vob="${vobname}"/>
+  <context mvfs="m:\" view="${vobname}_one_dev" vob="${vobname}"/>
   
-  <activity comment="" headline="Adding initial files into components" in="one_int" name="initial_files" pvob="${pvobname}" />
+  <activity comment="" headline="Adding initial files into components" in="${vobname}_one_dev" name="initial_files" pvob="${pvobname}" />
   
   <setactivity activity="initial_files" pvob="${pvobname}" />
   
   <!-- First -->
-  <add file="Model/model.h" content="#1" />
+  <checkout comment="" file="Model" />
+  
+  <add file="Model/model.h" />
+  
+  <content file="Model/model.h" content="#1" />
+  
+  <checkin />
   
   <baseline name="model-1" label="full" comment="" component="_System" pvob="${pvobname}" />
   
   <!-- Second -->
-  <add file="Clientapp/client.h" content="#1" />
+  <checkout comment="" file="Clientapp" />
+  
+  <add file="Clientapp/client.h" />
+  
+  <content file="Clientapp/client.h" content="#1" />
+  
+  <checkin />
   
   <baseline name="client-1" label="full" comment="" component="_System" pvob="${pvobname}" />
   
@@ -130,7 +137,7 @@
   
   <content file="Model/model.h" content="#2" />
   
-  <checkin file="Model/model.h" />
+  <checkin />
   
   <baseline name="model-2" label="full" comment="" component="_System" pvob="${pvobname}" />
   
@@ -140,7 +147,7 @@
   
   <content file="Model/model.h" content="#3" />
   
-  <checkin file="Model/model.h" />
+  <checkin />
   
   <baseline name="model-3" label="full" comment="" component="_System" pvob="${pvobname}" />
 
@@ -149,7 +156,7 @@
   
   <content file="Clientapp/client.h" content="#2" />
   
-  <checkin file="Clientapp/client.h" />
+  <checkin />
   
   <baseline name="client-2" label="full" comment="" component="_System" pvob="${pvobname}" />
   
@@ -158,12 +165,12 @@
   
   <content file="Clientapp/client.h" content="#3" />
   
-  <checkin file="Clientapp/client.h" />
+  <checkin />
   
   <baseline name="client-3" label="full" comment="" component="_System" pvob="${pvobname}" />
   
   
-  <!-- <baseline name="_System_2.0" label="full" comment="" component="_System" pvob="${pvobname}" /> -->
+  <baseline name="_System_2.0" label="full" comment="" component="_System" pvob="${pvobname}" />
   
 </ccenv>
 

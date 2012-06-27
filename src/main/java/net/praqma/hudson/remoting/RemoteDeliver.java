@@ -112,7 +112,7 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 		Baseline baseline = null;
 		try {
 			baseline = Baseline.get( this.baseline ).load();
-		} catch( ClearCaseException e ) {
+		} catch( Exception e ) {
 			Logger.removeAppender( app );
 			throw new IOException( "Could not create Baseline object: " + e.getMessage(), e );
 		}
@@ -125,7 +125,7 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 		Stream destinationStream = null;
 		try {
 			destinationStream = Stream.get( this.destinationstream ).load();
-		} catch( ClearCaseException e ) {
+		} catch( Exception e ) {
 			Logger.removeAppender( app );
 			throw new IOException( "Could not create destination Stream object: " + e.getMessage(), e );
 		}
@@ -135,9 +135,9 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 		/* Make deliver view */
 		try {
 			snapview = makeDeliverView( destinationStream, workspace );
-		} catch( ScmException e ) {
+		} catch( Exception e ) {
 			Logger.removeAppender( app );
-			throw new IOException( "Could not create deliver view: " + e.getMessage() );
+			throw new IOException( "Could not create deliver view: " + e.getMessage(), e );
 		}
 		
 		logger.debug( "View: " + workspace );
@@ -158,7 +158,7 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 			}
 			out.println( c + " version" + ( c == 1 ? "" : "s" ) + " involved" );
 			diff = Util.createChangelog( bldiff, baseline );
-		} catch( ClearCaseException e1 ) {
+		} catch( Exception e1 ) {
 			out.println( "[" + Config.nameShort + "] Unable to create change log: " + e1.getMessage() );
 		}
 		

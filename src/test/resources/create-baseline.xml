@@ -1,0 +1,41 @@
+<ccenv>
+	<var name="pvobname" value="cc12_PVOB" />
+	<var name="vobname" value="cc12" />
+	
+
+  <view tag="${vobname}_one_dispenser" stgloc="-auto">
+    <stream name="${vobname}_one_dev" pvob="${pvobname}" />
+  </view>
+  
+  <context mvfs="m:\" view="${vobname}_one_dispenser" vob="${vobname}"/>
+  
+  <activity comment="" headline="Adding initial files into components" in="${vobname}_one_dev" name="initial_files" pvob="${pvobname}" />
+  
+  <setactivity activity="initial_files" pvob="${pvobname}" />
+  
+  <!-- First -->
+  <checkout comment="" file="Model" />
+  
+  <add file="Model/model.h" />
+  
+  <content file="Model/model.h" content="#1" />
+  
+  <checkin />
+  
+  <baseline name="model-1" label="full" comment="" component="_System" pvob="${pvobname}" />
+  
+  <!-- Second -->
+  <checkout comment="" file="Clientapp" />
+  
+  <add file="Clientapp/client.h" />
+  
+  <content file="Clientapp/client.h" content="#1" />
+  
+  <checkin />
+  
+  <baseline name="client-1" label="full" comment="" component="_System" pvob="${pvobname}" />
+  
+  
+</ccenv>
+
+

@@ -73,7 +73,7 @@ public class GetRelatedStreams implements FileCallable<List<Stream>> {
 			} else {
 				streams = stream.getSiblingStreams();
 			}
-		} catch( ClearCaseException e1 ) {
+		} catch( Exception e1 ) {
 			e1.printStackTrace( out );
 			Logger.removeAppender( app );
 

@@ -83,14 +83,14 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 			try {
 				deliver.complete();
 				//baseline.deliver( baseline.getStream(), stream, view.getViewRoot(), view.getViewtag(), true, true, true );
-			} catch( ClearCaseException ex ) {
+			} catch( Exception ex ) {
 
 				try {
 					//baseline.cancel( view.getViewRoot() );
 					deliver.cancel();
-				} catch( ClearCaseException ex1 ) {
+				} catch( Exception ex1 ) {
 					Logger.removeAppender( app );
-					throw new IOException( "Completing the deliver failed. Could not cancel." );
+					throw new IOException( "Completing the deliver failed. Could not cancel.", ex1 );
 				}
 				Logger.removeAppender( app );
 				throw new IOException( "Completing the deliver failed. Deliver was cancelled.", ex );
@@ -101,13 +101,11 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 			try {
 				//baseline.cancel( view.getViewRoot() );
 				deliver.cancel();
-			} catch( ClearCaseException ex ) {
+			} catch( Exception ex ) {
 				Logger.removeAppender( app );
 				throw new IOException( "Could not cancel the deliver.", ex );
 			}
 		}
-		
-		logger.debug( "ENDING REMOTE EDLELDEL COMWEDOE" );
 
 		Logger.removeAppender( app );
 		return true;

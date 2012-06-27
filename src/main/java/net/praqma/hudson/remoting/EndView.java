@@ -24,8 +24,8 @@ public class EndView implements FileCallable<Boolean> {
 
 		try {
 			SnapshotView.end( viewtag );
-		} catch( ClearCaseException e ) {
-			throw new IOException( "Unable to end the view " + viewtag + ": " + e.getMessage() );
+		} catch( Exception e ) {
+			throw new IOException( "Unable to end the view " + viewtag + ": " + e.getMessage(), e );
 		}
 
 		return true;
