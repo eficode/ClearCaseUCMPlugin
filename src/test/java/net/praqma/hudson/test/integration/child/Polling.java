@@ -45,7 +45,7 @@ public class Polling {
 	private static Logger logger = Logger.getLogger();
 
 	@Test
-	@ClearCaseUniqueVobName( name = "changes" )
+	@ClearCaseUniqueVobName( name = "changes-child" )
 	public void testPollingChildsWithChanges() throws Exception {
 		FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getVobName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
 		
@@ -68,7 +68,7 @@ public class Polling {
 	}
 	
 	@Test
-	@ClearCaseUniqueVobName( name = "nochanges" )
+	@ClearCaseUniqueVobName( name = "nochanges-child" )
 	public void testPollingChildsWithNoChanges() throws Exception {
 		FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getVobName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
 		

@@ -30,7 +30,7 @@ public class BaselinesFound {
 	}
 
 	@Test
-	@ClearCaseUniqueVobName( name = "" )
+	@ClearCaseUniqueVobName( name = "self" )
 	public void testNoOptions() throws Exception {
 		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getVobName(), false, false, false, false );
 		
@@ -49,7 +49,7 @@ public class BaselinesFound {
 	}
 	
 	@Test
-	@ClearCaseUniqueVobName( name = "" )
+	@ClearCaseUniqueVobName( name = "self" )
 	public void testRecommended() throws Exception {
 		AbstractBuild<?, ?> build = initiateBuild( "recommended-" + ccenv.getVobName(), true, false, false, false );
 		
@@ -67,7 +67,7 @@ public class BaselinesFound {
 		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
 	}
 	
-	@ClearCaseUniqueVobName( name = "" )
+	@ClearCaseUniqueVobName( name = "self" )
 	public void testDescription() throws Exception {
 		AbstractBuild<?, ?> build = initiateBuild( "description-" + ccenv.getVobName(), false, false, true, false );
 		
@@ -86,7 +86,7 @@ public class BaselinesFound {
 	}
 	
 	@Test
-	@ClearCaseUniqueVobName( name = "" )
+	@ClearCaseUniqueVobName( name = "self" )
 	public void testTagged() throws Exception {
 		jenkins.makeTagType( ccenv.getPVob() );
 		AbstractBuild<?, ?> build = initiateBuild( "tagged-" + ccenv.getVobName(), false, true, false, false );

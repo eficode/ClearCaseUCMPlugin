@@ -45,7 +45,7 @@ public class BaselinesFound {
 	}
 
 	@Test
-	@ClearCaseUniqueVobName( name = "polling" )
+	@ClearCaseUniqueVobName( name = "nop-child" )
 	public void testNoOptions() throws Exception {
 		
 		Baseline baseline = getNewBaseline();
@@ -67,7 +67,7 @@ public class BaselinesFound {
 	}
 	
 	@Test
-	@ClearCaseUniqueVobName( name = "recommended" )
+	@ClearCaseUniqueVobName( name = "recommended-child" )
 	public void testRecommended() throws Exception {
 		
 		Baseline baseline = getNewBaseline();
@@ -89,7 +89,7 @@ public class BaselinesFound {
 	}
 	
 	@Test
-	@ClearCaseUniqueVobName( name = "description" )
+	@ClearCaseUniqueVobName( name = "description-child" )
 	public void testDescription() throws Exception {
 		
 		Baseline baseline = getNewBaseline();
@@ -112,7 +112,7 @@ public class BaselinesFound {
 	
 	
 	@Test
-	@ClearCaseUniqueVobName( name = "tagged" )
+	@ClearCaseUniqueVobName( name = "tagged-child" )
 	public void testTagged() throws Exception {
 		jenkins.makeTagType( ccenv.getPVob() );
 		Baseline baseline = getNewBaseline();

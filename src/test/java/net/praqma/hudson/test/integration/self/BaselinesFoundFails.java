@@ -33,7 +33,7 @@ public class BaselinesFoundFails {
 	}
 
 	@Test
-	@ClearCaseUniqueVobName( name = "" )
+	@ClearCaseUniqueVobName( name = "self-failed" )
 	public void testNoOptions() throws Exception {
 		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getVobName(), false, false, false, true );
 		
@@ -55,7 +55,7 @@ public class BaselinesFoundFails {
 	}
 	
 	@Test
-	@ClearCaseUniqueVobName( name = "" )
+	@ClearCaseUniqueVobName( name = "self-failed" )
 	public void testRecommended() throws Exception {
 		AbstractBuild<?, ?> build = initiateBuild( "recommended-" + ccenv.getVobName(), true, false, false, true );
 		
@@ -74,7 +74,7 @@ public class BaselinesFoundFails {
 	}
 	
 	@Test
-	@ClearCaseUniqueVobName( name = "" )
+	@ClearCaseUniqueVobName( name = "self-failed" )
 	public void testTagged() throws Exception {
 		jenkins.makeTagType( ccenv.getPVob() );
 		AbstractBuild<?, ?> build = initiateBuild( "tagged-" + ccenv.getVobName(), false, true, false, true );
