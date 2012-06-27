@@ -2,13 +2,19 @@ package net.praqma.hudson.test.integration.self;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
+
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.TestBuilder;
 import org.mockito.Mockito;
 
+import hudson.Launcher;
 import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
+import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.TaskListener;
@@ -36,20 +42,67 @@ public class Polling {
 	public void testPollingSelfWithBaselines() throws Exception {
 		FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getVobName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
 		
+		/* BUILD 1 */
+		try {
+			project.scheduleBuild2( 0 ).get();
+		} catch( Exception e ) {
+			logger.info( "Build failed: " + e.getMessage() );
+		}
+		
 		PollingResult result = project.poll( jenkins.createTaskListener() );
 		
 		assertTrue( result.hasChanges() );
-		//testCCUCMPolling( project );
 	}
 
-	/*
+	
 	public void testPollingSelfWithNoBaselines() throws Exception {
-		FreeStyleProject project = setupProject( "polling-test-with-baselines-" + ccenv.getVobName(), "self", "one_dev@" + ccenv.getPVob(), false, false, false, false );
+		FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getVobName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
 		
-		PollingResult result = project.poll( createTaskListener() );
+		/* BUILD 1 */
+		try {
+			project.scheduleBuild2( 0 ).get();
+		} catch( Exception e ) {
+			logger.info( "Build failed: " + e.getMessage() );
+		}
 		
-		assertFalse( result.hasChanges() );
+		/* BUILD 2 */
+		try {
+			project.scheduleBuild2( 0 ).get();
+		} catch( Exception e ) {
+			logger.info( "Build failed: " + e.getMessage() );
+		}
+		
+		/* BUILD 3 */
+		try {
+			project.scheduleBuild2( 0 ).get();
+		} catch( Exception e ) {
+			logger.info( "Build failed: " + e.getMessage() );
+		}
+		
+		/* BUILD 4 */
+		try {
+			project.scheduleBuild2( 0 ).get();
+		} catch( Exception e ) {
+			logger.info( "Build failed: " + e.getMessage() );
+		}
+		
+		/* BUILD 5 */
+		try {
+			project.scheduleBuild2( 0 ).get();
+		} catch( Exception e ) {
+			logger.info( "Build failed: " + e.getMessage() );
+		}
+		
+		/* BUILD 6 */
+		try {
+			project.scheduleBuild2( 0 ).get();
+		} catch( Exception e ) {
+			logger.info( "Build failed: " + e.getMessage() );
+		}
+		
+		PollingResult result = project.poll( jenkins.createTaskListener() );
+		
+		assertTrue( result.hasChanges() );
 	}
-	*/
 	
 }
