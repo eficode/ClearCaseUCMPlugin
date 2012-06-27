@@ -14,7 +14,7 @@ import hudson.model.Result;
 import hudson.model.TaskListener;
 import hudson.scm.PollingResult;
 import net.praqma.clearcase.Environment;
-import net.praqma.clearcase.test.ClearCaseTest;
+import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
@@ -27,12 +27,12 @@ public class Polling {
 	public static CCUCMRule jenkins = new CCUCMRule();
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "clearcaserule", "cool" + Environment.getUniqueTimestamp() );
+	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );
 
 	private static Logger logger = Logger.getLogger();
 
 	@Test
-	@ClearCaseTest( name = "" )
+	@ClearCaseUniqueVobName( name = "" )
 	public void testPollingSelfWithBaselines() throws Exception {
 		FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getVobName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
 		

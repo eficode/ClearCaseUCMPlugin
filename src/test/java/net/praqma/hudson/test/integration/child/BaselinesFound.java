@@ -21,7 +21,7 @@ import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.util.debug.Logger;
 
-import net.praqma.clearcase.test.ClearCaseTest;
+import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 
 import static org.junit.Assert.*;
@@ -32,7 +32,7 @@ public class BaselinesFound {
 	public static CCUCMRule jenkins = new CCUCMRule();
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "clearcaserule", "cool" + Environment.getUniqueTimestamp() );
+	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );
 
 	private static Logger logger = Logger.getLogger();
 		
@@ -41,7 +41,7 @@ public class BaselinesFound {
 	}
 
 	@Test
-	@ClearCaseTest( name = "polling" )
+	@ClearCaseUniqueVobName( name = "polling" )
 	public void testNoOptions() throws Exception {
 		
 		/**/
