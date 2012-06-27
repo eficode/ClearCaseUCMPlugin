@@ -123,7 +123,7 @@ public class BaselinesFoundFailed {
 		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
 		
 		jenkins.assertBuildBaseline( baseline, build );
-		assertNull( jenkins.getTag( baseline, build ) );
+		assertNotNull( jenkins.getTag( baseline, build ) );
 		jenkins.samePromotionLevel( baseline, PromotionLevel.REJECTED );
 		
 		jenkins.testCreatedBaseline( build );

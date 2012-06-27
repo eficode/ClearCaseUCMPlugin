@@ -127,7 +127,7 @@ public class BaselinesFound {
 		
 		jenkins.assertBuildBaseline( baseline, build );
 		assertFalse( jenkins.isRecommended( jenkins.getCreatedBaseline( build ), build ) );
-		assertNull( jenkins.getTag( baseline, build ) );
+		assertNotNull( jenkins.getTag( baseline, build ) );
 		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
 		
 		jenkins.testCreatedBaseline( build );
