@@ -70,20 +70,25 @@ public abstract class Util {
 		buffer.append( "<entry>" );
 		buffer.append( ( "<blName>" + bl.getShortname() + "</blName>" ) );
 		for( Activity act : changes ) {
-			buffer.append( "<activity>" );
-			buffer.append( ( "<actName>" + act.getShortname() + "</actName>" ) );
-			buffer.append( ( "<author>" + act.getUser() + "</author>" ) );
-			List<Version> versions = act.changeset.versions;
-			String temp = null;
-			for( Version v : versions ) {
-				try {
-					temp = "<file>" + v.getSFile() + " (" + v.getVersion() + ") user: " + v.blame() + "</file>";
-				} catch( ClearCaseException e ) {
-					logger.warning( "Could not generate log" );
+			try {
+				act.load();
+				buffer.append( "<activity>" );
+				buffer.append( ( "<actName>" + act.getShortname() + "</actName>" ) );
+				buffer.append( ( "<author>" + act.getUser() + "</author>" ) );
+				List<Version> versions = act.changeset.versions;
+				String temp = null;
+				for( Version v : versions ) {
+					try {
+						temp = "<file>" + v.getSFile() + " (" + v.getVersion() + ") user: " + v.blame() + "</file>";
+					} catch( ClearCaseException e ) {
+						logger.warning( "Could not generate log" );
+					}
+					buffer.append( temp );
 				}
-				buffer.append( temp );
+				buffer.append( "</activity>" );
+			} catch( ClearCaseException e ) {
+				logger.warning( "Unable to use activity \"" + act.getNormalizedName() + "\": " + e.getMessage() );
 			}
-			buffer.append( "</activity>" );
 		}
 		buffer.append( "</entry>" );
 		buffer.append( "</changeset>" );
