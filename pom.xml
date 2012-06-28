@@ -152,9 +152,9 @@
                         </dependencies>
                         <configuration>
                             <includes>
-                                <!-- <include>net/praqma/hudson/test/integration/child/*.java</include> -->
+                                <include>net/praqma/hudson/test/integration/child/*.java</include>
                                 <!-- <include>net/praqma/hudson/test/integration/*/*.java</include> -->
-                                <include>net/praqma/hudson/test/integration/child/GetBaselinesTest.java</include>
+                                <!-- <include>net/praqma/hudson/test/integration/child/GetBaselinesTest.java</include> -->
                             </includes>
                         </configuration>
                     </plugin>
