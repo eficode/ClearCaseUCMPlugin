@@ -30,7 +30,7 @@ import net.praqma.clearcase.test.junit.ClearCaseRule;
 
 import static org.junit.Assert.*;
 
-public class BaselinesFound {
+public class BaselinesFoundFailed {
 
 	@ClassRule
 	public static CCUCMRule jenkins = new CCUCMRule();
@@ -45,92 +45,88 @@ public class BaselinesFound {
 	}
 
 	@Test
-	@ClearCaseUniqueVobName( name = "nop-child" )
+	@ClearCaseUniqueVobName( name = "nop-child-failed" )
 	public void testNoOptions() throws Exception {
 		
 		Baseline baseline = getNewBaseline();
 		
-		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getVobName(), false, false, false, false );
+		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getVobName(), false, false, false, true );
 
 		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
+		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );
 		
 		/* Expected build baseline */
 		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
-
-		jenkins.assertBuildBaseline( baseline, build );
-		assertFalse( jenkins.isRecommended( jenkins.getCreatedBaseline( build ), build ) );
-		assertNull( jenkins.getTag( baseline, build ) );
-		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
 		
-		jenkins.testCreatedBaseline( build );
+		jenkins.assertBuildBaseline( baseline, build );
+		assertNull( jenkins.getTag( baseline, build ) );
+		jenkins.samePromotionLevel( baseline, PromotionLevel.REJECTED );
+		
+		jenkins.testNotCreatedBaseline( build );
 	}
 	
 	@Test
-	@ClearCaseUniqueVobName( name = "recommended-child" )
+	@ClearCaseUniqueVobName( name = "recommended-child-failed" )
 	public void testRecommended() throws Exception {
 		
 		Baseline baseline = getNewBaseline();
 		
-		AbstractBuild<?, ?> build = initiateBuild( "recommended-" + ccenv.getVobName(), true, false, false, false );
+		AbstractBuild<?, ?> build = initiateBuild( "recommended-" + ccenv.getVobName(), true, false, false, true );
 
 		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
+		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );
 		
 		/* Expected build baseline */
 		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
 		
 		jenkins.assertBuildBaseline( baseline, build );
-		assertTrue( jenkins.isRecommended( jenkins.getCreatedBaseline( build ), build ) );
 		assertNull( jenkins.getTag( baseline, build ) );
-		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
+		jenkins.samePromotionLevel( baseline, PromotionLevel.REJECTED );
 		
-		jenkins.testCreatedBaseline( build );
+		jenkins.testNotCreatedBaseline( build );
 	}
 	
 	@Test
-	@ClearCaseUniqueVobName( name = "description-child" )
+	@ClearCaseUniqueVobName( name = "description-child-failed" )
 	public void testDescription() throws Exception {
 		
 		Baseline baseline = getNewBaseline();
 		
-		AbstractBuild<?, ?> build = initiateBuild( "description-" + ccenv.getVobName(), false, false, true, false );
+		AbstractBuild<?, ?> build = initiateBuild( "description-" + ccenv.getVobName(), false, false, true, true );
 
 		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
+		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );
 		
 		/* Expected build baseline */
 		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
 		
 		jenkins.assertBuildBaseline( baseline, build );
-		assertFalse( jenkins.isRecommended( jenkins.getCreatedBaseline( build ), build ) );
 		assertNull( jenkins.getTag( baseline, build ) );
-		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
+		jenkins.samePromotionLevel( baseline, PromotionLevel.REJECTED );
 		
-		jenkins.testCreatedBaseline( build );
+		jenkins.testNotCreatedBaseline( build );
 	}
 	
 	
 	@Test
-	@ClearCaseUniqueVobName( name = "tagged-child" )
+	@ClearCaseUniqueVobName( name = "tagged-child-failed" )
 	public void testTagged() throws Exception {
 		jenkins.makeTagType( ccenv.getPVob() );
 		Baseline baseline = getNewBaseline();
 		
-		AbstractBuild<?, ?> build = initiateBuild( "tagged-" + ccenv.getVobName(), false, true, false, false );
+		AbstractBuild<?, ?> build = initiateBuild( "tagged-" + ccenv.getVobName(), false, true, false, true );
 
 		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
+		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );
 		
 		/* Expected build baseline */
 		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
 		
 		jenkins.assertBuildBaseline( baseline, build );
-		assertFalse( jenkins.isRecommended( jenkins.getCreatedBaseline( build ), build ) );
 		assertNotNull( jenkins.getTag( baseline, build ) );
-		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
+		jenkins.samePromotionLevel( baseline, PromotionLevel.REJECTED );
 		
-		jenkins.testCreatedBaseline( build );
+		jenkins.testNotCreatedBaseline( build );
 	}
 	
 	

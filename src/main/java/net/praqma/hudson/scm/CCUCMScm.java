@@ -929,7 +929,7 @@ public class CCUCMScm extends SCM {
 					Object o = project.getBuildByNumber( bnum );
 					Build<?, ?> bld = (Build<?, ?>) o;
 					if( bld.isBuilding() ) {
-						logger.debug( s.getJobNumber() + " is still waiting in queue, no need for polling" );
+						logger.debug( s.getJobNumber() + " is still waiting in queue or building, no need for polling" );
 						Logger.removeAppender( app );
 						return p;
 					}

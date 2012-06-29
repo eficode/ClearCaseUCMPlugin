@@ -6,9 +6,13 @@ import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
+import hudson.model.User;
+import hudson.scm.ChangeLogSet;
+import hudson.scm.ChangeLogSet.Entry;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.ClassRule;
@@ -31,6 +35,7 @@ import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.scm.CCUCMScm;
+import net.praqma.hudson.scm.ChangeLogEntryImpl;
 import net.praqma.util.debug.Logger;
 
 import static org.junit.Assert.*;
@@ -38,23 +43,7 @@ import static org.junit.Assert.*;
 public class CCUCMRule extends JenkinsRule {
 	
 	private static Logger logger = Logger.getLogger();
-	
-	/*
-	public String setupCC( String name, boolean installTag ) throws Exception {
-		//String uniqueTestVobName = "ccucm" + coolTest.uniqueTimeStamp;
-		String uniqueTestVobName = "ccucm_" + name + "_" + CoolTestCase.getUniqueTimestamp();
-		coolTest.variables.put( "vobname", uniqueTestVobName );
-		coolTest.variables.put( "pvobname", uniqueTestVobName + "_PVOB" );
-		
-		coolTest.bootStrap();
-		
-		if( installTag ) {
-			makeTagType();
-		}
-		
-		return uniqueTestVobName;
-	}
-	*/
+
 	
 	public FreeStyleProject setupProject( String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean createBaseline ) throws Exception {
 
@@ -125,6 +114,12 @@ public class CCUCMRule extends JenkinsRule {
 		return action.getBaseline();
 	}
 	
+
+	public Baseline getCreatedBaseline( AbstractBuild<?, ?> build ) {
+		CCUCMBuildAction action = getBuildAction( build );
+		return action.getCreatedBaseline();
+	}
+	
 	public void assertBuildBaseline( Baseline baseline, AbstractBuild<?, ?> build ) {
 		assertEquals( baseline, getBuildBaseline( build ) );
 	}
@@ -182,7 +177,13 @@ public class CCUCMRule extends JenkinsRule {
 		CCUCMBuildAction action = getBuildAction( build );
 		assertNotNull( action.getCreatedBaseline() );
 	}
-	// build.getRootDir(), "ccucmSCM.log"
+	
+	public void testNotCreatedBaseline( AbstractBuild<?, ?> build ) {
+		CCUCMBuildAction action = getBuildAction( build );
+		assertNull( action.getCreatedBaseline() );
+	}
+		
+	
 	public void testLogExistence( AbstractBuild<?, ?> build ) {
 		File scmLog = new File( build.getRootDir(), "ccucmSCM.log" );
 		File pubLog = new File( build.getRootDir(), "ccucmNOTIFIER.log" );
@@ -195,5 +196,25 @@ public class CCUCMRule extends JenkinsRule {
 		File polldir = new File( project.getRootDir(), "ccucm-poll-logs" );
 		
 		assertTrue( polldir.exists() );
+	}
+	
+	public List<User> getActivityUsers( AbstractBuild<?, ?> build ) {
+		ChangeLogSet<? extends Entry> ls = build.getChangeSet();
+		
+		Object[] items = ls.getItems();
+		
+		System.out.println( "ITEMS: " + items );
+		
+		List<User> users = new ArrayList<User>();
+		
+		for( Object item : items ) {
+			try {
+				users.add( ((ChangeLogEntryImpl)item).getAuthor() );
+			} catch( Exception e ) {
+				
+			}
+		}
+		
+		return users;
 	}
 }

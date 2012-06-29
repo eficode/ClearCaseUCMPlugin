@@ -11,7 +11,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import net.praqma.clearcase.Environment;
-import net.praqma.clearcase.test.ClearCaseTest;
+import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
@@ -24,7 +24,7 @@ public class BaselinesFoundFails {
 	public static CCUCMRule jenkins = new CCUCMRule();
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "clearcaserule", "cool" + Environment.getUniqueTimestamp() );
+	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );
 	
 	private static Logger logger = Logger.getLogger();
 	
@@ -33,7 +33,7 @@ public class BaselinesFoundFails {
 	}
 
 	@Test
-	@ClearCaseTest( name = "" )
+	@ClearCaseUniqueVobName( name = "self-failed" )
 	public void testNoOptions() throws Exception {
 		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getVobName(), false, false, false, true );
 		
@@ -54,7 +54,8 @@ public class BaselinesFoundFails {
 		jenkins.samePromotionLevel( baseline, PromotionLevel.REJECTED );
 	}
 	
-	@ClearCaseTest( name = "" )
+	@Test
+	@ClearCaseUniqueVobName( name = "self-failed" )
 	public void testRecommended() throws Exception {
 		AbstractBuild<?, ?> build = initiateBuild( "recommended-" + ccenv.getVobName(), true, false, false, true );
 		
@@ -73,7 +74,7 @@ public class BaselinesFoundFails {
 	}
 	
 	@Test
-	@ClearCaseTest( name = "" )
+	@ClearCaseUniqueVobName( name = "self-failed" )
 	public void testTagged() throws Exception {
 		jenkins.makeTagType( ccenv.getPVob() );
 		AbstractBuild<?, ?> build = initiateBuild( "tagged-" + ccenv.getVobName(), false, true, false, true );
