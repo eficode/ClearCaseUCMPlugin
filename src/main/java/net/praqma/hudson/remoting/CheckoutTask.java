@@ -28,7 +28,7 @@ import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules;
 import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.*;
 import net.praqma.hudson.exception.ScmException;
-import net.praqma.hudson.remoting.EstablishResult.ResultType;
+import net.praqma.hudson.exception.UnableToInitializeWorkspaceException;
 import net.praqma.hudson.scm.ClearCaseChangeset;
 import net.praqma.util.debug.Logger;
 import net.praqma.util.debug.Logger.LogLevel;
@@ -55,8 +55,6 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	private BuildListener listener;
 	private Integer jobNumber;
 	private String id = "";
-
-	private String log = "";
 	
 	private boolean any = false;
 	
@@ -111,7 +109,6 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		String viewtag = makeViewtag();
 		
 		EstablishResult er = new EstablishResult();
-		er.setResultType( ResultType.SUCCESS );
 		ClearCaseChangeset changeset = new ClearCaseChangeset();
 		
 		/* We need to load target stream */
@@ -171,25 +168,17 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 			
 			logger.info( "CheckoutTask finished normally" );
 			
-		} catch (ScmException e) {
-			logger.warning( e );
-			e.printStackTrace();
-			er.setResultType( ResultType.INITIALIZE_WORKSPACE_ERROR );
-		} catch (ClearCaseException e) {
-			e.log();
-			e.print( hudsonOut );
-			er.setResultType( ResultType.INITIALIZE_WORKSPACE_ERROR );
-		} catch (Exception e) {
-			logger.warning( e );
-			e.printStackTrace();
-			er.setResultType( ResultType.INITIALIZE_WORKSPACE_ERROR );
+		} catch( Exception e ) {
+			Logger.removeAppender( app );
+			throw new IOException( "", new UnableToInitializeWorkspaceException( "Unable to initialize workspace", e ) );			
 		}
 
-		er.setLog( log );
 		er.setMessage( diff );
 		er.setViewtag( viewtag );
 		er.setChangeset( changeset );
+		
 		Logger.removeAppender( app );
+		
 		return er;
 	}
 	

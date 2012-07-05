@@ -52,6 +52,8 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 import net.praqma.clearcase.exceptions.ClearCaseException;
+import net.praqma.clearcase.exceptions.DeliverException;
+import net.praqma.clearcase.exceptions.DeliverException.Type;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
@@ -63,6 +65,7 @@ import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.Util;
 import net.praqma.hudson.exception.CCUCMException;
+import net.praqma.hudson.exception.DeliverNotCancelledException;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.exception.TemplateException;
 import net.praqma.hudson.nametemplates.NameTemplate;
@@ -359,15 +362,7 @@ public class CCUCMScm extends SCM {
 				consoleOutput.println( e.getMessage() );
 				logger.warning( e.getMessage() );
 			}
-
-			/* Removing the state from the list */
-			//boolean done = state.remove();
-			//logger.debug( id + "Removing job " + build.getNumber() + " from collection: " + done, id );
 		}
-
-		//logger.debug( "FINAL STATES: " + ccucm.stringify() );
-		
-		System.out.println( "This is(SCM) " + this );
 
 		Logger.removeAppender( app );
 		return result;
@@ -507,21 +502,27 @@ public class CCUCMScm extends SCM {
 			}
 
 		} catch( Exception e ) {
-			consoleOutput.println( "[" + Config.nameShort + "] An error occured: " + e.getMessage() );
-			logger.warning( e, id );
-			e.printStackTrace( consoleOutput );
+			consoleOutput.println( "[" + Config.nameShort + "] Unable to initialize workspace" );
+			Exception cause = (Exception) e.getCause();
+			
+			if( cause != null ) {
+				try {
+					throw cause;
+				} catch( Exception e1 ) {
+					ExceptionUtils.print( cause, consoleOutput, true );
+					ExceptionUtils.log( cause, true );
+				}
+			} else {
+				ExceptionUtils.print( cause, consoleOutput, true );
+				ExceptionUtils.log( cause, true );
+			}
+			
 			doPostBuild = false;
 			state.setPostBuild( false );
 			return false;
 		}
 
-		if( er == null || er.isFailed() ) {
-			consoleOutput.println( "[" + Config.nameShort + "] Could not establish workspace: " + er );
-			state.setPostBuild( false );
-			return false;
-		} else {
-			return true;
-		}
+		return true;
 	}
 
 	public boolean doBaseline( AbstractBuild<?, ?> build, String baselineInput, State state, BuildListener listener ) {
@@ -642,14 +643,6 @@ public class CCUCMScm extends SCM {
 		EstablishResult er = new EstablishResult();
 
 		try {
-			// logger.debug( "Remote delivering...." );
-			// consoleOutput.println("[" + Config.nameShort +
-			// "] Establishing deliver view");
-			// RemoteDeliver rmDeliver = new
-			// RemoteDeliver(UCMEntity.getStream(stream).getFullyQualifiedName(),
-			// listener, component, loadModule,
-			// state.getBaseline().getFullyQualifiedName(),
-			// build.getParent().getDisplayName());
 			RemoteDeliver rmDeliver = null;
 			logger.verbose( "Starting remote deliver" );
 			if( workspace.isRemote() ) {
@@ -675,86 +668,82 @@ public class CCUCMScm extends SCM {
 
 			/* Write change log */
 			try {
-				// consoleOutput.println("[" + Config.nameShort +
-				// "] DIFF ON MASTER: " + er.getMessage());
 				FileOutputStream fos = new FileOutputStream( changelogFile );
-				if( er.isSuccessful() ) {
-					fos.write( er.getMessage().getBytes() );
-				} else {
-					fos.write( "<?xml version=\"1.0\" encoding=\"UTF-8\"?><changelog></changelog>".getBytes() );
-				}
+				fos.write( er.getMessage().getBytes() );
 				fos.close();
 			} catch( IOException e ) {
 				logger.debug( id + "Could not write change log file", id );
 				consoleOutput.println( "[" + Config.nameShort + "] Could not write change log file" );
 			}
 
-		} catch( IOException e ) {
-			consoleOutput.println( "[" + Config.nameShort + "] " + e.getMessage() );
-			logger.warning( e, id );
-			ExceptionUtils.print( e, consoleOutput, false );
-			result = false;
-		} catch( InterruptedException e ) {
-			consoleOutput.println( "[" + Config.nameShort + "] " + e.getMessage() );
-			logger.warning( e, id );
-			ExceptionUtils.print( e, consoleOutput, false );
-			result = false;
+			consoleOutput.println( "[" + Config.nameShort + "] Deliver successful" );
+
+			state.setChangeset( er.getChangeset() );
+			
+		/* Deliver failed */
 		} catch( Exception e ) {
-			consoleOutput.println( "[" + Config.nameShort + "] " + e.getMessage() );
-			logger.warning( e, id );
-			ExceptionUtils.print( e, consoleOutput, true );
+			consoleOutput.println( "[" + Config.nameShort + "] Deliver failed" );
 			result = false;
-		}
+			
+			/* Check for exception types */
+			Exception cause = (Exception) e.getCause();
+			
+			if( cause != null ) {
+				/* Re-throw */
+				try {
+					throw cause;
+				} catch( DeliverException de ) {
+					/* The deliver is started, cancel it */
+					if( de.isStarted() ) {
+						try {
+							consoleOutput.print( "[" + Config.nameShort + "] Cancelling deliver. " );
+							rutil.completeRemoteDeliver( workspace, listener, state, false );
+							consoleOutput.println( "Success" );
 
-		logger.debug( id + "RESULT: " + er.getResultType().toString(), id );
-		state.setChangeset( er.getChangeset() );
+							/* Make sure, that the post step is not run */
+							state.setNeedsToBeCompleted( false );
 
-		/* The result must be false if the returnStatus is not equal to 0 */
-		if( er.isFailed() ) {
-			logger.debug( id + "Result is false!", id );
-			result = false;
-		}
-
-		/*
-		 * If returnStatus == 1|2|3 the deliver was not started and should not
-		 * be tried cancelled later Perhaps isFailed could be used?
-		 */
-		if( er.isDeliverRequiresRebase() || er.isInterprojectDeliverDenied() || !er.isStarted() ) {
-			logger.debug( id + "No need for completing deliver", id );
-			state.setNeedsToBeCompleted( false );
-		}
-
-		consoleOutput.println( "[" + Config.nameShort + "] Deliver " + ( result ? "succeeded" : "failed" ) );
-		/*
-		 * If failed, cancel the deliver But only if the deliver actually
-		 * started and can be cancelled
-		 */
-		if( !result && er.isCancellable() ) {
-			try {
-				consoleOutput.print( "[" + Config.nameShort + "] Cancelling deliver. " );
-				// RemoteUtil.completeRemoteDeliver(workspace, listener, state,
-				// false);
-				rutil.completeRemoteDeliver( workspace, listener, state, false );
-				consoleOutput.println( "Success" );
-
-				/* Make sure, that the post step is not run */
-				state.setNeedsToBeCompleted( false );
-
-			} catch( Exception e ) {
-				consoleOutput.println( "Failed" );
+						} catch( Exception ex ) {
+							consoleOutput.println( "[" + Config.nameShort + "] Failed to cancel deliver" );
+							consoleOutput.println( "[" + Config.nameShort + "] Original error:" );
+							ExceptionUtils.print( de, consoleOutput, true );
+							consoleOutput.println( "[" + Config.nameShort + "] Cancellation error:" );
+							ExceptionUtils.print( ex, consoleOutput, true );
+							logger.warning( de, id );
+							logger.warning( ex, id );
+						}
+					} else {
+						logger.debug( id + "No need for completing deliver", id );
+						state.setNeedsToBeCompleted( false );
+					}
+					
+					/* Write something useful to the output */
+					if( de.getType().equals( Type.MERGE_ERROR ) ) {
+						try {
+							consoleOutput.println( "[" + Config.nameShort + "] Changes need to be manually merged, The stream " + state.getBaseline().getStream().getShortname() + " must be rebased to the most recent baseline on " + state.getStream().getShortname() + " - During the rebase the merge conflict should be solved manually. Hereafter create a new baseline on " + state.getBaseline().getStream().getShortname() + "." );
+							state.setError( "merge error" );
+						} catch( Exception e3 ) {
+						}
+					}
+					
+				/* Force deliver not cancelled */
+				} catch( DeliverNotCancelledException e1 ) {
+					consoleOutput.println( "[" + Config.nameShort + "] Failed to force cancel existing deliver" );
+					state.setNeedsToBeCompleted( false );
+				} catch( Exception e1 ) {
+					logger.warning( e, id );
+					ExceptionUtils.print( e, consoleOutput, true );
+					result = false;
+				}
+			} else {
 				logger.warning( e, id );
-				consoleOutput.println( "[" + Config.nameShort + "] " + e.getMessage() );
+				ExceptionUtils.print( e, consoleOutput, true );
+				result = false;
 			}
 		}
 
-		/* Write something useful to the output */
-		if( er.isMergeError() ) {
-			try {
-				consoleOutput.println( "[" + Config.nameShort + "] Changes need to be manually merged, The stream " + state.getBaseline().getStream().getShortname() + " must be rebased to the most recent baseline on " + state.getStream().getShortname() + " - During the rebase the merge conflict should be solved manually. Hereafter create a new baseline on " + state.getBaseline().getStream().getShortname() + "." );
-				state.setError( "merge error" );
-			} catch( Exception e ) {
-			}
-		}
+
+
 
 		try {
 			state.setStream( Stream.get( stream ) );
@@ -1126,9 +1115,6 @@ public class CCUCMScm extends SCM {
 			try {
 				consoleOutput.printf( "[" + Config.nameShort + "] [%02d] %s ", c, s.getShortname() );
 				c++;
-				// List<Baseline> found = getValidBaselinesFromStream(project,
-				// state, Project.getPlevelFromString(levelToPoll), s,
-				// component);
 				List<Baseline> found = rutil.getRemoteBaselinesFromStream( workspace, component, s, plevel, this.getSlavePolling(), this.getMultisitePolling() );
 				for( Baseline b : found ) {
 					baselines.add( b );

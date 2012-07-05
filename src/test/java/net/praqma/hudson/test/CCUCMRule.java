@@ -44,6 +44,7 @@ public class CCUCMRule extends JenkinsRule {
 	
 	private static Logger logger = Logger.getLogger();
 
+	private CCUCMScm scm;
 	
 	public FreeStyleProject setupProject( String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean createBaseline ) throws Exception {
 
@@ -53,10 +54,14 @@ public class CCUCMRule extends JenkinsRule {
 		
 		// boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription
 		CCUCMScm scm = new CCUCMScm( component, "INITIAL", "ALL", false, type, stream, "successful", createBaseline, "[project]_build_[number]", true, recommend, tag, description, "jenkins" );
-		
+		this.scm = scm;
 		project.setScm( scm );
 		
 		return project;
+	}
+	
+	public CCUCMScm getScm() {
+		return this.scm;
 	}
 	
 	public AbstractBuild<?, ?> initiateBuild( String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean fail, boolean createBaseline ) throws Exception {

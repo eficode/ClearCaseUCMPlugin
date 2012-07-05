@@ -25,8 +25,8 @@ import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.Util;
+import net.praqma.hudson.exception.DeliverNotCancelledException;
 import net.praqma.hudson.exception.ScmException;
-import net.praqma.hudson.remoting.EstablishResult.ResultType;
 import net.praqma.hudson.scm.CCUCMState;
 import net.praqma.hudson.scm.ClearCaseChangeset;
 import net.praqma.hudson.scm.CCUCMState.State;
@@ -170,19 +170,23 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 		er.setChangeset( changeset );
 
 		/* Make the deliver. Inline manipulation of er */
-		deliver( baseline, destinationStream, er, forceDeliver, 2 );
+		try {
+			deliver( baseline, destinationStream, forceDeliver, 2 );
+		} catch( Exception e ) {
+			Logger.removeAppender( app );
+			throw new IOException( e );
+		}
 
 		/* End of deliver */
 		Logger.removeAppender( app );
 		return er;
 	}
 
-	private void deliver( Baseline baseline, Stream dstream, EstablishResult er, boolean forceDeliver, int triesLeft ) throws IOException {
+	private void deliver( Baseline baseline, Stream dstream, boolean forceDeliver, int triesLeft ) throws IOException, DeliverException, DeliverNotCancelledException {
 		logger.verbose( "Delivering " + baseline.getShortname() + " to " + dstream.getShortname() + ". Tries left: " + triesLeft );
 		if( triesLeft < 1 ) {
 			out.println( "[" + Config.nameShort + "] Unable to deliver, giving up." );
-			er.setResultType( ResultType.DELIVER_IN_PROGRESS_NOT_CANCELLED );
-			return;
+			throw new DeliverNotCancelledException( "Unable to force cancel deliver" );
 		}
 
 		Deliver deliver = null;
@@ -190,32 +194,16 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 			out.println( "[" + Config.nameShort + "] Starting deliver(tries left: " + triesLeft + ")" );
 			deliver = new Deliver( baseline, baseline.getStream(), dstream, snapview.getViewRoot(), snapview.getViewtag() );
 			deliver.deliver( true, false, true, false );
-			//baseline.deliver( baseline.getStream(), dstream, snapview.getViewRoot(), snapview.getViewtag(), true, false, true );
-			er.setResultType( ResultType.SUCCESS );
+
 		} catch( DeliverException e ) {
 			out.println( "[" + Config.nameShort + "] Failed to deliver: " + e.getMessage() );
 			logger.debug( "Failed to deliver: " + e.getMessage() );
 			logger.debug( e );
 			
-			/* Figure out what happened */
-			if( e.getType().equals( DeliverException.Type.REQUIRES_REBASE ) ) {
-				er.setResultType( ResultType.DELIVER_REQUIRES_REBASE );
-			}
-
-			if( e.getType().equals( DeliverException.Type.MERGE_ERROR ) ) {
-				er.setResultType( ResultType.MERGE_ERROR );
-			}
-
-			if( e.getType().equals( DeliverException.Type.INTERPROJECT_DELIVER_DENIED ) ) {
-				er.setResultType( ResultType.INTERPROJECT_DELIVER_DENIED );
-			}
-
 			if( e.getType().equals( DeliverException.Type.DELIVER_IN_PROGRESS ) ) {
 				out.println( "[" + Config.nameShort + "] Deliver already in progress" );
 
-				if( !forceDeliver ) {
-					er.setResultType( ResultType.DELIVER_IN_PROGRESS );
-				} else {
+				if( forceDeliver ) {
 	
 					/**
 					 * rollback deliver.. *******A DELIVER OPERATION IS ALREADY IN
@@ -271,8 +259,10 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 	
 					// Recursive method call of INVOKE(...);
 					logger.verbose( "Trying to deliver again..." );
-					deliver( baseline, dstream, er, forceDeliver, triesLeft - 1 );
+					deliver( baseline, dstream, forceDeliver, triesLeft - 1 );
 				}
+			} else {
+				throw e;
 			}
 		} catch( CleartoolException e ) {
 			logger.warning( "Unable to get status from stream: " + e.getMessage() );
