@@ -34,19 +34,18 @@ public class Story05 {
 	public static CCUCMRule jenkins = new CCUCMRule();
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story05" );
+	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story05", "setup-story5.xml" );
 
 	private static Logger logger = Logger.getLogger();
 
 	@Test
-	@ClearCaseUniqueVobName( name = "story05" )
 	public void story05() throws Exception {
 		Stream dev1 = ccenv.context.streams.get( "one_dev" );
 		Stream dev2 = ccenv.context.streams.get( "two_dev" );
 		Stream target = ccenv.context.streams.get( "one_int" );
 		
 		/* Target */
-		String tviewtag = ccenv.getVobName() + "_one_int";
+		String tviewtag = ccenv.getVobName() + "_two_dev";
 		File tpath = new File( ccenv.context.mvfs + "/" + tviewtag + "/" + ccenv.getVobName() );
 		
 		/* Set deliver one up and make sure the baseline is not found by polling */
@@ -56,7 +55,7 @@ public class Story05 {
 		bl1.setPromotionLevel( PromotionLevel.BUILT );
 		
 		/* Do not complete deliver */
-		Deliver deliver1 = new Deliver( bl1, dev1, target, tpath, tviewtag );
+		Deliver deliver1 = new Deliver( bl1, dev1, dev2, tpath, tviewtag );
 		deliver1.deliver( true, false, true, false );
 		
 		/* Setup dev 2 with new baseline */

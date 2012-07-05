@@ -685,23 +685,37 @@ public class CCUCMScm extends SCM {
 			state.setChangeset( er.getChangeset() );
 			
 		/* Deliver failed */
-		} catch( Exception e ) {
+		} catch( IOException e ) {
 			consoleOutput.println( "[" + Config.nameShort + "] Deliver failed" );
 			result = false;
 			
 			/* Check for exception types */
 			Exception cause = (Exception) e.getCause();
 			
+			consoleOutput.println( "[" + Config.nameShort + "] CAUSE: " + cause.getClass() );
+			
 			if( cause != null ) {
+				Exception realcause = (Exception) cause.getCause();
+				consoleOutput.println( "[" + Config.nameShort + "] REAL CAUSE: " + realcause.getClass() );
+				
 				/* Re-throw */
 				try {
-					throw cause;
+					throw realcause;
 				} catch( DeliverException de ) {
 					
 					/* We need to store this information anyway */
 					CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
 					action.setViewPath( de.getDeliver().getViewContext() );
 					action.setViewTag( de.getDeliver().getViewtag() );
+					
+					System.out.println( "VIEW TAG IS3 " + action.getViewTag() );
+					consoleOutput.println( "VIEW TAG IS4 " + action.getViewTag() );
+					
+					logger.fatal( "VIEW TAG IS1 " + action.getViewTag() );
+					logger.fatal( "VIEW PATH IS1 " + action.getViewPath() );
+					
+					logger.fatal( "VIEW TAG IS2 " + de.getDeliver().getViewtag() );
+					logger.fatal( "VIEW PATH IS2 " + de.getDeliver().getViewContext() );
 					
 					/* The deliver is started, cancel it */
 					if( de.isStarted() ) {
@@ -750,9 +764,14 @@ public class CCUCMScm extends SCM {
 				ExceptionUtils.print( e, consoleOutput, true );
 				result = false;
 			}
+		} catch( Exception e ) {
+			consoleOutput.println( "[" + Config.nameShort + "] Deliver failed with" );
+			ExceptionUtils.print( e, consoleOutput, true );
+			ExceptionUtils.log( e, true );
+			result = false;
 		}
 
-
+		consoleOutput.println( "[" + Config.nameShort + "] Deliver part is done" );
 
 
 		try {

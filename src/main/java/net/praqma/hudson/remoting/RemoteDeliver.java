@@ -196,7 +196,6 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 			deliver.deliver( true, false, true, false );
 
 		} catch( DeliverException e ) {
-			out.println( "[" + Config.nameShort + "] Failed to deliver: " + e.getMessage() );
 			logger.debug( "Failed to deliver: " + e.getMessage() );
 			logger.debug( e );
 			
