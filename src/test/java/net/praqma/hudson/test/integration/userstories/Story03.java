@@ -27,13 +27,13 @@ public class Story03 {
 	public static CCUCMRule jenkins = new CCUCMRule();
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story03" );
+	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story03", "setup-story3.xml" );
 
 	private static Logger logger = Logger.getLogger();
 
 	@Test
 	@ClearCaseUniqueVobName( name = "story03a" )
-	public void story01b() throws Exception {
+	public void story03a() throws Exception {
 		/* Flip promotion level */
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
 		baseline.setPromotionLevel( PromotionLevel.REJECTED );
@@ -50,7 +50,7 @@ public class Story03 {
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "story03b" )
-	public void story01d() throws Exception {
+	public void story03b() throws Exception {
 		/* Flip promotion level */
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
 		baseline.setPromotionLevel( PromotionLevel.INITIAL );

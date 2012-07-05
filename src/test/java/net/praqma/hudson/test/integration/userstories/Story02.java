@@ -32,7 +32,7 @@ public class Story02 {
 
 	@Test
 	@ClearCaseUniqueVobName( name = "story02b" )
-	public void story01b() throws Exception {
+	public void story02b() throws Exception {
 		
 		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story02b", "self", "_System@" + ccenv.getPVob(), "three_int@" + ccenv.getPVob(), false, false, false, false, false );
 
@@ -46,7 +46,7 @@ public class Story02 {
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "story02d" )
-	public void story01d() throws Exception {
+	public void story02d() throws Exception {
 		
 		/* First build must succeed to get a workspace */
 		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story02d", "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
