@@ -47,13 +47,17 @@ public class CCUCMRule extends JenkinsRule {
 	private CCUCMScm scm;
 	
 	public FreeStyleProject setupProject( String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean createBaseline ) throws Exception {
+		return setupProject( projectName, type, component, stream, recommend, tag, description, createBaseline, false );
+	}
+	
+	public FreeStyleProject setupProject( String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean createBaseline, boolean forceDeliver ) throws Exception {
 
 		logger.info( "Setting up build for self polling, recommend:" + recommend + ", tag:" + tag + ", description:" + description );
 		
 		FreeStyleProject project = createFreeStyleProject( "ccucm-project-" + projectName );
 		
 		// boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription
-		CCUCMScm scm = new CCUCMScm( component, "INITIAL", "ALL", false, type, stream, "successful", createBaseline, "[project]_build_[number]", true, recommend, tag, description, "jenkins" );
+		CCUCMScm scm = new CCUCMScm( component, "INITIAL", "ALL", false, type, stream, "successful", createBaseline, "[project]_build_[number]", forceDeliver, recommend, tag, description, "jenkins" );
 		this.scm = scm;
 		project.setScm( scm );
 		
@@ -65,7 +69,11 @@ public class CCUCMRule extends JenkinsRule {
 	}
 	
 	public AbstractBuild<?, ?> initiateBuild( String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean fail, boolean createBaseline ) throws Exception {
-		FreeStyleProject project = setupProject( projectName, type, component, stream, recommend, tag, description, createBaseline );
+		return initiateBuild( projectName, type, component, stream, recommend, tag, description, fail, createBaseline, false );
+	}
+	
+	public AbstractBuild<?, ?> initiateBuild( String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean fail, boolean createBaseline, boolean forceDeliver ) throws Exception {
+		FreeStyleProject project = setupProject( projectName, type, component, stream, recommend, tag, description, createBaseline, forceDeliver );
 		
 		FreeStyleBuild build = null;
 		

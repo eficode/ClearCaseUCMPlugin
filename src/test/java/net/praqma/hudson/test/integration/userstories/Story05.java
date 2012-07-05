@@ -12,6 +12,7 @@ import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.TaskListener;
 import hudson.scm.PollingResult;
+import net.praqma.clearcase.Deliver;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Baseline.LabelBehaviour;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
@@ -27,44 +28,51 @@ import net.praqma.clearcase.test.junit.ClearCaseRule;
 
 import static org.junit.Assert.*;
 
-public class Story04 {
+public class Story05 {
 
 	@ClassRule
 	public static CCUCMRule jenkins = new CCUCMRule();
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story04" );
+	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story05" );
 
 	private static Logger logger = Logger.getLogger();
 
 	@Test
-	@ClearCaseUniqueVobName( name = "story04" )
-	public void story04() throws Exception {
-		
-		Stream source = ccenv.context.streams.get( "one_dev" );
+	@ClearCaseUniqueVobName( name = "story05" )
+	public void story05() throws Exception {
+		Stream dev1 = ccenv.context.streams.get( "one_dev" );
+		Stream dev2 = ccenv.context.streams.get( "two_dev" );
 		Stream target = ccenv.context.streams.get( "one_int" );
 		
-		/* Prepare */
-		/* Integration */
+		/* Target */
 		String tviewtag = ccenv.getVobName() + "_one_int";
-		File tpath = ccenv.setDynamicActivity( target, tviewtag, "strict-deliver" );
-		Baseline tb = getNewBaseline( tpath, "merge.txt", "one" );
-		target.recommendBaseline( tb );
+		File tpath = new File( ccenv.context.mvfs + "/" + tviewtag + "/" + ccenv.getVobName() );
 		
-		/* Development */
-		String viewtag = ccenv.getVobName() + "_one_dev";
-		File path = ccenv.setDynamicActivity( source, viewtag, "strict-deliver-dev" );
-		Baseline b = getNewBaseline( path, "merge.txt", "two" );
+		/* Set deliver one up and make sure the baseline is not found by polling */
+		String d1viewtag = ccenv.getVobName() + "_one_dev";
+		File d1path = ccenv.setDynamicActivity( dev1, d1viewtag, "dip1" );
+		Baseline bl1 = getNewBaseline( d1path, "dip1.txt", "dip1" );
+		bl1.setPromotionLevel( PromotionLevel.BUILT );
+		
+		/* Do not complete deliver */
+		Deliver deliver1 = new Deliver( bl1, dev1, target, tpath, tviewtag );
+		deliver1.deliver( true, false, true, false );
+		
+		/* Setup dev 2 with new baseline */
+		String d2viewtag = ccenv.getVobName() + "_two_dev";
+		File d2path = ccenv.setDynamicActivity( dev2, d2viewtag, "dip2" );
+		Baseline bl2 = getNewBaseline( d2path, "dip2.txt", "dip2" );
 		
 		
-		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story04", "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true );
+		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story05", "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true, false );
 
 		/* Build validation */
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );
 		
 		/* Expected build baseline */
 		Baseline buildBaseline = jenkins.getBuildBaseline( build );
-		assertEquals( b, buildBaseline );
+		assertEquals( bl2, buildBaseline );
 		assertEquals( PromotionLevel.REJECTED, buildBaseline.getPromotionLevel( true ) );
 		
 		/* Created baseline */
