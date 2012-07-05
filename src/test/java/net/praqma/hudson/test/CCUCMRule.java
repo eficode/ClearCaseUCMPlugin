@@ -119,6 +119,10 @@ public class CCUCMRule extends JenkinsRule {
 		return action.getBaseline();
 	}
 	
+	public Baseline getBuildBaselineNoAssert( AbstractBuild<?, ?> build ) {
+		CCUCMBuildAction action = getBuildAction( build );
+		return action.getBaseline();
+	}
 
 	public Baseline getCreatedBaseline( AbstractBuild<?, ?> build ) {
 		CCUCMBuildAction action = getBuildAction( build );

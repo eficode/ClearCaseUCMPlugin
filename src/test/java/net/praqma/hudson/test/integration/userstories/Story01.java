@@ -40,7 +40,7 @@ public class Story01 {
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.NOT_BUILT ) );
 		
 		/* Expected build baseline */
-		Baseline buildBaseline = jenkins.getBuildBaseline( build );
+		Baseline buildBaseline = jenkins.getBuildBaselineNoAssert( build );
 		assertNull( buildBaseline );
 	}
 	
@@ -49,7 +49,7 @@ public class Story01 {
 	public void story01d() throws Exception {
 		
 		/* First build must succeed to get a workspace */
-		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story01b", "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true );
+		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story01d", "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true );
 		AbstractProject<?, ?> project = build.getProject();
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );		
 		
