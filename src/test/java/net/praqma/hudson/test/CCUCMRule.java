@@ -109,7 +109,6 @@ public class CCUCMRule extends JenkinsRule {
 		/* Check the build baseline */
 		logger.info( "Getting ccucm build action from " + build );
 		CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
-		assertNotNull( action.getBaseline() );
 		return action;
 	}
 	
