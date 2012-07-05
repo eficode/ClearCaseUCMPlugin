@@ -34,7 +34,7 @@ public class Story02 {
 	@ClearCaseUniqueVobName( name = "story02b" )
 	public void story01b() throws Exception {
 		
-		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story02b", "self", "_System@" + ccenv.getPVob(), "three_int@" + ccenv.getPVob(), false, false, false, false, true );
+		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story02b", "self", "_System@" + ccenv.getPVob(), "three_int@" + ccenv.getPVob(), false, false, false, false, false );
 
 		/* Build validation */
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.NOT_BUILT ) );
@@ -49,7 +49,7 @@ public class Story02 {
 	public void story01d() throws Exception {
 		
 		/* First build must succeed to get a workspace */
-		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story02d", "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true );
+		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story02d", "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
 		AbstractProject<?, ?> project = build.getProject();
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );		
 		

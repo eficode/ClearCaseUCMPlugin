@@ -11,6 +11,7 @@ import hudson.model.Result;
 import hudson.model.TaskListener;
 import hudson.scm.PollingResult;
 import net.praqma.clearcase.ucm.entities.Baseline;
+import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.util.debug.Logger;
@@ -20,21 +21,24 @@ import net.praqma.clearcase.test.junit.ClearCaseRule;
 
 import static org.junit.Assert.*;
 
-public class Story01 {
+public class Story03 {
 
 	@ClassRule
 	public static CCUCMRule jenkins = new CCUCMRule();
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story01" );
+	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story03" );
 
 	private static Logger logger = Logger.getLogger();
 
 	@Test
-	@ClearCaseUniqueVobName( name = "story01b" )
+	@ClearCaseUniqueVobName( name = "story03a" )
 	public void story01b() throws Exception {
+		/* Flip promotion level */
+		Baseline baseline = ccenv.context.baselines.get( "model-1" );
+		baseline.setPromotionLevel( PromotionLevel.REJECTED );
 		
-		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story01b", "self", "_System2@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
+		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story03a", "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
 
 		/* Build validation */
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.NOT_BUILT ) );
@@ -45,18 +49,17 @@ public class Story01 {
 	}
 	
 	@Test
-	@ClearCaseUniqueVobName( name = "story01d" )
+	@ClearCaseUniqueVobName( name = "story03b" )
 	public void story01d() throws Exception {
+		/* Flip promotion level */
+		Baseline baseline = ccenv.context.baselines.get( "model-1" );
+		baseline.setPromotionLevel( PromotionLevel.INITIAL );
 		
 		/* First build must succeed to get a workspace */
-		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story01d", "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
+		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story03b", "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
 		AbstractProject<?, ?> project = build.getProject();
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );		
-		
-		/* New scm with wrong component */
-		CCUCMScm scm = new CCUCMScm( "_System2@" + ccenv.getPVob(), "INITIAL", "ALL", false, "self", "one_int@" + ccenv.getPVob(), "successful", false, "", true, false, false, false, "jenkins" );
-		project.setScm( scm );
-		
+				
 		TaskListener listener = jenkins.createTaskListener();
 		PollingResult result = project.poll( listener );
 
