@@ -33,22 +33,23 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 
 	private Baseline baseline;
 	private Stream stream;
-	private SnapshotView view;
-	private ClearCaseChangeset changeset;
+	//private SnapshotView view;
+	private String viewtag;
+	private File viewPath;
 
 	private PrintStream pstream;
 
 	private LoggerSetting loggerSetting;
 
-	public RemoteDeliverComplete( Baseline baseline, Stream stream, SnapshotView view, ClearCaseChangeset changeset, boolean complete, BuildListener listener, Pipe pipe, PrintStream pstream, LoggerSetting loggerSetting ) {
+	public RemoteDeliverComplete( Baseline baseline, Stream stream, String viewtag, File viewPath, boolean complete, BuildListener listener, Pipe pipe, PrintStream pstream, LoggerSetting loggerSetting ) {
 		this.complete = complete;
 		this.listener = listener;
 		this.pipe = pipe;
 
 		this.baseline = baseline;
 		this.stream = stream;
-		this.view = view;
-		this.changeset = changeset;
+		this.viewtag = viewtag;
+		this.viewPath = viewPath;
 
 		this.pstream = pstream;
 
@@ -77,7 +78,7 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 
 		logger.debug( "Remote deliver complete" );
 		
-		Deliver deliver = new Deliver( baseline, baseline.getStream(), stream, view.getViewRoot(), view.getViewtag() );
+		Deliver deliver = new Deliver( baseline, baseline.getStream(), stream, viewPath, viewtag );
 		if( complete ) {
 
 			try {

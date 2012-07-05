@@ -663,7 +663,11 @@ public class CCUCMScm extends SCM {
 				er = i.get();
 			}
 
-			state.setSnapView( er.getView() );
+			CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
+			action.setViewPath( er.getView().getViewRoot() );
+			action.setViewTag( viewtag );
+			
+			//state.setSnapView( er.getView() );
 			this.viewtag = er.getViewtag();
 
 			/* Write change log */
@@ -693,11 +697,17 @@ public class CCUCMScm extends SCM {
 				try {
 					throw cause;
 				} catch( DeliverException de ) {
+					
+					/* We need to store this information anyway */
+					CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
+					action.setViewPath( de.getDeliver().getViewContext() );
+					action.setViewTag( de.getDeliver().getViewtag() );
+					
 					/* The deliver is started, cancel it */
 					if( de.isStarted() ) {
 						try {
 							consoleOutput.print( "[" + Config.nameShort + "] Cancelling deliver. " );
-							rutil.completeRemoteDeliver( workspace, listener, state, false );
+							rutil.completeRemoteDeliver( workspace, listener, state, de.getDeliver().getViewtag(), de.getDeliver().getViewContext(), false );
 							consoleOutput.println( "Success" );
 
 							/* Make sure, that the post step is not run */

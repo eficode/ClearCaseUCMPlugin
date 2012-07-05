@@ -142,6 +142,8 @@ public class CCUCMNotifier extends Notifier {
 
 		State pstate = null;
 		Baseline baseline = null;
+		
+		CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
 
 		/* Only do this part if a valid CCUCMScm build */
 		if( result ) {
@@ -240,12 +242,11 @@ public class CCUCMNotifier extends Notifier {
 			build.setResult( Result.NOT_BUILT );
 		}
 
-		if( pstate != null && pstate.getSnapView() != null ) {
-			String viewtag = pstate.getSnapView().getViewtag();
+		if( action != null && action.getViewTag() != null ) {
 			/* End the view */
 			try {
-				logger.debug( "Ending view " + viewtag, id );
-				rutil.endView( build.getWorkspace(), viewtag );
+				logger.debug( "Ending view " + action.getViewTag(), id );
+				rutil.endView( build.getWorkspace(), action.getViewTag() );
 			} catch( CCUCMException e ) {
 				out.println( e.getMessage() );
 				logger.warning( e.getMessage(), id );
@@ -301,6 +302,8 @@ public class CCUCMNotifier extends Notifier {
 		}
 
 		out.println( "[" + Config.nameShort + "] Build result: " + buildResult );
+		
+		CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
 
 		/* Initialize variables for post build steps */
 		Stream targetstream = null;
@@ -319,8 +322,6 @@ public class CCUCMNotifier extends Notifier {
 		 * Fail: - deliver cancel
 		 */
 		boolean treatSuccessful = buildResult.isBetterThan( pstate.getUnstable().treatSuccessful() ? Result.FAILURE : Result.UNSTABLE );
-		
-		CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
 
 		/*
 		 * Finalize CCUCM, deliver + baseline Only do this for child and sibling
@@ -331,7 +332,7 @@ public class CCUCMNotifier extends Notifier {
 
 			try {
 				out.print( "[" + Config.nameShort + "] " + ( treatSuccessful ? "Completing" : "Cancelling" ) + " the deliver. " );
-				rutil.completeRemoteDeliver( workspace, listener, pstate, treatSuccessful );
+				rutil.completeRemoteDeliver( workspace, listener, pstate, action.getViewTag(), action.getViewPath(), treatSuccessful );
 				out.println( "Success." );
 
 				/* If deliver was completed, create the baseline */
@@ -350,7 +351,7 @@ public class CCUCMNotifier extends Notifier {
 						NameTemplate.validateTemplates( pstate );
 						String name = NameTemplate.parseTemplate( pstate.getNameTemplate(), pstate );
 
-						targetbaseline = rutil.createRemoteBaseline( workspace, listener, name, pstate.getBaseline().getComponent(), pstate.getSnapView().getViewRoot(), pstate.getBaseline().getUser() );
+						targetbaseline = rutil.createRemoteBaseline( workspace, listener, name, pstate.getBaseline().getComponent(), action.getViewPath(), pstate.getBaseline().getUser() );
 
 						/**/
 						if( action != null ) {
@@ -391,7 +392,7 @@ public class CCUCMNotifier extends Notifier {
 				if( treatSuccessful ) {
 					try {
 						out.print( "[" + Config.nameShort + "] Trying to cancel the deliver. " );
-						rutil.completeRemoteDeliver( workspace, listener, pstate, false );
+						rutil.completeRemoteDeliver( workspace, listener, pstate, action.getViewTag(), action.getViewPath(), false );
 						out.println( "Success." );
 					} catch( Exception e1 ) {
 						out.println( " Failed." );

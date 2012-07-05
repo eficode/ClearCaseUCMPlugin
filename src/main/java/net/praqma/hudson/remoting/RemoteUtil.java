@@ -40,20 +40,20 @@ public class RemoteUtil {
 		this.app = appender;
 	}
 
-	public void completeRemoteDeliver( FilePath workspace, BuildListener listener, State state, boolean complete ) throws CCUCMException {
+	public void completeRemoteDeliver( FilePath workspace, BuildListener listener, State state, String viewtag, File viewPath, boolean complete ) throws CCUCMException {
 
 		try {
 			if( workspace.isRemote() ) {
 				final Pipe pipe = Pipe.createRemoteToLocal();
 				Future<Boolean> i = null;
-				i = workspace.actAsync( new RemoteDeliverComplete( state.getBaseline(), state.getStream(), state.getSnapView(), state.getChangeset(), complete, listener, pipe, null, loggerSetting ) );
+				i = workspace.actAsync( new RemoteDeliverComplete( state.getBaseline(), state.getStream(), viewtag, viewPath, complete, listener, pipe, null, loggerSetting ) );
 				app.write( pipe.getIn() );
 				i.get();
 			} else {
 				Future<Boolean> i = null;
 				PipedInputStream in = new PipedInputStream();
 				PipedOutputStream out = new PipedOutputStream( in );
-				i = workspace.actAsync( new RemoteDeliverComplete( state.getBaseline(), state.getStream(), state.getSnapView(), state.getChangeset(), complete, listener, null, new PrintStream( out ), loggerSetting ) );
+				i = workspace.actAsync( new RemoteDeliverComplete( state.getBaseline(), state.getStream(), viewtag, viewPath, complete, listener, null, new PrintStream( out ), loggerSetting ) );
 				app.write( in );
 				i.get();
 			}

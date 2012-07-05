@@ -1,5 +1,7 @@
 package net.praqma.hudson;
 
+import java.io.File;
+
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Stream;
@@ -10,10 +12,14 @@ public class CCUCMBuildAction implements Action {
 	private Stream stream;
 	private Component component;
 	private Baseline baseline;
-	
+
+	/* View, possibly remotely */
+	private File viewPath;
 	private String viewTag;
 	
 	private Baseline createdBaseline;
+	
+
 	
 	public CCUCMBuildAction( Stream stream, Component component ) {
 		this.stream = stream;
@@ -34,6 +40,14 @@ public class CCUCMBuildAction implements Action {
 
 	public void setCreatedBaseline( Baseline createdBaseline ) {
 		this.createdBaseline = createdBaseline;
+	}
+	
+	public void setViewPath( File path ) {
+		this.viewPath = path;
+	}
+	
+	public File getViewPath() {
+		return viewPath;
 	}
 
 	public String getViewTag() {

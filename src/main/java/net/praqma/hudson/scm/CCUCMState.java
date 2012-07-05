@@ -29,7 +29,7 @@ import net.praqma.util.debug.appenders.FileAppender;
  * This is the state object for the CCUCM jobs
  * 
  * @author wolfgang
- * 
+ * @deprecated
  */
 public class CCUCMState {
 
@@ -205,6 +205,7 @@ public class CCUCMState {
 		return states.getView().toString();
 	}
 
+	@Deprecated
 	public class State {
 
 		private Baseline baseline;
@@ -409,22 +410,6 @@ public class CCUCMState {
 
 		public List<Baseline> getBaselines() {
 			return baselines;
-		}
-
-		public SnapshotView getSnapView() {
-			return this.snapView;
-		}
-
-		public void setSnapView( SnapshotView snapView ) {
-			this.snapView = snapView;
-		}
-
-		public SnapshotView getDeliverView() {
-			return this.deliverView;
-		}
-
-		public void setDeliverView( SnapshotView deliverView ) {
-			this.deliverView = deliverView;
 		}
 
 		public void setNeedsToBeCompleted( boolean s ) {
