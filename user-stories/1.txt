@@ -1,0 +1,36 @@
+[story]
+New baseline, bl1, on integration stream, poll on self, wrong component.
+
+[expected]
+[[build now]]
+[[[other component exists]]]
+(a)The baseline, bl1, is not found, build is initiated. Result is SUCCESS.
+Build baseline is not the same, but BUILT
+Job is SUCCESSFUL
+
+[[[other component does not exists]]]
+(b)The baseline, bl1, is not found, build is not initiated. Result is NOT_BUILT.
+Build baseline is null
+Job is NOT_BUILT
+
+[[poll]]
+[[[other component exists]]]
+(c)The baseline, bl1, is not found, build is initiated. Result is NO_CHANGES.
+Build baseline is not the same, but BUILT
+Job is SUCCESSFUL
+
+[[[other component does not exists]]]
+(d)The baseline, bl1, is not found, build is not initiated. Result is NO_CHANGES.
+Polling returns NO_CHANGES
+
+[configuration]
+ * Stream
+ * Component
+ * Promotion level
+ * Load modules
+ * Polling
+ * Create baselines
+ * Name template
+ * Make tag
+ * Set description
+

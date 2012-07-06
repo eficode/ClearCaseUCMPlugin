@@ -1,0 +1,22 @@
+[story]
+New baseline, bl1, on dev stream, dev1, poll on child, create baselines, but wrong baseline template
+
+[expected]
+[[build now]]
+(a)Baseline, bl1, found, ?
+Build baseline is bl1
+Created baseline is null
+Job is ?
+
+
+[configuration]
+ * Stream
+ * Component
+ * Promotion level
+ * Load modules
+ * Polling
+ * Create baselines = true
+ * Name template = "[fail]"
+ * Make tag
+ * Set description
+

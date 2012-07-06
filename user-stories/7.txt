@@ -1,0 +1,23 @@
+[story]
+New baseline, bl1, on int stream, poll on siblings, no interproject delivers
+
+[expected]
+[[build now]]
+(a)The deliver fails
+Build baseline is rejected
+Created baseline is null
+Job result is FAILED
+
+
+[configuration]
+ * Stream
+ * Component
+ * Promotion level
+ * Load modules
+ * Polling
+ * Create baselines
+ * Name template
+ * Make tag
+ * Set description
+ * Force deliver
+

@@ -1,0 +1,14 @@
+[story]
+New baseline on integration stream, poll on self
+
+[configuration]
+ * Stream
+ * Component
+ * Promotion level
+ * Load modules
+ * Polling
+ * Create baselines
+ * Name template
+ * Make tag
+ * Set description
+
