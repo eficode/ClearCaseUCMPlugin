@@ -18,6 +18,7 @@ import net.praqma.clearcase.ucm.entities.Baseline.LabelBehaviour;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.util.ExceptionUtils;
+import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.util.debug.Logger;
@@ -40,13 +41,27 @@ public class Story05 {
 
 	@Test
 	public void story05() throws Exception {
+		
+		logger.fatal( "1111111111" );
+		/* First build to create a view */
+		AbstractBuild<?, ?> firstbuild = jenkins.initiateBuild( "story05" + ccenv.uniqueTimeStamp, "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true, false );
+		//assertEquals( Result.NOT_BUILT, build.getResult() );
+		
+		logger.fatal( "2222222222222" );
+		
+		/* Do the deliver */
 		Stream dev1 = ccenv.context.streams.get( "one_dev" );
 		Stream dev2 = ccenv.context.streams.get( "two_dev" );
-		Stream target = ccenv.context.streams.get( "one_int" );
+		//Stream target = ccenv.context.streams.get( "one_int" );
+		logger.fatal( "3333333333333" );
+		CCUCMBuildAction preaction = jenkins.getBuildAction( firstbuild );
+		logger.fatal( "ACTION: " + preaction );
+		Stream target = preaction.getStream();
+		logger.fatal( "ACTION: " + preaction.getStream() );
 		
 		/* Target */
-		String tviewtag = ccenv.getVobName() + "_two_dev";
-		File tpath = new File( ccenv.context.mvfs + "/" + tviewtag + "/" + ccenv.getVobName() );
+		String tviewtag = preaction.getViewTag();
+		File tpath = preaction.getViewPath();
 		
 		/* Set deliver one up and make sure the baseline is not found by polling */
 		String d1viewtag = ccenv.getVobName() + "_one_dev";
@@ -55,7 +70,7 @@ public class Story05 {
 		bl1.setPromotionLevel( PromotionLevel.BUILT );
 		
 		/* Do not complete deliver */
-		Deliver deliver1 = new Deliver( bl1, dev1, dev2, tpath, tviewtag );
+		Deliver deliver1 = new Deliver( bl1, dev1, target, tpath, tviewtag );
 		deliver1.deliver( true, false, true, false );
 		
 		/* Setup dev 2 with new baseline */
@@ -64,7 +79,8 @@ public class Story05 {
 		Baseline bl2 = getNewBaseline( d2path, "dip2.txt", "dip2" );
 		
 		
-		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story05", "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true, false );
+		AbstractBuild<?, ?> build = jenkins.buildProject( firstbuild.getProject(), false );
+		
 
 		/* Build validation */
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );

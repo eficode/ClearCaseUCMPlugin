@@ -7,7 +7,10 @@ import hudson.model.AbstractBuild;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 import net.praqma.clearcase.PVob;
 import net.praqma.clearcase.exceptions.ClearCaseException;
@@ -237,4 +240,5 @@ public abstract class Util {
 			}
 		}
 	}
+	
 }

@@ -83,6 +83,15 @@
       <baseline name="_System_1.0" pvob="${pvobname}" />
     </baselines>
   </stream>
+
+  <project name="jenkins" comment="" pvob="${pvobname}" in="one-folder">
+    <policies>
+      <policy>POLICY_INTERPROJECT_DELIVER</policy>
+    </policies>
+  </project>
+  
+  <stream name="jenkins_int" in="jenkins" comment="" pvob="${pvobname}" type="integration">
+  </stream>
   
   <!-- Dev stream #1 -->
   <stream name="one_dev" in="one_int" comment="" pvob="${pvobname}">
@@ -109,6 +118,19 @@
   <view tag="${vobname}_one_int" stgloc="-auto">
     <stream name="one_int" pvob="${pvobname}" />
   </view>
+
+
+  <context mvfs="m:\" view="${vobname}_one_dev" vob="${vobname}"/>
+  
+  <activity comment="" headline="Adding initial files into components" in="one_dev" name="initial_files" pvob="${pvobname}" />
+  
+  <setactivity activity="initial_files" pvob="${pvobname}" />
+  
+  <!-- First -->
+  <add file="Model/model.h" content="#1" />
+  
+  <baseline name="model-1" label="full" comment="" component="_System" pvob="${pvobname}" />
+  
   
 </ccenv>
 

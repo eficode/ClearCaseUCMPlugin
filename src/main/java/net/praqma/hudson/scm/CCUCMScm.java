@@ -665,7 +665,11 @@ public class CCUCMScm extends SCM {
 
 			CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
 			action.setViewPath( er.getView().getViewRoot() );
-			action.setViewTag( viewtag );
+			action.setViewTag( er.getViewtag() );
+			
+			consoleOutput.println( "[WOLLE] tag?: " + er.getViewtag() );
+			consoleOutput.println( "[WOLLE] tag : " + action.getViewTag() );
+			consoleOutput.println( "[WOLLE] path: " + action.getViewPath() );
 			
 			//state.setSnapView( er.getView() );
 			this.viewtag = er.getViewtag();
@@ -685,90 +689,71 @@ public class CCUCMScm extends SCM {
 			state.setChangeset( er.getChangeset() );
 			
 		/* Deliver failed */
-		} catch( IOException e ) {
+		} catch( Exception e ) {
 			consoleOutput.println( "[" + Config.nameShort + "] Deliver failed" );
 			result = false;
 			
 			/* Check for exception types */
-			Exception cause = (Exception) e.getCause();
+			Exception cause = (Exception) net.praqma.util.ExceptionUtils.unpackBottom( IOException.class, e );
 			
 			consoleOutput.println( "[" + Config.nameShort + "] CAUSE: " + cause.getClass() );
 			
-			if( cause != null ) {
-				Exception realcause = (Exception) cause.getCause();
-				consoleOutput.println( "[" + Config.nameShort + "] REAL CAUSE: " + realcause.getClass() );
+			/* Re-throw */
+			try {
+				throw cause;
+			} catch( DeliverException de ) {
 				
-				/* Re-throw */
-				try {
-					throw realcause;
-				} catch( DeliverException de ) {
-					
-					/* We need to store this information anyway */
-					CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
-					action.setViewPath( de.getDeliver().getViewContext() );
-					action.setViewTag( de.getDeliver().getViewtag() );
-					
-					System.out.println( "VIEW TAG IS3 " + action.getViewTag() );
-					consoleOutput.println( "VIEW TAG IS4 " + action.getViewTag() );
-					
-					logger.fatal( "VIEW TAG IS1 " + action.getViewTag() );
-					logger.fatal( "VIEW PATH IS1 " + action.getViewPath() );
-					
-					logger.fatal( "VIEW TAG IS2 " + de.getDeliver().getViewtag() );
-					logger.fatal( "VIEW PATH IS2 " + de.getDeliver().getViewContext() );
-					
-					/* The deliver is started, cancel it */
-					if( de.isStarted() ) {
-						try {
-							consoleOutput.print( "[" + Config.nameShort + "] Cancelling deliver. " );
-							rutil.completeRemoteDeliver( workspace, listener, state, de.getDeliver().getViewtag(), de.getDeliver().getViewContext(), false );
-							consoleOutput.println( "Success" );
+				/* We need to store this information anyway */
+				CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
+				action.setViewPath( de.getDeliver().getViewContext() );
+				action.setViewTag( de.getDeliver().getViewtag() );
+				
+				logger.fatal( "VIEW TAG IS " + action.getViewTag() );
+				logger.fatal( "VIEW PATH IS " + action.getViewPath() );
+				
+				/* The deliver is started, cancel it */
+				if( de.isStarted() ) {
+					try {
+						consoleOutput.print( "[" + Config.nameShort + "] Cancelling deliver. " );
+						rutil.completeRemoteDeliver( workspace, listener, state, de.getDeliver().getViewtag(), de.getDeliver().getViewContext(), false );
+						consoleOutput.println( "Success" );
 
-							/* Make sure, that the post step is not run */
-							state.setNeedsToBeCompleted( false );
-
-						} catch( Exception ex ) {
-							consoleOutput.println( "[" + Config.nameShort + "] Failed to cancel deliver" );
-							consoleOutput.println( "[" + Config.nameShort + "] Original error:" );
-							ExceptionUtils.print( de, consoleOutput, true );
-							consoleOutput.println( "[" + Config.nameShort + "] Cancellation error:" );
-							ExceptionUtils.print( ex, consoleOutput, true );
-							logger.warning( de, id );
-							logger.warning( ex, id );
-						}
-					} else {
-						logger.debug( id + "No need for completing deliver", id );
+						/* Make sure, that the post step is not run */
 						state.setNeedsToBeCompleted( false );
+
+					} catch( Exception ex ) {
+						consoleOutput.println( "[" + Config.nameShort + "] Failed to cancel deliver" );
+						consoleOutput.println( "[" + Config.nameShort + "] Original error:" );
+						ExceptionUtils.print( de, consoleOutput, true );
+						consoleOutput.println( "[" + Config.nameShort + "] Cancellation error:" );
+						ExceptionUtils.print( ex, consoleOutput, true );
+						logger.warning( de, id );
+						logger.warning( ex, id );
 					}
-					
-					/* Write something useful to the output */
-					if( de.getType().equals( Type.MERGE_ERROR ) ) {
-						try {
-							consoleOutput.println( "[" + Config.nameShort + "] Changes need to be manually merged, The stream " + state.getBaseline().getStream().getShortname() + " must be rebased to the most recent baseline on " + state.getStream().getShortname() + " - During the rebase the merge conflict should be solved manually. Hereafter create a new baseline on " + state.getBaseline().getStream().getShortname() + "." );
-							state.setError( "merge error" );
-						} catch( Exception e3 ) {
-						}
-					}
-					
-				/* Force deliver not cancelled */
-				} catch( DeliverNotCancelledException e1 ) {
-					consoleOutput.println( "[" + Config.nameShort + "] Failed to force cancel existing deliver" );
+				} else {
+					logger.debug( id + "No need for completing deliver", id );
 					state.setNeedsToBeCompleted( false );
-				} catch( Exception e1 ) {
-					logger.warning( e, id );
-					ExceptionUtils.print( e, consoleOutput, true );
-					result = false;
 				}
-			} else {
+				
+				/* Write something useful to the output */
+				if( de.getType().equals( Type.MERGE_ERROR ) ) {
+					try {
+						consoleOutput.println( "[" + Config.nameShort + "] Changes need to be manually merged, The stream " + state.getBaseline().getStream().getShortname() + " must be rebased to the most recent baseline on " + state.getStream().getShortname() + " - During the rebase the merge conflict should be solved manually. Hereafter create a new baseline on " + state.getBaseline().getStream().getShortname() + "." );
+						state.setError( "merge error" );
+					} catch( Exception e3 ) {
+					}
+				}
+				
+			/* Force deliver not cancelled */
+			} catch( DeliverNotCancelledException e1 ) {
+				consoleOutput.println( "[" + Config.nameShort + "] Failed to force cancel existing deliver" );
+				state.setNeedsToBeCompleted( false );
+			} catch( Exception e1 ) {
 				logger.warning( e, id );
 				ExceptionUtils.print( e, consoleOutput, true );
 				result = false;
 			}
-		} catch( Exception e ) {
-			consoleOutput.println( "[" + Config.nameShort + "] Deliver failed with" );
-			ExceptionUtils.print( e, consoleOutput, true );
-			ExceptionUtils.log( e, true );
-			result = false;
+
 		}
 
 		consoleOutput.println( "[" + Config.nameShort + "] Deliver part is done" );
