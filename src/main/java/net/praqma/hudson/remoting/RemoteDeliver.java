@@ -259,6 +259,8 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 					// Recursive method call of INVOKE(...);
 					logger.verbose( "Trying to deliver again..." );
 					deliver( baseline, dstream, forceDeliver, triesLeft - 1 );
+				} else {
+					throw e;
 				}
 			} else {
 				throw e;

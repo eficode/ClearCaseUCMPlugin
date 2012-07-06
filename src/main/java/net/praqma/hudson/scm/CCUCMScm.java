@@ -667,10 +667,6 @@ public class CCUCMScm extends SCM {
 			action.setViewPath( er.getView().getViewRoot() );
 			action.setViewTag( er.getViewtag() );
 			
-			consoleOutput.println( "[WOLLE] tag?: " + er.getViewtag() );
-			consoleOutput.println( "[WOLLE] tag : " + action.getViewTag() );
-			consoleOutput.println( "[WOLLE] path: " + action.getViewPath() );
-			
 			//state.setSnapView( er.getView() );
 			this.viewtag = er.getViewtag();
 
@@ -696,20 +692,19 @@ public class CCUCMScm extends SCM {
 			/* Check for exception types */
 			Exception cause = (Exception) net.praqma.util.ExceptionUtils.unpackBottom( IOException.class, e );
 			
-			consoleOutput.println( "[" + Config.nameShort + "] CAUSE: " + cause.getClass() );
+			consoleOutput.println( "[" + Config.nameShort + "] Cause: " + cause.getClass() );
 			
 			/* Re-throw */
 			try {
 				throw cause;
 			} catch( DeliverException de ) {
 				
+				consoleOutput.println( "[" + Config.nameShort + "] " + de.getType() );
+				
 				/* We need to store this information anyway */
 				CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
 				action.setViewPath( de.getDeliver().getViewContext() );
 				action.setViewTag( de.getDeliver().getViewtag() );
-				
-				logger.fatal( "VIEW TAG IS " + action.getViewTag() );
-				logger.fatal( "VIEW PATH IS " + action.getViewPath() );
 				
 				/* The deliver is started, cancel it */
 				if( de.isStarted() ) {
@@ -753,10 +748,7 @@ public class CCUCMScm extends SCM {
 				ExceptionUtils.print( e, consoleOutput, true );
 				result = false;
 			}
-
 		}
-
-		consoleOutput.println( "[" + Config.nameShort + "] Deliver part is done" );
 
 
 		try {
