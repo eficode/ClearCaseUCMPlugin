@@ -12,6 +12,7 @@ import hudson.model.TaskListener;
 import hudson.scm.PollingResult;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
+import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.util.debug.Logger;
@@ -35,6 +36,10 @@ public class Story07 {
 	@ClearCaseUniqueVobName( name = "story07" )
 	public void story07() throws Exception {
 		
+		Stream one = ccenv.context.streams.get( "one_int" );
+		Stream two = ccenv.context.streams.get( "two_int" );
+		one.setDefaultTarget( two );
+				
 		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story07", "sibling", "_System@" + ccenv.getPVob(), "two_int@" + ccenv.getPVob(), false, false, false, false, true );
 
 		/* Build validation */
