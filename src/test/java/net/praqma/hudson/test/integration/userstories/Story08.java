@@ -36,6 +36,7 @@ public class Story08 {
 
 	private static Logger logger = Logger.getLogger();
 
+	@Test
 	@ClearCaseUniqueVobName( name = "story08a" )
 	@TestDescription( title = "Story 08 a", text = "No new baseline on dev stream, poll on child", 
 		outcome = { "Result is NOT_BUILT", 
