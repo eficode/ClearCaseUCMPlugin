@@ -696,6 +696,7 @@ public class CCUCMScm extends SCM {
 			
 			/* Re-throw */
 			try {
+				ExceptionUtils.log( cause, true );
 				throw cause;
 			} catch( DeliverException de ) {
 				
