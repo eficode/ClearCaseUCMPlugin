@@ -14,6 +14,8 @@ import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.test.CCUCMRule;
+import net.praqma.junit.DescriptionRule;
+import net.praqma.junit.TestDescription;
 import net.praqma.util.debug.Logger;
 
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
@@ -28,11 +30,18 @@ public class Story08 {
 	
 	@Rule
 	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story08" );
+	
+	@Rule
+	public static DescriptionRule desc = new DescriptionRule();
 
 	private static Logger logger = Logger.getLogger();
 
-	@Test
 	@ClearCaseUniqueVobName( name = "story08a" )
+	@TestDescription( title = "Story 08 a", text = "No new baseline on dev stream, poll on child", 
+		outcome = { "Result is NOT_BUILT", 
+					"Build baseline is null", 
+					"Created baseline is null" } 
+	)
 	public void story08a() throws Exception {
 		/* Flip promotion level */
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
