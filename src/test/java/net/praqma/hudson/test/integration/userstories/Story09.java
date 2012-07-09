@@ -35,7 +35,7 @@ public class Story09 {
 	@Test
 	@ClearCaseUniqueVobName( name = "story09" )
 	@TestDescription( title = "Story 9", text = "New baseline, bl1, on dev stream, dev1, poll on child, don't create baselines", 
-	outcome = { "Build baseline is bl1",
+	outcome = { "Build baseline is bl1 and BUILT",
 				"Created baseline is null", 
 				"Job is SUCCESS" } 
 	)
@@ -51,7 +51,7 @@ public class Story09 {
 		/* Expected build baseline */
 		Baseline buildBaseline = jenkins.getBuildBaseline( build );
 		assertEquals( b, buildBaseline );
-		assertEquals( PromotionLevel.REJECTED, buildBaseline.getPromotionLevel( true ) );
+		assertEquals( PromotionLevel.BUILT, buildBaseline.getPromotionLevel( true ) );
 		
 		/* Created baseline */
 		Baseline createdBaseline = jenkins.getCreatedBaseline( build );
