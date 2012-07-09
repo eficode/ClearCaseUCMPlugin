@@ -14,6 +14,7 @@ import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.test.CCUCMRule;
+import net.praqma.junit.TestDescription;
 import net.praqma.util.debug.Logger;
 
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
@@ -33,6 +34,11 @@ public class Story09 {
 
 	@Test
 	@ClearCaseUniqueVobName( name = "story09" )
+	@TestDescription( title = "Story 9", text = "New baseline, bl1, on dev stream, dev1, poll on child, don't create baselines", 
+	outcome = { "Build baseline is bl1",
+				"Created baseline is null", 
+				"Job is SUCCESS" } 
+	)
 	public void story09() throws Exception {
 		
 		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story09", "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
