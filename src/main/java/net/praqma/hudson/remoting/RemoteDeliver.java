@@ -182,7 +182,7 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 		return er;
 	}
 
-	private void deliver( Baseline baseline, Stream dstream, boolean forceDeliver, int triesLeft ) throws IOException, DeliverException, DeliverNotCancelledException {
+	private void deliver( Baseline baseline, Stream dstream, boolean forceDeliver, int triesLeft ) throws IOException, DeliverNotCancelledException, ClearCaseException {
 		logger.verbose( "Delivering " + baseline.getShortname() + " to " + dstream.getShortname() + ". Tries left: " + triesLeft );
 		if( triesLeft < 1 ) {
 			out.println( "[" + Config.nameShort + "] Unable to deliver, giving up." );
@@ -252,16 +252,19 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 						Stream ostream = Stream.get( stream, baseline.getPVob() ).load(); //.deliverRollBack( oldViewtag, newView );
 						Deliver.rollBack( oldViewtag, ostream, newView );
 					} catch( ClearCaseException ex ) {
-						out.println( ex.getMessage() );
-						throw new IOException( ex.getMessage(), ex.getCause() );
+						throw ex;
 					}
 	
 					// Recursive method call of INVOKE(...);
 					logger.verbose( "Trying to deliver again..." );
 					deliver( baseline, dstream, forceDeliver, triesLeft - 1 );
+					
+				/* Not forcing this deliver */
 				} else {
 					throw e;
 				}
+				
+			/* Another deliver is not in progress */
 			} else {
 				throw e;
 			}
