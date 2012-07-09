@@ -226,6 +226,7 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 					String oldViewtag = null;
 	
 					out.println( "[" + Config.nameShort + "] Forcing this deliver." );
+					out.println( "MESSAGE IS " + e.getMessage() );
 	
 					Pattern STREAM_PATTERN = Pattern.compile( "Deliver operation .* on stream \\\"(.*)\\\"", Pattern.MULTILINE );
 					Pattern TAG_PATTERN = Pattern.compile( "Using view \\\"(.*)\\\".", Pattern.MULTILINE );
