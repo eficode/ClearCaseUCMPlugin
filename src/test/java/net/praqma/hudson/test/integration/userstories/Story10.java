@@ -40,7 +40,8 @@ public class Story10 {
 	@TestDescription( title = "Story 10", text = "New baseline, bl1, on dev stream, dev1, poll on child, create baselines, but wrong baseline template", 
 	outcome = { "Build baseline is bl1 and BUILT",
 				"Created baseline is null", 
-				"Job is FAILED" } 
+				"Job is FAILED" }, 
+	configurations = { "Create baselines = true", "Name template = [fail]" }
 	)
 	public void story10() throws Exception {
 		
