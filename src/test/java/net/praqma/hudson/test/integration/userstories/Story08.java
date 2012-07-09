@@ -41,7 +41,7 @@ public class Story08 {
 	@TestDescription( title = "Story 08 a", text = "No new baseline on dev stream, poll on child", 
 		outcome = { "Result is NOT_BUILT", 
 					"Build baseline is null", 
-					"Created baseline is null" } 
+					"Created baseline is null, build now" } 
 	)
 	public void story08a() throws Exception {
 		/* Flip promotion level */
@@ -63,6 +63,9 @@ public class Story08 {
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "story08b" )
+	@TestDescription( title = "Story 08 b, polling", text = "No new baseline on dev stream, poll on child", 
+	outcome = { "Result is NO_CHANGES." } 
+)
 	public void story08b() throws Exception {
 		/* Flip promotion level */
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
