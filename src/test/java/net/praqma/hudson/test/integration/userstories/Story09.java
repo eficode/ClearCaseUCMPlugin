@@ -28,7 +28,7 @@ public class Story09 {
 	public static CCUCMRule jenkins = new CCUCMRule();
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story09" );
+	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story09", "setup-story10.xml" );
 
 	private static Logger logger = Logger.getLogger();
 
