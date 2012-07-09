@@ -21,6 +21,7 @@ import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.test.CCUCMRule;
+import net.praqma.hudson.test.SystemValidator;
 import net.praqma.junit.DescriptionRule;
 import net.praqma.junit.TestDescription;
 import net.praqma.util.debug.Logger;
@@ -66,18 +67,21 @@ public class Story06_2 {
 		Baseline bl2 = getNewBaseline( d2path, "dip2.txt", "dip2" );
 		
 		AbstractBuild<?, ?> build = jenkins.buildProject( firstbuild.getProject(), false );
+		
+		SystemValidator validator = new SystemValidator( build );
+		validator.validateBuild( Result.SUCCESS ).validateBuiltBaseline( PromotionLevel.BUILT, bl2, false ).validateCreatedBaseline( true ).validate();
 
-		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
-		
-		/* Expected build baseline */
-		Baseline buildBaseline = jenkins.getBuildBaseline( build );
-		assertEquals( bl2, buildBaseline );
-		assertEquals( PromotionLevel.BUILT, buildBaseline.getPromotionLevel( true ) );
-		
-		/* Created baseline */
-		Baseline createdBaseline = jenkins.getCreatedBaseline( build );
-		assertNotNull( createdBaseline );
+//		/* Build validation */
+//		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
+//		
+//		/* Expected build baseline */
+//		Baseline buildBaseline = jenkins.getBuildBaseline( build );
+//		assertEquals( bl2, buildBaseline );
+//		assertEquals( PromotionLevel.BUILT, buildBaseline.getPromotionLevel( true ) );
+//		
+//		/* Created baseline */
+//		Baseline createdBaseline = jenkins.getCreatedBaseline( build );
+//		assertNotNull( createdBaseline );
 	}
 
 	
