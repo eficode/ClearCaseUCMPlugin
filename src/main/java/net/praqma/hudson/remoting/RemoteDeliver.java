@@ -221,7 +221,8 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 					 * *******Please try again later.
 					 */
 	
-					String msg = e.getMessage();
+					//String msg = e.getMessage();
+					String msg = deliver.getStatus();
 					String stream = "";
 					String oldViewtag = null;
 	
