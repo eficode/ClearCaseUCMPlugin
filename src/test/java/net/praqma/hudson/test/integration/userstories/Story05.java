@@ -21,6 +21,8 @@ import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.test.CCUCMRule;
+import net.praqma.junit.DescriptionRule;
+import net.praqma.junit.TestDescription;
 import net.praqma.util.debug.Logger;
 
 import net.praqma.clearcase.exceptions.ClearCaseException;
@@ -36,28 +38,31 @@ public class Story05 {
 	
 	@Rule
 	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story05", "setup-story5.xml" );
+	
+	@Rule
+	public static DescriptionRule desc = new DescriptionRule();
 
 	private static Logger logger = Logger.getLogger();
 
 	@Test
+	@TestDescription( title = "Story 5", text = "New baseline, bl2, on dev stream, poll on childs. Deliver in progress.", 
+	outcome = { "Result is FAILURE", 
+				"Build baseline is bl2 and REJECTED", 
+				"Created baseline is null" },
+	configurations = { "Force deliver = false" }
+	)
 	public void story05() throws Exception {
 		
-		logger.fatal( "1111111111" );
 		/* First build to create a view */
 		AbstractBuild<?, ?> firstbuild = jenkins.initiateBuild( "story05" + ccenv.uniqueTimeStamp, "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true, false );
 		//assertEquals( Result.NOT_BUILT, build.getResult() );
-		
-		logger.fatal( "2222222222222" );
 		
 		/* Do the deliver */
 		Stream dev1 = ccenv.context.streams.get( "one_dev" );
 		Stream dev2 = ccenv.context.streams.get( "two_dev" );
 		//Stream target = ccenv.context.streams.get( "one_int" );
-		logger.fatal( "3333333333333" );
 		CCUCMBuildAction preaction = jenkins.getBuildAction( firstbuild );
-		logger.fatal( "ACTION: " + preaction );
 		Stream target = preaction.getStream();
-		logger.fatal( "ACTION: " + preaction.getStream() );
 		
 		/* Target */
 		String tviewtag = preaction.getViewTag();
