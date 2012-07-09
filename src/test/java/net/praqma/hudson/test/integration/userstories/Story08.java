@@ -29,7 +29,7 @@ public class Story08 {
 	public static CCUCMRule jenkins = new CCUCMRule();
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story08" );
+	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story08", "setup-story10.xml" );
 	
 	@Rule
 	public static DescriptionRule desc = new DescriptionRule();
