@@ -690,7 +690,7 @@ public class CCUCMScm extends SCM {
 			result = false;
 			
 			/* Check for exception types */
-			Exception cause = (Exception) net.praqma.util.ExceptionUtils.unpackBottom( IOException.class, e );
+			Exception cause = (Exception) net.praqma.util.ExceptionUtils.unpackFrom( IOException.class, e );
 			
 			consoleOutput.println( "[" + Config.nameShort + "] Cause: " + cause.getClass() );
 			
