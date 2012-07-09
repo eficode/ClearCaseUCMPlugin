@@ -44,7 +44,7 @@ public class Story10 {
 	)
 	public void story10() throws Exception {
 		
-		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story10", "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true, false, "[what]-)(/&" );
+		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story10", "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false, false, "[what]-)(/&" );
 
 		/* Build validation */
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );
