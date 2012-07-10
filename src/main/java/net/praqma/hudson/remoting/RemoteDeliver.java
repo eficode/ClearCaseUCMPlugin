@@ -245,7 +245,8 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 					/* Validate arguments */
 					if( oldViewtag == null || stream == null ) {
 						logger.debug( "Unable to get arguments for rollback, trying to get status" );
-						String status = deliver.getStatus();
+						//String status = deliver.getStatus();
+						String status = Deliver.getStatus( dstream );
 						logger.debug( "Deliver rollback status: " + status );
 						/* Get stream */
 						mSTREAM = STREAM_PATTERN.matcher( status );
