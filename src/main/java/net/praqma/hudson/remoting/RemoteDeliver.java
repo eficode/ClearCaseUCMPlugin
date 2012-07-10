@@ -223,7 +223,7 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 	
 					String msg = e.getMessage();
 					//String msg = deliver.getStatus();
-					String stream = "";
+					String stream = null;
 					String oldViewtag = null;
 	
 					out.println( "[" + Config.nameShort + "] Forcing this deliver." );
@@ -233,12 +233,12 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 					Pattern TAG_PATTERN = Pattern.compile( "Using view \\\"(.*)\\\".", Pattern.MULTILINE );
 	
 					Matcher mSTREAM = STREAM_PATTERN.matcher( msg );
-					while( mSTREAM.find() ) {
+					if( mSTREAM.find() ) {
 						stream = mSTREAM.group( 1 );
 					}
 	
 					Matcher mTAG = TAG_PATTERN.matcher( msg );
-					while( mTAG.find() ) {
+					if( mTAG.find() ) {
 						oldViewtag = mTAG.group( 1 );
 					}
 					
@@ -246,7 +246,7 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 					if( oldViewtag == null || stream == null ) {
 						logger.debug( "Unable to get arguments for rollback, trying to get status" );
 						String status = deliver.getStatus();
-						
+						logger.debug( "Deliver rollback status: " + status );
 						/* Get stream */
 						mSTREAM = STREAM_PATTERN.matcher( status );
 						if( mSTREAM.find() ) {
