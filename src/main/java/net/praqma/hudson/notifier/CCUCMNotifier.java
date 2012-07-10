@@ -332,7 +332,7 @@ public class CCUCMNotifier extends Notifier {
 
 			try {
 				out.print( "[" + Config.nameShort + "] " + ( treatSuccessful ? "Completing" : "Cancelling" ) + " the deliver. " );
-				//rutil.completeRemoteDeliver( workspace, listener, pstate, action.getViewTag(), action.getViewPath(), treatSuccessful );
+				rutil.completeRemoteDeliver( workspace, listener, pstate, action.getViewTag(), action.getViewPath(), treatSuccessful );
 				out.println( "Success." );
 
 				/* If deliver was completed, create the baseline */
