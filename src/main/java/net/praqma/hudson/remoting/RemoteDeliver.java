@@ -241,6 +241,28 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 					while( mTAG.find() ) {
 						oldViewtag = mTAG.group( 1 );
 					}
+					
+					/* Validate arguments */
+					if( oldViewtag == null || stream == null ) {
+						logger.debug( "Unable to get arguments for rollback, trying to get status" );
+						String status = deliver.getStatus();
+						
+						/* Get stream */
+						mSTREAM = STREAM_PATTERN.matcher( status );
+						if( mSTREAM.find() ) {
+							stream = mSTREAM.group( 1 );
+						} else {
+							throw new DeliverNotCancelledException( "Could not force deliver cancel, no stream found" );
+						}
+						
+						/* Get old view tag */
+						mTAG = TAG_PATTERN.matcher( status );
+						if( mTAG.find() ) {
+							oldViewtag = mTAG.group( 1 );
+						} else {
+							throw new DeliverNotCancelledException( "Could not force deliver cancel, no view tag found" );
+						}
+					}
 	
 					File newView = null;
 					if( oldViewtag == null ) {
