@@ -22,7 +22,7 @@ public class BaselinesFound {
 	public static CCUCMRule jenkins = new CCUCMRule();
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );
+	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm", "setup-interproject.xml" );
 
 	private static Logger logger = Logger.getLogger();
 		
