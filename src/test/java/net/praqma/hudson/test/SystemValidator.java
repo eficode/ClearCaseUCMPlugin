@@ -134,7 +134,7 @@ public class SystemValidator {
 		
 		/* Validate null check */
 		if( createdBaselineExists != null ) {
-			System.out.println( "[assert] " + baseline.getNormalizedName() + " must be " + (createdBaselineExists?"not":"") + " null" );
+			System.out.println( "[assert] " + baseline.getNormalizedName() + " must " + (createdBaselineExists?"not ":" ") + "be null" );
 			if( createdBaselineExists ) {
 				assertNotNull( baseline );
 			} else {
