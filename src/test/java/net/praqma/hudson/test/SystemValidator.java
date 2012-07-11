@@ -90,8 +90,8 @@ public class SystemValidator {
 		System.out.println( "Validating built baseline: " + baseline.getNormalizedName() );
 		
 		/* Check level */
-		System.out.println( baseline.getNormalizedName() + " must have the promotion level " + builtBaselineLevel );
-		assertEquals( "[assert] " + builtBaselineLevel, baseline.getPromotionLevel( true ) );
+		System.out.println( "[assert] " + baseline.getNormalizedName() + " must have the promotion level " + builtBaselineLevel );
+		assertEquals( builtBaselineLevel, baseline.getPromotionLevel( true ) );
 		
 		/* Check expected */
 		System.out.println( "[assert] " + baseline.getNormalizedName() + " must be the same as " + expectedBuiltBaseline.getNormalizedName() );
