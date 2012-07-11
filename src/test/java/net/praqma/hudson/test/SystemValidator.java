@@ -59,7 +59,7 @@ public class SystemValidator {
 	}
 	
 	private void checkBuild() {
-		System.out.println( "Jenkins build must be " + buildResult );
+		System.out.println( "[assert] " + "Jenkins build must be " + buildResult );
 		assertThat( build.getResult(), is( buildResult ) );
 	}
 	
@@ -91,15 +91,15 @@ public class SystemValidator {
 		
 		/* Check level */
 		System.out.println( baseline.getNormalizedName() + " must have the promotion level " + builtBaselineLevel );
-		assertEquals( builtBaselineLevel, baseline.getPromotionLevel( true ) );
+		assertEquals( "[assert] " + builtBaselineLevel, baseline.getPromotionLevel( true ) );
 		
 		/* Check expected */
-		System.out.println( baseline.getNormalizedName() + " must be the same as " + expectedBuiltBaseline.getNormalizedName() );
+		System.out.println( "[assert] " + baseline.getNormalizedName() + " must be the same as " + expectedBuiltBaseline.getNormalizedName() );
 		assertThat( baseline, is( expectedBuiltBaseline ) );
 		
 		/* Check recommendation */
 		if( builtBaselineIsRecommended != null ) {
-			System.out.println( baseline.getNormalizedName() + " must " + (builtBaselineIsRecommended?"":"not") + " be recommended" );
+			System.out.println( "[assert] " + baseline.getNormalizedName() + " must " + (builtBaselineIsRecommended?"":"not ") + "be recommended" );
 			Stream stream = getStream().load();
 			List<Baseline> rbls = stream.getRecommendedBaselines();
 			assertEquals( 1, rbls.size() );
@@ -133,7 +133,7 @@ public class SystemValidator {
 		
 		/* Validate null check */
 		if( createdBaselineExists != null ) {
-			System.out.println( baseline.getNormalizedName() + " must be " + (createdBaselineExists?"not":"") + " null" );
+			System.out.println( "[assert] " + baseline.getNormalizedName() + " must be " + (createdBaselineExists?"not":"") + " null" );
 			if( createdBaselineExists ) {
 				assertNotNull( baseline );
 			} else {

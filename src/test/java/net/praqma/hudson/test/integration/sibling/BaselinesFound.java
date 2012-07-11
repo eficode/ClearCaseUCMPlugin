@@ -44,7 +44,7 @@ public class BaselinesFound {
 		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getVobName(), false, false, false, false );
 
 		/* Validate */
-		SystemValidator validator = new SystemValidator( build ).validateBuild( build.getResult() ).validateBuiltBaseline( PromotionLevel.BUILT, baseline, true ).validateCreatedBaseline( true );
+		SystemValidator validator = new SystemValidator( build ).validateBuild( build.getResult() ).validateBuiltBaseline( PromotionLevel.BUILT, baseline, false ).validateCreatedBaseline( true );
 		validator.validate();
 	}
 	
