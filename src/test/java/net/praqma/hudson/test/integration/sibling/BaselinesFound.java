@@ -13,7 +13,6 @@ import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.hudson.test.SystemValidator;
 import net.praqma.util.debug.Logger;
 
-import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 
 public class BaselinesFound {
@@ -31,8 +30,7 @@ public class BaselinesFound {
 	}
 
 	@Test
-	@ClearCaseUniqueVobName( name = "nop-child" )
-	public void testNoOptions() throws Exception {
+	public void basicSibling() throws Exception {
 		
 		Stream one = ccenv.context.streams.get( "one_int" );
 		Stream two = ccenv.context.streams.get( "two_int" );
