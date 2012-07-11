@@ -54,6 +54,7 @@ public class SystemValidator {
 	
 	public SystemValidator validateBuild( Result buildResult ) {
 		this.buildResult = buildResult;
+		this.checkBuild = true;
 		
 		return this;
 	}
@@ -118,7 +119,7 @@ public class SystemValidator {
 	private Boolean createdBaselineExists;
 	
 	public SystemValidator validateCreatedBaseline( boolean exists ) {
-		this.checkBuiltBaseline = true;
+		this.checkCreatedBaseline = true;
 		this.createdBaselineExists = exists;
 		
 		return this;
