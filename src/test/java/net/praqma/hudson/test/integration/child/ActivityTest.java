@@ -52,7 +52,7 @@ public class ActivityTest {
 		
 		Baseline baseline = getNewBaseline();
 		
-		AbstractBuild<?, ?> build = initiateBuild( "activity-" + ccenv.getVobName(), false, false, false, false );
+		AbstractBuild<?, ?> build = initiateBuild( "activity-" + ccenv.getUniqueName(), false, false, false, false );
 
 		List<User> users = jenkins.getActivityUsers( build );
 		
@@ -66,9 +66,9 @@ public class ActivityTest {
 		
 	protected Baseline getNewBaseline() throws ClearCaseException {
 		/**/
-		String viewtag = ccenv.getVobName() + "_one_dev";
+		String viewtag = ccenv.getUniqueName() + "_one_dev";
 		System.out.println( "VIEW: " + ccenv.context.views.get( viewtag ) );
-		File path = new File( ccenv.context.mvfs + "/" + ccenv.getVobName() + "_one_dev/" + ccenv.getVobName() );
+		File path = new File( ccenv.context.mvfs + "/" + ccenv.getUniqueName() + "_one_dev/" + ccenv.getVobName() );
 				
 		System.out.println( "PATH: " + path );
 		

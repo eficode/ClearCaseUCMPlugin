@@ -54,7 +54,7 @@ public class Story06 {
 	public void story06() throws Exception {
 		
 		/* First build to create a view */
-		AbstractBuild<?, ?> firstbuild = jenkins.initiateBuild( "story06" + ccenv.uniqueTimeStamp, "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true, true );
+		AbstractBuild<?, ?> firstbuild = jenkins.initiateBuild( ccenv.getUniqueName(), "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true, true );
 		
 		/* Do the deliver */
 		Stream dev1 = ccenv.context.streams.get( "one_dev" );
@@ -68,7 +68,7 @@ public class Story06 {
 		File tpath = preaction.getViewPath();
 		
 		/* Set deliver one up and make sure the baseline is not found by polling */
-		String d1viewtag = ccenv.getVobName() + "_one_dev";
+		String d1viewtag = ccenv.getUniqueName() + "_one_dev";
 		File d1path = ccenv.setDynamicActivity( dev1, d1viewtag, "dip1" );
 		Baseline bl1 = getNewBaseline( d1path, "dip1.txt", "dip1" );
 		bl1.setPromotionLevel( PromotionLevel.BUILT );
@@ -78,7 +78,7 @@ public class Story06 {
 		deliver1.deliver( true, false, true, false );
 		
 		/* Setup dev 2 with new baseline */
-		String d2viewtag = ccenv.getVobName() + "_two_dev";
+		String d2viewtag = ccenv.getUniqueName() + "_two_dev";
 		File d2path = ccenv.setDynamicActivity( dev2, d2viewtag, "dip2" );
 		Baseline bl2 = getNewBaseline( d2path, "dip2.txt", "dip2" );
 		

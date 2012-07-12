@@ -23,6 +23,8 @@ import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.test.CCUCMRule;
+import net.praqma.hudson.test.SystemValidator;
+import net.praqma.junit.TestDescription;
 import net.praqma.util.debug.Logger;
 
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
@@ -46,87 +48,87 @@ public class BaselinesFoundFailed {
 
 	@Test
 	@ClearCaseUniqueVobName( name = "nop-child-failed" )
+	@TestDescription( title = "Child polling", text = "baseline available, build fails", 
+	outcome = { "Build baseline is bl1 and REJECTED",
+				"Created baseline is not valid", 
+				"Job is FAILURE" } 
+	)
 	public void testNoOptions() throws Exception {
 		
 		Baseline baseline = getNewBaseline();
 		
-		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getVobName(), false, false, false, true );
-
-		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );
+		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getUniqueName(), false, false, false, true );
 		
-		/* Expected build baseline */
-		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
-		
-		jenkins.assertBuildBaseline( baseline, build );
-		assertNull( jenkins.getTag( baseline, build ) );
-		jenkins.samePromotionLevel( baseline, PromotionLevel.REJECTED );
-		
-		jenkins.testNotCreatedBaseline( build );
+		SystemValidator validator = new SystemValidator( build )
+		.validateBuild( Result.FAILURE )
+		.validateBuiltBaseline( PromotionLevel.REJECTED, baseline, false )
+		.validateCreatedBaseline( false )
+		.validate();
 	}
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "recommended-child-failed" )
+	@TestDescription( title = "Child polling", text = "baseline available, build fails", 
+	outcome = { "Build baseline is bl1 and REJECTED",
+				"Created baseline is not valid", 
+				"Job is FAILURE" } ,
+	configurations = { "Recommend = true" }
+	)
 	public void testRecommended() throws Exception {
 		
 		Baseline baseline = getNewBaseline();
 		
-		AbstractBuild<?, ?> build = initiateBuild( "recommended-" + ccenv.getVobName(), true, false, false, true );
+		AbstractBuild<?, ?> build = initiateBuild( "recommended-" + ccenv.getUniqueName(), true, false, false, true );
 
-		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );
-		
-		/* Expected build baseline */
-		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
-		
-		jenkins.assertBuildBaseline( baseline, build );
-		assertNull( jenkins.getTag( baseline, build ) );
-		jenkins.samePromotionLevel( baseline, PromotionLevel.REJECTED );
-		
-		jenkins.testNotCreatedBaseline( build );
+		SystemValidator validator = new SystemValidator( build )
+		.validateBuild( Result.FAILURE )
+		.validateBuiltBaseline( PromotionLevel.REJECTED, baseline, false )
+		.validateCreatedBaseline( false )
+		.validate();
 	}
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "description-child-failed" )
+	@TestDescription( title = "Child polling", text = "baseline available, build fails", 
+	outcome = { "Build baseline is bl1 and REJECTED",
+				"Created baseline is not valid", 
+				"Job is FAILURE" } ,
+	configurations = { "Set description = true" }
+	)
 	public void testDescription() throws Exception {
 		
 		Baseline baseline = getNewBaseline();
 		
-		AbstractBuild<?, ?> build = initiateBuild( "description-" + ccenv.getVobName(), false, false, true, true );
+		AbstractBuild<?, ?> build = initiateBuild( "description-" + ccenv.getUniqueName(), false, false, true, true );
 
-		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );
-		
-		/* Expected build baseline */
-		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
-		
-		jenkins.assertBuildBaseline( baseline, build );
-		assertNull( jenkins.getTag( baseline, build ) );
-		jenkins.samePromotionLevel( baseline, PromotionLevel.REJECTED );
-		
-		jenkins.testNotCreatedBaseline( build );
+		SystemValidator validator = new SystemValidator( build )
+		.validateBuild( Result.FAILURE )
+		.validateBuiltBaseline( PromotionLevel.REJECTED, baseline, false )
+		.validateCreatedBaseline( false )
+		.validate();
 	}
 	
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "tagged-child-failed" )
+	@TestDescription( title = "Child polling", text = "baseline available, build fails", 
+	outcome = { "Build baseline is bl1 and REJECTED",
+				"Created baseline is not valid", 
+				"Job is FAILURE" } ,
+	configurations = { "Set tag = true" }
+	)
 	public void testTagged() throws Exception {
 		jenkins.makeTagType( ccenv.getPVob() );
 		Baseline baseline = getNewBaseline();
 		
-		AbstractBuild<?, ?> build = initiateBuild( "tagged-" + ccenv.getVobName(), false, true, false, true );
+		AbstractBuild<?, ?> build = initiateBuild( "tagged-" + ccenv.getUniqueName(), false, true, false, true );
 
-		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );
-		
-		/* Expected build baseline */
-		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
-		
-		jenkins.assertBuildBaseline( baseline, build );
-		assertNotNull( jenkins.getTag( baseline, build ) );
-		jenkins.samePromotionLevel( baseline, PromotionLevel.REJECTED );
-		
-		jenkins.testNotCreatedBaseline( build );
+		SystemValidator validator = new SystemValidator( build )
+		.validateBuild( Result.FAILURE )
+		.validateBuiltBaseline( PromotionLevel.REJECTED, baseline, false )
+		.validateBaselineTag( baseline, true )
+		.validateCreatedBaseline( false )
+		.validate();
 	}
 	
 	
@@ -135,7 +137,7 @@ public class BaselinesFoundFailed {
 		/**/
 		String viewtag = ccenv.getVobName() + "_one_dev";
 		System.out.println( "VIEW: " + ccenv.context.views.get( viewtag ) );
-		File path = new File( ccenv.context.mvfs + "/" + ccenv.getVobName() + "_one_dev/" + ccenv.getVobName() );
+		File path = new File( ccenv.context.mvfs + "/" + viewtag + "/" + ccenv.getVobName() );
 				
 		System.out.println( "PATH: " + path );
 		

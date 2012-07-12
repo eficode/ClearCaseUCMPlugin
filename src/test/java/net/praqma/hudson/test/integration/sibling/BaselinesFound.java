@@ -39,7 +39,7 @@ public class BaselinesFound {
 		/* The baseline that should be built */
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
 		
-		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getVobName(), false, false, false, false );
+		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getUniqueName(), false, false, false, false );
 
 		/* Validate */
 		SystemValidator validator = new SystemValidator( build ).validateBuild( build.getResult() ).validateBuiltBaseline( PromotionLevel.BUILT, baseline, false ).validateCreatedBaseline( true );

@@ -40,7 +40,7 @@ public class Polling {
 	@Test
 	@ClearCaseUniqueVobName( name = "self-changes" )
 	public void testPollingSelfWithBaselines() throws Exception {
-		FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getVobName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
+		FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
 		
 		/* BUILD 1 */
 		try {
@@ -56,7 +56,7 @@ public class Polling {
 
 	
 	public void testPollingSelfWithNoBaselines() throws Exception {
-		FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getVobName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
+		FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
 		
 		/* BUILD 1 */
 		try {

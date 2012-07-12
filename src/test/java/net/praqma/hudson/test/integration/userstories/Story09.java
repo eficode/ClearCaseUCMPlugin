@@ -14,6 +14,7 @@ import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.test.CCUCMRule;
+import net.praqma.hudson.test.SystemValidator;
 import net.praqma.junit.DescriptionRule;
 import net.praqma.junit.TestDescription;
 import net.praqma.util.debug.Logger;
@@ -45,21 +46,16 @@ public class Story09 {
 	)
 	public void story09() throws Exception {
 		
-		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story09", "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
+		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
 
-		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
-		
 		Baseline b = ccenv.context.baselines.get( "model-1" ).load();
 		
-		/* Expected build baseline */
-		Baseline buildBaseline = jenkins.getBuildBaseline( build );
-		assertEquals( b, buildBaseline );
-		assertEquals( PromotionLevel.BUILT, buildBaseline.getPromotionLevel( true ) );
-		
-		/* Created baseline */
-		Baseline createdBaseline = jenkins.getCreatedBaseline( build );
-		assertNull( createdBaseline );
+		Baseline baseline = ccenv.context.baselines.get( "model-1" );
+		SystemValidator validator = new SystemValidator( build )
+		.validateBuild( Result.SUCCESS )
+		.validateBuiltBaseline( PromotionLevel.BUILT, baseline, false )
+		.validateCreatedBaseline( false )
+		.validate();
 	}
 	
 }

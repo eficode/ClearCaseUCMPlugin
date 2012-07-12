@@ -13,6 +13,8 @@ import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.hudson.test.CCUCMRule;
+import net.praqma.hudson.test.SystemValidator;
+import net.praqma.junit.TestDescription;
 import net.praqma.util.debug.Logger;
 
 public class BaselinesFound {
@@ -30,78 +32,69 @@ public class BaselinesFound {
 	}
 
 	@Test
-	@ClearCaseUniqueVobName( name = "self" )
+	@ClearCaseUniqueVobName( name = "self-nop" )
+	@TestDescription( title = "Self polling", text = "baseline available", 
+	outcome = { "Build baseline is bl1 and BUILT", 
+				"Job is SUCCESS" } 
+	)
 	public void testNoOptions() throws Exception {
-		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getVobName(), false, false, false, false );
-		
-		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
-		
-		/* Expected build baseline */
-		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
+		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getUniqueName(), false, false, false, false );
 		
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
-		
-		jenkins.assertBuildBaseline( baseline, build );
-		assertFalse( jenkins.isRecommended( baseline, build ) );
-		assertNull( jenkins.getTag( baseline, build ) );
-		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
+		SystemValidator validator = new SystemValidator( build )
+		.validateBuild( Result.SUCCESS )
+		.validateBuiltBaseline( PromotionLevel.BUILT, baseline, false )
+		.validate();
 	}
 	
 	@Test
-	@ClearCaseUniqueVobName( name = "self" )
+	@ClearCaseUniqueVobName( name = "self-recommended" )
+	@TestDescription( title = "Self polling", text = "baseline available", 
+	outcome = { "Build baseline is bl1 and BUILT", 
+				"Job is SUCCESS" },
+	configurations = { "Recommend = true" }
+	)
 	public void testRecommended() throws Exception {
-		AbstractBuild<?, ?> build = initiateBuild( "recommended-" + ccenv.getVobName(), true, false, false, false );
-		
-		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
-		
-		/* Expected build baseline */
-		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
+		AbstractBuild<?, ?> build = initiateBuild( "recommended-" + ccenv.getUniqueName(), true, false, false, false );
 		
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
-		
-		jenkins.assertBuildBaseline( baseline, build );
-		assertTrue( jenkins.isRecommended( baseline, build ) );
-		assertNull( jenkins.getTag( baseline, build ) );
-		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
+		SystemValidator validator = new SystemValidator( build )
+		.validateBuild( Result.SUCCESS )
+		.validateBuiltBaseline( PromotionLevel.BUILT, baseline, false )
+		.validate();
 	}
 	
-	@ClearCaseUniqueVobName( name = "self" )
+	@ClearCaseUniqueVobName( name = "self-description" )
+	@TestDescription( title = "Self polling", text = "baseline available", 
+	outcome = { "Build baseline is bl1 and BUILT", 
+				"Job is SUCCESS" },
+	configurations = { "Set description = true" }
+	)
 	public void testDescription() throws Exception {
-		AbstractBuild<?, ?> build = initiateBuild( "description-" + ccenv.getVobName(), false, false, true, false );
-		
-		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
-		
-		/* Expected build baseline */
-		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
+		AbstractBuild<?, ?> build = initiateBuild( "description-" + ccenv.getUniqueName(), false, false, true, false );
 		
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
-		
-		jenkins.assertBuildBaseline( baseline, build );
-		assertFalse( jenkins.isRecommended( baseline, build ) );
-		assertNull( jenkins.getTag( baseline, build ) );
-		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
+		SystemValidator validator = new SystemValidator( build )
+		.validateBuild( Result.SUCCESS )
+		.validateBuiltBaseline( PromotionLevel.BUILT, baseline, false )
+		.validate();
 	}
 	
 	@Test
-	@ClearCaseUniqueVobName( name = "self" )
+	@ClearCaseUniqueVobName( name = "self-tagged" )
+	@TestDescription( title = "Self polling", text = "baseline available", 
+	outcome = { "Build baseline is bl1 and BUILT", 
+				"Job is SUCCESS" },
+	configurations = { "Set tag = true" }
+	)
 	public void testTagged() throws Exception {
 		jenkins.makeTagType( ccenv.getPVob() );
-		AbstractBuild<?, ?> build = initiateBuild( "tagged-" + ccenv.getVobName(), false, true, false, false );
-		
-		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
-		
-		/* Expected build baseline */
-		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
+		AbstractBuild<?, ?> build = initiateBuild( "tagged-" + ccenv.getUniqueName(), false, true, false, false );
 		
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
-		
-		jenkins.assertBuildBaseline( baseline, build );
-		assertFalse( jenkins.isRecommended( baseline, build ) );
-		assertNotNull( jenkins.getTag( baseline, build ) );
-		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
+		SystemValidator validator = new SystemValidator( build )
+		.validateBuild( Result.SUCCESS )
+		.validateBuiltBaseline( PromotionLevel.BUILT, baseline, false )
+		.validate();
 	}
 }

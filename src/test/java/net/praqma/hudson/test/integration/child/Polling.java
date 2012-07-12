@@ -32,6 +32,7 @@ import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.test.CCUCMRule;
+import net.praqma.junit.TestDescription;
 import net.praqma.util.debug.Logger;
 
 public class Polling {
@@ -40,14 +41,17 @@ public class Polling {
 	public static CCUCMRule jenkins = new CCUCMRule();
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );
+	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-child-polling" );
 
 	private static Logger logger = Logger.getLogger();
 
 	@Test
 	@ClearCaseUniqueVobName( name = "changes-child" )
+	@TestDescription( title = "Child polling, polling", text = "baseline available", 
+	outcome = { "Polling has changes" }
+	)
 	public void testPollingChildsWithChanges() throws Exception {
-		FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getVobName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
+		FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
 		
 		File path = setActivity();
 		Baseline b1 = getNewBaseline( path, "file1.txt" );
@@ -69,8 +73,11 @@ public class Polling {
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "nochanges-child" )
+	@TestDescription( title = "Child polling, polling", text = "baseline available", 
+	outcome = { "Polling has changes" }
+	)
 	public void testPollingChildsWithNoChanges() throws Exception {
-		FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getVobName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
+		FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
 		
 		File path = setActivity();
 		Baseline b1 = getNewBaseline( path, "file1.txt" );
@@ -91,9 +98,9 @@ public class Polling {
 	
 	protected File setActivity() throws ClearCaseException {
 		/**/
-		String viewtag = ccenv.getVobName() + "_one_dev";
+		String viewtag = ccenv.getUniqueName() + "_one_dev";
 		System.out.println( "VIEW: " + ccenv.context.views.get( viewtag ) );
-		File path = new File( ccenv.context.mvfs + "/" + ccenv.getVobName() + "_one_dev/" + ccenv.getVobName() );
+		File path = new File( ccenv.context.mvfs + "/" + viewtag + "/" + ccenv.getVobName() );
 				
 		System.out.println( "PATH: " + path );
 		

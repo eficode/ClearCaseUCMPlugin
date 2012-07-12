@@ -23,6 +23,9 @@ import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.test.CCUCMRule;
+import net.praqma.hudson.test.SystemValidator;
+import net.praqma.junit.DescriptionRule;
+import net.praqma.junit.TestDescription;
 import net.praqma.util.debug.Logger;
 
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
@@ -38,6 +41,9 @@ public class BaselinesFound {
 	@Rule
 	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );
 
+	@Rule
+	public static DescriptionRule desc = new DescriptionRule();
+
 	private static Logger logger = Logger.getLogger();
 		
 	public AbstractBuild<?, ?> initiateBuild( String projectName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
@@ -46,100 +52,96 @@ public class BaselinesFound {
 
 	@Test
 	@ClearCaseUniqueVobName( name = "nop-child" )
+	@TestDescription( title = "Child polling", text = "baseline available", 
+	outcome = { "Build baseline is bl1 and BUILT",
+				"Created baseline is valid", 
+				"Job is SUCCESS" } 
+	)
 	public void testNoOptions() throws Exception {
 		
 		Baseline baseline = getNewBaseline();
-		
-		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getVobName(), false, false, false, false );
 
-		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
-		
-		/* Expected build baseline */
-		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
+		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getUniqueName(), false, false, false, false );
 
-		jenkins.assertBuildBaseline( baseline, build );
-		assertFalse( jenkins.isRecommended( jenkins.getCreatedBaseline( build ), build ) );
-		assertNull( jenkins.getTag( baseline, build ) );
-		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
-		
-		jenkins.testCreatedBaseline( build );
+		SystemValidator validator = new SystemValidator( build )
+			.validateBuild( Result.SUCCESS )
+			.validateBuiltBaseline( PromotionLevel.BUILT, baseline, false )
+			.validateCreatedBaseline( true )
+			.validate();
 	}
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "recommended-child" )
+	@TestDescription( title = "Child polling", text = "baseline available", 
+	outcome = { "Build baseline is bl1 and BUILT",
+				"Created baseline is valid", 
+				"Job is SUCCESS" } ,
+				configurations = { "Recommended = true" }
+	)
 	public void testRecommended() throws Exception {
 		
 		Baseline baseline = getNewBaseline();
 		
-		AbstractBuild<?, ?> build = initiateBuild( "recommended-" + ccenv.getVobName(), true, false, false, false );
+		AbstractBuild<?, ?> build = initiateBuild( "recommended-" + ccenv.getUniqueName(), true, false, false, false );
 
-		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
-		
-		/* Expected build baseline */
-		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
-		
-		jenkins.assertBuildBaseline( baseline, build );
-		assertTrue( jenkins.isRecommended( jenkins.getCreatedBaseline( build ), build ) );
-		assertNull( jenkins.getTag( baseline, build ) );
-		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
-		
-		jenkins.testCreatedBaseline( build );
+		SystemValidator validator = new SystemValidator( build )
+		.validateBuild( Result.SUCCESS )
+		.validateBuiltBaseline( PromotionLevel.BUILT, baseline, false )
+		.validateCreatedBaseline( true )
+		.validate();
 	}
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "description-child" )
+	@TestDescription( title = "Child polling", text = "baseline available", 
+	outcome = { "Build baseline is bl1 and BUILT",
+				"Created baseline is valid", 
+				"Job is SUCCESS" } ,
+				configurations = { "Set description = true" }
+	)
 	public void testDescription() throws Exception {
 		
 		Baseline baseline = getNewBaseline();
 		
-		AbstractBuild<?, ?> build = initiateBuild( "description-" + ccenv.getVobName(), false, false, true, false );
+		AbstractBuild<?, ?> build = initiateBuild( "description-" + ccenv.getUniqueName(), false, false, true, false );
 
-		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
-		
-		/* Expected build baseline */
-		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
-		
-		jenkins.assertBuildBaseline( baseline, build );
-		assertFalse( jenkins.isRecommended( jenkins.getCreatedBaseline( build ), build ) );
-		assertNull( jenkins.getTag( baseline, build ) );
-		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
-		
-		jenkins.testCreatedBaseline( build );
+		SystemValidator validator = new SystemValidator( build )
+		.validateBuild( Result.SUCCESS )
+		.validateBuiltBaseline( PromotionLevel.BUILT, baseline, false )
+		.validateCreatedBaseline( true )
+		.validate();
 	}
 	
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "tagged-child" )
+	@TestDescription( title = "Child polling", text = "baseline available", 
+	outcome = { "Build baseline is bl1 and BUILT",
+				"Created baseline is valid", 
+				"Job is SUCCESS" } ,
+	configurations = { "Set tag = true" }
+	)
 	public void testTagged() throws Exception {
 		jenkins.makeTagType( ccenv.getPVob() );
 		Baseline baseline = getNewBaseline();
 		
-		AbstractBuild<?, ?> build = initiateBuild( "tagged-" + ccenv.getVobName(), false, true, false, false );
+		AbstractBuild<?, ?> build = initiateBuild( "tagged-" + ccenv.getUniqueName(), false, true, false, false );
 
-		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
-		
-		/* Expected build baseline */
-		logger.info( "Build baseline: " + jenkins.getBuildBaseline( build ) );
-		
-		jenkins.assertBuildBaseline( baseline, build );
-		assertFalse( jenkins.isRecommended( jenkins.getCreatedBaseline( build ), build ) );
-		assertNotNull( jenkins.getTag( baseline, build ) );
-		jenkins.samePromotionLevel( baseline, PromotionLevel.BUILT );
-		
-		jenkins.testCreatedBaseline( build );
+		SystemValidator validator = new SystemValidator( build )
+		.validateBuild( Result.SUCCESS )
+		.validateBuiltBaseline( PromotionLevel.BUILT, baseline, false )
+		.validateBaselineTag( baseline, true )
+		.validateCreatedBaseline( true )
+		.validate();
 	}
 	
 	
 	
 	protected Baseline getNewBaseline() throws ClearCaseException {
 		/**/
-		String viewtag = ccenv.getVobName() + "_one_dev";
+		String viewtag = ccenv.getUniqueName() + "_one_dev";
 		System.out.println( "VIEW: " + ccenv.context.views.get( viewtag ) );
-		File path = new File( ccenv.context.mvfs + "/" + ccenv.getVobName() + "_one_dev/" + ccenv.getVobName() );
+		File path = new File( ccenv.context.mvfs + "/" + viewtag + "/" + ccenv.getVobName() );
 				
 		System.out.println( "PATH: " + path );
 		

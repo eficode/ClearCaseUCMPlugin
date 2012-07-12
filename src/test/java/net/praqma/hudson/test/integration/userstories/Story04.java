@@ -33,7 +33,7 @@ public class Story04 {
 	public static CCUCMRule jenkins = new CCUCMRule();
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story04" );
+	public static ClearCaseRule ccenv = new ClearCaseRule( "basic" );
 
 	private static Logger logger = Logger.getLogger();
 
@@ -46,18 +46,18 @@ public class Story04 {
 		
 		/* Prepare */
 		/* Integration */
-		String tviewtag = ccenv.getVobName() + "_one_int";
+		String tviewtag = ccenv.getUniqueName() + "_one_int";
 		File tpath = ccenv.setDynamicActivity( target, tviewtag, "strict-deliver" );
 		Baseline tb = getNewBaseline( tpath, "merge.txt", "one" );
 		target.recommendBaseline( tb );
 		
 		/* Development */
-		String viewtag = ccenv.getVobName() + "_one_dev";
+		String viewtag = ccenv.getUniqueName() + "_one_dev";
 		File path = ccenv.setDynamicActivity( source, viewtag, "strict-deliver-dev" );
 		Baseline b = getNewBaseline( path, "merge.txt", "two" );
 		
 		
-		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story04", "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true );
+		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true );
 
 		/* Build validation */
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );

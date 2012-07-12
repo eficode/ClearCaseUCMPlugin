@@ -1,6 +1,7 @@
 <ccenv>
-	<var name="pvobname" value="cc12_PVOB" />
-	<var name="vobname" value="cc12" />
+	<var name="name" value="ccucm" />
+	<var name="pvobname" value="${name}_PVOB" />
+	<var name="vobname" value="${name}" />
 	
 
   <view tag="${vobname}_one_dispenser" stgloc="-auto">

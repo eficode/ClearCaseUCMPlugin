@@ -54,7 +54,7 @@ public class Story05_2 {
 	public void story05() throws Exception {
 		
 		/* First build to create a view */
-		AbstractBuild<?, ?> firstbuild = jenkins.initiateBuild( "story05" + ccenv.uniqueTimeStamp, "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true, false );
+		AbstractBuild<?, ?> firstbuild = jenkins.initiateBuild(  ccenv.getUniqueName(), "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true, false );
 		//assertEquals( Result.NOT_BUILT, build.getResult() );
 		
 		/* Do the deliver */
@@ -62,7 +62,7 @@ public class Story05_2 {
 		Stream dev2 = ccenv.context.streams.get( "two_dev" );
 
 		/* Setup dev 2 with new baseline */
-		String d2viewtag = ccenv.getVobName() + "_two_dev";
+		String d2viewtag = ccenv.getUniqueName() + "_two_dev";
 		File d2path = ccenv.setDynamicActivity( dev2, d2viewtag, "dip2" );
 		Baseline bl2 = getNewBaseline( d2path, "dip2.txt", "dip2" );
 		

@@ -7,9 +7,14 @@ import org.hamcrest.core.IsNot;
 import org.hamcrest.core.IsNull;
 
 import net.praqma.clearcase.exceptions.ClearCaseException;
+import net.praqma.clearcase.exceptions.TagException;
+import net.praqma.clearcase.exceptions.UCMEntityNotFoundException;
+import net.praqma.clearcase.exceptions.UnableToCreateEntityException;
+import net.praqma.clearcase.exceptions.UnableToGetEntityException;
 import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
 import net.praqma.clearcase.exceptions.UnableToLoadEntityException;
 import net.praqma.clearcase.ucm.entities.Baseline;
+import net.praqma.clearcase.ucm.entities.Tag;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.hudson.CCUCMBuildAction;
@@ -28,7 +33,7 @@ public class SystemValidator {
 		this.build = build;
 	}
 	
-	public void validate() throws ClearCaseException {
+	public SystemValidator validate() throws ClearCaseException {
 		
 		System.out.println( "Validating " + build );
 		
@@ -42,10 +47,19 @@ public class SystemValidator {
 			checkBuiltBaseline();
 		}
 		
+		/* Check tagged baseline */
+		if( checkTagOnBuiltBaseline ) {
+			checkBaselineTag();
+		}
+		
 		/* Created baseline */
 		if( checkCreatedBaseline ) {
 			checkCreatedBaseline();
 		}
+		
+		/**/
+		
+		return this;
 	}
 	
 	/* Validate build */
@@ -112,6 +126,31 @@ public class SystemValidator {
 		}
 	}
 	
+	private boolean checkTagOnBuiltBaseline = false;
+	private Baseline taggedBaseline;
+	private boolean baselineMustBeTagged = false;
+	
+	public SystemValidator validateBaselineTag( Baseline baseline, boolean mustBeTagged ) {
+		checkTagOnBuiltBaseline = true;
+		this.taggedBaseline = baseline;
+		this.baselineMustBeTagged = mustBeTagged;
+		
+		return this;
+	}
+	
+	public void checkBaselineTag() {
+
+		Tag tag;
+		try {
+			System.out.println( "[assert] " + taggedBaseline.getNormalizedName() + " must " + (baselineMustBeTagged?" ":"not ") + "be tagged" );
+			tag = Tag.getTag( taggedBaseline, build.getParent().getDisplayName(), build.getNumber()+"", false );
+			assertNotNull( tag );
+		} catch( Exception e ) {
+			fail( "Checking tag failed: " + e.getMessage() );
+		}
+	}
+
+	
 	
 	
 	/* Validate created baseline */
@@ -127,14 +166,12 @@ public class SystemValidator {
 	
 	private void checkCreatedBaseline() throws ClearCaseException {
 		Baseline baseline = getCreatedBaseline();
-		assertNotNull( baseline );
-		baseline.load();
 		
-		System.out.println( "Validating created baseline: " + baseline.getNormalizedName() );
+		System.out.println( "Validating created baseline" );
 		
 		/* Validate null check */
 		if( createdBaselineExists != null ) {
-			System.out.println( "[assert] " + baseline.getNormalizedName() + " must " + (createdBaselineExists?"not ":" ") + "be null" );
+			System.out.println( "[assert] Created baseline must " + (createdBaselineExists?"not ": "") + "be null" );
 			if( createdBaselineExists ) {
 				assertNotNull( baseline );
 			} else {

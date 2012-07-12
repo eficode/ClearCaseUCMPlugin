@@ -40,7 +40,7 @@ public class Story07 {
 		Stream two = ccenv.context.streams.get( "two_int" );
 		one.setDefaultTarget( two );
 				
-		AbstractBuild<?, ?> build = jenkins.initiateBuild( "story07", "sibling", "_System@" + ccenv.getPVob(), "two_int@" + ccenv.getPVob(), false, false, false, false, true );
+		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "sibling", "_System@" + ccenv.getPVob(), "two_int@" + ccenv.getPVob(), false, false, false, false, true );
 
 		/* Build validation */
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );
