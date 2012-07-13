@@ -39,7 +39,7 @@ public class Story10 {
 		
 		SystemValidator validator = new SystemValidator( build )
 		.validateBuild( Result.FAILURE )
-		.validateBuiltBaseline( PromotionLevel.BUILT, b, false )
+		.validateBuiltBaselineNotFound()
 		.validateCreatedBaseline( false )
 		.validate();
 	}
