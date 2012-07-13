@@ -35,30 +35,35 @@ public class SystemValidator {
 	
 	public SystemValidator validate() throws ClearCaseException {
 		
-		System.out.println( "Validating " + build );
+		System.out.println( "[Validating " + build + "]" );
 		
 		/* Jenkins build */
 		if( checkBuild ) {
+			System.out.println( "[Validating build]" );
 			checkBuild();
 		}
 
 		/* Built baseline not found */
 		if( checkBuiltBaselineNotFound ) {
+			System.out.println( "[Validating built baseline not found]" );
 			checkBuiltBaselineNotFound();
 		}
 		
 		/* Built baseline */
 		if( checkBuiltBaseline ) {
+			System.out.println( "[Validating built baseline]" );
 			checkBuiltBaseline();
 		}
 		
 		/* Check tagged baseline */
 		if( checkTagOnBuiltBaseline ) {
+			System.out.println( "[Validating tag on built baseline]" );
 			checkBaselineTag();
 		}
 		
 		/* Created baseline */
 		if( checkCreatedBaseline ) {
+			System.out.println( "[Validating created baseline]" );
 			checkCreatedBaseline();
 		}
 		
@@ -122,8 +127,6 @@ public class SystemValidator {
 		Baseline baseline = getBuiltBaseline();
 		assertNotNull( baseline );
 		baseline.load();
-		
-		System.out.println( "Validating built baseline: " + baseline.getNormalizedName() );
 		
 		/* Check level */
 		System.out.println( "[assert] " + baseline.getNormalizedName() + " must have the promotion level " + builtBaselineLevel );
