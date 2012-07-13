@@ -43,7 +43,7 @@ public class Story05_2 {
 	public static DescriptionRule desc = new DescriptionRule();
 
 	private static Logger logger = Logger.getLogger();
-
+	
 	@Test
 	@TestDescription( title = "Story 5", text = "New baseline, bl2, on dev stream, poll on childs. Deliver in progress.", configurations = { "Force deliver = false" } )
 	public void story05() throws Exception {
