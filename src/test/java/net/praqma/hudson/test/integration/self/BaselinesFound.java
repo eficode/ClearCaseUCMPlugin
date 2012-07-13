@@ -53,7 +53,7 @@ public class BaselinesFound {
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
 		SystemValidator validator = new SystemValidator( build )
 		.validateBuild( Result.SUCCESS )
-		.validateBuiltBaseline( PromotionLevel.BUILT, baseline, false )
+		.validateBuiltBaseline( PromotionLevel.BUILT, baseline, true )
 		.validate();
 	}
 	
