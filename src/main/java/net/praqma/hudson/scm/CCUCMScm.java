@@ -598,13 +598,7 @@ public class CCUCMScm extends SCM {
 					baselines = getBaselinesFromStreams( workspace, listener, out, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
 				}
 
-				int total = baselines.size();
-				int pruned = filterBaselines( baselines );
-				baselines = filterBuildingBaselines( project, baselines );
-
-				if( pruned > 0 ) {
-					out.println( "[" + Config.nameShort + "] Removed " + pruned + " of " + total + " Baselines." );
-				}
+				filterBaselines( project,state.getStream(), baselines );
 
 				/* if we did not find any baselines we should return false */
 				if( baselines.size() < 1 ) {
@@ -995,8 +989,7 @@ public class CCUCMScm extends SCM {
 				logger.debug( "I found " + baselines.size() + " baseline" + ( baselines.size() == 1 ? "" : "s" ) );
 
 				/* Discard baselines */
-				filterBaselines( baselines );
-				baselines = filterBuildingBaselines( project, baselines );
+				filterBaselines( project,state.getStream(), baselines );
 
 				logger.debug( "When filtered, I have " + baselines.size() + " baseline" + ( baselines.size() == 1 ? "" : "s" ) );
 
@@ -1174,78 +1167,45 @@ public class CCUCMScm extends SCM {
 	}
 
 	/**
-	 * Discards baselines being build
-	 * 
-	 * @param project
-	 * @param baselines
-	 * @return
-	 * @throws ScmException
-	 */
-	public List<Baseline> filterBuildingBaselines( AbstractProject<?, ?> project, List<Baseline> baselines ) throws ScmException {
-		logger.debug( id + "CCUCM=" + ccucm.stringify(), id );
-
-		List<Baseline> validBaselines = new ArrayList<Baseline>();
-
-		/* For each baseline in the list */
-		for( Baseline b : baselines ) {
-			/* Get the state for the current baseline */
-			State cstate = ccucm.getStateByBaseline( jobName, b.getFullyQualifiedName() );
-			//logger.debug( "CSTATE: " + cstate );
-
-			/*
-			 * The baseline is in progress, determine if the job is still
-			 * running
-			 */
-			if( cstate != null ) {
-				Integer bnum = cstate.getJobNumber();
-				Object o = project.getBuildByNumber( bnum );
-				Build bld = (Build) o;
-
-				/* prevent null pointer exceptions */
-				if( bld != null ) {
-					if( b.getPromotionLevel( true ).equals( cstate.getBaseline().getPromotionLevel( true ) ) ) {
-						logger.debug( id + b.getShortname() + " has the same promotion level" );
-						continue;
-					}
-
-					/* The job is not running */
-					if( !bld.isLogUpdated() ) {
-						logger.debug( id + "Job " + bld.getNumber() + " is not building", id );
-						validBaselines.add( b );
-					} else {
-						logger.debug( id + "Job " + bld.getNumber() + " is building " + cstate.getBaseline().getFullyQualifiedName(), id );
-					}
-				} else {
-					/* What to do!? Let's skip it! */
-				}
-			} else {
-				validBaselines.add( b );
-			}
-		}
-
-		return validBaselines;
-	}
-
-	/**
 	 * Filter out baselines that is involved in a deliver or does not have a
 	 * label
 	 * 
 	 * @param baselines
 	 */
-	private int filterBaselines( List<Baseline> baselines ) {
-
-		int pruned = 0;
+	private void filterBaselines( AbstractProject<?, ?> project, Stream stream, List<Baseline> baselines ) {
 
 		/* Remove deliver baselines */
 		Iterator<Baseline> it = baselines.iterator();
 		while( it.hasNext() ) {
 			Baseline baseline = it.next();
+
+			/* Get the state for the current baseline */
+			State cstate = ccucm.getStateByBaseline( jobName, baseline.getFullyQualifiedName() );
+
 			if( baseline.getShortname().startsWith( "deliverbl." ) || baseline.getLabelStatus().equals( LabelStatus.UNLABLED ) ) {
 				it.remove();
-				pruned++;
+			} else if( !baseline.getMastership().equals( stream.getMastership() ) ) {
+				it.remove();
+			} else if( cstate != null ) {
+				/* The baseline is in progress, determine if the job is still running */
+				Integer bnum = cstate.getJobNumber();
+				Build bld = (Build) project.getBuildByNumber( bnum );
+
+				/* prevent null pointer exceptions */
+				if( bld != null ) {
+					if( baseline.getPromotionLevel( true ).equals( cstate.getBaseline().getPromotionLevel( true ) ) ) {
+						logger.debug( id + baseline.getShortname() + " has the same promotion level" );
+						it.remove();
+					} else if( bld.isLogUpdated() ) {
+						logger.debug( id + "Job " + bld.getNumber() + " is building " + cstate.getBaseline().getFullyQualifiedName(), id );
+						it.remove();
+					} else {
+						/* The job is not running */
+						logger.debug( id + "Job " + bld.getNumber() + " is not building", id );
+					} 
+				}
 			}
 		}
-		return pruned;
 	}
 
 	/**
