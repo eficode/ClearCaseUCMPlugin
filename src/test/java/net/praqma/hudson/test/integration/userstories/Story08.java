@@ -14,6 +14,7 @@ import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.test.CCUCMRule;
+import net.praqma.hudson.test.SystemValidator;
 import net.praqma.junit.DescriptionRule;
 import net.praqma.junit.TestDescription;
 import net.praqma.util.debug.Logger;
@@ -49,12 +50,11 @@ public class Story08 {
 		/* Build validation */
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.NOT_BUILT ) );
 		
-		/* Expected build baseline */
-		Baseline buildBaseline = jenkins.getBuildBaselineNoAssert( build );
-		assertNull( buildBaseline );
-		
-		Baseline createdBaseline = jenkins.getCreatedBaseline( build );
-		assertNull( createdBaseline );
+		SystemValidator validator = new SystemValidator( build )
+		.validateBuild( Result.FAILURE )
+		.validateBuiltBaselineNotFound()
+		.validateCreatedBaseline( false )
+		.validate();
 	}
 	
 	@Test
