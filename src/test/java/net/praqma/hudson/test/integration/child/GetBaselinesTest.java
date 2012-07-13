@@ -52,11 +52,7 @@ public class GetBaselinesTest {
 
 	@Test
 	@ClearCaseUniqueVobName( name = "nop-child" )
-	@TestDescription( title = "Child polling", text = "baseline available", 
-	outcome = { "Build baseline is bl1 and BUILT",
-				"Created baseline is valid", 
-				"Job is SUCCESS" }
-	)
+	@TestDescription( title = "Child polling", text = "baseline available" )
 	public void testNoOptions() throws Exception {
 		
 		Baseline baseline = getNewBaseline();

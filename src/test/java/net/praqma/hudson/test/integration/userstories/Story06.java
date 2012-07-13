@@ -45,12 +45,7 @@ public class Story06 {
 	private static Logger logger = Logger.getLogger();
 
 	@Test
-	@TestDescription( title = "Story 6", text = "New baseline, bl1, on dev stream, poll on childs. Deliver in progress, forced cancelled", 
-	outcome = { "Result is SUCCESS", 
-				"Build baseline is bl1", 
-				"Created baseline is valid" },
-	configurations = { "Force deliver = true" }
-	)
+	@TestDescription( title = "Story 6", text = "New baseline, bl1, on dev stream, poll on childs. Deliver in progress, forced cancelled", configurations = { "Force deliver = true" }	)
 	public void story06() throws Exception {
 		
 		/* First build to create a view */

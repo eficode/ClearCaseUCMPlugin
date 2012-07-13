@@ -52,11 +52,7 @@ public class BaselinesFound {
 
 	@Test
 	@ClearCaseUniqueVobName( name = "nop-child" )
-	@TestDescription( title = "Child polling", text = "baseline available", 
-	outcome = { "Build baseline is bl1 and BUILT",
-				"Created baseline is valid", 
-				"Job is SUCCESS" } 
-	)
+	@TestDescription( title = "Child polling", text = "baseline available" )
 	public void testNoOptions() throws Exception {
 		
 		Baseline baseline = getNewBaseline();
@@ -72,12 +68,7 @@ public class BaselinesFound {
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "recommended-child" )
-	@TestDescription( title = "Child polling", text = "baseline available", 
-	outcome = { "Build baseline is bl1 and BUILT",
-				"Created baseline is valid", 
-				"Job is SUCCESS" } ,
-				configurations = { "Recommended = true" }
-	)
+	@TestDescription( title = "Child polling", text = "baseline available",	configurations = { "Recommended = true" } )
 	public void testRecommended() throws Exception {
 		
 		Baseline baseline = getNewBaseline();
@@ -93,12 +84,7 @@ public class BaselinesFound {
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "description-child" )
-	@TestDescription( title = "Child polling", text = "baseline available", 
-	outcome = { "Build baseline is bl1 and BUILT",
-				"Created baseline is valid", 
-				"Job is SUCCESS" } ,
-				configurations = { "Set description = true" }
-	)
+	@TestDescription( title = "Child polling", text = "baseline available",	configurations = { "Set description = true" } )
 	public void testDescription() throws Exception {
 		
 		Baseline baseline = getNewBaseline();
@@ -115,12 +101,7 @@ public class BaselinesFound {
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "tagged-child" )
-	@TestDescription( title = "Child polling", text = "baseline available", 
-	outcome = { "Build baseline is bl1 and BUILT",
-				"Created baseline is valid", 
-				"Job is SUCCESS" } ,
-	configurations = { "Set tag = true" }
-	)
+	@TestDescription( title = "Child polling", text = "baseline available", configurations = { "Set tag = true" } )
 	public void testTagged() throws Exception {
 		jenkins.makeTagType( ccenv.getPVob() );
 		Baseline baseline = getNewBaseline();

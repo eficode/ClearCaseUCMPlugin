@@ -37,12 +37,7 @@ public class Story10 {
 	private static Logger logger = Logger.getLogger();
 
 	@Test
-	@TestDescription( title = "Story 10", text = "New baseline, bl1, on dev stream, dev1, poll on child, create baselines, but wrong baseline template", 
-	outcome = { "Build baseline is bl1 and BUILT",
-				"Created baseline is null", 
-				"Job is FAILED" }, 
-	configurations = { "Create baselines = true", "Name template = [fail]" }
-	)
+	@TestDescription( title = "Story 10", text = "New baseline, bl1, on dev stream, dev1, poll on child, create baselines, but wrong baseline template", configurations = { "Create baselines = true", "Name template = [fail]" } )
 	public void story10() throws Exception {
 		
 		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false, false, "[what]-)(/&" );

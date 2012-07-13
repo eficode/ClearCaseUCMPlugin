@@ -36,10 +36,7 @@ public class BaselinesFoundFails {
 
 	@Test
 	@ClearCaseUniqueVobName( name = "self-failed-nop" )
-	@TestDescription( title = "Self polling", text = "baseline available, build fails", 
-	outcome = { "Build baseline is bl1 and REJECTED", 
-				"Job is FAILURE" } 
-	)
+	@TestDescription( title = "Self polling", text = "baseline available, build fails" )
 	public void testNoOptions() throws Exception {
 		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getUniqueName(), false, false, false, true );
 		
@@ -52,11 +49,7 @@ public class BaselinesFoundFails {
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "self-failed-recommend" )
-	@TestDescription( title = "Self polling", text = "baseline available, build fails", 
-	outcome = { "Build baseline is bl1 and REJECTED", 
-				"Job is FAILURE" },
-	configurations = { "Recommend = true" }
-	)
+	@TestDescription( title = "Self polling", text = "baseline available, build fails", configurations = { "Recommend = true" }	)
 	public void testRecommended() throws Exception {
 		AbstractBuild<?, ?> build = initiateBuild( "recommended-" + ccenv.getUniqueName(), true, false, false, true );
 		
@@ -69,11 +62,7 @@ public class BaselinesFoundFails {
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "self-failed-tagged" )
-	@TestDescription( title = "Self polling", text = "baseline available, build fails", 
-	outcome = { "Build baseline is bl1 and REJECTED", 
-				"Job is FAILURE" },
-	configurations = { "Set tag = true" }
-	)
+	@TestDescription( title = "Self polling", text = "baseline available, build fails",	configurations = { "Set tag = true" } )
 	public void testTagged() throws Exception {
 		jenkins.makeTagType( ccenv.getPVob() );
 		AbstractBuild<?, ?> build = initiateBuild( "tagged-" + ccenv.getUniqueName(), false, true, false, true );

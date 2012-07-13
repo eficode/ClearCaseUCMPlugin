@@ -47,9 +47,7 @@ public class Polling {
 
 	@Test
 	@ClearCaseUniqueVobName( name = "changes-child" )
-	@TestDescription( title = "Child polling, polling", text = "baseline available", 
-	outcome = { "Polling has changes" }
-	)
+	@TestDescription( title = "Child polling, polling", text = "baseline available" )
 	public void testPollingChildsWithChanges() throws Exception {
 		FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
 		
@@ -73,9 +71,7 @@ public class Polling {
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "nochanges-child" )
-	@TestDescription( title = "Child polling, polling", text = "baseline available", 
-	outcome = { "Polling has changes" }
-	)
+	@TestDescription( title = "Child polling, polling", text = "baseline available" )
 	public void testPollingChildsWithNoChanges() throws Exception {
 		FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
 		

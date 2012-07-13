@@ -38,7 +38,7 @@ public class Story06_2 {
 	public static CCUCMRule jenkins = new CCUCMRule();
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story05", "setup-story5.xml" );
+	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story06_2", "setup-story5.xml" );
 	
 	@Rule
 	public static DescriptionRule desc = new DescriptionRule();
@@ -46,12 +46,7 @@ public class Story06_2 {
 	private static Logger logger = Logger.getLogger();
 
 	@Test
-	@TestDescription( title = "Story 6", text = "New baseline, bl1, on dev stream, poll on childs. Deliver in progress, forced cancelled", 
-	outcome = { "Result is SUCCESS", 
-				"Build baseline is bl1", 
-				"Created baseline is valid" },
-	configurations = { "Force deliver = true" }
-	)
+	@TestDescription( title = "Story 6", text = "New baseline, bl1, on dev stream, poll on childs. Deliver in progress, forced cancelled", configurations = { "Force deliver = true" } )
 	public void story06() throws Exception {
 		
 		/* First build to create a view */

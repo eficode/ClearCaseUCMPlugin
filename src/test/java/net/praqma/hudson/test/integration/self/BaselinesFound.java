@@ -33,12 +33,9 @@ public class BaselinesFound {
 
 	@Test
 	@ClearCaseUniqueVobName( name = "self-nop" )
-	@TestDescription( title = "Self polling", text = "baseline available", 
-	outcome = { "Build baseline is bl1 and BUILT", 
-				"Job is SUCCESS" } 
-	)
+	@TestDescription( title = "Self polling", text = "baseline available" )
 	public void testNoOptions() throws Exception {
-		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getUniqueName(), false, false, false, false );
+		AbstractBuild<?, ?> build = initiateBuild( ccenv.getUniqueName(), false, false, false, false );
 		
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
 		SystemValidator validator = new SystemValidator( build )
@@ -49,13 +46,9 @@ public class BaselinesFound {
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "self-recommended" )
-	@TestDescription( title = "Self polling", text = "baseline available", 
-	outcome = { "Build baseline is bl1 and BUILT", 
-				"Job is SUCCESS" },
-	configurations = { "Recommend = true" }
-	)
+	@TestDescription( title = "Self polling", text = "baseline available", configurations = { "Recommend = true" } )
 	public void testRecommended() throws Exception {
-		AbstractBuild<?, ?> build = initiateBuild( "recommended-" + ccenv.getUniqueName(), true, false, false, false );
+		AbstractBuild<?, ?> build = initiateBuild( ccenv.getUniqueName(), true, false, false, false );
 		
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
 		SystemValidator validator = new SystemValidator( build )
@@ -65,13 +58,9 @@ public class BaselinesFound {
 	}
 	
 	@ClearCaseUniqueVobName( name = "self-description" )
-	@TestDescription( title = "Self polling", text = "baseline available", 
-	outcome = { "Build baseline is bl1 and BUILT", 
-				"Job is SUCCESS" },
-	configurations = { "Set description = true" }
-	)
+	@TestDescription( title = "Self polling", text = "baseline available", configurations = { "Set description = true" } )
 	public void testDescription() throws Exception {
-		AbstractBuild<?, ?> build = initiateBuild( "description-" + ccenv.getUniqueName(), false, false, true, false );
+		AbstractBuild<?, ?> build = initiateBuild( ccenv.getUniqueName(), false, false, true, false );
 		
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
 		SystemValidator validator = new SystemValidator( build )
@@ -82,14 +71,10 @@ public class BaselinesFound {
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "self-tagged" )
-	@TestDescription( title = "Self polling", text = "baseline available", 
-	outcome = { "Build baseline is bl1 and BUILT", 
-				"Job is SUCCESS" },
-	configurations = { "Set tag = true" }
-	)
+	@TestDescription( title = "Self polling", text = "baseline available", configurations = { "Set tag = true" } )
 	public void testTagged() throws Exception {
 		jenkins.makeTagType( ccenv.getPVob() );
-		AbstractBuild<?, ?> build = initiateBuild( "tagged-" + ccenv.getUniqueName(), false, true, false, false );
+		AbstractBuild<?, ?> build = initiateBuild( ccenv.getUniqueName(), false, true, false, false );
 		
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
 		SystemValidator validator = new SystemValidator( build )

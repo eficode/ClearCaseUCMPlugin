@@ -48,11 +48,7 @@ public class BaselinesFoundFailed {
 
 	@Test
 	@ClearCaseUniqueVobName( name = "nop-child-failed" )
-	@TestDescription( title = "Child polling", text = "baseline available, build fails", 
-	outcome = { "Build baseline is bl1 and REJECTED",
-				"Created baseline is not valid", 
-				"Job is FAILURE" } 
-	)
+	@TestDescription( title = "Child polling", text = "baseline available, build fails"	)
 	public void testNoOptions() throws Exception {
 		
 		Baseline baseline = getNewBaseline();
@@ -68,12 +64,7 @@ public class BaselinesFoundFailed {
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "recommended-child-failed" )
-	@TestDescription( title = "Child polling", text = "baseline available, build fails", 
-	outcome = { "Build baseline is bl1 and REJECTED",
-				"Created baseline is not valid", 
-				"Job is FAILURE" } ,
-	configurations = { "Recommend = true" }
-	)
+	@TestDescription( title = "Child polling", text = "baseline available, build fails", configurations = { "Recommend = true" } )
 	public void testRecommended() throws Exception {
 		
 		Baseline baseline = getNewBaseline();
@@ -89,12 +80,7 @@ public class BaselinesFoundFailed {
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "description-child-failed" )
-	@TestDescription( title = "Child polling", text = "baseline available, build fails", 
-	outcome = { "Build baseline is bl1 and REJECTED",
-				"Created baseline is not valid", 
-				"Job is FAILURE" } ,
-	configurations = { "Set description = true" }
-	)
+	@TestDescription( title = "Child polling", text = "baseline available, build fails", configurations = { "Set description = true" } )
 	public void testDescription() throws Exception {
 		
 		Baseline baseline = getNewBaseline();
@@ -111,12 +97,7 @@ public class BaselinesFoundFailed {
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "tagged-child-failed" )
-	@TestDescription( title = "Child polling", text = "baseline available, build fails", 
-	outcome = { "Build baseline is bl1 and REJECTED",
-				"Created baseline is not valid", 
-				"Job is FAILURE" } ,
-	configurations = { "Set tag = true" }
-	)
+	@TestDescription( title = "Child polling", text = "baseline available, build fails", configurations = { "Set tag = true" } )
 	public void testTagged() throws Exception {
 		jenkins.makeTagType( ccenv.getPVob() );
 		Baseline baseline = getNewBaseline();

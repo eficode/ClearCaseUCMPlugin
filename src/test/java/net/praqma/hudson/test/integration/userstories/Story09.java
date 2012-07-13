@@ -39,11 +39,7 @@ public class Story09 {
 
 	@Test
 	@ClearCaseUniqueVobName( name = "story09" )
-	@TestDescription( title = "Story 9", text = "New baseline, bl1, on dev stream, dev1, poll on child, don't create baselines", 
-	outcome = { "Build baseline is bl1 and BUILT",
-				"Created baseline is null", 
-				"Job is SUCCESS" } 
-	)
+	@TestDescription( title = "Story 9", text = "New baseline, bl1, on dev stream, dev1, poll on child, don't create baselines" )
 	public void story09() throws Exception {
 		
 		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
