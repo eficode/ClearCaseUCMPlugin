@@ -116,7 +116,7 @@ public class BaselinesFoundFailed {
 	
 	protected Baseline getNewBaseline() throws ClearCaseException {
 		/**/
-		String viewtag = ccenv.getVobName() + "_one_dev";
+		String viewtag = ccenv.getUniqueName() + "_one_dev";
 		System.out.println( "VIEW: " + ccenv.context.views.get( viewtag ) );
 		File path = new File( ccenv.context.mvfs + "/" + viewtag + "/" + ccenv.getVobName() );
 				
