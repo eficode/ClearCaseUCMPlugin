@@ -58,10 +58,24 @@ public class CCUCMRule extends JenkinsRule {
 	
 		logger.info( "Setting up build for self polling, recommend:" + recommend + ", tag:" + tag + ", description:" + description );
 		
+		System.out.println( "==== [Setting up ClearCase UCM project] ====" );
+		System.out.println( " * Stream         : " + stream );
+		System.out.println( " * Component      : " + component );
+		//System.out.println( " * Level          : " + "INITIAL" );
+		System.out.println( " * Polling        : " + type );
+		System.out.println( " * Recommend      : " + recommend );
+		System.out.println( " * Tag            : " + tag );
+		System.out.println( " * Description    : " + description );
+		System.out.println( " * Create baseline: " + createBaseline );
+		System.out.println( " * Template       : " + template );
+		System.out.println( " * Force deliver  : " + forceDeliver );
+		System.out.println( "============================================" );
+		
 		FreeStyleProject project = createFreeStyleProject( "ccucm-project-" + projectName );
 		
 		// boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription
-		CCUCMScm scm = new CCUCMScm( component, "INITIAL", "ALL", false, type, stream, "successful", createBaseline, "[project]_build_[number]", forceDeliver, recommend, tag, description, "jenkins" );
+		//CCUCMScm scm = new CCUCMScm( component, "INITIAL", "ALL", false, type, stream, "successful", createBaseline, "[project]_build_[number]", forceDeliver, recommend, tag, description, "jenkins" );
+		CCUCMScm scm = new CCUCMScm( component, "INITIAL", "ALL", false, type, stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "jenkins" );
 		this.scm = scm;
 		project.setScm( scm );
 		
