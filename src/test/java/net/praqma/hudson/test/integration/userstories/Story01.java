@@ -11,8 +11,11 @@ import hudson.model.Result;
 import hudson.model.TaskListener;
 import hudson.scm.PollingResult;
 import net.praqma.clearcase.ucm.entities.Baseline;
+import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.test.CCUCMRule;
+import net.praqma.hudson.test.SystemValidator;
+import net.praqma.junit.TestDescription;
 import net.praqma.util.debug.Logger;
 
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
@@ -32,20 +35,20 @@ public class Story01 {
 
 	@Test
 	@ClearCaseUniqueVobName( name = "story01b" )
+	@TestDescription( title = "Story 01b", text = "New baseline, bl1, on integration stream, poll on self, wrong component." )
 	public void story01b() throws Exception {
 		
 		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "self", "_System2@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
 
-		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.NOT_BUILT ) );
-		
-		/* Expected build baseline */
-		Baseline buildBaseline = jenkins.getBuildBaselineNoAssert( build );
-		assertNull( buildBaseline );
+		SystemValidator validator = new SystemValidator( build )
+		.validateBuild( Result.NOT_BUILT )
+		.validateBuiltBaselineNotFound()
+		.validate();
 	}
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "story01d" )
+	@TestDescription( title = "Story 01d, polling", text = "New baseline, bl1, on integration stream, poll on self, wrong component." )
 	public void story01d() throws Exception {
 		
 		/* First build must succeed to get a workspace */
