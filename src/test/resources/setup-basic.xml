@@ -3,8 +3,8 @@
 	<var name="pvobname" value="${name}_PVOB" />
 	<var name="vobname" value="${name}" />
 	
-  <vob storetag="pvobname" tag="${pvobname}" linuxtag="/vobs/${pvobname}" comment="PVOB" ucmproject="true" stgloc="-auto" mounted="true"/>
-  <vob storetag="vobname" tag="${vobname}" linuxtag="/vobs/${vobname}" stgloc="-auto" mounted="true"/>
+  <vob storetag="pvobname" tag="\${pvobname}" linuxtag="/vobs/${pvobname}" comment="PVOB" ucmproject="true" stgloc="-auto" mounted="true"/>
+  <vob storetag="vobname" tag="\${vobname}" linuxtag="/vobs/${vobname}" stgloc="-auto" mounted="true"/>
 
   <view tag="${name}_setupview" stgloc="-auto"/>
   <context mvfs="m:\" linux="/view" view="${name}_setupview" vob="${vobname}"/>
