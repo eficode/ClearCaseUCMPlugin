@@ -15,6 +15,8 @@ import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.test.CCUCMRule;
+import net.praqma.hudson.test.SystemValidator;
+import net.praqma.junit.TestDescription;
 import net.praqma.util.debug.Logger;
 
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
@@ -34,6 +36,7 @@ public class Story07 {
 
 	@Test
 	@ClearCaseUniqueVobName( name = "story07" )
+	@TestDescription( title = "Story 07", text = "New baseline, bl1, on int stream, poll on siblings, no interproject delivers" )
 	public void story07() throws Exception {
 		
 		Stream one = ccenv.context.streams.get( "one_int" );
@@ -47,14 +50,11 @@ public class Story07 {
 		
 		Baseline b = ccenv.context.baselines.get( "model-1" ).load();
 		
-		/* Expected build baseline */
-		Baseline buildBaseline = jenkins.getBuildBaseline( build );
-		assertEquals( b, buildBaseline );
-		assertEquals( PromotionLevel.REJECTED, buildBaseline.getPromotionLevel( true ) );
-		
-		/* Created baseline */
-		Baseline createdBaseline = jenkins.getCreatedBaseline( build );
-		assertNull( createdBaseline );
+		SystemValidator validator = new SystemValidator( build )
+		.validateBuild( Result.FAILURE )
+		.validateBuiltBaseline( PromotionLevel.REJECTED, b, false )
+		.validateCreatedBaseline( false )
+		.validate();
 	}
 	
 }
