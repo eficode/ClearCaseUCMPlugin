@@ -41,6 +41,11 @@ public class SystemValidator {
 		if( checkBuild ) {
 			checkBuild();
 		}
+
+		/* Built baseline not found */
+		if( checkBuiltBaselineNotFound ) {
+			checkBuiltBaselineNotFound();
+		}
 		
 		/* Built baseline */
 		if( checkBuiltBaseline ) {
@@ -76,6 +81,22 @@ public class SystemValidator {
 	private void checkBuild() {
 		System.out.println( "[assert] " + "Jenkins build must be " + buildResult );
 		assertThat( build.getResult(), is( buildResult ) );
+	}
+	
+	/* Validate no built baseline */
+	private boolean checkBuiltBaselineNotFound = false;
+	
+	public SystemValidator validateBuiltBaselineNotFound() {
+		 this.checkBuiltBaseline = true;
+		 
+		 return this;
+	}
+	
+	public void checkBuiltBaselineNotFound() {
+		Baseline baseline = getBuiltBaseline();
+		
+		System.out.println( "[assert] " + "Built baseline must bue null" );
+		assertNull( baseline );
 	}
 	
 	/* Validate build baseline */
