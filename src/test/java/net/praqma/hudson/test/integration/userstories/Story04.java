@@ -19,6 +19,8 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.test.CCUCMRule;
+import net.praqma.hudson.test.SystemValidator;
+import net.praqma.junit.TestDescription;
 import net.praqma.util.debug.Logger;
 
 import net.praqma.clearcase.exceptions.ClearCaseException;
@@ -39,6 +41,7 @@ public class Story04 {
 
 	@Test
 	@ClearCaseUniqueVobName( name = "story04" )
+	@TestDescription( title = "Story 04", text = "New baseline, bl1, on dev stream, poll on childs. Merge error on deliver" )
 	public void story04() throws Exception {
 		
 		Stream source = ccenv.context.streams.get( "one_dev" );
@@ -59,17 +62,13 @@ public class Story04 {
 		
 		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true );
 
-		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );
-		
-		/* Expected build baseline */
 		Baseline buildBaseline = jenkins.getBuildBaseline( build );
-		assertEquals( b, buildBaseline );
-		assertEquals( PromotionLevel.REJECTED, buildBaseline.getPromotionLevel( true ) );
 		
-		/* Created baseline */
-		Baseline createdBaseline = jenkins.getCreatedBaseline( build );
-		assertNull( createdBaseline );
+		SystemValidator validator = new SystemValidator( build )
+		.validateBuild( Result.FAILURE )
+		.validateBuiltBaseline( PromotionLevel.REJECTED, buildBaseline, false )
+		.validateCreatedBaseline( false )
+		.validate();
 	}
 
 	
