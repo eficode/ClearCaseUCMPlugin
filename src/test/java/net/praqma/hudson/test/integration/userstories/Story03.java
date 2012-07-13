@@ -14,6 +14,8 @@ import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.test.CCUCMRule;
+import net.praqma.hudson.test.SystemValidator;
+import net.praqma.junit.TestDescription;
 import net.praqma.util.debug.Logger;
 
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
@@ -33,6 +35,7 @@ public class Story03 {
 
 	@Test
 	@ClearCaseUniqueVobName( name = "story03a" )
+	@TestDescription( title = "Story 03a", text = "No new baseline on dev stream, poll on child" )
 	public void story03a() throws Exception {
 		/* Flip promotion level */
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
@@ -40,16 +43,15 @@ public class Story03 {
 		
 		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
 
-		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.NOT_BUILT ) );
-		
-		/* Expected build baseline */
-		Baseline buildBaseline = jenkins.getBuildBaselineNoAssert( build );
-		assertNull( buildBaseline );
+		SystemValidator validator = new SystemValidator( build )
+		.validateBuild( Result.NOT_BUILT )
+		.validateBuiltBaselineNotFound()
+		.validate();
 	}
 	
 	@Test
 	@ClearCaseUniqueVobName( name = "story03b" )
+	@TestDescription( title = "Story 03b, polling", text = "No new baseline on dev stream, poll on child" )
 	public void story03b() throws Exception {
 		/* Flip promotion level */
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
