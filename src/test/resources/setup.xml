@@ -59,9 +59,6 @@
 	  
 	  <baseline name="client-3" label="full" comment="" component="_System" pvob="${pvobname}" />
 	  
-	  
-	  <!-- <baseline name="_System_2.0" label="full" comment="" component="_System" pvob="${pvobname}" /> -->
-	  
 	</ccenv>
 </ccenvs>
 

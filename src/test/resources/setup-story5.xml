@@ -9,7 +9,7 @@
 	    </baselines>
 	  </stream>
 	  
-	  <view tag="${vobname}_two_dev" stgloc="-auto">
+	  <view tag="${name}_two_dev" stgloc="-auto">
 	    <stream name="two_dev" pvob="${pvobname}" />
 	  </view>
 
