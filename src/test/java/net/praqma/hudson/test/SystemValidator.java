@@ -92,7 +92,7 @@ public class SystemValidator {
 	private boolean checkBuiltBaselineNotFound = false;
 	
 	public SystemValidator validateBuiltBaselineNotFound() {
-		 this.checkBuiltBaseline = true;
+		 this.checkBuiltBaselineNotFound = true;
 		 
 		 return this;
 	}
