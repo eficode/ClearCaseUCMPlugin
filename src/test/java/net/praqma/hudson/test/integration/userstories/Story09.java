@@ -5,14 +5,9 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.FreeStyleProject;
 import hudson.model.Result;
-import hudson.model.TaskListener;
-import hudson.scm.PollingResult;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
-import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.hudson.test.SystemValidator;
 import net.praqma.junit.DescriptionRule;
@@ -21,8 +16,6 @@ import net.praqma.util.debug.Logger;
 
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
-
-import static org.junit.Assert.*;
 
 public class Story09 {
 
@@ -44,9 +37,8 @@ public class Story09 {
 		
 		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
 
-		Baseline b = ccenv.context.baselines.get( "model-1" ).load();
-		
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
+		
 		SystemValidator validator = new SystemValidator( build )
 		.validateBuild( Result.SUCCESS )
 		.validateBuiltBaseline( PromotionLevel.BUILT, baseline, false )
