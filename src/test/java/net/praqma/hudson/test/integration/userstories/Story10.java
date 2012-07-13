@@ -33,7 +33,7 @@ public class Story10 {
 	@TestDescription( title = "Story 10", text = "New baseline, bl1, on dev stream, dev1, poll on child, create baselines, but wrong baseline template", configurations = { "Create baselines = true", "Name template = [fail]" } )
 	public void story10() throws Exception {
 		
-		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false, false, "[what]-)(/&" );
+		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true, false, "[what]-)(/&" );
 
 		Baseline b = ccenv.context.baselines.get( "model-1" ).load();
 		

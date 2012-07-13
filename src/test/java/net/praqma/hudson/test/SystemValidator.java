@@ -100,7 +100,7 @@ public class SystemValidator {
 	public void checkBuiltBaselineNotFound() {
 		Baseline baseline = getBuiltBaseline();
 		
-		System.out.println( "[assert] " + "Built baseline must bue null" );
+		System.out.println( "[assert] " + "Built baseline must be null" );
 		assertNull( baseline );
 	}
 	
