@@ -44,12 +44,9 @@ public class Story08 {
 		baseline.setPromotionLevel( PromotionLevel.REJECTED );
 		
 		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
-
-		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.NOT_BUILT ) );
 		
 		SystemValidator validator = new SystemValidator( build )
-		.validateBuild( Result.FAILURE )
+		.validateBuild( Result.NOT_BUILT )
 		.validateBuiltBaselineNotFound()
 		.validateCreatedBaseline( false )
 		.validate();
