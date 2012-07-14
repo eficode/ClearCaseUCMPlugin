@@ -11,7 +11,6 @@ import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.hudson.test.SystemValidator;
 import net.praqma.junit.DescriptionRule;
 import net.praqma.junit.TestDescription;
-import net.praqma.util.debug.Logger;
 
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 
@@ -27,7 +26,7 @@ public class Story11 {
 	public static DescriptionRule desc = new DescriptionRule();
 
 	@Test
-	@TestDescription( title = "Story 11", text = "A baseline ís built successfully, but the tagging is not done, because the tag tyoe is not installed", configurations = { "Tag = true" }	)
+	@TestDescription( title = "Story 11, JENKINS-13944", text = "A baseline ís built successfully, but the tagging is not done, because the tag tyoe is not installed", configurations = { "Tag = true" }	)
 	public void story11() throws Exception {
 		
 		/* First build to create a view */

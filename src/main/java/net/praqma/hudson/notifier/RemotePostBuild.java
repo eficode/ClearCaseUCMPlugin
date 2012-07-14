@@ -226,7 +226,7 @@ class RemotePostBuild implements FileCallable<Status> {
 					}
 				} catch( Exception e ) {
 					hudsonOut.println( "[" + Config.nameShort + "] Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
-					//e.printStackTrace( hudsonOut );
+					e.printStackTrace( hudsonOut );
 					ExceptionUtils.print( e, hudsonOut, false );
 					ExceptionUtils.log( e, true );
 				}
