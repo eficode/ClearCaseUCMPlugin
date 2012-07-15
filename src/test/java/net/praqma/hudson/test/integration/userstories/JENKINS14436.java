@@ -17,20 +17,20 @@ import net.praqma.junit.TestDescription;
 
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 
-public class Story12 {
+public class JENKINS14436 {
 
 	@ClassRule
 	public static CCUCMRule jenkins = new CCUCMRule();
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story12", "setup-story12.xml" );
+	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story12", "setup-JENKINS-14436.xml" );
 	
 	@Rule
 	public static DescriptionRule desc = new DescriptionRule();
 
 	@Test
-	@TestDescription( title = "Story 12, JENKINS-14436", text = "Not all versions, only the latest are shown" )
-	public void story12() throws Exception {
+	@TestDescription( title = "JENKINS-14436", text = "Not all versions, only the latest are shown" )
+	public void jenkins14436() throws Exception {
 		
 		/* First build to create a view */
 		AbstractBuild<?, ?> firstbuild = jenkins.initiateBuild( ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false, false );
