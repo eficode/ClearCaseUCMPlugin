@@ -1,21 +1,31 @@
 package net.praqma.hudson.test.integration.userstories;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
 import hudson.model.AbstractBuild;
 import hudson.model.Result;
+import hudson.model.User;
 import hudson.scm.ChangeLogSet;
+import hudson.scm.ChangeLogSet.AffectedFile;
 import hudson.scm.ChangeLogSet.Entry;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
+import net.praqma.hudson.scm.ChangeLogEntryImpl;
 import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.hudson.test.SystemValidator;
 import net.praqma.junit.DescriptionRule;
 import net.praqma.junit.TestDescription;
 
 import net.praqma.clearcase.test.junit.ClearCaseRule;
+
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
 public class JENKINS14436 {
 
@@ -44,7 +54,17 @@ public class JENKINS14436 {
 		Baseline baseline2 = ccenv.context.baselines.get( "model-2" );
 		new SystemValidator( build ).validateBuild( Result.SUCCESS ).validateBuiltBaseline( PromotionLevel.BUILT, baseline2, false ).validate();
 		
-		ChangeLogSet<? extends Entry> chlog = build.getChangeSet();
+		ChangeLogSet<? extends Entry> ls = build.getChangeSet();
+		
+		Object[] items = ls.getItems();
+		
+		System.out.println( "ITEMS: " + items );
+		
+		assertThat( items.length, is( 1 ) );
+		
+		Collection<String> col = ((ChangeLogEntryImpl)items[0]).getAffectedPaths();
+		assertThat( col.size(), is( 1 ) );
+
 	}
 
 	
