@@ -434,7 +434,10 @@ public class CCUCMNotifier extends Notifier {
 			status.setStable( false );
 			logger.debug( id + "Something went wrong: " + e.getMessage(), id );
 			logger.warning( e, id );
-			out.println( "[" + Config.nameShort + "] Error: Post build failed: " + e.getMessage() );
+			out.println( "[" + Config.nameShort + "] Error: Post build failed" );
+			Throwable cause = net.praqma.util.ExceptionUtils.unpackFrom( IOException.class, e );
+			
+			ExceptionUtils.print( cause, out, true );
 		}
 
 		/* If the promotion level of the baseline was changed on the remote */

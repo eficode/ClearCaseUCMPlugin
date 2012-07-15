@@ -25,6 +25,7 @@ import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.utils.BuildNumber;
+import net.praqma.clearcase.ucm.utils.VersionList;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules;
 import net.praqma.clearcase.ucm.view.UCMView;
@@ -78,7 +79,8 @@ public abstract class Util {
 				buffer.append( "<activity>" );
 				buffer.append( ( "<actName>" + act.getShortname() + "</actName>" ) );
 				buffer.append( ( "<author>" + act.getUser() + "</author>" ) );
-				List<Version> versions = act.changeset.versions;
+				//List<Version> versions = act.changeset.versions;
+				VersionList versions = new VersionList( act.changeset.versions ).getLatest();
 				String temp = null;
 				for( Version v : versions ) {
 					try {

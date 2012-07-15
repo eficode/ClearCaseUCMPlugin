@@ -32,7 +32,7 @@ public class Story11 {
 		/* First build to create a view */
 		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, true, false, false, false, false );
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
-		new SystemValidator( build ).validateBuild( Result.FAILURE ).validateBaselineTag( baseline, false ).validate();
+		new SystemValidator( build ).validateBuild( Result.UNSTABLE ).validateBaselineTag( baseline, false ).validate();
 	}
 
 	

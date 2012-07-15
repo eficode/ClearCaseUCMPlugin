@@ -168,7 +168,13 @@ public class SystemValidator {
 		try {
 			System.out.println( "[assert] " + taggedBaseline.getNormalizedName() + " must " + (baselineMustBeTagged?" ":"not ") + "be tagged" );
 			tag = Tag.getTag( taggedBaseline, build.getParent().getDisplayName(), build.getNumber()+"", false );
-			assertNotNull( tag );
+			if( baselineMustBeTagged ) {
+				assertNotNull( tag );
+				
+				/* TODO validate cgi string */
+			} else {
+				assertNull( tag );
+			}
 		} catch( Exception e ) {
 			fail( "Checking tag failed: " + e.getMessage() );
 		}

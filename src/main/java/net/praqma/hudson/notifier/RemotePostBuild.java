@@ -12,6 +12,8 @@ import java.io.PrintStream;
 import java.util.Set;
 
 import net.praqma.clearcase.exceptions.ClearCaseException;
+import net.praqma.clearcase.exceptions.TagException;
+import net.praqma.clearcase.exceptions.TagException.Type;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
@@ -112,9 +114,7 @@ class RemotePostBuild implements FileCallable<Status> {
 				tag = sourcebaseline.getTag( this.displayName, this.buildNumber );
 				status.setTagAvailable( true );
 			} catch( Exception e ) {
-				//e.printStackTrace( hudsonOut );
-				ExceptionUtils.print( e, hudsonOut, false );
-				ExceptionUtils.log( e, true );
+				hudsonOut.println( "Unable to get tag for " + sourcebaseline.getNormalizedName() );
 			}
 		}
 
@@ -214,6 +214,8 @@ class RemotePostBuild implements FileCallable<Status> {
 
 		}
 
+		Exception failBuild = null;
+		
 		/* Persist the Tag */
 		if( makeTag ) {
 			if( tag != null ) {
@@ -226,9 +228,14 @@ class RemotePostBuild implements FileCallable<Status> {
 					}
 				} catch( Exception e ) {
 					hudsonOut.println( "[" + Config.nameShort + "] Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
-					e.printStackTrace( hudsonOut );
-					ExceptionUtils.print( e, hudsonOut, false );
-					ExceptionUtils.log( e, true );
+					if( e instanceof TagException && ((TagException) e).getType().equals( Type.NO_SUCH_HYPERLINK ) ) {
+						logger.error( "Hyperlink type not found, failing build" );
+						hudsonOut.println( "Hyperlink type not found, failing build" );
+						failBuild = e;
+					} else {
+						ExceptionUtils.print( e, hudsonOut, false );
+						ExceptionUtils.log( e, true );
+					}
 				}
 			} else {
 				logger.warning( id + "Tag object was null" );
@@ -243,8 +250,13 @@ class RemotePostBuild implements FileCallable<Status> {
 			status.setBuildDescr( setDisplaystatus( sourcebaseline.getShortname(), newPLevel + noticeString, targetbaseline.getShortname(), status.getErrorMessage() ) );
 		}
 
-		logger.info( id + "Remote post build finished normally" );
 		Logger.removeAppender( app );
+		
+		if( failBuild != null ) {
+			throw new IOException( failBuild );
+		}		
+		
+		logger.info( id + "Remote post build finished normally" );
 		return status;
 	}
 
