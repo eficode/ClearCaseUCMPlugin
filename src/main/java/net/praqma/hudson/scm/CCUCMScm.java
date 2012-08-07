@@ -398,7 +398,7 @@ public class CCUCMScm extends SCM {
 			String bls = br.readLine();
 			logger.debug( "Read " + bls );
 			if( bls == null || bls.length() == 0 ) {
-				throw new ScmException( "No last baseline stored" );
+				throw new ScmException( "No last baseline stored", null );
 			}
 			Baseline bl = Baseline.get( bls );
 			Baseline loaded = (Baseline) rutil.loadEntity( project.getSomeWorkspace(), bl, getSlavePolling() );
@@ -406,10 +406,10 @@ public class CCUCMScm extends SCM {
 		} catch( FileNotFoundException e ) {
 		} catch( IOException e ) {
 			logger.warning( "Could not read last baseline" );
-			throw new ScmException( "Could not read last baseline" );
+			throw new ScmException( "Could not read last baseline", e );
 		} catch( ClearCaseException e ) {
 			logger.warning( "Unable to get last baseline!" );
-			throw new ScmException( "Unable to get last baseline" );
+			throw new ScmException( "Unable to get last baseline", e );
 			// } catch( CCUCMException e ) {
 			// logger.warning( "Unable to load last baseline" );
 			// throw new ScmException( "Unable to load last baseline" );
@@ -1160,7 +1160,7 @@ public class CCUCMScm extends SCM {
 			// stream.getShortname() + ": " + e1.getMessage());
 			/* no op */
 			logger.debug( "No baselines: " + e1.getMessage() );
-			throw new ScmException("Unable to get baselines from " + stream.getShortname() + ": " + e1.getMessage());
+			throw new ScmException("Unable to get baselines from " + stream.getShortname(), e1 );
 		}
 
 		return baselines;

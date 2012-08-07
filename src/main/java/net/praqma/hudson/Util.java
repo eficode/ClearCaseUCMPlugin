@@ -59,7 +59,7 @@ public abstract class Util {
 			
 			devstream.load();
 		} catch( Exception e ) {
-			throw new ScmException( "Could not get stream: " + e.getMessage() );
+			throw new ScmException( "Could not get stream: " + streamname, e );
 		}
 
 		return devstream;
@@ -127,11 +127,11 @@ public abstract class Util {
 			} else {
 				if( viewroot.mkdir() ) {
 				} else {
-					throw new ScmException( "Could not create folder for view root:  " + viewroot.toString() );
+					throw new ScmException( "Could not create folder for view root:  " + viewroot.toString(), null );
 				}
 			}
 		} catch( Exception e ) {
-			throw new ScmException( "Could not make workspace (for viewroot " + viewroot.toString() + "). Cause: " + e.getMessage() );
+			throw new ScmException( "Could not make workspace (for viewroot " + viewroot.toString() + "). Cause: " + e.getMessage(), e );
 
 		}
 
@@ -150,7 +150,7 @@ public abstract class Util {
 					try {
 						path.deleteRecursive();
 					} catch( Exception e ) {
-						throw new ScmException( "Unable to recursively prepare view root: " + e.getMessage() );
+						throw new ScmException( "Unable to recursively prepare view root", e );
 					}
 					makeView( stream, workspace, listener, loadModule, viewroot, viewtag );
 				}
@@ -161,13 +161,13 @@ public abstract class Util {
 					SnapshotView.regenerateViewDotDat( viewroot, viewtag );
 				} catch( ClearCaseException ucmEx ) {
 					ucmEx.print( hudsonOut );
-					throw new ScmException( "Could not make workspace - could not regenerate view: " + ucmEx.getMessage() + " Type: " + "" );
+					throw new ScmException( "Could not make workspace - could not regenerate view", ucmEx );
 				} catch( IOException e ) {
-					throw new ScmException( "Could not make workspace - could not regenerate view: " + e.getMessage() );
+					throw new ScmException( "Could not make workspace - could not regenerate view", e );
 				}
 			} catch( Exception e ) {
 				hudsonOut.println( "[" + Config.nameShort + "] Failed making workspace: " + e.getMessage() );
-				throw new ScmException( "Failed making workspace: " + e.getMessage() );
+				throw new ScmException( "Failed making workspace", e );
 			}
 
 			hudsonOut.println( "[" + Config.nameShort + "] Getting snapshotview" );
@@ -175,9 +175,9 @@ public abstract class Util {
 				snapview = SnapshotView.get( viewroot );
 			} catch( ClearCaseException e ) {
 				e.print( hudsonOut );
-				throw new ScmException( "Could not get view for workspace. " + e.getMessage() );
+				throw new ScmException( "Could not get view for workspace", e );
 			} catch( IOException e ) {
-				throw new ScmException( "Could not get view for workspace. " + e.getMessage() );
+				throw new ScmException( "Could not get view for workspace", e );
 			}
 		} else {
 			try {
@@ -187,9 +187,9 @@ public abstract class Util {
 				hudsonOut.println( "[" + Config.nameShort + "] Created new view in local workspace: " + viewroot.getAbsolutePath() );
 			} catch( ClearCaseException e ) {
 				e.print( hudsonOut );
-				throw new ScmException( "View not found in this region, but views with viewtag '" + viewtag + "' might exist in the other regions. Try changing the region Hudson or the slave runs in." );
+				throw new ScmException( "View not found in this region, but views with viewtag '" + viewtag + "' might exist in the other regions. Try changing the region Hudson or the slave runs in.", e );
 			} catch( IOException e ) {
-				throw new ScmException( "Unable to create view: " + e.getMessage() );
+				throw new ScmException( "Unable to create view: " + e.getMessage(), e );
 			}
 		}
 
@@ -204,7 +204,7 @@ public abstract class Util {
 						hudsonOut.println( "The view is currently being used to rebase another stream" );
 					}
 				}
-				throw new ScmException( "Could not update snapshot view. " + e.getMessage() );
+				throw new ScmException( "Could not update snapshot view", e );
 			}
 		}
 

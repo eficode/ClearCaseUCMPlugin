@@ -240,7 +240,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
             logger.debug( id + "Updating done" );
         } catch (ClearCaseException e) {
             e.print( hudsonOut );
-            throw new ScmException("Could not update snapshot view. " + e.getMessage());
+            throw new ScmException("Could not update snapshot view", e );
         }
 	}
 
@@ -265,7 +265,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 			throw se;
 
 		} catch (Exception e) {
-			throw new ScmException( "Could not get stream: " + e.getMessage() );
+			throw new ScmException( "Could not get stream", e );
 		}
 
 		return devstream;

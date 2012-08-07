@@ -1,14 +1,8 @@
 package net.praqma.hudson.exception;
 
-public class ScmException extends Exception
-{
-	/**
-	 * 
-	 */
-	public static final long serialVersionUID = 1L;
+public class ScmException extends Exception {
 
-	public ScmException( String msg )
-	{
-		super( msg );
+	public ScmException( String msg, Exception e ) {
+		super( msg, e );
 	}
 }

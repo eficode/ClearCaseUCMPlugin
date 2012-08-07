@@ -42,7 +42,7 @@ public class Config {
 			devStream = Stream.get( "Hudson_Server_dev@" + pvob );
 			devStream.load();
 		} catch( ClearCaseException e ) {
-			throw new ScmException( "Could not get developer stream. " + e.getMessage() );
+			throw new ScmException( "Could not get developer stream", e );
 		}
 		return devStream;
 	}
@@ -95,7 +95,7 @@ public class Config {
 		try {
 			stream = project.getIntegrationStream();
 		} catch( Exception e ) {
-			throw new ScmException( "Could not get integration stream from " + project.getShortname() );
+			throw new ScmException( "Could not get integration stream from " + project.getShortname(), e );
 		}
 
 		return stream;
