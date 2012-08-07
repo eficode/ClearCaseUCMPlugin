@@ -4,6 +4,7 @@ import java.util.List;
 
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.exceptions.CleartoolException;
+import net.praqma.clearcase.exceptions.UCMEntityNotFoundException;
 import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
 import net.praqma.clearcase.exceptions.UnableToLoadEntityException;
 import net.praqma.clearcase.ucm.entities.Baseline;
@@ -68,8 +69,12 @@ public class Config {
 						try {
 							project = Project.get( "Jenkins", bl.getPVob() ).load();
 						} catch( Exception eJ ) {
-							logger.warning( "The build Project was not found." );
-							project = bl.getStream().getProject();
+							logger.debug( "Using current project as build project" );
+							try {
+								project = bl.getStream().load().getProject();
+							} catch( Exception e ) {
+								throw new ScmException( "Could not get a build Project", null );
+							}
 						}
 					}
 				}
