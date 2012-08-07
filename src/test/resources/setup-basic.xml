@@ -85,15 +85,6 @@
     </baselines>
   </stream>
   
-  <project name="jenkins" comment="" pvob="${pvobname}" in="one_folder">
-    <policies>
-      <policy>POLICY_INTERPROJECT_DELIVER</policy>
-    </policies>
-  </project>
-  
-  <stream name="jenkins_int" in="jenkins" comment="" pvob="${pvobname}" type="integration">
-  </stream>
-  
   <stream name="one_dev" in="one_int" comment="" pvob="${pvobname}">
     <baselines>
       <baseline name="_System_1.0" pvob="${pvobname}" />

@@ -1,6 +1,7 @@
 <ccenvs xmlns:xi="http://www.w3.org/2001/XInclude">
 
 	<xi:include href="src/test/resources/setup-basic.xml"/>
+	<xi:include href="src/test/resources/setup-jenkins-project.xml"/>
 
 	<ccenv name="Interproject ">
 

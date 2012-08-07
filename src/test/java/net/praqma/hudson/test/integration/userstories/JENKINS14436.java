@@ -33,7 +33,7 @@ public class JENKINS14436 {
 	public static CCUCMRule jenkins = new CCUCMRule();
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story12", "setup-JENKINS-14436.xml" );
+	public static ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-14436", "setup-JENKINS-14436.xml" );
 	
 	@Rule
 	public static DescriptionRule desc = new DescriptionRule();

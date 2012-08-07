@@ -20,7 +20,7 @@ public class JENKINS13944 {
 	public static CCUCMRule jenkins = new CCUCMRule();
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story11" );
+	public static ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-13944" );
 	
 	@Rule
 	public static DescriptionRule desc = new DescriptionRule();
