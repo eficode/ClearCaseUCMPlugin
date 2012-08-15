@@ -6,7 +6,7 @@
 	  
 		<context mvfs="m:\" linux="/view" view="${name}_one_dev" vob="${vobname}"/>
 	  
-		<activity comment="" headline="Adding initial files into components" in="one_int" name="initial_files" pvob="${pvobname}" />
+		<activity comment="" headline="Adding initial files into components" in="one_dev" name="initial_files" pvob="${pvobname}" />
 	  
 		<setactivity activity="initial_files" pvob="${pvobname}" />
 	  

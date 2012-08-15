@@ -94,6 +94,9 @@ import org.kohsuke.stapler.export.Exported;
  * information can be entered on the config page. 
  */
 public class CCUCMScm extends SCM {
+	
+	/* Currently only for testing */
+	private Boolean multisitePolling;
 
 	private Project.PromotionLevel plevel;
 	private String levelToPoll;
@@ -1319,9 +1322,12 @@ public class CCUCMScm extends SCM {
 	}
 
 	public boolean getMultisitePolling() {
-		CCUCMScmDescriptor desc = (CCUCMScmDescriptor) this.getDescriptor();
-		return desc.getMultisitePolling();
-
+		if( this.multisitePolling != null ) {
+			return this.multisitePolling;
+		} else {
+			CCUCMScmDescriptor desc = (CCUCMScmDescriptor) this.getDescriptor();
+			return desc.getMultisitePolling();
+		}
 	}
 
 	@Exported
@@ -1369,6 +1375,10 @@ public class CCUCMScm extends SCM {
 
 	public Appender getAppender() {
 		return app;
+	}
+	
+	public void setMultisitePolling( boolean mp ) {
+		this.multisitePolling = mp;
 	}
 
 	/**
