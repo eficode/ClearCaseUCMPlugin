@@ -82,6 +82,32 @@ public class CCUCMRule extends JenkinsRule {
 		return project;
 	}
 	
+	public CCUCMScm getCCUCM( String type, String component, String stream, String promotionLevel, boolean recommend, boolean tag, boolean description, boolean createBaseline, boolean forceDeliver, String template ) {
+		System.out.println( "==== [Setting up ClearCase UCM project] ====" );
+		System.out.println( " * Stream         : " + stream );
+		System.out.println( " * Component      : " + component );
+		System.out.println( " * Level          : " + promotionLevel );
+		System.out.println( " * Polling        : " + type );
+		System.out.println( " * Recommend      : " + recommend );
+		System.out.println( " * Tag            : " + tag );
+		System.out.println( " * Description    : " + description );
+		System.out.println( " * Create baseline: " + createBaseline );
+		System.out.println( " * Template       : " + template );
+		System.out.println( " * Force deliver  : " + forceDeliver );
+		System.out.println( "============================================" );
+		
+		CCUCMScm scm = new CCUCMScm( component, promotionLevel, "ALL", false, type, stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "" );
+		
+		return scm;
+	}
+	
+	public FreeStyleProject createProject( String name, CCUCMScm ccucm ) throws IOException {
+		FreeStyleProject project = createFreeStyleProject( name );
+		project.setScm( ccucm );
+		
+		return project;
+	}
+	
 	public CCUCMScm getScm() {
 		return this.scm;
 	}

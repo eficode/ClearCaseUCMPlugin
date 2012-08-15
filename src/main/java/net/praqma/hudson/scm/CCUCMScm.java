@@ -91,11 +91,7 @@ import org.kohsuke.stapler.export.Exported;
 /**
  * is responsible for everything regarding Hudsons connection to ClearCase
  * pre-build. This class defines all the files required by the user. The
- * information can be entered on the config page.
- * 
- * @author Troels Selch
- * @author Margit Bennetzen
- * 
+ * information can be entered on the config page. 
  */
 public class CCUCMScm extends SCM {
 
@@ -912,29 +908,20 @@ public class CCUCMScm extends SCM {
 		Logger.addAppender( app );
 		this.rutil = new RemoteUtil( Logger.getLoggerSettings( app.getMinimumLevel() ), app );
 
-		logger.info( "Total number of states: " + ccucm.size() );
-		logger.debug( "THE STATES: " + ccucm.stringify() );
-		List<State> states = ccucm.getStates( jobName );
-		/* This is only interesting if there're any states */
-		logger.debug( "I got " + states.size() + " number of states for " + jobName );
-		if( states.size() > 0 ) {
-			for( State s : states ) {
-				try {
-					logger.debug( "Checking " + s.getJobNumber() );
-					Integer bnum = s.getJobNumber();
-					Object o = project.getBuildByNumber( bnum );
-					Build<?, ?> bld = (Build<?, ?>) o;
-					if( bld.hasntStartedYet() ) {
-						logger.debug( s.getJobNumber() + " is still waiting in queue or building, no need for polling" );
-						Logger.removeAppender( app );
-						return p;
-					}
-				} catch( Exception e ) {
-					logger.debug( "The state " + s.getJobNumber() + " threw " + e.getMessage() );
-				}
+		/* Interrupt polling if: */
+		if( this.getMultisitePolling() ) {
+			/* multisite polling and a build is in progress */
+			if( project.isBuilding() ) {
+				logger.debug( "A build already building - cancelling poll" );
+	            return PollingResult.NO_CHANGES;
+			}
+		} else {
+			/* not multisite polling and a the project is already in queue */
+			if( project.isInQueue() ) {
+				logger.debug( "A build already in queue - cancelling poll" );
+	            return PollingResult.NO_CHANGES;
 			}
 		}
-		
 
 		boolean createdByThisPoll = false;
 		State state = null;
