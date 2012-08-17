@@ -290,7 +290,6 @@ public class CCUCMScm extends SCM {
 			
 			/* Add the found baseline to the action */
 			action.setBaseline( state.getBaseline() );
-			action.setViewTag( viewtag );
 			
 			baselineName = state.getBaseline().getFullyQualifiedName();
 			
@@ -312,7 +311,8 @@ public class CCUCMScm extends SCM {
 				logger.debug( "Deliver" );
 				result = beginDeliver( build, state, listener, changelogFile );
 			}
-
+			
+			action.setViewTag( viewtag );
 		}
 
 		consoleOutput.println( "[" + Config.nameShort + "] Pre build steps done" );
