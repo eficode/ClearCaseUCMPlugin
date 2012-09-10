@@ -584,6 +584,13 @@ public class CCUCMScm extends SCM {
 
 			printParameters( out );
 			state.setStream( Stream.get( stream ) );
+			/* The Stream must be loaded */
+			try {
+				state.setStream( (Stream) rutil.loadEntity( workspace, state.getStream(), getSlavePolling() ) );
+			} catch( CCUCMException e1 ) {
+				ExceptionUtils.print( e1, out, true );
+				throw new AbortException( "Unable to load " + state.getStream() );
+			}
 
 			if( !state.isAddedByPoller() ) {
 				logger.debug( "This job was not added by a poller" );
@@ -597,7 +604,7 @@ public class CCUCMScm extends SCM {
 					baselines = getBaselinesFromStreams( workspace, listener, out, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
 				}
 
-				filterBaselines( project,state.getStream(), baselines );
+				filterBaselines( project, state.getStream(), baselines );
 
 				/* if we did not find any baselines we should return false */
 				if( baselines.size() < 1 ) {
@@ -944,9 +951,17 @@ public class CCUCMScm extends SCM {
 		logger.debug( "Need for polling" );
 
 		storeStateParameters( state );
-
+		
 		PrintStream out = listener.getLogger();
 		printParameters( out );
+		
+		/* The Stream must be loaded */
+		try {
+			state.setStream( (Stream) rutil.loadEntity( workspace, state.getStream(), getSlavePolling() ) );
+		} catch( CCUCMException e1 ) {
+			ExceptionUtils.print( e1, out, true );
+			throw new AbortException( "Unable to load " + state.getStream() );
+		}
 
 		out.println( "[" + Config.nameShort + "] polling streams: " + polling );
 
@@ -1225,10 +1240,6 @@ public class CCUCMScm extends SCM {
 		state.setRecommend( recommend );
 		state.setForceDeliver( forceDeliver );
 
-		/*
-		 * try { state.setBaseline( UCMEntity.getBaseline( bl, false ) ); }
-		 * catch( UCMException e ) { logger.warning( e ); }
-		 */
 		state.setPlevel( plevel );
 	}
 
