@@ -357,8 +357,6 @@ public class CCUCMNotifier extends Notifier {
 						if( action != null ) {
 							action.setCreatedBaseline( targetbaseline );
 						}
-						
-						out.println( targetbaseline );
 					} catch( Exception e ) {
 						ExceptionUtils.print( e, out, false );
 						logger.warning( "Failed to create baseline on stream", id );

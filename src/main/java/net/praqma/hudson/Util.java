@@ -78,6 +78,7 @@ public abstract class Util {
 				act.load();
 				buffer.append( "<activity>" );
 				buffer.append( ( "<actName>" + act.getShortname() + "</actName>" ) );
+				buffer.append( ( "<actHeadline>" + act.getHeadline() + "</actHeadline>" ) );
 				buffer.append( ( "<author>" + act.getUser() + "</author>" ) );
 				//List<Version> versions = act.changeset.versions;
 				VersionList versions = new VersionList( act.changeset.versions ).getLatest();

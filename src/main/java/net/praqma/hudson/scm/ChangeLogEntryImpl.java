@@ -20,6 +20,7 @@ public class ChangeLogEntryImpl extends Entry {
 
 	private ChangeLogSetImpl parent;
 	private String actName;
+	private String actHeadline;
 	private String msg;
 	private String author;
 	private String date;
@@ -76,6 +77,14 @@ public class ChangeLogEntryImpl extends Entry {
 
 	public void setActName( String actName ) {
 		this.actName = actName;
+	}
+	
+	public void setActHeadline( String actHeadline ) {
+		this.actHeadline = actHeadline;
+	}
+	
+	public String getActHeadline() {
+		return actHeadline;
 	}
 
 }

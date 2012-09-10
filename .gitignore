@@ -6,3 +6,7 @@ work/
 target
 #Log files
 .log
+.idea
+bin
+stuff
+*.iml
