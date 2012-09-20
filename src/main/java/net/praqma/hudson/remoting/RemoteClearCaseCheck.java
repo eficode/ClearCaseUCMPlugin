@@ -9,7 +9,7 @@ public class RemoteClearCaseCheck implements Callable<Boolean, AbnormalProcessTe
 
 	@Override
 	public Boolean call() throws AbnormalProcessTerminationException {
-		
+
 		Cleartool.run( "lsvob" );
 		
 		return null;

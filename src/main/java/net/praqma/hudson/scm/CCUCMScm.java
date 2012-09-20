@@ -522,6 +522,7 @@ public class CCUCMScm extends SCM {
 	}
 
 	private boolean pollStream( FilePath workspace, AbstractProject<?, ?> project, State state, BuildListener listener ) {
+        logger.fine( "Polling stream " + state.getStream().getNormalizedName() );
 		boolean result = true;
 		PrintStream out = listener.getLogger();
 
@@ -845,9 +846,11 @@ public class CCUCMScm extends SCM {
 		}
 		state.setNameTemplate( nameTemplate );
 
+        /*
 		StopWatch sw = StopWatch.get( jobName + "-" + jobNumber );
 		sw.reset();
 		sw.start();
+		*/
 
 		logger.fine( "Let's go!" );
 
@@ -955,10 +958,12 @@ public class CCUCMScm extends SCM {
 			state.setAddedByPoller( true );
 		}
 
+        /*
 		sw.stop();
 		logger.fine( "Polling took " + sw.getSeconds() + " seconds" );
 		out.println( "Polling took " + sw.getSeconds() + " seconds" );
-		sw.delete();
+		sw.stop();
+		*/
 
 		return p;
 	}
