@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.apache.commons.digester.Digester;
 import org.xml.sax.SAXException;
@@ -15,8 +16,6 @@ import hudson.scm.ChangeLogSet;
 import hudson.scm.ChangeLogSet.Entry;
 import hudson.util.Digester2;
 
-import net.praqma.util.debug.Logger;
-
 /**
  * 
  * @author Troels Selch
@@ -25,7 +24,7 @@ import net.praqma.util.debug.Logger;
  */
 public class ChangeLogParserImpl extends ChangeLogParser {
 
-	protected static Logger logger = Logger.getLogger();
+	protected static Logger logger = Logger.getLogger( ChangeLogParserImpl.class.getName() );
 
 	@Override
 	public ChangeLogSet<? extends Entry> parse( AbstractBuild build, File changelogFile ) throws IOException, SAXException {

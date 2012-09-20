@@ -1,28 +1,20 @@
 package net.praqma.hudson;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import net.praqma.clearcase.exceptions.ClearCaseException;
-import net.praqma.clearcase.exceptions.CleartoolException;
-import net.praqma.clearcase.exceptions.UCMEntityNotFoundException;
-import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
-import net.praqma.clearcase.exceptions.UnableToLoadEntityException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
-import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.hudson.exception.ScmException;
-import net.praqma.util.debug.Logger;
 
 public class Config {
 
 	public static String nameShort = "CCUCM";
 	public static String nameLong = "ClearCase UCM";
-	public static String logVar = "ccucm_log";
-	public static String levelVar = "ccucm_loglevel";
-	public static String logAllVar = "ccucm_logall";
 
-	protected static Logger logger = Logger.getLogger();
+	protected static Logger logger = Logger.getLogger( Config.class.getName() );
 
 	private Config() {
 	}
@@ -69,7 +61,7 @@ public class Config {
 						try {
 							project = Project.get( "Jenkins", bl.getPVob() ).load();
 						} catch( Exception eJ ) {
-							logger.debug( "Using current project as build project" );
+							logger.fine( "Using current project as build project" );
 							try {
 								project = bl.getStream().load().getProject();
 							} catch( Exception e ) {

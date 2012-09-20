@@ -3,7 +3,6 @@ package net.praqma.hudson.remoting;
 import java.io.File;
 import java.io.IOException;
 
-import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 
 import hudson.FilePath.FileCallable;

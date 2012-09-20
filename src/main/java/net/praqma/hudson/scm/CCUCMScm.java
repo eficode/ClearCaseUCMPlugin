@@ -46,10 +46,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.exceptions.DeliverException;
@@ -74,11 +72,6 @@ import net.praqma.hudson.remoting.*;
 import net.praqma.hudson.scm.Polling.PollingType;
 import net.praqma.hudson.scm.CCUCMState.State;
 import net.praqma.util.StopWatch;
-import net.praqma.util.debug.Logger;
-import net.praqma.util.debug.Logger.LogLevel;
-import net.praqma.util.debug.LoggerSetting;
-import net.praqma.util.debug.appenders.Appender;
-import net.praqma.util.debug.appenders.FileAppender;
 import net.praqma.util.execute.AbnormalProcessTerminationException;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
@@ -94,6 +87,8 @@ import org.kohsuke.stapler.export.Exported;
  * information can be entered on the config page. 
  */
 public class CCUCMScm extends SCM {
+
+    private static Logger logger = Logger.getLogger( CCUCMScm.class.getName() );
 	
 	/* Currently only for testing */
 	private Boolean multisitePolling;
@@ -111,11 +106,9 @@ public class CCUCMScm extends SCM {
 	private String jobName = "";
 	private Integer jobNumber;
 	private String id = "";
-	transient private Logger logger = null;
+
 	public static CCUCMState ccucm = new CCUCMState();
 	private boolean forceDeliver;
-
-	private Appender app;
 
 	/* Old notifier fields */
 	private boolean recommend;
@@ -126,15 +119,9 @@ public class CCUCMScm extends SCM {
 	private String nameTemplate;
 
 	/* Threshold in milliseconds */
-	public static final long __CCUCM_STORED_BASELINES_THRESHOLD = 5 * 60 * 1000;
-	public static final String CCUCM_LOGGER_STRING = "include_classes";
 	private Polling polling;
 	private String viewtag = "";
-	private Set<String> subs;
 	private Baseline lastBaseline;
-
-	private RemoteUtil rutil;
-	private LoggerSetting loggerSetting;
 
 	private static DateFormat dateFormatter = new SimpleDateFormat( "yyyyMMdd" );
 
@@ -144,19 +131,6 @@ public class CCUCMScm extends SCM {
 	public CCUCMScm() {
 	}
 
-	/**
-	 * 
-	 * @param component
-	 * @param levelToPoll
-	 * @param loadModule
-	 * @param newest
-	 * @param polling
-	 * @param stream
-	 * @param versionFrom
-	 * @param nameTemplate
-	 * @param buildProject
-	 * @param multiSite
-	 */
 	@DataBoundConstructor
 	public CCUCMScm( String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable, 
 			         boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject ) {
@@ -192,30 +166,16 @@ public class CCUCMScm extends SCM {
 
 		PrintStream consoleOutput = listener.getLogger();
 
+        /* Printing short description of build */
 		String version = Hudson.getInstance().getPlugin( "clearcase-ucm-plugin" ).getWrapper().getVersion();
 		consoleOutput.println( "[" + Config.nameShort + "] ClearCase UCM Plugin version " + version );
-
 		consoleOutput.println( "[" + Config.nameShort + "] Allow for slave polling: " + this.getSlavePolling() );
 		consoleOutput.println( "[" + Config.nameShort + "] Poll for posted deliveries: " + this.getMultisitePolling() );
-		
 		consoleOutput.println( "[" + Config.nameShort + "] Forcing deliver: " + forceDeliver );
 
+		logger.info( id + "CCUCMSCM checkout v. " + version );
 		
-		/* Preparing the logger */
-		logger = Logger.getLogger();
-		File logfile = new File( build.getRootDir(), "ccucmSCM.log" );
-		app = new FileAppender( logfile );
-
-		net.praqma.hudson.Util.initializeAppender( build, app );
-		Logger.addAppender( app );
-		this.loggerSetting = Logger.getLoggerSettings( app.getMinimumLevel() );
-		this.rutil = new RemoteUtil( loggerSetting, app );
-
-		logger.verbose( "Number of appenders: " + Logger.getNumberOfAppenders() );
-
-		logger.info( id + "CCUCMSCM checkout v. " + version, id );
-		
-		/**/
+		/* Check for ClearCase on remote */
 		try {
 			workspace.act( new RemoteClearCaseCheck() );
 		} catch( AbnormalProcessTerminationException e ) {
@@ -226,14 +186,14 @@ public class CCUCMScm extends SCM {
 
 		doPostBuild = true;
 
-		logger.debug( "STATES: " + ccucm.stringify() );
+		logger.fine( "STATES: " + ccucm.stringify() );
 		/* If we polled, we should get the same object created at that point */
 		State state = null;
 		try {
 			state = ccucm.getState( jobName, jobNumber );
-			logger.debug( "The existing state is: " + state.stringify() );
+			logger.fine( "The existing state is: " + state.stringify() );
 		} catch( IllegalStateException e ) {
-			logger.debug( e.getMessage() );
+			logger.fine( e.getMessage() );
 			state = ccucm.create( jobName, jobNumber );
 		}
 
@@ -246,7 +206,7 @@ public class CCUCMScm extends SCM {
 		
 		logger.info( "Number of states: " + ccucm.size() );
 
-		logger.debug( id + "The initial state:\n" + state.stringify(), id );
+		logger.fine( id + "The initial state:\n" + state.stringify() );
 
 		/* Check template */
 		state.setCreatebaseline( createBaseline );
@@ -259,7 +219,6 @@ public class CCUCMScm extends SCM {
 		/* Check input */
 		if( !checkInput( listener ) ) {
 			state.setPostBuild( false );
-			Logger.removeAppender( app );
 			return false;
 		}
 
@@ -271,7 +230,7 @@ public class CCUCMScm extends SCM {
 
 		/* The special Baseline case */
 		if( build.getBuildVariables().get( baselineInput ) != null ) {
-			logger.debug( "BASELINE: " + baselineInput, id );
+			logger.fine( "BASELINE: " + baselineInput );
 			polling = new Polling( PollingType.none );
 			result = doBaseline( build, baselineInput, state, listener );
 		} else {
@@ -299,16 +258,16 @@ public class CCUCMScm extends SCM {
 			 */
 
 			if( polling.isPollingSelf() || !polling.isPolling() ) {
-				logger.debug( "Initializing workspace" );
+				logger.fine( "Initializing workspace" );
 				result = initializeWorkspace( build, workspace, changelogFile, listener, state );
 				if( plevel == null ) {
 					/* Save */
-					logger.debug( "Storing last baseline" );
+					logger.fine( "Storing last baseline" );
 					storeLastBaseline( state.getBaseline(), build.getProject() );
 				}
 			} else {
 				/* Only start deliver when NOT polling self */
-				logger.debug( "Deliver" );
+				logger.fine( "Deliver" );
 				result = beginDeliver( build, state, listener, changelogFile );
 			}
 			
@@ -321,7 +280,7 @@ public class CCUCMScm extends SCM {
 		if( plevel != null ) {
 			boolean used = false;
 			for( Publisher p : build.getParent().getPublishersList() ) {
-				logger.debug( "NOTIFIER: " + p.toString(), id );
+				logger.fine( "NOTIFIER: " + p.toString() );
 				if( p instanceof CCUCMNotifier ) {
 					used = true;
 					break;
@@ -329,7 +288,7 @@ public class CCUCMScm extends SCM {
 			}
 
 			if( !used ) {
-				logger.info( "Adding notifier to project", id );
+				logger.info( "Adding notifier to project" );
 				build.getParent().getPublishersList().add( new CCUCMNotifier() );
 			}
 			
@@ -355,15 +314,14 @@ public class CCUCMScm extends SCM {
 
 			/* End the view */
 			try {
-				logger.debug( "Ending view " + viewtag );
-				rutil.endView( build.getWorkspace(), viewtag );
-			} catch( CCUCMException e ) {
+				logger.fine( "Ending view " + viewtag );
+                workspace.act( new EndView( viewtag ) );
+			} catch( Exception e ) {
 				consoleOutput.println( e.getMessage() );
-				logger.warning( e.getMessage() );
+				logger.log( Level.WARNING, "", e );
 			}
 		}
 
-		Logger.removeAppender( app );
 		return result;
 	}
 
@@ -395,12 +353,12 @@ public class CCUCMScm extends SCM {
 			fr = new FileReader( new File( project.getRootDir(), ".lastbaseline" ) );
 			BufferedReader br = new BufferedReader( fr );
 			String bls = br.readLine();
-			logger.debug( "Read " + bls );
+			logger.fine( "Read " + bls );
 			if( bls == null || bls.length() == 0 ) {
 				throw new ScmException( "No last baseline stored", null );
 			}
 			Baseline bl = Baseline.get( bls );
-			Baseline loaded = (Baseline) rutil.loadEntity( project.getSomeWorkspace(), bl, getSlavePolling() );
+			Baseline loaded = (Baseline) RemoteUtil.loadEntity( project.getSomeWorkspace(), bl, getSlavePolling() );
 			return loaded;
 		} catch( FileNotFoundException e ) {
 		} catch( IOException e ) {
@@ -470,21 +428,8 @@ public class CCUCMScm extends SCM {
 
 		EstablishResult er = null;
 		try {
-
-			Future<EstablishResult> i = null;
-			if( workspace.isRemote() ) {
-				final Pipe pipe = Pipe.createRemoteToLocal();
-				CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), state.getStream(), loadModule, state.getBaseline(), buildProject, ( plevel == null ), pipe, null, loggerSetting );
-				i = workspace.actAsync( ct );
-				app.write( pipe.getIn() );
-			} else {
-				PipedInputStream in = new PipedInputStream();
-				PipedOutputStream out = new PipedOutputStream( in );
-				CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), state.getStream(), loadModule, state.getBaseline(), buildProject, ( plevel == null ), null, new PrintStream( out ), loggerSetting );
-				i = workspace.actAsync( ct );
-				app.write( in );
-			}
-			er = i.get();
+            CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), state.getStream(), loadModule, state.getBaseline(), buildProject, ( plevel == null ) );
+            er = workspace.act( ct );
 			String changelog = er.getMessage();
 
 			this.viewtag = er.getViewtag();
@@ -496,7 +441,7 @@ public class CCUCMScm extends SCM {
 				fos.write( changelog.getBytes() );
 				fos.close();
 			} catch( IOException e ) {
-				logger.debug( id + "Could not write change log file", id );
+				logger.fine( id + "Could not write change log file" );
 				consoleOutput.println( "[" + Config.nameShort + "] Could not write change log file" );
 			}
 
@@ -537,7 +482,7 @@ public class CCUCMScm extends SCM {
 			/* The component could be used in the post build section */
 			state.setComponent( state.getBaseline().getComponent() );
 			state.setStream( state.getBaseline().getStream() );
-			logger.debug( id + "Saving the component for later use", id );
+			logger.fine( id + "Saving the component for later use" );
 		} catch( ClearCaseException e ) {
 			consoleOutput.println( "[" + Config.nameShort + "] Could not find baseline from parameter '" + baselinename + "'." );
 			state.setPostBuild( false );
@@ -586,14 +531,14 @@ public class CCUCMScm extends SCM {
 			state.setStream( Stream.get( stream ) );
 			/* The Stream must be loaded */
 			try {
-				state.setStream( (Stream) rutil.loadEntity( workspace, state.getStream(), getSlavePolling() ) );
+				state.setStream( (Stream) RemoteUtil.loadEntity( workspace, state.getStream(), getSlavePolling() ) );
 			} catch( CCUCMException e1 ) {
 				ExceptionUtils.print( e1, out, true );
 				throw new AbortException( "Unable to load " + state.getStream() );
 			}
 
 			if( !state.isAddedByPoller() ) {
-				logger.debug( "This job was not added by a poller" );
+				logger.fine( "This job was not added by a poller" );
 
 				List<Baseline> baselines = null;
 				/* Old skool self polling */
@@ -628,7 +573,7 @@ public class CCUCMScm extends SCM {
 
 		} catch( Exception e ) {
 			out.println( "[" + Config.nameShort + "] " + e.getMessage() );
-			logger.warning( e, id );
+			logger.log( Level.WARNING, "", e );
 			return false;
 		}
 
@@ -643,25 +588,10 @@ public class CCUCMScm extends SCM {
 		EstablishResult er = new EstablishResult();
 
 		try {
-			RemoteDeliver rmDeliver = null;
-			logger.verbose( "Starting remote deliver" );
-			if( workspace.isRemote() ) {
-				final Pipe pipe = Pipe.createRemoteToLocal();
-				Future<EstablishResult> i = null;
-				rmDeliver = new RemoteDeliver( state.getStream().getFullyQualifiedName(), listener, pipe, null, loggerSetting, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), state.getForceDeliver() );
-				i = workspace.actAsync( rmDeliver );
-				app.write( pipe.getIn() );
-				er = i.get();
+			logger.config( "Starting remote deliver" );
 
-			} else {
-				Future<EstablishResult> i = null;
-				PipedInputStream in = new PipedInputStream();
-				PipedOutputStream out = new PipedOutputStream( in );
-				rmDeliver = new RemoteDeliver( state.getStream().getFullyQualifiedName(), listener, null, new PrintStream( out ), loggerSetting, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), state.getForceDeliver() );
-				i = workspace.actAsync( rmDeliver );
-				app.write( in );
-				er = i.get();
-			}
+            RemoteDeliver rmDeliver = new RemoteDeliver( state.getStream().getFullyQualifiedName(), listener, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), state.getForceDeliver() );
+            er = workspace.act( rmDeliver );
 
 			CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
 			action.setViewPath( er.getView().getViewRoot() );
@@ -676,7 +606,7 @@ public class CCUCMScm extends SCM {
 				fos.write( er.getMessage().getBytes() );
 				fos.close();
 			} catch( IOException e ) {
-				logger.debug( id + "Could not write change log file", id );
+				logger.fine( id + "Could not write change log file" );
 				consoleOutput.println( "[" + Config.nameShort + "] Could not write change log file" );
 			}
 
@@ -711,7 +641,7 @@ public class CCUCMScm extends SCM {
 				if( de.isStarted() ) {
 					try {
 						consoleOutput.print( "[" + Config.nameShort + "] Cancelling deliver. " );
-						rutil.completeRemoteDeliver( workspace, listener, state, de.getDeliver().getViewtag(), de.getDeliver().getViewContext(), false );
+						RemoteUtil.completeRemoteDeliver( workspace, listener, state, de.getDeliver().getViewtag(), de.getDeliver().getViewContext(), false );
 						consoleOutput.println( "Success" );
 
 						/* Make sure, that the post step is not run */
@@ -723,11 +653,11 @@ public class CCUCMScm extends SCM {
 						ExceptionUtils.print( de, consoleOutput, true );
 						consoleOutput.println( "[" + Config.nameShort + "] Cancellation error:" );
 						ExceptionUtils.print( ex, consoleOutput, true );
-						logger.warning( de, id );
-						logger.warning( ex, id );
+						logger.log( Level.WARNING, "", de );
+                        logger.log( Level.WARNING, "", ex );
 					}
 				} else {
-					logger.debug( id + "No need for completing deliver", id );
+					logger.fine( id + "No need for completing deliver" );
 					state.setNeedsToBeCompleted( false );
 				}
 				
@@ -745,7 +675,7 @@ public class CCUCMScm extends SCM {
 				consoleOutput.println( "[" + Config.nameShort + "] Failed to force cancel existing deliver" );
 				state.setNeedsToBeCompleted( false );
 			} catch( Exception e1 ) {
-				logger.warning( e, id );
+                logger.log( Level.WARNING, "", e );
 				ExceptionUtils.print( e, consoleOutput, true );
 				result = false;
 			}
@@ -756,7 +686,7 @@ public class CCUCMScm extends SCM {
 			state.setStream( Stream.get( stream ) );
 		} catch( ClearCaseException e ) {
 			consoleOutput.println( "[" + Config.nameShort + "] " + e.getMessage() );
-			logger.warning( e, id );
+            logger.log( Level.WARNING, "", e );
 			result = false;
 		}
 
@@ -860,75 +790,19 @@ public class CCUCMScm extends SCM {
 
 		PollingResult p = PollingResult.NO_CHANGES;
 
-		FileAppender app = null;
-		/* Preparing the logger */
-		logger = Logger.getLogger();
 
-		/* Clean polling log */
-		File logdir = new File( project.getRootDir(), "ccucm-poll-logs" );
-		logdir.mkdir();
-		File[] logs = logdir.listFiles( new FilenameFilter() {
-			public boolean accept( File file, String name ) {
-				return name.endsWith( ".log" );
-			}
-		} );
-
-		if( logs.length > 1 ) {
-			/* If there exists some logs, delete those older than seven days */
-			Date seven = new Date();
-			Calendar cal = Calendar.getInstance();
-			cal.add( Calendar.DATE, -7 );
-			//cal.add( Calendar.DATE, -1 );
-			//cal.add( Calendar.MINUTE, -1 );
-
-			for( File log : logs ) {
-				int l = log.getName().length();
-				String date = log.getName().substring( l - 12, l - 4 );
-				//System.out.println( "DATE FOR " + jobName + " " + log + ": " + date );
-				try {
-					Date d = dateFormatter.parse( date );
-					if( d.before( cal.getTime() ) ) {
-						if( !log.delete() ) {
-							logger.warning( "Unable to delete " + log );
-						}
-					}
-				} catch( ParseException e ) {
-					logger.warning( "Unable to parse date: " + e.getMessage() );
-				}
-			}
-		}
-
-		String d = dateFormatter.format( new Date() );
-		File logfile = new File( logdir, jobName + "-" + jobNumber + "." + d + ".log" );
-		app = new FileAppender( logfile );
-		app.lockToCurrentThread();
-
-		/* If nothing is known, we log all */
-		if( project.isParameterized() ) {
-			if( project.getLastBuild() != null ) {
-				net.praqma.hudson.Util.initializeAppender( project.getLastBuild(), app );
-			} else {
-				app.setEnabled( true );
-				app.setMinimumLevel( LogLevel.DEBUG );
-				app.setSubscribeAll( true );
-			}
-		} else {
-			app.setEnabled( false );
-		}
-		Logger.addAppender( app );
-		this.rutil = new RemoteUtil( Logger.getLoggerSettings( app.getMinimumLevel() ), app );
 
 		/* Interrupt polling if: */
 		if( this.getMultisitePolling() ) {
 			/* multisite polling and a build is in progress */
 			if( project.isBuilding() ) {
-				logger.debug( "A build already building - cancelling poll" );
+				logger.fine( "A build already building - cancelling poll" );
 	            return PollingResult.NO_CHANGES;
 			}
 		} else {
 			/* not multisite polling and a the project is already in queue */
 			if( project.isInQueue() ) {
-				logger.debug( "A build already in queue - cancelling poll" );
+				logger.fine( "A build already in queue - cancelling poll" );
 	            return PollingResult.NO_CHANGES;
 			}
 		}
@@ -937,18 +811,17 @@ public class CCUCMScm extends SCM {
 		State state = null;
 		try {
 			state = ccucm.getState( jobName, jobNumber );
-			logger.debug( "The existing state is: " + state.stringify() );
+			logger.fine( "The existing state is: " + state.stringify() );
 			logger.info( "Let's NOT poll" );
 			System.out.println( "Undo polling for " + jobName + " " + jobNumber );
-			Logger.removeAppender( app );
 			return p;
 		} catch( IllegalStateException e ) {
-			logger.debug( e.getMessage() );
+			logger.fine( e.getMessage() );
 			state = ccucm.create( jobName, jobNumber );
 			createdByThisPoll = true;
 		}
 		
-		logger.debug( "Need for polling" );
+		logger.fine( "Need for polling" );
 
 		storeStateParameters( state );
 		
@@ -957,7 +830,7 @@ public class CCUCMScm extends SCM {
 		
 		/* The Stream must be loaded */
 		try {
-			state.setStream( (Stream) rutil.loadEntity( workspace, state.getStream(), getSlavePolling() ) );
+			state.setStream( (Stream) RemoteUtil.loadEntity( workspace, state.getStream(), getSlavePolling() ) );
 		} catch( CCUCMException e1 ) {
 			ExceptionUtils.print( e1, out, true );
 			throw new AbortException( "Unable to load " + state.getStream() );
@@ -976,7 +849,7 @@ public class CCUCMScm extends SCM {
 		sw.reset();
 		sw.start();
 
-		logger.debug( "Let's go!" );
+		logger.fine( "Let's go!" );
 
 		/* Check input */
 		if( checkInput( listener ) ) {
@@ -991,12 +864,12 @@ public class CCUCMScm extends SCM {
 					baselines = getBaselinesFromStreams( workspace, listener, out, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
 				}
 
-				logger.debug( "I found " + baselines.size() + " baseline" + ( baselines.size() == 1 ? "" : "s" ) );
+				logger.fine( "I found " + baselines.size() + " baseline" + ( baselines.size() == 1 ? "" : "s" ) );
 
 				/* Discard baselines */
 				filterBaselines( project,state.getStream(), baselines );
 
-				logger.debug( "When filtered, I have " + baselines.size() + " baseline" + ( baselines.size() == 1 ? "" : "s" ) );
+				logger.fine( "When filtered, I have " + baselines.size() + " baseline" + ( baselines.size() == 1 ? "" : "s" ) );
 
 				if( baselines.size() > 0 ) {
 					p = PollingResult.BUILD_NOW;
@@ -1057,7 +930,7 @@ public class CCUCMScm extends SCM {
 					p = PollingResult.NO_CHANGES;
 				}
 
-				logger.debug( id + "The POLL state:\n" + state.stringify(), id ); // 5413_dev_from_BUILT
+				logger.fine( id + "The POLL state:\n" + state.stringify() ); // 5413_dev_from_BUILT
 
 				/* Remove state if not being built */
 				if( p == PollingResult.NO_CHANGES ) {
@@ -1065,39 +938,33 @@ public class CCUCMScm extends SCM {
 				}
 			} catch( ScmException e ) {
 				out.println( "Error while retrieving baselines: " + e.getMessage() );
-				logger.warning( "Error while retrieving baselines: " + e.getMessage(), id );
+				logger.warning( "Error while retrieving baselines: " + e.getMessage() );
 				p = PollingResult.NO_CHANGES;
 			}
 		}
 
 		/* Remove state if not being built */
 		if( p.equals( PollingResult.NO_CHANGES ) ) {
-			logger.debug( id + "No new baselines to build", id );
+			logger.fine( id + "No new baselines to build" );
 			if( createdByThisPoll ) {
-				logger.debug( id + "Removing: " + state.stringify(), id );
+				logger.fine( id + "Removing: " + state.stringify() );
 				state.remove();
 			}
 		} else {
-			logger.debug( id + "New baseline to build", id );
+			logger.fine( id + "New baseline to build" );
 			state.setAddedByPoller( true );
 		}
 
 		sw.stop();
-		logger.debug( "Polling took " + sw.getSeconds() + " seconds" );
+		logger.fine( "Polling took " + sw.getSeconds() + " seconds" );
 		out.println( "Polling took " + sw.getSeconds() + " seconds" );
 		sw.delete();
 
-		Logger.removeAppender( app );
 		return p;
 	}
 
 	/**
 	 * Get the {@link Baseline}s from a {@link Stream}s related Streams.
-	 * 
-	 * @param build
-	 * @param consoleOutput
-	 * @param state
-	 * @return
 	 */
 	private List<Baseline> getBaselinesFromStreams( FilePath workspace, TaskListener listener, PrintStream consoleOutput, State state, Stream stream, Component component, boolean pollingChildStreams ) {
 
@@ -1105,10 +972,10 @@ public class CCUCMScm extends SCM {
 		List<Baseline> baselines = new ArrayList<Baseline>();
 
 		try {
-			streams = rutil.getRelatedStreams( workspace, listener, stream, pollingChildStreams, this.getSlavePolling(), this.getMultisitePolling() );
+			streams = RemoteUtil.getRelatedStreams( workspace, listener, stream, pollingChildStreams, this.getSlavePolling(), this.getMultisitePolling() );
 		} catch( CCUCMException e1 ) {
 			e1.printStackTrace( consoleOutput );
-			logger.warning( "Could not retrieve streams: " + e1.getMessage(), id );
+			logger.warning( "Could not retrieve streams: " + e1.getMessage() );
 			consoleOutput.println( "[" + Config.nameShort + "] No streams found" );
 			return baselines;
 		}
@@ -1120,7 +987,7 @@ public class CCUCMScm extends SCM {
 			try {
 				consoleOutput.printf( "[" + Config.nameShort + "] [%02d] %s ", c, s.getShortname() );
 				c++;
-				List<Baseline> found = rutil.getRemoteBaselinesFromStream( workspace, component, s, plevel, this.getSlavePolling(), this.getMultisitePolling() );
+				List<Baseline> found = RemoteUtil.getRemoteBaselinesFromStream( workspace, component, s, plevel, this.getSlavePolling(), this.getMultisitePolling() );
 				for( Baseline b : found ) {
 					baselines.add( b );
 				}
@@ -1136,35 +1003,22 @@ public class CCUCMScm extends SCM {
 	}
 
 	/**
-	 * Given the {@link Stream}, {@link Component} and {@link Plevel} a list of
+	 * Given the {@link Stream}, {@link Component} and {@link net.praqma.clearcase.ucm.entities.Project.PromotionLevel} a list of
 	 * valid {@link Baseline}s is returned.
-	 * 
-	 * @param project
-	 *            The jenkins project
-	 * @param state
-	 *            The CCUCM {@link State}
-	 * @param plevel
-	 *            The {@link Plevel}
-	 * @param stream
-	 *            {@link Stream}
-	 * @param component
-	 *            {@link Component}
-	 * @return A list of {@link Baseline}s
-	 * @throws ScmException
 	 */
 	private List<Baseline> getValidBaselinesFromStream( FilePath workspace, State state, Project.PromotionLevel plevel, Stream stream, Component component ) throws ScmException {
-		logger.debug( id + "Retrieving valid baselines.", id );
+		logger.fine( id + "Retrieving valid baselines." );
 
 		/* The baseline list */
 		List<Baseline> baselines = new ArrayList<Baseline>();
 
 		try {
-			baselines = rutil.getRemoteBaselinesFromStream( workspace, component, stream, plevel, this.getSlavePolling(), this.getMultisitePolling() );
+			baselines = RemoteUtil.getRemoteBaselinesFromStream( workspace, component, stream, plevel, this.getSlavePolling(), this.getMultisitePolling() );
 		} catch( CCUCMException e1 ) {
 			// throw new ScmException("Unable to get baselines from " +
 			// stream.getShortname() + ": " + e1.getMessage());
 			/* no op */
-			logger.debug( "No baselines: " + e1.getMessage() );
+			logger.fine( "No baselines: " + e1.getMessage() );
 			throw new ScmException("Unable to get baselines from " + stream.getShortname(), e1 );
 		}
 
@@ -1199,14 +1053,14 @@ public class CCUCMScm extends SCM {
 				/* prevent null pointer exceptions */
 				if( bld != null ) {
 					if( baseline.getPromotionLevel( true ).equals( cstate.getBaseline().getPromotionLevel( true ) ) ) {
-						logger.debug( id + baseline.getShortname() + " has the same promotion level" );
+						logger.fine( id + baseline.getShortname() + " has the same promotion level" );
 						it.remove();
 					} else if( bld.isLogUpdated() ) {
-						logger.debug( id + "Job " + bld.getNumber() + " is building " + cstate.getBaseline().getFullyQualifiedName(), id );
+						logger.fine( id + "Job " + bld.getNumber() + " is building " + cstate.getBaseline().getFullyQualifiedName() );
 						it.remove();
 					} else {
 						/* The job is not running */
-						logger.debug( id + "Job " + bld.getNumber() + " is not building", id );
+						logger.fine( id + "Job " + bld.getNumber() + " is not building" );
 					} 
 				}
 			}
@@ -1223,13 +1077,13 @@ public class CCUCMScm extends SCM {
 		try {
 			state.setStream( Stream.get( stream ) );
 		} catch( ClearCaseException e ) {
-			logger.warning( e, id );
+            logger.log( Level.WARNING, "", e );
 		}
 
 		try {
 			state.setComponent( Component.get( component ) );
 		} catch( ClearCaseException e ) {
-			logger.warning( e, id );
+            logger.log( Level.WARNING, "", e );
 		}
 
 		state.setUnstable( treatUnstable );
@@ -1382,10 +1236,6 @@ public class CCUCMScm extends SCM {
 
 	public boolean isRecommend() {
 		return this.recommend;
-	}
-
-	public Appender getAppender() {
-		return app;
 	}
 	
 	public void setMultisitePolling( boolean mp ) {

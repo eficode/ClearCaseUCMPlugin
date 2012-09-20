@@ -3,8 +3,7 @@ package net.praqma.hudson.scm;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-
-import net.praqma.util.debug.Logger;
+import java.util.logging.Logger;
 
 import hudson.model.AbstractBuild;
 import hudson.scm.ChangeLogSet;
@@ -20,7 +19,7 @@ import hudson.scm.ChangeLogSet;
 
 public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl> {
 
-	protected static Logger logger = Logger.getLogger();
+	protected static Logger logger = Logger.getLogger( ChangeLogSetImpl.class.getName()  );
 	private List<ChangeLogEntryImpl> entries = null;
 	private String baselineName;
 

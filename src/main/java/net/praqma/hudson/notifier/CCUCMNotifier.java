@@ -6,6 +6,8 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -24,10 +26,6 @@ import net.praqma.hudson.nametemplates.NameTemplate;
 import net.praqma.hudson.remoting.RemoteUtil;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.scm.CCUCMState.State;
-import net.praqma.util.debug.Logger;
-import net.praqma.util.debug.Logger.LogLevel;
-import net.praqma.util.debug.LoggerSetting;
-import net.praqma.util.debug.appenders.Appender;
 import net.praqma.util.debug.appenders.FileAppender;
 import net.sf.json.JSONObject;
 
@@ -60,13 +58,9 @@ public class CCUCMNotifier extends Notifier {
 
 	private Status status;
 	private String id = "";
-	transient private Logger logger = null;
+	private static Logger logger = Logger.getLogger( CCUCMNotifier.class.getName() );
 	private String jobName = "";
 	private Integer jobNumber = 0;
-
-	private RemoteUtil rutil;
-	private LoggerSetting loggerSetting;
-	private Appender app;
 
 	//private SimpleDateFormat logformat  = new SimpleDateFormat( "yyyyMMdd-HHmmss" );
 
@@ -75,22 +69,6 @@ public class CCUCMNotifier extends Notifier {
 
 	/**
 	 * This constructor is used in the inner class <code>DescriptorImpl</code>.
-	 * 
-	 * @param promote
-	 *            <ol start="0">
-	 *            <li>Baseline will not be promoted after the build</li>
-	 *            <li>Baseline will be promoted after the build if stable</li>
-	 *            <li>Baseline will be promoted after the build if unstable</li>
-	 *            </ol>
-	 * @param recommended
-	 *            if <code>true</code>, the baseline will be marked
-	 *            'recommended' in ClearCase.
-	 * @param makeTag
-	 *            if <code>true</code>, CCUCM will set a Tag() on the baseline
-	 *            in ClearCase.
-	 * @param ucmDeliver
-	 *            The special deliver object, in which all the deliver
-	 *            parameters are encapsulated.
 	 */
 	public CCUCMNotifier( boolean recommended, boolean makeTag, boolean setDescription ) {
 
@@ -118,16 +96,6 @@ public class CCUCMNotifier extends Notifier {
 
 		status = new Status();
 
-		/* Preparing the logger */
-		File logfile = new File( build.getRootDir(), "ccucmNOTIFIER.log" );
-		logger = Logger.getLogger();
-		app = new FileAppender( logfile );
-		net.praqma.hudson.Util.initializeAppender( build, app );
-		Logger.addAppender( app );
-
-		this.loggerSetting = Logger.getLoggerSettings( app.getMinimumLevel() );
-		this.rutil = new RemoteUtil( loggerSetting, app );
-
 		/* Prepare job variables */
 		jobName = build.getParent().getDisplayName().replace( ' ', '_' );
 		jobNumber = build.getNumber();
@@ -136,7 +104,6 @@ public class CCUCMNotifier extends Notifier {
 		SCM scmTemp = build.getProject().getScm();
 		if( !( scmTemp instanceof CCUCMScm ) ) {
 			/* SCM is not ClearCase ucm, just move it along... Not fail it, duh! */
-			Logger.removeAppender( app );
 			return true;
 		}
 
@@ -148,25 +115,24 @@ public class CCUCMNotifier extends Notifier {
 		/* Only do this part if a valid CCUCMScm build */
 		if( result ) {
 			/* Retrieve the CCUCM state */
-			logger.debug( "STATES: " + CCUCMScm.ccucm.stringify() );
+			logger.fine( "STATES: " + CCUCMScm.ccucm.stringify() );
 			try {
 				pstate = CCUCMScm.ccucm.getState( jobName, jobNumber );
 			} catch( IllegalStateException e ) {
 				System.err.println( e.getMessage() );
 				CCUCMScm.ccucm.signalFault( jobName, jobNumber );
 				out.println( "[" + Config.nameShort + "] " + e.getMessage() );
-				Logger.removeAppender( app );
-				logger.error( e, id );
+                logger.log( Level.WARNING, "", e );
 
 				return false;
 			}
 
-			logger.debug( "STATE: " + pstate );
-			logger.debug( pstate.stringify() );
+			logger.fine( "STATE: " + pstate );
+			logger.fine( pstate.stringify() );
 
 			/* Validate the state */
 			if( pstate.doPostBuild() && pstate.getBaseline() != null ) {
-				logger.debug( id + "Post build", id );
+				logger.fine( id + "Post build" );
 
 				/*
 				 * This shouldn't actually be necessary!? TODO Maybe the
@@ -183,7 +149,7 @@ public class CCUCMNotifier extends Notifier {
 					try {
 						baseline = Baseline.get( bl );
 					} catch( ClearCaseException e ) {
-						logger.warning( id + "Could not initialize baseline.", id );
+						logger.warning( id + "Could not initialize baseline." );
 						baseline = null;
 					}
 
@@ -195,17 +161,17 @@ public class CCUCMNotifier extends Notifier {
 						result = false;
 					}
 				} else {
-					logger.warning( "Whoops, not a valid baseline", id );
+					logger.warning( "Whoops, not a valid baseline" );
 					result = false;
 				}
 
 			} else {
-				logger.warning( "Whoops, not a valid state, there was no baseline found or the post build flag was not set", id );
+				logger.warning( "Whoops, not a valid state, there was no baseline found or the post build flag was not set" );
 				// Not performing any post build actions.
 				result = false;
 			}
 		} else {
-			logger.warning( "WHOA, what happened!? Result = false!!!", id );
+			logger.warning( "WHOA, what happened!? Result = false!!!" );
 		}
 
 		/* There's a valid baseline, lets process it */
@@ -245,27 +211,16 @@ public class CCUCMNotifier extends Notifier {
 		if( action != null && action.getViewTag() != null ) {
 			/* End the view */
 			try {
-				logger.debug( "Ending view " + action.getViewTag(), id );
-				rutil.endView( build.getWorkspace(), action.getViewTag() );
+				logger.fine( "Ending view " + action.getViewTag() );
+				RemoteUtil.endView( build.getWorkspace(), action.getViewTag() );
 			} catch( CCUCMException e ) {
 				out.println( e.getMessage() );
-				logger.warning( e.getMessage(), id );
+				logger.warning( e.getMessage() );
 			}
 		}
 
-		/*
-		 * Removing baseline and job from collection, do this no matter what as
-		 * long as the SCM is CCUCM
-		 */
-		/*
-		 * if ((scmTemp instanceof CCUCMScm) && baseline != null) { boolean
-		 * done2 = pstate.remove(); logger.debug(id + "Removing job " +
-		 * build.getNumber() + " from collection: " + done2, id); }
-		 */
-
 		out.println( "[" + Config.nameShort + "] Post build steps done" );
 
-		Logger.removeAppender( app );
 		return result;
 	}
 
@@ -282,7 +237,7 @@ public class CCUCMNotifier extends Notifier {
 	 * @param listener
 	 *            The listener of the build
 	 * @param pstate
-	 *            The {@link CCUCMState} of the build.
+	 *            The {@link net.praqma.hudson.scm.CCUCMState} of the build.
 	 * @throws NotifierException
 	 */
 	private void processBuild( AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, State pstate ) throws NotifierException {
@@ -291,13 +246,13 @@ public class CCUCMNotifier extends Notifier {
 		VirtualChannel ch = launcher.getChannel();
 
 		if( ch == null ) {
-			logger.debug( "The channel was null", id );
+			logger.fine( "The channel was null" );
 		}
 
 		FilePath workspace = build.getExecutor().getCurrentWorkspace();
 
 		if( workspace == null ) {
-			logger.warning( "Workspace is null", id );
+			logger.warning( "Workspace is null" );
 			throw new NotifierException( "Workspace is null" );
 		}
 
@@ -312,7 +267,7 @@ public class CCUCMNotifier extends Notifier {
 		Baseline sourcebaseline = pstate.getBaseline();
 		Baseline targetbaseline = sourcebaseline;
 
-		logger.debug( "NTBC: " + pstate.needsToBeCompleted(), id );
+		logger.fine( "NTBC: " + pstate.needsToBeCompleted() );
 
 		/*
 		 * Determine whether to treat the build as successful
@@ -332,7 +287,7 @@ public class CCUCMNotifier extends Notifier {
 
 			try {
 				out.print( "[" + Config.nameShort + "] " + ( treatSuccessful ? "Completing" : "Cancelling" ) + " the deliver. " );
-				rutil.completeRemoteDeliver( workspace, listener, pstate, action.getViewTag(), action.getViewPath(), treatSuccessful );
+				RemoteUtil.completeRemoteDeliver( workspace, listener, pstate, action.getViewTag(), action.getViewPath(), treatSuccessful );
 				out.println( "Success." );
 
 				/* If deliver was completed, create the baseline */
@@ -343,15 +298,15 @@ public class CCUCMNotifier extends Notifier {
 						pstate.setListener( listener );
 						out.print( "[" + Config.nameShort + "] Creating baseline on Integration stream. " );
 						/* Load project for stream */
-						logger.debug( "1STREAM: " + pstate.getStream() );
-						logger.debug( "1PROJECT: " + pstate.getStream().getProject() );
-						rutil.loadEntity( workspace, pstate.getStream(), true );
+						logger.fine( "1STREAM: " + pstate.getStream() );
+						logger.fine( "1PROJECT: " + pstate.getStream().getProject() );
+						RemoteUtil.loadEntity( workspace, pstate.getStream(), true );
 						
 						pstate.setWorkspace( workspace );
 						NameTemplate.validateTemplates( pstate );
 						String name = NameTemplate.parseTemplate( pstate.getNameTemplate(), pstate );
 
-						targetbaseline = rutil.createRemoteBaseline( workspace, listener, name, pstate.getBaseline().getComponent(), action.getViewPath(), pstate.getBaseline().getUser() );
+						targetbaseline = RemoteUtil.createRemoteBaseline( workspace, listener, name, pstate.getBaseline().getComponent(), action.getViewPath(), pstate.getBaseline().getUser() );
 
 						/**/
 						if( action != null ) {
@@ -359,8 +314,8 @@ public class CCUCMNotifier extends Notifier {
 						}
 					} catch( Exception e ) {
 						ExceptionUtils.print( e, out, false );
-						logger.warning( "Failed to create baseline on stream", id );
-						logger.warning( e, id );
+						logger.warning( "Failed to create baseline on stream" );
+						logger.log( Level.WARNING, "", e );
 						/* We cannot recommend a baseline that is not created */
 						if( pstate.doRecommend() ) {
 							out.println( "[" + Config.nameShort + "] Cannot recommend Baseline when not created" );
@@ -378,7 +333,7 @@ public class CCUCMNotifier extends Notifier {
 				status.setBuildStatus( buildResult );
 				status.setStable( false );
 				out.println( "Failed." );
-				logger.warning( e, id );
+				logger.log( Level.WARNING, "", e );
 
 				/* We cannot recommend a baseline that is not created */
 				if( pstate.doRecommend() ) {
@@ -390,16 +345,16 @@ public class CCUCMNotifier extends Notifier {
 				if( treatSuccessful ) {
 					try {
 						out.print( "[" + Config.nameShort + "] Trying to cancel the deliver. " );
-						rutil.completeRemoteDeliver( workspace, listener, pstate, action.getViewTag(), action.getViewPath(), false );
+						RemoteUtil.completeRemoteDeliver( workspace, listener, pstate, action.getViewTag(), action.getViewPath(), false );
 						out.println( "Success." );
 					} catch( Exception e1 ) {
 						out.println( " Failed." );
-						logger.warning( "Failed to cancel deliver", id );
-						logger.warning( e, id );
+						logger.warning( "Failed to cancel deliver" );
+                        logger.log( Level.WARNING, "", e );
 					}
 				} else {
-					logger.warning( "Failed to cancel deliver", id );
-					logger.warning( e, id );
+					logger.warning( "Failed to cancel deliver" );
+                    logger.log( Level.WARNING, "", e );
 				}
 			}
 		}
@@ -410,28 +365,13 @@ public class CCUCMNotifier extends Notifier {
 
 		/* Remote post build step, common to all types */
 		try {
-			logger.debug( id + "Remote post build step", id );
+			logger.fine( id + "Remote post build step" );
 			out.println( "[" + Config.nameShort + "] Performing common post build steps" );
 
-			Future<Status> i = null;
-			if( workspace.isRemote() ) {
-				final Pipe pipe = Pipe.createRemoteToLocal();
-
-				i = workspace.actAsync( new RemotePostBuild( buildResult, status, listener, pstate.isMakeTag(), pstate.doRecommend(), pstate.getUnstable(), sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), pipe, null, loggerSetting ) );
-				app.write( pipe.getIn() );
-			} else {
-				PipedInputStream in = new PipedInputStream();
-				PipedOutputStream out = new PipedOutputStream( in );
-				i = workspace.actAsync( new RemotePostBuild( buildResult, status, listener, pstate.isMakeTag(), pstate.doRecommend(), pstate.getUnstable(), sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), null, new PrintStream( out ), loggerSetting ) );
-				app.write( in );
-
-			}
-
-			status = i.get();
+			status = workspace.act( new RemotePostBuild( buildResult, status, listener, pstate.isMakeTag(), pstate.doRecommend(), pstate.getUnstable(), sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) ) );
 		} catch( Exception e ) {
 			status.setStable( false );
-			logger.debug( id + "Something went wrong: " + e.getMessage(), id );
-			logger.warning( e, id );
+            logger.log( Level.WARNING, "", e );
 			out.println( "[" + Config.nameShort + "] Error: Post build failed" );
 			Throwable cause = net.praqma.util.ExceptionUtils.unpackFrom( IOException.class, e );
 			
@@ -442,7 +382,7 @@ public class CCUCMNotifier extends Notifier {
 		if( status.getPromotedLevel() != null ) {
 			try {
 				pstate.getBaseline().setPromotionLevel( status.getPromotedLevel() );
-				logger.debug( id + "Baselines promotion level sat to " + status.getPromotedLevel().toString(), id );
+				logger.fine( id + "Baselines promotion level sat to " + status.getPromotedLevel().toString() );
 			} catch( UnableToPromoteBaselineException e ) {
 				logger.warning( "Unable to set promotion level of baseline: " + e.getMessage() );
 				e.print( out );

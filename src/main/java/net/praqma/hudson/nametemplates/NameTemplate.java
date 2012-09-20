@@ -3,17 +3,17 @@ package net.praqma.hudson.nametemplates;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.praqma.hudson.exception.TemplateException;
 import net.praqma.hudson.scm.CCUCMState.State;
-import net.praqma.util.debug.Logger;
 
 public class NameTemplate {
 
 	private static Map<String, Template> templates = new HashMap<String, Template>();
-	private static Logger logger = Logger.getLogger();
+	private static Logger logger = Logger.getLogger( NameTemplate.class.getName() );
 
 	static {
 		templates.put( "date", new DateTemplate() );
@@ -33,12 +33,12 @@ public class NameTemplate {
 	private static Pattern rx_checkFinal = Pattern.compile( "^[\\w\\._-]*$" );
 
 	public static void validateTemplates( State state ) {
-		logger.debug( "Validating templates for " + state );
+		logger.finer( "Validating templates for " + state );
 		Set<String> keys = templates.keySet();
 		for( String key : keys ) {
 			String r;
 			try {
-				logger.debug( "Validating " + key );
+				logger.finer( "Validating " + key );
 				r = templates.get( key ).parse( state, "" );
 			} catch (TemplateException e) {
 				logger.warning( "Could not validate " + key );
@@ -84,18 +84,18 @@ public class NameTemplate {
 	}
 
 	public static String parseTemplate( String template, State state ) throws TemplateException {
-		logger.debug( "Parsing template for " + state );
+		logger.finer( "Parsing template for " + state );
 		Matcher m = rx_.matcher( template );
 		String result = template;
 		
-		logger.debug( "PARSING TEMPLATE " + template );
+		logger.finer( "PARSING TEMPLATE " + template );
 
 		while( m.find() ) {
 			String replace = m.group(1);
 			String templateName = replace.toLowerCase().substring( 1, replace.length()-1 );
 			String args = null;
 			
-			logger.debug( template );
+			logger.finer( template );
 
 			/*  Pre-process template */
 			if( templateName.contains( "=" ) ) {
@@ -104,7 +104,7 @@ public class NameTemplate {
 				args = s[1];
 			}
 			
-			logger.debug( "--->" + templateName + ": " + args );
+			logger.finer( "--->" + templateName + ": " + args );
 
 			if( !templates.containsKey( templateName ) ) {
 				throw new TemplateException( "The template " + templateName + " does not exist" );
@@ -114,7 +114,7 @@ public class NameTemplate {
 			}
 		}
 		
-		logger.debug( "Final template is: " + result );
+		logger.finer( "Final template is: " + result );
 
 		Matcher f = rx_checkFinal.matcher( result );
 		if( !f.find() ) {

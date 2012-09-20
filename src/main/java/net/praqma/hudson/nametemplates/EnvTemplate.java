@@ -4,15 +4,16 @@ import hudson.EnvVars;
 
 import net.praqma.hudson.exception.TemplateException;
 import net.praqma.hudson.scm.CCUCMState.State;
-import net.praqma.util.debug.Logger;
+
+import java.util.logging.Logger;
 
 public class EnvTemplate extends Template {
 
-	private Logger logger = Logger.getLogger();
+	private Logger logger = Logger.getLogger( EnvTemplate.class.getName() );
 	
 	@Override
 	public String parse( State state, String args ) throws TemplateException {
-		logger.debug( "ENV PARSING" );
+		logger.finest( "ENV PARSING" );
 		EnvVars vars = null;
 		try {
 			vars = state.getBuild().getEnvironment( state.getListener() );
@@ -21,17 +22,17 @@ public class EnvTemplate extends Template {
 			return "?";
 		}
 		
-		logger.debug( "ENV VARS: " + vars );
-		logger.debug( "ENV VARS: " + System.getenv() );
+		logger.finest( "ENV VARS: " + vars );
+		logger.finest( "ENV VARS: " + System.getenv() );
 		
 		if( vars.containsKey( args ) ) {
-			logger.debug( "EnvVars: " + args + "=" + vars.get( args ) );
+			logger.finest( "EnvVars: " + args + "=" + vars.get( args ) );
 			return vars.get( args );
 		} else if( state.getBuild().getBuildVariables().containsKey( args ) ) {
-			logger.debug( "BuildVars: " + args + "=" + state.getBuild().getBuildVariables().get( args ) );
+			logger.finest( "BuildVars: " + args + "=" + state.getBuild().getBuildVariables().get( args ) );
 			return state.getBuild().getBuildVariables().get( args );
 		} else if( System.getenv().containsKey( args ) ) {
-			logger.debug( "Vars: " + args + "=" + System.getenv( args ) );
+			logger.finest( "Vars: " + args + "=" + System.getenv( args ) );
 			return vars.get( args );
 		} else {
 			return "?";

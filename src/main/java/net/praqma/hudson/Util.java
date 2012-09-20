@@ -2,42 +2,31 @@ package net.praqma.hudson;
 
 import hudson.FilePath;
 import hudson.model.BuildListener;
-import hudson.model.AbstractBuild;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
+import java.util.logging.Logger;
 
 import net.praqma.clearcase.PVob;
 import net.praqma.clearcase.exceptions.ClearCaseException;
-import net.praqma.clearcase.exceptions.CleartoolException;
-import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
-import net.praqma.clearcase.exceptions.UnableToLoadEntityException;
 import net.praqma.clearcase.exceptions.ViewException;
 import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Baseline;
-import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Version;
-import net.praqma.clearcase.ucm.utils.BuildNumber;
 import net.praqma.clearcase.ucm.utils.VersionList;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.ucm.view.SnapshotView.Components;
 import net.praqma.hudson.exception.ScmException;
-import net.praqma.util.debug.Logger;
-import net.praqma.util.debug.Logger.LogLevel;
-import net.praqma.util.debug.appenders.Appender;
 
 public abstract class Util {
 
-	private static Logger logger = Logger.getLogger();
+	private static Logger logger = Logger.getLogger( Util.class.getName() );
 
 	public static Project.PromotionLevel getLevel( String level ) {
 		if( level.equalsIgnoreCase( "any" ) ) {
@@ -212,36 +201,4 @@ public abstract class Util {
 		return snapview;
 	}
 
-	public static void initializeAppender( AbstractBuild<?, ?> build, Appender appender ) {
-		appender.setSubscribeAll( false );
-		appender.lockToCurrentThread();
-		//appender.setTemplate( "%datetime %level %space %stack %message%newline" );
-
-		/* Log classes */
-		if( build.getBuildVariables().get( Config.logVar ) != null ) {
-			String[] is = build.getBuildVariables().get( Config.logVar ).toString().split( "," );
-			logger.fatal( "Logging " + is );
-			for( String i : is ) {
-				appender.subscribe( i.trim() );
-			}
-		}
-
-		/* Log all */
-		if( build.getBuildVariables().get( Config.logAllVar ) != null ) {
-			logger.fatal( "Logging all" );
-			appender.setSubscribeAll( true );
-		}
-
-		/* Log level */
-		if( build.getBuildVariables().get( Config.levelVar ) != null ) {
-			try {
-				LogLevel level = LogLevel.valueOf( build.getBuildVariables().get( Config.levelVar ) );
-				logger.fatal( "Logging " + level );
-				appender.setMinimumLevel( level );
-			} catch( Exception e ) {
-				/* Just don't do it */
-			}
-		}
-	}
-	
 }

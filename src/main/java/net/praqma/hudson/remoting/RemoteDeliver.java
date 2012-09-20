@@ -2,7 +2,6 @@ package net.praqma.hudson.remoting;
 
 import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
-import hudson.remoting.Pipe;
 import hudson.remoting.VirtualChannel;
 
 import java.io.File;
@@ -10,6 +9,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,19 +21,13 @@ import net.praqma.clearcase.exceptions.DeliverException;
 import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
-import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.Util;
 import net.praqma.hudson.exception.DeliverNotCancelledException;
 import net.praqma.hudson.exception.ScmException;
-import net.praqma.hudson.scm.CCUCMState;
 import net.praqma.hudson.scm.ClearCaseChangeset;
-import net.praqma.hudson.scm.CCUCMState.State;
-import net.praqma.util.debug.Logger;
-import net.praqma.util.debug.LoggerSetting;
-import net.praqma.util.debug.appenders.StreamAppender;
 
 /**
  * 
@@ -58,16 +53,12 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 	 */
 	private String loadModule;
 	private PrintStream out = null;
-	private Pipe pipe;
-	private LoggerSetting loggerSetting;
 	private String viewtag = "";
 	private boolean forceDeliver;
 	private PrintStream pstream;
 	private File workspace;
 
-	public RemoteDeliver( String destinationstream, BuildListener listener, Pipe pipe, PrintStream pstream, LoggerSetting loggerSetting,
-	/* Common values */
-	String loadModule, String baseline, String jobName, boolean forceDeliver ) {
+	public RemoteDeliver( String destinationstream, BuildListener listener, String loadModule, String baseline, String jobName, boolean forceDeliver ) {
 		this.jobName = jobName;
 
 		this.baseline = baseline;
@@ -77,34 +68,15 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 		this.loadModule = loadModule;
 		
 		this.forceDeliver = forceDeliver;
-		
-		this.pstream = pstream;
-
-		this.pipe = pipe;
-		this.loggerSetting = loggerSetting;
 	}
 
 	public EstablishResult invoke( File workspace, VirtualChannel channel ) throws IOException {
 
 		out = listener.getLogger();
 		
-		logger = Logger.getLogger();
+		logger = Logger.getLogger( RemoteDeliver.class.getName() );
 
-		StreamAppender app = null;
-		if( pipe != null ) {
-			PrintStream toMaster = new PrintStream( pipe.getOut() );
-			app = new StreamAppender( toMaster );
-			app.lockToCurrentThread();
-			Logger.addAppender( app );
-			app.setSettings( loggerSetting );
-		} else if( pstream != null ) {
-	    	app = new StreamAppender( pstream );
-	    	app.lockToCurrentThread();
-	    	Logger.addAppender( app );
-	    	app.setSettings( loggerSetting );    		
-    	}
-		
-		logger.debug( "Starting remote deliver" );
+		logger.fine( "Starting remote deliver" );
 
 		this.workspace = workspace;
 
@@ -113,11 +85,10 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 		try {
 			baseline = Baseline.get( this.baseline ).load();
 		} catch( Exception e ) {
-			Logger.removeAppender( app );
 			throw new IOException( "Could not create Baseline object: " + e.getMessage(), e );
 		}
 		
-		logger.debug( baseline + " created" );
+		logger.fine( baseline + " created" );
 
 		/* Create the development stream object */
 		/* Append vob to dev stream */
@@ -126,21 +97,19 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 		try {
 			destinationStream = Stream.get( this.destinationstream ).load();
 		} catch( Exception e ) {
-			Logger.removeAppender( app );
 			throw new IOException( "Could not create destination Stream object: " + e.getMessage(), e );
 		}
 		
-		logger.debug( destinationStream + " created" );
+		logger.fine( destinationStream + " created" );
 
 		/* Make deliver view */
 		try {
 			snapview = makeDeliverView( destinationStream, workspace );
 		} catch( Exception e ) {
-			Logger.removeAppender( app );
 			throw new IOException( "Could not create deliver view: " + e.getMessage(), e );
 		}
 		
-		logger.debug( "View: " + workspace );
+		logger.fine( "View: " + workspace );
 
 		String diff = "";
 		ClearCaseChangeset changeset = new ClearCaseChangeset();
@@ -162,7 +131,7 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 			out.println( "[" + Config.nameShort + "] Unable to create change log: " + e1.getMessage() );
 		}
 		
-		logger.debug( "Changeset created" );
+		logger.fine( "Changeset created" );
 
 		EstablishResult er = new EstablishResult( viewtag );
 		er.setView( snapview );
@@ -173,17 +142,15 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 		try {
 			deliver( baseline, destinationStream, forceDeliver, 2 );
 		} catch( Exception e ) {
-			Logger.removeAppender( app );
 			throw new IOException( e );
 		}
 
 		/* End of deliver */
-		Logger.removeAppender( app );
 		return er;
 	}
 
 	private void deliver( Baseline baseline, Stream dstream, boolean forceDeliver, int triesLeft ) throws IOException, DeliverNotCancelledException, ClearCaseException {
-		logger.verbose( "Delivering " + baseline.getShortname() + " to " + dstream.getShortname() + ". Tries left: " + triesLeft );
+		logger.config( "Delivering " + baseline.getShortname() + " to " + dstream.getShortname() + ". Tries left: " + triesLeft );
 		if( triesLeft < 1 ) {
 			out.println( "[" + Config.nameShort + "] Unable to deliver, giving up." );
 			throw new DeliverNotCancelledException( "Unable to force cancel deliver" );
@@ -196,8 +163,7 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 			deliver.deliver( true, false, true, false );
 
 		} catch( DeliverException e ) {
-			logger.debug( "Failed to deliver: " + e.getMessage() );
-			logger.debug( e );
+			logger.log( Level.FINE, "Failed to deliver", e );
 			
 			if( e.getType().equals( DeliverException.Type.DELIVER_IN_PROGRESS ) ) {
 				out.println( "[" + Config.nameShort + "] Deliver already in progress" );
@@ -244,10 +210,10 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 					
 					/* Validate arguments */
 					if( oldViewtag == null || stream == null ) {
-						logger.debug( "Unable to get arguments for rollback, trying to get status" );
+						logger.fine( "Unable to get arguments for rollback, trying to get status" );
 						//String status = deliver.getStatus();
 						String status = Deliver.getStatus( dstream );
-						logger.debug( "Deliver rollback status: " + status );
+						logger.fine( "Deliver rollback status: " + status );
 						/* Get stream */
 						mSTREAM = STREAM_PATTERN.matcher( status );
 						if( mSTREAM.find() ) {
@@ -281,7 +247,7 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 					}
 	
 					// Recursive method call of INVOKE(...);
-					logger.verbose( "Trying to deliver again..." );
+					logger.config( "Trying to deliver again..." );
 					deliver( baseline, dstream, forceDeliver, triesLeft - 1 );
 					
 				/* Not forcing this deliver */

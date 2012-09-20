@@ -3,10 +3,10 @@ package net.praqma.hudson.scm;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Logger;
+
 import hudson.model.User;
 import hudson.scm.ChangeLogSet.Entry;
-
-import net.praqma.util.debug.Logger;
 
 /**
  * A change set is a collection of changed entries. This classes represents one
@@ -18,13 +18,14 @@ import net.praqma.util.debug.Logger;
  */
 public class ChangeLogEntryImpl extends Entry {
 
-	private ChangeLogSetImpl parent;
-	private String actName;
-	private String actHeadline;
-	private String msg;
-	private String author;
-	private String date;
-	protected static Logger logger = Logger.getLogger();
+    private ChangeLogSetImpl parent;
+    private String actName;
+    private String actHeadline;
+    private String msg;
+    private String author;
+    private String date;
+
+	protected static Logger logger = Logger.getLogger( ChangeLogEntryImpl.class.getName()  );
 	private volatile List<String> affectedPaths = new ArrayList<String>();
 
 	public ChangeLogEntryImpl() {

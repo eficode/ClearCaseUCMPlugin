@@ -1,215 +1,94 @@
 package net.praqma.hudson.remoting;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.io.PrintStream;
 import java.util.List;
 
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
-import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.hudson.exception.CCUCMException;
 import net.praqma.hudson.scm.CCUCMState.State;
-import net.praqma.util.debug.LoggerSetting;
-import net.praqma.util.debug.appenders.Appender;
 import hudson.FilePath;
 import hudson.model.BuildListener;
 import hudson.model.TaskListener;
-import hudson.remoting.Future;
-import hudson.remoting.Pipe;
 
-public class RemoteUtil {
+public abstract class RemoteUtil {
+    private RemoteUtil() {}
 
-	private LoggerSetting loggerSetting;
-	
-	private Appender app;
-	
-	public RemoteUtil( LoggerSetting loggerSetting, Appender app ) {
-		this.loggerSetting = loggerSetting;
-		this.app = app;
-	}
-	
-	public void setAppender( Appender appender ) {
-		this.app = appender;
-	}
-
-	public void completeRemoteDeliver( FilePath workspace, BuildListener listener, State state, String viewtag, File viewPath, boolean complete ) throws CCUCMException {
-
+	public static void completeRemoteDeliver( FilePath workspace, BuildListener listener, State state, String viewtag, File viewPath, boolean complete ) throws CCUCMException {
 		try {
-			if( workspace.isRemote() ) {
-				final Pipe pipe = Pipe.createRemoteToLocal();
-				Future<Boolean> i = null;
-				i = workspace.actAsync( new RemoteDeliverComplete( state.getBaseline(), state.getStream(), viewtag, viewPath, complete, listener, pipe, null, loggerSetting ) );
-				app.write( pipe.getIn() );
-				i.get();
-			} else {
-				Future<Boolean> i = null;
-				PipedInputStream in = new PipedInputStream();
-				PipedOutputStream out = new PipedOutputStream( in );
-				i = workspace.actAsync( new RemoteDeliverComplete( state.getBaseline(), state.getStream(), viewtag, viewPath, complete, listener, null, new PrintStream( out ), loggerSetting ) );
-				app.write( in );
-				i.get();
-			}
-			return;
-
+            workspace.act( new RemoteDeliverComplete( state.getBaseline(), state.getStream(), viewtag, viewPath, complete, listener ) );
 		} catch( Exception e ) {
-			throw new CCUCMException( "Failed to " + ( complete ? "complete" : "cancel" ) + " the deliver: " + e.getMessage() );
+			throw new CCUCMException( "Failed to " + ( complete ? "complete" : "cancel" ) + " the deliver", e );
 		}
 	}
 
-	public Baseline createRemoteBaseline( FilePath workspace, BuildListener listener, String baseName, Component component, File view, String username ) throws CCUCMException {
-
+	public static Baseline createRemoteBaseline( FilePath workspace, BuildListener listener, String baseName, Component component, File view, String username ) throws CCUCMException {
 		try {
-			if( workspace.isRemote() ) {
-				final Pipe pipe = Pipe.createRemoteToLocal();
-				Future<Baseline> i = null;
-				i = workspace.actAsync( new CreateRemoteBaseline( baseName, component, view, username, listener, pipe, null, loggerSetting ) );
-				app.write( pipe.getIn() );
-				return i.get();
-			} else {
-				Future<Baseline> i = null;
-				PipedInputStream in = new PipedInputStream();
-				PipedOutputStream out = new PipedOutputStream( in );
-				i = workspace.actAsync( new CreateRemoteBaseline( baseName, component, view, username, listener, null, new PrintStream( out ), loggerSetting ) );
-				app.write( in );
-				return i.get();
-			}
-
+            return workspace.act( new CreateRemoteBaseline( baseName, component, view, username, listener ) );
 		} catch( Exception e ) {
-			throw new CCUCMException( e.getMessage() );
+			throw new CCUCMException( e );
 		}
 	}
 
-	public List<Baseline> getRemoteBaselinesFromStream( FilePath workspace, Component component, Stream stream, PromotionLevel plevel, boolean slavePolling, boolean multisitePolling ) throws CCUCMException {
 
+	public static UCMEntity loadEntity( FilePath workspace, UCMEntity entity, boolean slavePolling ) throws CCUCMException {
 		try {
 			if( slavePolling ) {
-				if( workspace.isRemote() ) {
-					final Pipe pipe = Pipe.createRemoteToLocal();
-					Future<List<Baseline>> i = null;
-					i = workspace.actAsync( new GetRemoteBaselineFromStream( component, stream, plevel, pipe, null, loggerSetting, multisitePolling ) );
-					app.write( pipe.getIn() );
-					return i.get();
-				} else {
-					Future<List<Baseline>> i = null;
-					PipedInputStream in = new PipedInputStream();
-					PipedOutputStream out = new PipedOutputStream( in );
-					i = workspace.actAsync( new GetRemoteBaselineFromStream( component, stream, plevel, null, new PrintStream( out ), loggerSetting, multisitePolling ) );
-					app.write( in );
-					return i.get();
-				}
+				return workspace.act( new LoadEntity( entity ) );
 			} else {
-				GetRemoteBaselineFromStream t = new GetRemoteBaselineFromStream( component, stream, plevel, null, null, loggerSetting, multisitePolling );
+				LoadEntity t = new LoadEntity( entity );
 				return t.invoke( null, null );
 			}
-
 		} catch( Exception e ) {
-			throw new CCUCMException( e.getMessage() );
+			throw new CCUCMException( e );
 		}
 	}
 
-	public List<Stream> getRelatedStreams( FilePath workspace, TaskListener listener, Stream stream, boolean pollingChildStreams, boolean slavePolling, boolean multisitePolling ) throws CCUCMException {
-
-		PrintStream outlogger = listener.getLogger();
-
+	public static String getClearCaseVersion( FilePath workspace, Project project ) throws CCUCMException {
 		try {
-			if( slavePolling ) {
-
-				if( workspace.isRemote() ) {
-					final Pipe pipe = Pipe.createRemoteToLocal();
-					Future<List<Stream>> i = null;
-					i = workspace.actAsync( new GetRelatedStreams( listener, stream, pollingChildStreams, pipe, null, loggerSetting, multisitePolling ) );
-					app.write( pipe.getIn() );
-					return i.get();
-				} else {
-					Future<List<Stream>> i = null;
-					PipedInputStream in = new PipedInputStream();
-					PipedOutputStream out = new PipedOutputStream( in );
-					i = workspace.actAsync( new GetRelatedStreams( listener, stream, pollingChildStreams, null, new PrintStream( out ), loggerSetting, multisitePolling ) );
-					app.write( in );
-					return i.get();
-
-				}
-			} else {
-				GetRelatedStreams t = new GetRelatedStreams( listener, stream, pollingChildStreams, null, null, loggerSetting, multisitePolling );
-				return t.invoke( null, null );
-			}
-
+			return workspace.act( new GetClearCaseVersion( project ) );
 		} catch( Exception e ) {
-			e.printStackTrace( outlogger );
-			throw new CCUCMException( e.getMessage() );
+			throw new CCUCMException( e );
 		}
 	}
 
-	public UCMEntity loadEntity( FilePath workspace, UCMEntity entity, boolean slavePolling ) throws CCUCMException {
-
+	public static void endView( FilePath workspace, String viewtag ) throws CCUCMException {
 		try {
-			if( slavePolling ) {
-				Future<UCMEntity> i = null;
-
-				if( workspace.isRemote() ) {
-					final Pipe pipe = Pipe.createRemoteToLocal();
-
-					i = workspace.actAsync( new LoadEntity( entity, pipe, null, loggerSetting ) );
-					app.write( pipe.getIn() );
-
-				} else {
-					PipedInputStream in = new PipedInputStream();
-					PipedOutputStream out = new PipedOutputStream( in );
-					i = workspace.actAsync( new LoadEntity( entity, null, new PrintStream( out ), loggerSetting ) );
-					app.write( in );
-				}
-
-				return i.get();
-			} else {
-				LoadEntity t = new LoadEntity( entity, null, null, loggerSetting );
-				return t.invoke( null, null );
-			}
-
-		} catch( Exception e ) {
-			throw new CCUCMException( e.getMessage() );
-		}
-	}
-
-	public String getClearCaseVersion( FilePath workspace, Project project ) throws CCUCMException {
-
-		try {
-			Future<String> i = null;
-
-			if( workspace.isRemote() ) {
-				final Pipe pipe = Pipe.createRemoteToLocal();
-				i = workspace.actAsync( new GetClearCaseVersion( project, pipe, null, loggerSetting ) );
-				app.write( pipe.getIn() );
-
-			} else {
-				PipedInputStream in = new PipedInputStream();
-				PipedOutputStream out = new PipedOutputStream( in );
-				i = workspace.actAsync( new GetClearCaseVersion( project, null, new PrintStream( out ), loggerSetting ) );
-				app.write( in );
-			}
-
-			return i.get();
-
-		} catch( Exception e ) {
-			throw new CCUCMException( e.getMessage() );
-		}
-	}
-
-	public void endView( FilePath workspace, String viewtag ) throws CCUCMException {
-
-		try {
-
 			workspace.act( new EndView( viewtag ) );
-
 		} catch( Exception e ) {
-			throw new CCUCMException( e.getMessage() );
+			throw new CCUCMException( e );
 		}
 	}
+
+    public static List<Stream> getRelatedStreams( FilePath workspace, TaskListener listener, Stream stream, boolean pollingChildStreams, boolean slavePolling, boolean multisitePolling ) throws CCUCMException {
+        try {
+            if( slavePolling ) {
+                return workspace.act( new GetRelatedStreams( listener, stream, pollingChildStreams, multisitePolling ) );
+            } else {
+                GetRelatedStreams t = new GetRelatedStreams( listener, stream, pollingChildStreams, multisitePolling );
+                return t.invoke( null, null );
+            }
+        } catch( Exception e ) {
+            throw new CCUCMException( e );
+        }
+    }
+
+
+    public static List<Baseline> getRemoteBaselinesFromStream( FilePath workspace, Component component, Stream stream, Project.PromotionLevel plevel, boolean slavePolling, boolean multisitePolling ) throws CCUCMException {
+
+        try {
+            if( slavePolling ) {
+                return workspace.act( new GetRemoteBaselineFromStream( component, stream, plevel, multisitePolling ) );
+            } else {
+                GetRemoteBaselineFromStream t = new GetRemoteBaselineFromStream( component, stream, plevel, multisitePolling );
+                return t.invoke( null, null );
+            }
+
+        } catch( Exception e ) {
+            throw new CCUCMException( e );
+        }
+    }
 }

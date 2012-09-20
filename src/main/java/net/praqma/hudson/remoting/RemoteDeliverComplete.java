@@ -3,24 +3,14 @@ package net.praqma.hudson.remoting;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Set;
+import java.util.logging.Logger;
 
 import net.praqma.clearcase.Deliver;
-import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
-import net.praqma.clearcase.ucm.entities.UCMEntity;
-import net.praqma.clearcase.ucm.view.SnapshotView;
-import net.praqma.hudson.scm.ClearCaseChangeset;
-import net.praqma.hudson.scm.ClearCaseChangeset.Element;
-import net.praqma.util.debug.Logger;
-import net.praqma.util.debug.LoggerSetting;
-import net.praqma.util.debug.appenders.Appender;
-import net.praqma.util.debug.appenders.StreamAppender;
 
 import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
-import hudson.remoting.Pipe;
 import hudson.remoting.VirtualChannel;
 
 public class RemoteDeliverComplete implements FileCallable<Boolean> {
@@ -29,7 +19,6 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 
 	private boolean complete;
 	private BuildListener listener;
-	private Pipe pipe;
 
 	private Baseline baseline;
 	private Stream stream;
@@ -37,23 +26,14 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 	private String viewtag;
 	private File viewPath;
 
-	private PrintStream pstream;
-
-	private LoggerSetting loggerSetting;
-
-	public RemoteDeliverComplete( Baseline baseline, Stream stream, String viewtag, File viewPath, boolean complete, BuildListener listener, Pipe pipe, PrintStream pstream, LoggerSetting loggerSetting ) {
+	public RemoteDeliverComplete( Baseline baseline, Stream stream, String viewtag, File viewPath, boolean complete, BuildListener listener ) {
 		this.complete = complete;
 		this.listener = listener;
-		this.pipe = pipe;
 
 		this.baseline = baseline;
 		this.stream = stream;
 		this.viewtag = viewtag;
 		this.viewPath = viewPath;
-
-		this.pstream = pstream;
-
-		this.loggerSetting = loggerSetting;
 	}
 
 	@Override
@@ -61,22 +41,9 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 
 		PrintStream out = listener.getLogger();
 
-		Logger logger = Logger.getLogger();
-		Appender app = null;
-		if( pipe != null ) {
-			PrintStream toMaster = new PrintStream( pipe.getOut() );
-			app = new StreamAppender( toMaster );
-			app.lockToCurrentThread();
-			Logger.addAppender( app );
-			app.setSettings( loggerSetting );
-		} else if( pstream != null ) {
-			app = new StreamAppender( pstream );
-			app.lockToCurrentThread();
-			Logger.addAppender( app );
-			app.setSettings( loggerSetting );
-		}
+		Logger logger = Logger.getLogger( RemoteDeliverComplete.class.getName() );
 
-		logger.debug( "Remote deliver complete" );
+		logger.fine( "Remote deliver complete" );
 		
 		Deliver deliver = new Deliver( baseline, baseline.getStream(), stream, viewPath, viewtag );
 		if( complete ) {
@@ -90,10 +57,8 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 					//baseline.cancel( view.getViewRoot() );
 					deliver.cancel();
 				} catch( Exception ex1 ) {
-					Logger.removeAppender( app );
 					throw new IOException( "Completing the deliver failed. Could not cancel.", ex1 );
 				}
-				Logger.removeAppender( app );
 				throw new IOException( "Completing the deliver failed. Deliver was cancelled.", ex );
 			}
 
@@ -103,12 +68,10 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 				//baseline.cancel( view.getViewRoot() );
 				deliver.cancel();
 			} catch( Exception ex ) {
-				Logger.removeAppender( app );
 				throw new IOException( "Could not cancel the deliver.", ex );
 			}
 		}
 
-		Logger.removeAppender( app );
 		return true;
 	}
 

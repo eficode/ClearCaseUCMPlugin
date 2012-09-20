@@ -3,13 +3,12 @@ package net.praqma.hudson.notifier;
 import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
 import hudson.model.Result;
-import hudson.remoting.Pipe;
 import hudson.remoting.VirtualChannel;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Set;
+import java.util.logging.Logger;
 
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.exceptions.TagException;
@@ -21,9 +20,6 @@ import net.praqma.clearcase.ucm.entities.Tag;
 import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.scm.Unstable;
-import net.praqma.util.debug.Logger;
-import net.praqma.util.debug.LoggerSetting;
-import net.praqma.util.debug.appenders.StreamAppender;
 
 /**
  * 
@@ -47,15 +43,12 @@ class RemotePostBuild implements FileCallable<Status> {
 	private String id = "";
 	private PrintStream hudsonOut = null;
 	private Unstable unstable;
-	private Pipe pipe = null;
-	private LoggerSetting loggerSetting;
-	private PrintStream pstream;
 
 	public RemotePostBuild( Result result, Status status, BuildListener listener,
 	/* Values for */
 	boolean makeTag, boolean recommended, Unstable unstable,
 	/* Common values */
-	Baseline sourcebaseline, Baseline targetbaseline, Stream sourcestream, Stream targetstream, String displayName, String buildNumber, Pipe pipe, PrintStream pstream, LoggerSetting loggerSetting ) {
+	Baseline sourcebaseline, Baseline targetbaseline, Stream sourcestream, Stream targetstream, String displayName, String buildNumber ) {
 
 		this.displayName = displayName;
 		this.buildNumber = buildNumber;
@@ -76,31 +69,14 @@ class RemotePostBuild implements FileCallable<Status> {
 
 		this.status = status;
 		this.listener = listener;
-
-		this.pstream = pstream;
-		this.pipe = pipe;
-		this.loggerSetting = loggerSetting;
 	}
 
 	public Status invoke( File workspace, VirtualChannel channel ) throws IOException {
 		hudsonOut = listener.getLogger();
 
-		Logger logger = Logger.getLogger();
+		Logger logger = Logger.getLogger( RemotePostBuild.class.getName()  );
 
-		StreamAppender app = null;
-		if( pipe != null ) {
-			PrintStream toMaster = new PrintStream( pipe.getOut() );
-			app = new StreamAppender( toMaster );
-			Logger.addAppender( app );
-			app.setSettings( loggerSetting );
-		} else if( pstream != null ) {
-			app = new StreamAppender( pstream );
-			app.lockToCurrentThread();
-			Logger.addAppender( app );
-			app.setSettings( loggerSetting );
-		}
-
-		String newPLevel = "";
+		String newPLevel;
 
 		logger.info( "Starting PostBuild task" );
 
@@ -229,7 +205,7 @@ class RemotePostBuild implements FileCallable<Status> {
 				} catch( Exception e ) {
 					hudsonOut.println( "[" + Config.nameShort + "] Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
 					if( e instanceof TagException && ((TagException) e).getType().equals( Type.NO_SUCH_HYPERLINK ) ) {
-						logger.error( "Hyperlink type not found, failing build" );
+						logger.severe( "Hyperlink type not found, failing build" );
 						hudsonOut.println( "Hyperlink type not found, failing build" );
 						failBuild = e;
 					} else {
@@ -249,8 +225,6 @@ class RemotePostBuild implements FileCallable<Status> {
 		} else {
 			status.setBuildDescr( setDisplaystatus( sourcebaseline.getShortname(), newPLevel + noticeString, targetbaseline.getShortname(), status.getErrorMessage() ) );
 		}
-
-		Logger.removeAppender( app );
 		
 		if( failBuild != null ) {
 			throw new IOException( failBuild );
