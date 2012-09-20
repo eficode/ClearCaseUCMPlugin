@@ -2,6 +2,7 @@ package net.praqma.hudson.nametemplates;
 
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.hudson.exception.TemplateException;
+import net.praqma.hudson.remoting.RemoteUtil;
 import net.praqma.hudson.scm.CCUCMState.State;
 
 import java.util.logging.Level;
@@ -18,7 +19,7 @@ public class ClearCaseVersionNumberTemplate extends Template {
 			logger.fine( "STREAM: " + state.getStream() );
 			logger.fine( "PROJECT: " + state.getStream().getProject() );
 			Project project = state.getStream().getProject();
-			return rutil.getClearCaseVersion( state.getWorkspace(), project );
+			return RemoteUtil.getClearCaseVersion( state.getWorkspace(), project );
 		} catch( Exception e ) {
 			logger.warning( "Getting cc version error: " + e.getMessage() );
 			logger.log( Level.WARNING, "", e );
