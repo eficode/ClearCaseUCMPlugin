@@ -65,7 +65,9 @@ public class JENKINS14806 {
 		PollingResult result = project.poll( jenkins.createTaskListener() );
 		
 		System.out.println( "Assert" );
-		assertThat( result, is( PollingResult.NO_CHANGES ) );
+		//assertThat( result, is( PollingResult.NO_CHANGES ) );
+        System.out.println( "RESULT IS " + result.toString() );
+        assertEquals( result, PollingResult.NO_CHANGES );
 		
 		System.out.println( "Waiting for waiter" );
 		futureBuild.get();
