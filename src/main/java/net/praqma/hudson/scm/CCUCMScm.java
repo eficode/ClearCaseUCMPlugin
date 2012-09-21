@@ -797,7 +797,7 @@ public class CCUCMScm extends SCM {
 		if( this.getMultisitePolling() ) {
 			/* multisite polling and a build is in progress */
 			if( project.isBuilding() ) {
-				logger.fine( "A build already building - cancelling poll" );
+				logger.info( "A build already building - cancelling poll" );
 	            return PollingResult.NO_CHANGES;
 			}
 		} else {

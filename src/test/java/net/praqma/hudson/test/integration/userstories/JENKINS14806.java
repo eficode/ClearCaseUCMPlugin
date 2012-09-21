@@ -38,7 +38,7 @@ public class JENKINS14806 {
 
 	@Test
 	@TestDescription( title = "JENKINS-14806", text = "Multisite polling finds the same baseline times", configurations = { "ClearCase multisite = true" }	)
-	public void jenkins13944() throws Exception {
+	public void jenkins14806() throws Exception {
 	
 		CCUCMScm ccucm = jenkins.getCCUCM( "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), "INITIAL", false, false, false, false, true, "[project]_[date]_[time]" );
 		ccucm.setMultisitePolling( true );
@@ -51,7 +51,7 @@ public class JENKINS14806 {
 		
 		/* Add builder to sleep */
 		System.out.println( "Adding waiter" );
-		project.getBuildersList().add( new WaitBuilder( 10000 ) );
+		project.getBuildersList().add( new WaitBuilder() );
 		
 		System.out.println( "Async build" );
 		Future<FreeStyleBuild> futureBuild = project.scheduleBuild2( 0 );
@@ -63,28 +63,25 @@ public class JENKINS14806 {
 		/* And then poll */
 		System.out.println( "Poll" );
 		PollingResult result = project.poll( jenkins.createTaskListener() );
+
+        doWait = false;
 		
 		System.out.println( "Assert" );
-		//assertThat( result, is( PollingResult.NO_CHANGES ) );
-        System.out.println( "RESULT IS " + result.toString() );
-        assertEquals( result, PollingResult.NO_CHANGES );
+        assertThat( "The previous build was finished and there were changes!", result, is( PollingResult.NO_CHANGES ) );
 		
 		System.out.println( "Waiting for waiter" );
 		futureBuild.get();
 	}
 
+    public volatile boolean doWait = true;
+
 	public class WaitBuilder extends TestBuilder {
-		
-		int millisecs;
-		
-		public WaitBuilder( int ms ) {
-			this.millisecs = ms;
-		}
+
 
 		@Override
 		public boolean perform( AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener ) throws InterruptedException, IOException {
 			System.out.println( "Sleeping...." );
-			Thread.sleep( this.millisecs );
+            while( doWait ) {}
 			System.out.println( "Awaken...." );
 			return true;
 		}
