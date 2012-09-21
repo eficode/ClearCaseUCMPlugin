@@ -15,7 +15,8 @@ import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.hudson.test.SystemValidator;
 import net.praqma.junit.TestDescription;
-import net.praqma.util.debug.Logger;
+
+import java.util.logging.Logger;
 
 public class BaselinesFound {
 	
@@ -25,7 +26,7 @@ public class BaselinesFound {
 	@Rule
 	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );
 	
-	private static Logger logger = Logger.getLogger();
+	private static Logger logger = Logger.getLogger( BaselinesFound.class.getName() );
 	
 	public AbstractBuild<?, ?> initiateBuild( String projectName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
 		return jenkins.initiateBuild( projectName, "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), recommend, tag, description, fail, false );

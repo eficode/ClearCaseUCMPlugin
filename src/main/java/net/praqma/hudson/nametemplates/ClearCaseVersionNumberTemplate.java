@@ -22,7 +22,6 @@ public class ClearCaseVersionNumberTemplate extends Template {
 			return RemoteUtil.getClearCaseVersion( state.getWorkspace(), project );
 		} catch( Exception e ) {
 			logger.warning( "Getting cc version error: " + e.getMessage() );
-			logger.log( Level.WARNING, "", e );
 			return "unknownccversion";
 		}
 	}
