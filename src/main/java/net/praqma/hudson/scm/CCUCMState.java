@@ -196,13 +196,13 @@ public class CCUCMState {
 		private Baseline baseline;
 		private Stream stream;
 		private Component component;
-		private boolean doPostBuild = true;
+		//private boolean doPostBuild = true;
 		private Project.PromotionLevel plevel;
 		private String loadModule;
-		private String jobName;
-		private Integer jobNumber;
+		//private String jobName;
+		//private Integer jobNumber;
 		private boolean addedByPoller = false;
-		private long multiSiteFrequency = 0;
+		//private long multiSiteFrequency = 0;
 		private List<Baseline> baselines = null;
 		private Polling polling;
 		private Unstable unstable;
@@ -212,10 +212,10 @@ public class CCUCMState {
 		private boolean createBaseline = true;
 		private String nameTemplate;
 
-		private AbstractBuild<?, ?> build;
-		private TaskListener listener;
+		//private AbstractBuild<?, ?> build;
+		//private TaskListener listener;
 
-		private ClearCaseChangeset changeset;
+		//private ClearCaseChangeset changeset;
 
 		private boolean setDescription = false;
 		private boolean makeTag = false;
