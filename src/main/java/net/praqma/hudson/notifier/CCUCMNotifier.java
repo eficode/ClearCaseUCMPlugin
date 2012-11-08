@@ -35,13 +35,7 @@ import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 
-/**
- * CCUCMNotifier perfoms the user-chosen CCUCM post-build actions
- * 
- * @author Troels Selch
- * @author Margit Bennetzen
- * 
- */
+
 public class CCUCMNotifier extends Notifier {
 
 	private PrintStream out;
@@ -51,8 +45,6 @@ public class CCUCMNotifier extends Notifier {
 	private static Logger logger = Logger.getLogger( CCUCMNotifier.class.getName() );
 	private String jobName = "";
 	private Integer jobNumber = 0;
-
-	//private SimpleDateFormat logformat  = new SimpleDateFormat( "yyyyMMdd-HHmmss" );
 
 	public CCUCMNotifier() {
 	}
