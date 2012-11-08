@@ -768,7 +768,7 @@ public class CCUCMScm extends SCM {
      * @param project
      * @return An Action
      */
-    public static CCUCMBuildAction getLastAction( AbstractProject<?, ?> project ) throws CCUCMException {
+    public static CCUCMBuildAction getLastAction( AbstractProject<?, ?> project ) {
         for( AbstractBuild<?, ?> b = project.getLastBuild() ; b != null ; b = b.getPreviousBuild() ) {
             CCUCMBuildAction action = b.getAction( CCUCMBuildAction.class );
             if( action != null && action.getBaseline() != null ) {
@@ -776,7 +776,7 @@ public class CCUCMScm extends SCM {
             }
         }
 
-        throw new CCUCMException( "No valid action" );
+        return null;
     }
 
 
