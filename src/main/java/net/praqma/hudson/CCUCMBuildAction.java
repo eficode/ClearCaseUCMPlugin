@@ -3,6 +3,9 @@ package net.praqma.hudson;
 import java.io.File;
 import java.util.List;
 
+import hudson.FilePath;
+import hudson.model.AbstractBuild;
+import hudson.model.TaskListener;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
@@ -12,6 +15,9 @@ import net.praqma.hudson.scm.Polling;
 import net.praqma.hudson.scm.Unstable;
 
 public class CCUCMBuildAction implements Action {
+
+    private AbstractBuild<?, ?> build;
+    private TaskListener listener;
 	
 	private Stream stream;
 	private Component component;
@@ -64,6 +70,7 @@ public class CCUCMBuildAction implements Action {
 	/* View, possibly remote */
 	private File viewPath;
 	private String viewTag;
+    private FilePath workspace;
 
     /**
      * The created {@link Baseline} when deliver
@@ -72,13 +79,25 @@ public class CCUCMBuildAction implements Action {
 
     private String error;
 
-	
-	public CCUCMBuildAction( Stream stream, Component component ) {
+	public CCUCMBuildAction( AbstractBuild<?, ?> build, Stream stream, Component component ) {
+        this.build = build;
 		this.stream = stream;
 		this.component = component;
 	}
 
-	public Baseline getBaseline() {
+    public AbstractBuild<?, ?> getBuild() {
+        return build;
+    }
+
+    public TaskListener getListener() {
+        return listener;
+    }
+
+    public void setListener( TaskListener listener ) {
+        this.listener = listener;
+    }
+
+    public Baseline getBaseline() {
 		return baseline;
 	}
 
@@ -238,6 +257,14 @@ public class CCUCMBuildAction implements Action {
         this.error = error;
     }
 
+    public FilePath getWorkspace() {
+        return workspace;
+    }
+
+    public void setWorkspace( FilePath workspace ) {
+        this.workspace = workspace;
+    }
+
     @Override
 	public String getDisplayName() {
 		return null;
@@ -252,5 +279,22 @@ public class CCUCMBuildAction implements Action {
 	public String getUrlName() {
 		return null;
 	}
+
+    @Override
+    public String toString() {
+        return stream + ", " + component + ", " + promotionLevel + " = " + baseline;
+    }
+
+
+    public String stringify() {
+        StringBuilder sb = new StringBuilder();
+        sb.append( "Stream          : " + stream );
+        sb.append( "Component       : " + component );
+        sb.append( "Promotion Level : " + promotionLevel );
+        sb.append( "Baseline        : " + baseline );
+        sb.append( "Created Baseline: " + createdBaseline );
+
+        return sb.toString();
+    }
 
 }

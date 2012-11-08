@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import hudson.AbortException;
 import org.kohsuke.stapler.StaplerRequest;
 
 import net.praqma.clearcase.exceptions.ClearCaseException;
@@ -107,77 +108,22 @@ public class CCUCMNotifier extends Notifier {
 			return true;
 		}
 
-		State pstate = null;
 		Baseline baseline = null;
 		
 		CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
 
-		/* Only do this part if a valid CCUCMScm build */
-		if( result ) {
-			/* Retrieve the CCUCM state */
-			logger.fine( "STATES: " + CCUCMScm.ccucm.stringify() );
-			try {
-				pstate = CCUCMScm.ccucm.getState( jobName, jobNumber );
-			} catch( IllegalStateException e ) {
-				System.err.println( e.getMessage() );
-				CCUCMScm.ccucm.signalFault( jobName, jobNumber );
-				out.println( "[" + Config.nameShort + "] " + e.getMessage() );
-                logger.log( Level.WARNING, "", e );
-
-				return false;
-			}
-
-			logger.fine( "STATE: " + pstate );
-			logger.fine( pstate.stringify() );
-
-			/* Validate the state */
-			if( pstate.doPostBuild() && pstate.getBaseline() != null ) {
-				logger.fine( id + "Post build" );
-
-				/*
-				 * This shouldn't actually be necessary!? TODO Maybe the
-				 * baseline should be re-Load()ed instead of creating a new
-				 * object?
-				 */
-				String bl = pstate.getBaseline().getFullyQualifiedName();
-
-				/*
-				 * If no baselines found bl will be null and the post build
-				 * section will not proceed
-				 */
-				if( bl != null ) {
-					try {
-						baseline = Baseline.get( bl );
-					} catch( ClearCaseException e ) {
-						logger.warning( id + "Could not initialize baseline." );
-						baseline = null;
-					}
-
-					if( baseline == null ) {
-						/*
-						 * If baseline is null, the user has already been
-						 * notified in Console output from CCUCMScm.checkout()
-						 */
-						result = false;
-					}
-				} else {
-					logger.warning( "Whoops, not a valid baseline" );
-					result = false;
-				}
-
-			} else {
-				logger.warning( "Whoops, not a valid state, there was no baseline found or the post build flag was not set" );
-				// Not performing any post build actions.
-				result = false;
-			}
+		if( action != null ) {
+            logger.fine( action.stringify() );
+			baseline = action.getBaseline();
 		} else {
-			logger.warning( "WHOA, what happened!? Result = false!!!" );
+			logger.warning( "WHOA, what happened!?" );
+            throw new AbortException( "No ClearCase Action object found" );
 		}
 
 		/* There's a valid baseline, lets process it */
-		if( result ) {
+		if( baseline != null ) {
 			out.println( "Processing baseline" );
-			status.setErrorMessage( pstate.getError() );
+			status.setErrorMessage( action.getError() );
 
 			try {
 				processBuild( build, launcher, listener, pstate );
@@ -240,7 +186,7 @@ public class CCUCMNotifier extends Notifier {
 	 *            The {@link net.praqma.hudson.scm.CCUCMState} of the build.
 	 * @throws NotifierException
 	 */
-	private void processBuild( AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, State pstate ) throws NotifierException {
+	private void processBuild( AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, CCUCMBuildAction pstate ) throws NotifierException {
 		Result buildResult = build.getResult();
 
 		VirtualChannel ch = launcher.getChannel();
@@ -267,7 +213,7 @@ public class CCUCMNotifier extends Notifier {
 		Baseline sourcebaseline = pstate.getBaseline();
 		Baseline targetbaseline = sourcebaseline;
 
-		logger.fine( "NTBC: " + pstate.needsToBeCompleted() );
+		logger.fine( "NTBC: " + pstate.doNeedsToBeCompleted() );
 
 		/*
 		 * Determine whether to treat the build as successful
@@ -282,16 +228,16 @@ public class CCUCMNotifier extends Notifier {
 		 * Finalize CCUCM, deliver + baseline Only do this for child and sibling
 		 * polling
 		 */
-		if( pstate.needsToBeCompleted() && pstate.getPolling().isPollingOther() ) {
+		if( pstate.doNeedsToBeCompleted() && pstate.getPolling().isPollingOther() ) {
 			status.setBuildStatus( buildResult );
 
 			try {
 				out.print( "[" + Config.nameShort + "] " + ( treatSuccessful ? "Completing" : "Cancelling" ) + " the deliver. " );
-				RemoteUtil.completeRemoteDeliver( workspace, listener, pstate, action.getViewTag(), action.getViewPath(), treatSuccessful );
+				RemoteUtil.completeRemoteDeliver( workspace, listener, pstate.getBaseline(), pstate.getStream(), action.getViewTag(), action.getViewPath(), treatSuccessful );
 				out.println( "Success." );
 
 				/* If deliver was completed, create the baseline */
-				if( treatSuccessful && pstate.createBaseline() ) {
+				if( treatSuccessful && pstate.doCreateBaseline() ) {
 
 					try {
 						pstate.setBuild( build );
