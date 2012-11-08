@@ -155,8 +155,7 @@ public class CCUCMScm extends SCM {
 
 		doPostBuild = true;
 
-
-		/* Make build action */
+        /* Make build action */
         /* Store the configuration */
         CCUCMBuildAction action = null;
         try {
@@ -168,6 +167,9 @@ public class CCUCMScm extends SCM {
 
         action.setBuild( build );
         build.addAction( action );
+
+        out.println( "LISTENER IS " + listener );
+        //action.setListener( listener );
 
 		/* Determining the user has parameterized a Baseline */
 		String baselineInput = getBaselineValue( build );
@@ -192,7 +194,9 @@ public class CCUCMScm extends SCM {
                 throw new AbortException( "Unable to resolve Baseline" );
             }
         }
-		
+
+
+
 		/* If a baseline is found */
 		if( action.getBaseline() != null ) {
 			out.println( "[" + Config.nameShort + "] Using " + action.getBaseline().getNormalizedName() );
@@ -207,7 +211,7 @@ public class CCUCMScm extends SCM {
 				logger.fine( "Deliver" );
 				beginDeliver( build, action, listener, changelogFile );
 			}
-			
+
 			action.setViewTag( viewtag );
 		}
 

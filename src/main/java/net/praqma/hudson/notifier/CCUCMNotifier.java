@@ -92,6 +92,7 @@ public class CCUCMNotifier extends Notifier {
 		Baseline baseline = null;
 		
 		CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
+        out.println( "ACTION:\n" + action.stringify() );
 
 		if( action != null ) {
             logger.fine( action.stringify() );
@@ -194,7 +195,7 @@ public class CCUCMNotifier extends Notifier {
 
 		logger.fine( "NTBC: " + pstate.doNeedsToBeCompleted() );
 
-		/*
+        /*
 		 * Determine whether to treat the build as successful
 		 * 
 		 * Success: - deliver complete - create baseline - recommend
@@ -202,6 +203,11 @@ public class CCUCMNotifier extends Notifier {
 		 * Fail: - deliver cancel
 		 */
 		boolean treatSuccessful = buildResult.isBetterThan( pstate.getUnstable().treatSuccessful() ? Result.FAILURE : Result.UNSTABLE );
+
+
+        //out.println( "LISTENER IS " + listener );
+        //pstate.setListener( listener );
+        //pstate.setListener( null );
 
 		/*
 		 * Finalize CCUCM, deliver + baseline Only do this for child and sibling
@@ -219,16 +225,16 @@ public class CCUCMNotifier extends Notifier {
 				if( treatSuccessful && pstate.doCreateBaseline() ) {
 
 					try {
-						pstate.setListener( listener );
+
 						out.print( "[" + Config.nameShort + "] Creating baseline on Integration stream. " );
-						
+
 						pstate.setWorkspace( workspace );
 						NameTemplate.validateTemplates( pstate );
 						String name = NameTemplate.parseTemplate( pstate.getNameTemplate(), pstate );
 
 						targetbaseline = RemoteUtil.createRemoteBaseline( workspace, listener, name, pstate.getBaseline().getComponent(), action.getViewPath(), pstate.getBaseline().getUser() );
 
-						/**/
+
 						if( action != null ) {
 							action.setCreatedBaseline( targetbaseline );
 						}
@@ -240,7 +246,7 @@ public class CCUCMNotifier extends Notifier {
 						if( pstate.doRecommend() ) {
 							out.println( "[" + Config.nameShort + "] Cannot recommend Baseline when not created" );
 						}
-						
+
 						/* Set unstable? */
 						logger.warning( "Failing build because baseline could not be created" );
 						build.setResult( Result.FAILURE );
@@ -278,7 +284,6 @@ public class CCUCMNotifier extends Notifier {
 				}
 			}
 		}
-
 		if( pstate.getPolling().isPollingOther() ) {
 			targetstream = pstate.getStream();
 		}
@@ -294,7 +299,7 @@ public class CCUCMNotifier extends Notifier {
             logger.log( Level.WARNING, "", e );
 			out.println( "[" + Config.nameShort + "] Error: Post build failed" );
 			Throwable cause = net.praqma.util.ExceptionUtils.unpackFrom( IOException.class, e );
-			
+
 			ExceptionUtils.print( cause, out, true );
 		}
 

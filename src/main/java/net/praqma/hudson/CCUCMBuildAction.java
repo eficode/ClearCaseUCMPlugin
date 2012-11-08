@@ -97,7 +97,7 @@ public class CCUCMBuildAction implements Action {
     }
 
     public void setListener( TaskListener listener ) {
-        this.listener = listener;
+        //this.listener = listener;
     }
 
     public Baseline getBaseline() {
@@ -291,11 +291,12 @@ public class CCUCMBuildAction implements Action {
 
     public String stringify() {
         StringBuilder sb = new StringBuilder();
-        sb.append( "Stream          : " + stream );
-        sb.append( "Component       : " + component );
-        sb.append( "Promotion Level : " + promotionLevel );
-        sb.append( "Baseline        : " + baseline );
-        sb.append( "Created Baseline: " + createdBaseline );
+        sb.append( "Stream          : " + stream + "\n" );
+        sb.append( "Component       : " + component + "\n" );
+        sb.append( "Promotion Level : " + promotionLevel + "\n" );
+        sb.append( "Baseline        : " + baseline + "\n" );
+        sb.append( "Created Baseline: " + createdBaseline + "\n" );
+        sb.append( "Polling         : " + polling + "\n" );
 
         return sb.toString();
     }
