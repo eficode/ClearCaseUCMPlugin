@@ -79,11 +79,14 @@ public class CCUCMBuildAction implements Action {
 
     private String error;
 
-	public CCUCMBuildAction( AbstractBuild<?, ?> build, Stream stream, Component component ) {
-        this.build = build;
+	public CCUCMBuildAction( Stream stream, Component component ) {
 		this.stream = stream;
 		this.component = component;
 	}
+
+    public void setBuild( AbstractBuild<?, ?> build ) {
+        this.build = build;
+    }
 
     public AbstractBuild<?, ?> getBuild() {
         return build;

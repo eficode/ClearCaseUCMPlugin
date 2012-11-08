@@ -126,8 +126,8 @@ public class CCUCMNotifier extends Notifier {
 			status.setErrorMessage( action.getError() );
 
 			try {
-				processBuild( build, launcher, listener, pstate );
-				if( pstate.isSetDescription() ) {
+				processBuild( build, launcher, listener, action );
+				if( action.doSetDescription() ) {
 					String d = build.getDescription();
 					if( d != null ) {
 						build.setDescription( ( d.length() > 0 ? d + "<br/>" : "" ) + status.getBuildDescr() );
@@ -240,13 +240,8 @@ public class CCUCMNotifier extends Notifier {
 				if( treatSuccessful && pstate.doCreateBaseline() ) {
 
 					try {
-						pstate.setBuild( build );
 						pstate.setListener( listener );
 						out.print( "[" + Config.nameShort + "] Creating baseline on Integration stream. " );
-						/* Load project for stream */
-						logger.fine( "1STREAM: " + pstate.getStream() );
-						logger.fine( "1PROJECT: " + pstate.getStream().getProject() );
-						RemoteUtil.loadEntity( workspace, pstate.getStream(), true );
 						
 						pstate.setWorkspace( workspace );
 						NameTemplate.validateTemplates( pstate );
@@ -291,7 +286,7 @@ public class CCUCMNotifier extends Notifier {
 				if( treatSuccessful ) {
 					try {
 						out.print( "[" + Config.nameShort + "] Trying to cancel the deliver. " );
-						RemoteUtil.completeRemoteDeliver( workspace, listener, pstate, action.getViewTag(), action.getViewPath(), false );
+						RemoteUtil.completeRemoteDeliver( workspace, listener, pstate.getBaseline(), pstate.getStream(), action.getViewTag(), action.getViewPath(), false );
 						out.println( "Success." );
 					} catch( Exception e1 ) {
 						out.println( " Failed." );
@@ -314,7 +309,7 @@ public class CCUCMNotifier extends Notifier {
 			logger.fine( id + "Remote post build step" );
 			out.println( "[" + Config.nameShort + "] Performing common post build steps" );
 
-			status = workspace.act( new RemotePostBuild( buildResult, status, listener, pstate.isMakeTag(), pstate.doRecommend(), pstate.getUnstable(), sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) ) );
+			status = workspace.act( new RemotePostBuild( buildResult, status, listener, pstate.doMakeTag(), pstate.doRecommend(), pstate.getUnstable(), sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) ) );
 		} catch( Exception e ) {
 			status.setStable( false );
             logger.log( Level.WARNING, "", e );

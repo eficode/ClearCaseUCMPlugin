@@ -173,6 +173,7 @@ public class CCUCMScm extends SCM {
             throw new AbortException( e.getMessage() );
         }
 
+        action.setBuild( build );
         build.addAction( action );
 
 		/* Determining the user has parameterized a Baseline */
