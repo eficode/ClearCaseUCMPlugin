@@ -54,7 +54,7 @@ public class BaselinesFound extends BaseTestClass {
 	@ClearCaseUniqueVobName( name = "nop-child" )
 	@TestDescription( title = "Child polling", text = "baseline available" )
 	public void testNoOptions() throws Exception {
-		
+		System.out.println( "1" );
 		Baseline baseline = getNewBaseline();
 
 		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getUniqueName(), false, false, false, false );
@@ -70,7 +70,7 @@ public class BaselinesFound extends BaseTestClass {
 	@ClearCaseUniqueVobName( name = "recommended-child" )
 	@TestDescription( title = "Child polling", text = "baseline available",	configurations = { "Recommended = true" } )
 	public void testRecommended() throws Exception {
-		
+        System.out.println( "2" );
 		Baseline baseline = getNewBaseline();
 		
 		AbstractBuild<?, ?> build = initiateBuild( "recommended-" + ccenv.getUniqueName(), true, false, false, false );
@@ -86,7 +86,7 @@ public class BaselinesFound extends BaseTestClass {
 	@ClearCaseUniqueVobName( name = "description-child" )
 	@TestDescription( title = "Child polling", text = "baseline available",	configurations = { "Set description = true" } )
 	public void testDescription() throws Exception {
-		
+        System.out.println( "3" );
 		Baseline baseline = getNewBaseline();
 		
 		AbstractBuild<?, ?> build = initiateBuild( "description-" + ccenv.getUniqueName(), false, false, true, false );
@@ -103,6 +103,7 @@ public class BaselinesFound extends BaseTestClass {
 	@ClearCaseUniqueVobName( name = "tagged-child" )
 	@TestDescription( title = "Child polling", text = "baseline available", configurations = { "Set tag = true" } )
 	public void testTagged() throws Exception {
+        System.out.println( "4" );
 		jenkins.makeTagType( ccenv.getPVob() );
 		Baseline baseline = getNewBaseline();
 		
