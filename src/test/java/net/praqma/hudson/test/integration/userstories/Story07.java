@@ -1,5 +1,7 @@
 package net.praqma.hudson.test.integration.userstories;
 
+import net.praqma.hudson.test.BaseTestClass;
+import net.praqma.util.test.junit.LoggingRule;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -17,12 +19,11 @@ import net.praqma.util.debug.Logger;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 
+import java.util.logging.Level;
+
 import static org.junit.Assert.*;
 
-public class Story07 {
-
-	@ClassRule
-	public static CCUCMRule jenkins = new CCUCMRule();
+public class Story07 extends BaseTestClass {
 	
 	@Rule
 	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story07", "setup-story7.xml" );

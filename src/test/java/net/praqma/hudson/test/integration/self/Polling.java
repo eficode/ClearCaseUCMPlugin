@@ -3,7 +3,10 @@ package net.praqma.hudson.test.integration.self;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.util.logging.Level;
 
+import net.praqma.hudson.test.BaseTestClass;
+import net.praqma.util.test.junit.LoggingRule;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,10 +30,7 @@ import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.util.debug.Logger;
 
-public class Polling {
-	
-	@ClassRule
-	public static CCUCMRule jenkins = new CCUCMRule();
+public class Polling extends BaseTestClass {
 	
 	@Rule
 	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );

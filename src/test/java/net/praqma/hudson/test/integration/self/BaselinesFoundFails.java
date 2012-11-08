@@ -2,6 +2,8 @@ package net.praqma.hudson.test.integration.self;
 
 import static org.junit.Assert.*;
 
+import net.praqma.hudson.test.BaseTestClass;
+import net.praqma.util.test.junit.LoggingRule;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -20,10 +22,9 @@ import net.praqma.hudson.test.SystemValidator;
 import net.praqma.junit.TestDescription;
 import net.praqma.util.debug.Logger;
 
-public class BaselinesFoundFails {
+import java.util.logging.Level;
 
-	@ClassRule
-	public static CCUCMRule jenkins = new CCUCMRule();
+public class BaselinesFoundFails extends BaseTestClass {
 	
 	@Rule
 	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );
