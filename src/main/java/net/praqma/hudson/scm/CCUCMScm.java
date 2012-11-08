@@ -628,6 +628,8 @@ public class CCUCMScm extends SCM {
 					baselines = getBaselinesFromStreams( workspace, listener, out, stream, component, polling.isPollingChilds(), date );
 				}
 
+                out.println( "BASELINES: " + baselines );
+
 				if( baselines.size() > 0 ) {
 					p = PollingResult.BUILD_NOW;
 				}
