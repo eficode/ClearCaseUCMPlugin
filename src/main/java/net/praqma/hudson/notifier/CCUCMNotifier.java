@@ -1,23 +1,16 @@
 package net.praqma.hudson.notifier;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.io.PrintStream;
-import java.text.SimpleDateFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import hudson.AbortException;
 import org.kohsuke.stapler.StaplerRequest;
 
-import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.exceptions.UnableToPromoteBaselineException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
-import net.praqma.clearcase.ucm.entities.UCMEntity;
-import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.Config;
@@ -26,8 +19,6 @@ import net.praqma.hudson.exception.NotifierException;
 import net.praqma.hudson.nametemplates.NameTemplate;
 import net.praqma.hudson.remoting.RemoteUtil;
 import net.praqma.hudson.scm.CCUCMScm;
-import net.praqma.hudson.scm.CCUCMState.State;
-import net.praqma.util.debug.appenders.FileAppender;
 import net.sf.json.JSONObject;
 
 import hudson.Extension;
@@ -37,8 +28,6 @@ import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.remoting.Future;
-import hudson.remoting.Pipe;
 import hudson.remoting.VirtualChannel;
 import hudson.scm.SCM;
 import hudson.tasks.BuildStepDescriptor;
@@ -182,8 +171,6 @@ public class CCUCMNotifier extends Notifier {
 	 *            The launcher of the build
 	 * @param listener
 	 *            The listener of the build
-	 * @param pstate
-	 *            The {@link net.praqma.hudson.scm.CCUCMState} of the build.
 	 * @throws NotifierException
 	 */
 	private void processBuild( AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, CCUCMBuildAction pstate ) throws NotifierException {

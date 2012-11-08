@@ -10,7 +10,6 @@ import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.hudson.exception.CCUCMException;
-import net.praqma.hudson.scm.CCUCMState.State;
 import hudson.FilePath;
 import hudson.model.BuildListener;
 import hudson.model.TaskListener;
