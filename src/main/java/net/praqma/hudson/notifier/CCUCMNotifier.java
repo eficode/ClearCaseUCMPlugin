@@ -293,7 +293,7 @@ public class CCUCMNotifier extends Notifier {
 			logger.fine( id + "Remote post build step" );
 			out.println( "[" + Config.nameShort + "] Performing common post build steps" );
 
-			status = workspace.act( new RemotePostBuild( buildResult, status, listener, pstate.doMakeTag(), pstate.doRecommend(), pstate.getUnstable(), sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) ) );
+			status = workspace.act( new RemotePostBuild( buildResult, status, listener, pstate.doMakeTag(), pstate.doRecommend(), pstate.getUnstable(), ( pstate.getPromotionLevel() == null ? true : false ), sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) ) );
 		} catch( Exception e ) {
 			status.setStable( false );
             logger.log( Level.WARNING, "", e );
