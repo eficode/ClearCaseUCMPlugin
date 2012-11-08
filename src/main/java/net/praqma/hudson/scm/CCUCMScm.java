@@ -630,48 +630,6 @@ public class CCUCMScm extends SCM {
 
 				if( baselines.size() > 0 ) {
 					p = PollingResult.BUILD_NOW;
-
-                    /* The next Baseline */
-
-
-					/* If ANY */
-					if( plevel == null ) {
-						boolean newer = false;
-
-						/*
-						 * if the newest found baseline is newer than the last
-						 * baseline, build it If there's no last baseline, build
-						 * it
-						 */
-						if( lastBaseline != null ) {
-
-							try {
-								out.println( "The last baseline: " + lastBaseline.stringify() );
-							} catch( Exception e ) {
-								out.println( "Could not stringify last: " + e.getMessage() );
-								e.printStackTrace( out );
-							}
-
-							try {
-								out.println( "The found baseline: " + foundBaseline.stringify() );
-							} catch( Exception e ) {
-								out.println( "Could not stringify state baseline" );
-							}
-
-							if( foundBaseline.getDate().after( lastBaseline.getDate() ) ) {
-								newer = true;
-							}
-						} else {
-							newer = true;
-						}
-
-						if( !newer ) {
-							p = PollingResult.NO_CHANGES;
-						}
-					}
-
-				} else {
-					p = PollingResult.NO_CHANGES;
 				}
 
 			} catch( CCUCMException e ) {

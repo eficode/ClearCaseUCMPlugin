@@ -81,7 +81,7 @@ public class Any extends BaseTestClass {
     }
 
     @Test
-    @ClearCaseUniqueVobName( name = "self-any-poll" )
+    @ClearCaseUniqueVobName( name = "self-any-poll2" )
     @TestDescription( title = "Self polling", text = "baselines available, find the newest, add baselines, poll" )
     public void test3() throws Exception {
         FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false, "", "ANY" );
