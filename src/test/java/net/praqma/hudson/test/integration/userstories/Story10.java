@@ -40,7 +40,6 @@ public class Story10 extends BaseTestClass {
 		
 		SystemValidator validator = new SystemValidator( build )
 		.validateBuild( Result.FAILURE )
-		.validateBuiltBaselineNotFound()
 		.validateCreatedBaseline( false )
 		.validate();
 	}
