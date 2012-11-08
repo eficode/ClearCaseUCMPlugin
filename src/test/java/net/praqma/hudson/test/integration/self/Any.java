@@ -57,9 +57,22 @@ public class Any extends BaseTestClass {
     }
 
     @Test
+    @ClearCaseUniqueVobName( name = "self-any-recommend" )
+    @TestDescription( title = "Self polling", text = "baselines available, find the newest" )
+    public void testRecommend() throws Exception {
+        AbstractBuild<?, ?> build = initiateBuild( ccenv.getUniqueName(), true, false, false, false );
+
+        Baseline baseline = ccenv.context.baselines.get( "client-3" );
+        SystemValidator validator = new SystemValidator( build )
+                .validateBuild( Result.SUCCESS )
+                .validateBuiltBaseline( Project.PromotionLevel.INITIAL, baseline, true )
+                .validate();
+    }
+
+    @Test
     @ClearCaseUniqueVobName( name = "self-any-poll" )
     @TestDescription( title = "Self polling", text = "baselines available, find the newest, poll" )
-    public void test2() throws Exception {
+    public void testPoll() throws Exception {
         FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false, "", "ANY" );
 
         /* BUILD 1 */
@@ -83,7 +96,7 @@ public class Any extends BaseTestClass {
     @Test
     @ClearCaseUniqueVobName( name = "self-any-poll2" )
     @TestDescription( title = "Self polling", text = "baselines available, find the newest, add baselines, poll" )
-    public void test3() throws Exception {
+    public void testPollThree() throws Exception {
         FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false, "", "ANY" );
 
         /* BUILD 1 */
