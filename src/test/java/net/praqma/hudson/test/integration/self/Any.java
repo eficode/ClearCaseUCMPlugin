@@ -35,8 +35,21 @@ public class Any extends BaseTestClass {
 
     @Test
     @ClearCaseUniqueVobName( name = "self-any" )
-    @TestDescription( title = "Self polling", text = "baseline available" )
+    @TestDescription( title = "Self polling", text = "baselines available, find the newest" )
     public void test() throws Exception {
+        AbstractBuild<?, ?> build = initiateBuild( ccenv.getUniqueName(), false, false, false, false );
+
+        Baseline baseline = ccenv.context.baselines.get( "client-3" );
+        SystemValidator validator = new SystemValidator( build )
+                .validateBuild( Result.SUCCESS )
+                .validateBuiltBaseline( Project.PromotionLevel.INITIAL, baseline, false )
+                .validate();
+    }
+
+    @Test
+    @ClearCaseUniqueVobName( name = "self-any-poll" )
+    @TestDescription( title = "Self polling", text = "baselines available, find the newest, add baselines, poll" )
+    public void test2() throws Exception {
         AbstractBuild<?, ?> build = initiateBuild( ccenv.getUniqueName(), false, false, false, false );
 
         Baseline baseline = ccenv.context.baselines.get( "client-3" );

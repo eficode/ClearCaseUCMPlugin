@@ -195,7 +195,7 @@ public class CCUCMScm extends SCM {
             }
         }
 
-
+        boolean result = true;
 
 		/* If a baseline is found */
 		if( action.getBaseline() != null ) {
@@ -205,16 +205,11 @@ public class CCUCMScm extends SCM {
 
 			if( polling.isPollingSelf() || !polling.isPolling() ) {
 				logger.fine( "Initializing workspace" );
-				initializeWorkspace( build, workspace, changelogFile, listener, action );
+				result = initializeWorkspace( build, workspace, changelogFile, listener, action );
 			} else {
 				/* Only start deliver when NOT polling self */
 				logger.fine( "Deliver" );
-                try {
-                    beginDeliver( build, action, listener, changelogFile );
-                } catch( CCUCMException e ) {
-                    e.printStackTrace( out );
-                    throw new AbortException( "Unable to begin deliver" );
-                }
+                result = beginDeliver( build, action, listener, changelogFile );
             }
 
 			action.setViewTag( viewtag );
@@ -244,7 +239,7 @@ public class CCUCMScm extends SCM {
             out.println( "[" + Config.nameShort + "] Finished processing " + action.getBaseline() );
         }
 
-		return true;
+		return result;
 	}
 
 	private boolean checkInput( TaskListener listener ) {
@@ -418,7 +413,7 @@ public class CCUCMScm extends SCM {
         out.println( "" );
 	}
 
-	public void beginDeliver( AbstractBuild<?, ?> build, CCUCMBuildAction state, BuildListener listener, File changelogFile ) throws CCUCMException {
+	public boolean beginDeliver( AbstractBuild<?, ?> build, CCUCMBuildAction state, BuildListener listener, File changelogFile ) {
 		FilePath workspace = build.getWorkspace();
 		PrintStream consoleOutput = listener.getLogger();
 		boolean result = true;
@@ -465,7 +460,7 @@ public class CCUCMScm extends SCM {
 				ExceptionUtils.log( cause, true );
 				throw cause;
 			} catch( DeliverException de ) {
-				
+
 				consoleOutput.println( "[" + Config.nameShort + "] " + de.getType() );
 				
 				/* We need to store this information anyway */
@@ -501,8 +496,6 @@ public class CCUCMScm extends SCM {
 					consoleOutput.println( "[" + Config.nameShort + "] Changes need to be manually merged, The stream " + state.getBaseline().getStream().getShortname() + " must be rebased to the most recent baseline on " + state.getStream().getShortname() + " - During the rebase the merge conflict should be solved manually. Hereafter create a new baseline on " + state.getBaseline().getStream().getShortname() + "." );
                     state.setError( "merge error" );
 				}
-
-                throw new CCUCMException( e );
 				
 			/* Force deliver not cancelled */
 			} catch( DeliverNotCancelledException e1 ) {
@@ -511,18 +504,10 @@ public class CCUCMScm extends SCM {
 			} catch( Exception e1 ) {
                 logger.log( Level.WARNING, "", e );
 				ExceptionUtils.print( e, consoleOutput, true );
-				throw new CCUCMException( e );
 			}
 		}
 
-
-		try {
-			state.setStream( Stream.get( stream ) );
-		} catch( ClearCaseException e ) {
-			consoleOutput.println( "[" + Config.nameShort + "] " + e.getMessage() );
-            logger.log( Level.WARNING, "", e );
-            throw new CCUCMException( e );
-		}
+        return result;
 	}
 
 	@Override
