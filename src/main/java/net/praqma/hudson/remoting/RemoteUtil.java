@@ -1,6 +1,7 @@
 package net.praqma.hudson.remoting;
 
 import java.io.File;
+import java.util.Date;
 import java.util.List;
 
 import net.praqma.clearcase.ucm.entities.Baseline;
@@ -17,9 +18,9 @@ import hudson.model.TaskListener;
 public abstract class RemoteUtil {
     private RemoteUtil() {}
 
-	public static void completeRemoteDeliver( FilePath workspace, BuildListener listener, State state, String viewtag, File viewPath, boolean complete ) throws CCUCMException {
+	public static void completeRemoteDeliver( FilePath workspace, BuildListener listener, Baseline baseline, Stream stream, String viewtag, File viewPath, boolean complete ) throws CCUCMException {
 		try {
-            workspace.act( new RemoteDeliverComplete( state.getBaseline(), state.getStream(), viewtag, viewPath, complete, listener ) );
+            workspace.act( new RemoteDeliverComplete( baseline, stream, viewtag, viewPath, complete, listener ) );
 		} catch( Exception e ) {
 			throw new CCUCMException( "Failed to " + ( complete ? "complete" : "cancel" ) + " the deliver", e );
 		}
@@ -77,13 +78,13 @@ public abstract class RemoteUtil {
     }
 
 
-    public static List<Baseline> getRemoteBaselinesFromStream( FilePath workspace, Component component, Stream stream, Project.PromotionLevel plevel, boolean slavePolling, boolean multisitePolling ) throws CCUCMException {
+    public static List<Baseline> getRemoteBaselinesFromStream( FilePath workspace, Component component, Stream stream, Project.PromotionLevel plevel, boolean slavePolling, boolean multisitePolling, Date date ) throws CCUCMException {
 
         try {
             if( slavePolling ) {
-                return workspace.act( new GetRemoteBaselineFromStream( component, stream, plevel, multisitePolling ) );
+                return workspace.act( new GetRemoteBaselineFromStream( component, stream, plevel, multisitePolling, date ) );
             } else {
-                GetRemoteBaselineFromStream t = new GetRemoteBaselineFromStream( component, stream, plevel, multisitePolling );
+                GetRemoteBaselineFromStream t = new GetRemoteBaselineFromStream( component, stream, plevel, multisitePolling, date );
                 return t.invoke( null, null );
             }
 

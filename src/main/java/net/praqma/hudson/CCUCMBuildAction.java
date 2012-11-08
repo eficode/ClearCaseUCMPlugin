@@ -69,7 +69,8 @@ public class CCUCMBuildAction implements Action {
      * The created {@link Baseline} when deliver
      */
 	private Baseline createdBaseline;
-	
+
+    private String error;
 
 	
 	public CCUCMBuildAction( Stream stream, Component component ) {
@@ -84,6 +85,14 @@ public class CCUCMBuildAction implements Action {
 	public void setBaseline( Baseline baseline ) {
 		this.baseline = baseline;
 	}
+
+    public void setStream( Stream stream ) {
+        this.stream = stream;
+    }
+
+    public void setComponent( Component component ) {
+        this.component = component;
+    }
 
 	public Baseline getCreatedBaseline() {
 		return createdBaseline;
@@ -133,7 +142,7 @@ public class CCUCMBuildAction implements Action {
         this.loadModule = loadModule;
     }
 
-    public boolean isCreateBaseline() {
+    public boolean doCreateBaseline() {
         return createBaseline;
     }
 
@@ -149,15 +158,15 @@ public class CCUCMBuildAction implements Action {
         this.nameTemplate = nameTemplate;
     }
 
-    public boolean isSetDescription() {
+    public boolean doSetDescription() {
         return setDescription;
     }
 
-    public void setSetDescription( boolean setDescription ) {
+    public void setDescription( boolean setDescription ) {
         this.setDescription = setDescription;
     }
 
-    public boolean isMakeTag() {
+    public boolean doMakeTag() {
         return makeTag;
     }
 
@@ -165,7 +174,7 @@ public class CCUCMBuildAction implements Action {
         this.makeTag = makeTag;
     }
 
-    public boolean isRecommend() {
+    public boolean doRecommend() {
         return recommend;
     }
 
@@ -173,7 +182,7 @@ public class CCUCMBuildAction implements Action {
         this.recommend = recommend;
     }
 
-    public boolean isForceDeliver() {
+    public boolean doForceDeliver() {
         return forceDeliver;
     }
 
@@ -213,7 +222,7 @@ public class CCUCMBuildAction implements Action {
         this.unstable = unstable;
     }
 
-    public boolean isNeedsToBeCompleted() {
+    public boolean doNeedsToBeCompleted() {
         return needsToBeCompleted;
     }
 
@@ -221,7 +230,15 @@ public class CCUCMBuildAction implements Action {
         this.needsToBeCompleted = needsToBeCompleted;
     }
 
-	@Override
+    public String getError() {
+        return error;
+    }
+
+    public void setError( String error ) {
+        this.error = error;
+    }
+
+    @Override
 	public String getDisplayName() {
 		return null;
 	}

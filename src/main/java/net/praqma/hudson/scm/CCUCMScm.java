@@ -10,8 +10,6 @@ import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Hudson;
-import hudson.remoting.Future;
-import hudson.remoting.Pipe;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.PollingResult;
 import hudson.scm.SCMDescriptor;
@@ -22,41 +20,26 @@ import hudson.util.FormValidation;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.io.PrintStream;
-import java.net.URL;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.exceptions.DeliverException;
 import net.praqma.clearcase.exceptions.DeliverException.Type;
+import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
-import net.praqma.clearcase.ucm.entities.UCMEntity;
 import net.praqma.clearcase.ucm.entities.UCMEntity.LabelStatus;
 import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.CCUCMBuildAction;
@@ -71,7 +54,6 @@ import net.praqma.hudson.notifier.CCUCMNotifier;
 import net.praqma.hudson.remoting.*;
 import net.praqma.hudson.scm.Polling.PollingType;
 import net.praqma.hudson.scm.CCUCMState.State;
-import net.praqma.util.StopWatch;
 import net.praqma.util.execute.AbnormalProcessTerminationException;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
@@ -94,7 +76,6 @@ public class CCUCMScm extends SCM {
 	private Boolean multisitePolling;
 
 	private Project.PromotionLevel plevel;
-	private String levelToPoll;
 	private String loadModule;
 	private String component;
 	private String stream;
@@ -107,7 +88,6 @@ public class CCUCMScm extends SCM {
 	private Integer jobNumber;
 	private String id = "";
 
-	public static CCUCMState ccucm = new CCUCMState();
 	private boolean forceDeliver;
 
 	/* Old notifier fields */
@@ -118,7 +98,6 @@ public class CCUCMScm extends SCM {
 	private boolean createBaseline;
 	private String nameTemplate;
 
-	/* Threshold in milliseconds */
 	private Polling polling;
 	private String viewtag = "";
 	private Baseline lastBaseline;
@@ -136,7 +115,6 @@ public class CCUCMScm extends SCM {
 			         boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject ) {
 
 		this.component = component;
-		this.levelToPoll = levelToPoll;
 		this.loadModule = loadModule;
 		this.stream = stream;
 		this.buildProject = buildProject;
@@ -162,16 +140,14 @@ public class CCUCMScm extends SCM {
 		jobNumber = build.getNumber();
 		this.id = "[" + jobName + "::" + jobNumber + "]";
 
-		boolean result = true;
-
-		PrintStream consoleOutput = listener.getLogger();
+		PrintStream out = listener.getLogger();
 
         /* Printing short description of build */
 		String version = Hudson.getInstance().getPlugin( "clearcase-ucm-plugin" ).getWrapper().getVersion();
-		consoleOutput.println( "[" + Config.nameShort + "] ClearCase UCM Plugin version " + version );
-		consoleOutput.println( "[" + Config.nameShort + "] Allow for slave polling: " + this.getSlavePolling() );
-		consoleOutput.println( "[" + Config.nameShort + "] Poll for posted deliveries: " + this.getMultisitePolling() );
-		consoleOutput.println( "[" + Config.nameShort + "] Forcing deliver: " + forceDeliver );
+		out.println( "[" + Config.nameShort + "] ClearCase UCM Plugin version " + version );
+		out.println( "[" + Config.nameShort + "] Allow for slave polling: " + this.getSlavePolling() );
+		out.println( "[" + Config.nameShort + "] Poll for posted deliveries: " + this.getMultisitePolling() );
+		out.println( "[" + Config.nameShort + "] Forcing deliver: " + forceDeliver );
 
 		logger.info( id + "CCUCMSCM checkout v. " + version );
 		
@@ -179,211 +155,93 @@ public class CCUCMScm extends SCM {
 		try {
 			workspace.act( new RemoteClearCaseCheck() );
 		} catch( AbnormalProcessTerminationException e ) {
-			ExceptionUtils.print( e, consoleOutput, true );
+			ExceptionUtils.print( e, out, true );
 			build.setDescription( e.getMessage() );
 			throw new AbortException( e.getMessage() );
 		}
 
 		doPostBuild = true;
 
-		logger.fine( "STATES: " + ccucm.stringify() );
-		/* If we polled, we should get the same object created at that point */
-		State state = null;
-		try {
-			state = ccucm.getState( jobName, jobNumber );
-			logger.fine( "The existing state is: " + state.stringify() );
-		} catch( IllegalStateException e ) {
-			logger.fine( e.getMessage() );
-			state = ccucm.create( jobName, jobNumber );
-		}
 
-		state.setLoadModule( loadModule );
-		storeStateParameters( state );
-		
 		/* Make build action */
-		CCUCMBuildAction action = new CCUCMBuildAction( state.getStream(), state.getComponent() );
-		build.addAction( action );
-		
-		logger.info( "Number of states: " + ccucm.size() );
+        /* Store the configuration */
+        CCUCMBuildAction action = null;
+        try {
+            action = getBuildAction();
+        } catch( UnableToInitializeEntityException e ) {
+            Util.println( out, e );
+            throw new AbortException( e.getMessage() );
+        }
 
-		logger.fine( id + "The initial state:\n" + state.stringify() );
+        build.addAction( action );
 
-		/* Check template */
-		state.setCreatebaseline( createBaseline );
-		/* Trim template, strip out quotes */
-		if( nameTemplate.matches( "^\".+\"$" ) ) {
-			nameTemplate = nameTemplate.substring( 1, nameTemplate.length() - 1 );
-		}
-		state.setNameTemplate( nameTemplate );
-
-		/* Check input */
-		if( !checkInput( listener ) ) {
-			state.setPostBuild( false );
-			return false;
-		}
-
-		// state.setLoggerSetting( Logger.getLoggerSettings(
-		// app.getMinimumLevel() ) );
-
-		/* Determining the Baseline modifier */
+		/* Determining the user has parameterized a Baseline */
 		String baselineInput = getBaselineValue( build );
 
-		/* The special Baseline case */
+		/* The special Baseline parameter case */
 		if( build.getBuildVariables().get( baselineInput ) != null ) {
-			logger.fine( "BASELINE: " + baselineInput );
-			polling = new Polling( PollingType.none );
-			result = doBaseline( build, baselineInput, state, listener );
-		} else {
-			consoleOutput.println( "[" + Config.nameShort + "] Polling streams: " + polling.toString() );
-			result = pollStream( workspace, build.getProject(), state, listener );
-			if( !result ) {
-				consoleOutput.println( "[" + Config.nameShort + "] No valid baselines found" );
-			}
-		}
-
-		state.setPolling( polling );
+			logger.fine( "Baseline parameter: " + baselineInput );
+			action.setPolling( new Polling( PollingType.none ) );
+            polling = action.getPolling();
+            try {
+                resolveBaselineInput( build, baselineInput, action, listener );
+            } catch( Exception e ) {
+                Util.println( out, e );
+                throw new AbortException( "Unable to resolve baseline input" );
+            }
+        } else {
+			out.println( "[" + Config.nameShort + "] Polling streams: " + polling.toString() );
+            try {
+                resolveBaseline( workspace, build.getProject(), action, listener );
+            } catch( CCUCMException e ) {
+                Util.println( out, e );
+                throw new AbortException( "Unable to resolve Baseline" );
+            }
+        }
 		
 		/* If a baseline is found */
-		if( state.getBaseline() != null && result ) {
-			consoleOutput.println( "[" + Config.nameShort + "] Using " + state.getBaseline() );
-			
-			/* Add the found baseline to the action */
-			action.setBaseline( state.getBaseline() );
-			
-			baselineName = state.getBaseline().getFullyQualifiedName();
-			
-			/*
-			 * if( setDescription ) { build.setDescription("<small>" +
-			 * state.getBaseline().getShortname() + "</small>"); }
-			 */
+		if( action.getBaseline() != null ) {
+			out.println( "[" + Config.nameShort + "] Using " + action.getBaseline().getNormalizedName() );
+
+			//baselineName = state.getBaseline().getFullyQualifiedName();
 
 			if( polling.isPollingSelf() || !polling.isPolling() ) {
 				logger.fine( "Initializing workspace" );
-				result = initializeWorkspace( build, workspace, changelogFile, listener, state );
-				if( plevel == null ) {
-					/* Save */
-					logger.fine( "Storing last baseline" );
-					storeLastBaseline( state.getBaseline(), build.getProject() );
-				}
+				initializeWorkspace( build, workspace, changelogFile, listener, action );
 			} else {
 				/* Only start deliver when NOT polling self */
 				logger.fine( "Deliver" );
-				result = beginDeliver( build, state, listener, changelogFile );
+				beginDeliver( build, action, listener, changelogFile );
 			}
 			
 			action.setViewTag( viewtag );
 		}
 
-		consoleOutput.println( "[" + Config.nameShort + "] Pre build steps done" );
+		out.println( "[" + Config.nameShort + "] Pre build steps done" );
 
-		/* If plevel is not null, make sure that the CCUCMNotifier is ON */
-		if( plevel != null ) {
-			boolean used = false;
-			for( Publisher p : build.getParent().getPublishersList() ) {
-				logger.fine( "NOTIFIER: " + p.toString() );
-				if( p instanceof CCUCMNotifier ) {
-					used = true;
-					break;
-				}
-			}
+        boolean used = false;
+        for( Publisher p : build.getParent().getPublishersList() ) {
+            logger.fine( "NOTIFIER: " + p.toString() );
+            if( p instanceof CCUCMNotifier ) {
+                used = true;
+                break;
+            }
+        }
 
-			if( !used ) {
-				logger.info( "Adding notifier to project" );
-				build.getParent().getPublishersList().add( new CCUCMNotifier() );
-			}
-			
-			
-			/* If there's a result let's find out whether a baseline is found or not */
-			if( result ) {
-				if( state.getBaseline() == null ) {
-					consoleOutput.println( "[" + Config.nameShort + "] Finished processing; the baseline is null, this could pose as a problem!" );
-				} else {
-					consoleOutput.println( "[" + Config.nameShort + "] Finished processing " + state.getBaseline() );
-				}
-			}
-			
-			/* If plevel is null, make sure CCUCMNotofier is not enabled */
-		} else {
-			Iterator<Publisher> it = build.getParent().getPublishersList().iterator();
-			while( it.hasNext() ) {
-				Publisher p = it.next();
-				if( p instanceof CCUCMNotifier ) {
-					it.remove();
-				}
-			}
+        if( !used ) {
+            logger.info( "Adding notifier to project" );
+            build.getParent().getPublishersList().add( new CCUCMNotifier() );
+        }
 
-			/* End the view */
-			try {
-				logger.fine( "Ending view " + viewtag );
-                workspace.act( new EndView( viewtag ) );
-			} catch( Exception e ) {
-				consoleOutput.println( e.getMessage() );
-				logger.log( Level.WARNING, "", e );
-			}
-		}
 
-		return result;
-	}
-
-	private boolean storeLastBaseline( Baseline baseline, AbstractProject<?, ?> project ) {
-		FileWriter fw = null;
-		try {
-			fw = new FileWriter( new File( project.getRootDir(), ".lastbaseline" ), false );
-			fw.write( baseline.getFullyQualifiedName() );
-		} catch( IOException e ) {
-			logger.warning( "Could not write last baseline" );
-			return false;
-		} finally {
-			if( fw != null ) {
-				try {
-					fw.close();
-				} catch( IOException e ) {
-					logger.warning( "Unable to close file" );
-				}
-			}
-		}
+        /* If there's a result let's find out whether a baseline is found or not */
+        if( action.getBaseline() == null ) {
+            out.println( "[" + Config.nameShort + "] Finished processing; the baseline is null, this could pose as a problem!" );
+        } else {
+            out.println( "[" + Config.nameShort + "] Finished processing " + action.getBaseline() );
+        }
 
 		return true;
-	}
-
-	private Baseline getLastBaseline( AbstractProject<?, ?> project, TaskListener listener ) throws ScmException {
-		FileReader fr = null;
-		PrintStream out = listener.getLogger();
-		try {
-			fr = new FileReader( new File( project.getRootDir(), ".lastbaseline" ) );
-			BufferedReader br = new BufferedReader( fr );
-			String bls = br.readLine();
-			logger.fine( "Read " + bls );
-			if( bls == null || bls.length() == 0 ) {
-				throw new ScmException( "No last baseline stored", null );
-			}
-			Baseline bl = Baseline.get( bls );
-			Baseline loaded = (Baseline) RemoteUtil.loadEntity( project.getSomeWorkspace(), bl, getSlavePolling() );
-			return loaded;
-		} catch( FileNotFoundException e ) {
-		} catch( IOException e ) {
-			logger.warning( "Could not read last baseline" );
-			throw new ScmException( "Could not read last baseline", e );
-		} catch( ClearCaseException e ) {
-			logger.warning( "Unable to get last baseline!" );
-			throw new ScmException( "Unable to get last baseline", e );
-			// } catch( CCUCMException e ) {
-			// logger.warning( "Unable to load last baseline" );
-			// throw new ScmException( "Unable to load last baseline" );
-		} catch( CCUCMException e ) {
-			out.println( "Unable to load entity: " + e.getMessage() );
-			e.printStackTrace();
-		} finally {
-			if( fr != null ) {
-				try {
-					fr.close();
-				} catch( IOException e ) {
-					logger.warning( "Unable to close file" );
-				}
-			}
-		}
-
-		return null;
 	}
 
 	private boolean checkInput( TaskListener listener ) {
@@ -422,18 +280,17 @@ public class CCUCMScm extends SCM {
 		return true;
 	}
 
-	private boolean initializeWorkspace( AbstractBuild<?, ?> build, FilePath workspace, File changelogFile, BuildListener listener, State state ) {
+	private boolean initializeWorkspace( AbstractBuild<?, ?> build, FilePath workspace, File changelogFile, BuildListener listener, CCUCMBuildAction action ) {
 
 		PrintStream consoleOutput = listener.getLogger();
 
 		EstablishResult er = null;
 		try {
-            CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), state.getStream(), loadModule, state.getBaseline(), buildProject, ( plevel == null ) );
+            CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), action.getStream(), loadModule, action.getBaseline(), buildProject, ( plevel == null ) );
             er = workspace.act( ct );
 			String changelog = er.getMessage();
 
 			this.viewtag = er.getViewtag();
-			state.setChangeset( er.getChangeset() );
 
 			/* Write change log */
 			try {
@@ -462,35 +319,36 @@ public class CCUCMScm extends SCM {
 			}
 			
 			doPostBuild = false;
-			state.setPostBuild( false );
 			return false;
 		}
 
 		return true;
 	}
 
-	public boolean doBaseline( AbstractBuild<?, ?> build, String baselineInput, State state, BuildListener listener ) {
+    /**
+     * Resolve the {@link Baseline} parameter and store the information in the Action
+     * @param build
+     * @param baselineInput
+     * @param action
+     * @param listener
+     * @throws UnableToInitializeEntityException
+     * @throws CCUCMException
+     */
+	public void resolveBaselineInput( AbstractBuild<?, ?> build, String baselineInput, CCUCMBuildAction action, BuildListener listener ) throws UnableToInitializeEntityException, CCUCMException {
 
 		PrintStream consoleOutput = listener.getLogger();
-		boolean result = true;
 
-		String baselinename = (String) build.getBuildVariables().get( baselineInput );
-		try {
-			state.setBaseline( Baseline.get( baselinename ) );
-			state.setStream( state.getBaseline().getStream() );
-			consoleOutput.println( "[" + Config.nameShort + "] Starting parameterized build with a CCUCM_baseline." );
-			/* The component could be used in the post build section */
-			state.setComponent( state.getBaseline().getComponent() );
-			state.setStream( state.getBaseline().getStream() );
-			logger.fine( id + "Saving the component for later use" );
-		} catch( ClearCaseException e ) {
-			consoleOutput.println( "[" + Config.nameShort + "] Could not find baseline from parameter '" + baselinename + "'." );
-			state.setPostBuild( false );
-			result = false;
-			state.setBaseline( null );
-		}
+		String baselinename = build.getBuildVariables().get( baselineInput );
+        action.setBaseline( Baseline.get( baselinename ) );
 
-		return result;
+        /* Load the baseline */
+        RemoteUtil.loadEntity( build.getWorkspace(), action.getBaseline(), true );
+
+        action.setStream( action.getBaseline().getStream() );
+        consoleOutput.println( "[" + Config.nameShort + "] Starting parameterized build with a Baseline." );
+
+        action.setComponent( action.getBaseline().getComponent() );
+        action.setStream( action.getBaseline().getStream() );
 	}
 
 	public String getBaselineValue( AbstractBuild<?, ?> build ) {
@@ -507,81 +365,58 @@ public class CCUCMScm extends SCM {
 		return null;
 	}
 
-	public class AscendingDateSort implements Comparator<Baseline> {
-
-		@Override
-		public int compare( Baseline bl1, Baseline bl2 ) {
-			if( bl2.getDate() == null ) {
-				return 1;
-			}
-			if( bl1.getDate() == null ) {
-				return -1;
-			}
-			return (int) ( ( bl1.getDate().getTime() / 1000 ) - ( bl2.getDate().getTime() / 1000 ) );
-		}
-	}
-
-	private boolean pollStream( FilePath workspace, AbstractProject<?, ?> project, State state, BuildListener listener ) {
-        logger.fine( "Polling stream " + state.getStream().getNormalizedName() );
-		boolean result = true;
+    /**
+     * Resolve the {@link Baseline} to be build
+     * @param workspace
+     * @param project
+     * @param action
+     * @param listener
+     * @throws CCUCMException
+     * @throws AbortException
+     */
+	private void resolveBaseline( FilePath workspace, AbstractProject<?, ?> project, CCUCMBuildAction action, BuildListener listener ) throws CCUCMException, AbortException {
+        logger.fine( "Resolving Baseline from the Stream " + action.getStream().getNormalizedName() );
 		PrintStream out = listener.getLogger();
 
-		try {
+        printParameters( out );
 
-			printParameters( out );
-			state.setStream( Stream.get( stream ) );
-			/* The Stream must be loaded */
-			try {
-				state.setStream( (Stream) RemoteUtil.loadEntity( workspace, state.getStream(), getSlavePolling() ) );
-			} catch( CCUCMException e1 ) {
-				ExceptionUtils.print( e1, out, true );
-				throw new AbortException( "Unable to load " + state.getStream() );
-			}
+        /* The Stream must be loaded */
+        action.setStream( (Stream) RemoteUtil.loadEntity( workspace, action.getStream(), getSlavePolling() ) );
 
-			if( !state.isAddedByPoller() ) {
-				logger.fine( "This job was not added by a poller" );
+        List<Baseline> baselines = null;
 
-				List<Baseline> baselines = null;
-				/* Old skool self polling */
-				if( polling.isPollingSelf() ) {
-					baselines = getValidBaselinesFromStream( workspace, state, plevel, state.getStream(), state.getComponent() );
-				} else {
-					/* Find the Baselines and store them */
-					baselines = getBaselinesFromStreams( workspace, listener, out, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
-				}
+        CCUCMBuildAction lastAction = getLastAction( project );
+        Date date = null;
+        if( lastAction != null ) {
+            date = lastAction.getBaseline().getDate();
+        }
 
-				filterBaselines( project, state.getStream(), baselines );
+        /* Find the Baselines and store them */
+        /* Old skool self polling */
+        if( polling.isPollingSelf() ) {
+            baselines = getValidBaselinesFromStream( workspace, plevel, action.getStream(), action.getComponent(), date );
+        } else {
+            baselines = getBaselinesFromStreams( workspace, listener, out, action.getStream(), action.getComponent(), polling.isPollingChilds(), date );
+        }
 
-				/* if we did not find any baselines we should return false */
-				if( baselines.size() < 1 ) {
-					return false;
-				}
+        /* if we did not find any baselines we should return false */
+        if( baselines.size() < 1 ) {
+            throw new AbortException( "No valid Baselines found" );
+        }
 
-				/* Sort by date */
-				Collections.sort( baselines, new AscendingDateSort() );
+        action.setBaselines( baselines );
+        action.setBaseline( selectBaseline( action.getBaselines(), plevel ) );
 
-				state.setBaselines( baselines );
-				state.setBaseline( selectBaseline( state.getBaselines(), plevel ) );
-			}
+        if( action.getBaselines() == null || action.getBaselines().size() < 1 ) {
+            throw new AbortException( "Unable to get Baselines" );
+        }
 
-			if( state.getBaselines() == null || state.getBaselines().size() < 1 ) {
-				return false;
-			}
-
-			/* Print the baselines to jenkins out */
-			printBaselines( state.getBaselines(), out );
-			out.println( "" );
-
-		} catch( Exception e ) {
-			out.println( "[" + Config.nameShort + "] " + e.getMessage() );
-			logger.log( Level.WARNING, "", e );
-			return false;
-		}
-
-		return result;
+        /* Print the baselines to jenkins out */
+        printBaselines( action.getBaselines(), out );
+        out.println( "" );
 	}
 
-	public boolean beginDeliver( AbstractBuild<?, ?> build, State state, BuildListener listener, File changelogFile ) {
+	public boolean beginDeliver( AbstractBuild<?, ?> build, CCUCMBuildAction state, BuildListener listener, File changelogFile ) {
 		FilePath workspace = build.getWorkspace();
 		PrintStream consoleOutput = listener.getLogger();
 		boolean result = true;
@@ -591,7 +426,7 @@ public class CCUCMScm extends SCM {
 		try {
 			logger.config( "Starting remote deliver" );
 
-            RemoteDeliver rmDeliver = new RemoteDeliver( state.getStream().getFullyQualifiedName(), listener, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), state.getForceDeliver() );
+            RemoteDeliver rmDeliver = new RemoteDeliver( state.getStream().getFullyQualifiedName(), listener, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), state.doForceDeliver() );
             er = workspace.act( rmDeliver );
 
 			CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
@@ -612,8 +447,6 @@ public class CCUCMScm extends SCM {
 			}
 
 			consoleOutput.println( "[" + Config.nameShort + "] Deliver successful" );
-
-			state.setChangeset( er.getChangeset() );
 			
 		/* Deliver failed */
 		} catch( Exception e ) {
@@ -634,15 +467,14 @@ public class CCUCMScm extends SCM {
 				consoleOutput.println( "[" + Config.nameShort + "] " + de.getType() );
 				
 				/* We need to store this information anyway */
-				CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
-				action.setViewPath( de.getDeliver().getViewContext() );
-				action.setViewTag( de.getDeliver().getViewtag() );
+				state.setViewPath( de.getDeliver().getViewContext() );
+				state.setViewTag( de.getDeliver().getViewtag() );
 				
 				/* The deliver is started, cancel it */
 				if( de.isStarted() ) {
 					try {
 						consoleOutput.print( "[" + Config.nameShort + "] Cancelling deliver. " );
-						RemoteUtil.completeRemoteDeliver( workspace, listener, state, de.getDeliver().getViewtag(), de.getDeliver().getViewContext(), false );
+						RemoteUtil.completeRemoteDeliver( workspace, listener, state.getBaseline(), state.getStream(), de.getDeliver().getViewtag(), de.getDeliver().getViewContext(), false );
 						consoleOutput.println( "Success" );
 
 						/* Make sure, that the post step is not run */
@@ -664,11 +496,8 @@ public class CCUCMScm extends SCM {
 				
 				/* Write something useful to the output */
 				if( de.getType().equals( Type.MERGE_ERROR ) ) {
-					try {
-						consoleOutput.println( "[" + Config.nameShort + "] Changes need to be manually merged, The stream " + state.getBaseline().getStream().getShortname() + " must be rebased to the most recent baseline on " + state.getStream().getShortname() + " - During the rebase the merge conflict should be solved manually. Hereafter create a new baseline on " + state.getBaseline().getStream().getShortname() + "." );
-						state.setError( "merge error" );
-					} catch( Exception e3 ) {
-					}
+					consoleOutput.println( "[" + Config.nameShort + "] Changes need to be manually merged, The stream " + state.getBaseline().getStream().getShortname() + " must be rebased to the most recent baseline on " + state.getStream().getShortname() + " - During the rebase the merge conflict should be solved manually. Hereafter create a new baseline on " + state.getBaseline().getStream().getShortname() + "." );
+                    state.setError( "merge error" );
 				}
 				
 			/* Force deliver not cancelled */
@@ -698,12 +527,14 @@ public class CCUCMScm extends SCM {
 	public ChangeLogParser createChangeLogParser() {
 		return new ChangeLogParserImpl();
 	}
-	
+
+    /*
 	private String baselineName = "";
 	
 	public String getBaselineName() {
 		return baselineName;
 	}
+	*/
 
 	@Override
 	public void buildEnvVars( AbstractBuild<?, ?> build, Map<String, String> env ) {
@@ -719,39 +550,6 @@ public class CCUCMScm extends SCM {
 			CC_BASELINE = action.getBaseline().getFullyQualifiedName();
 		} catch( Exception e1 ) {
 			System.out.println( "Failed to get baseline: " + e1.getMessage() );
-			try {
-				State state = ccucm.getState( jobName, jobNumber );
-				
-				/* Baseline */
-				if( state.getBaseline() != null ) {
-					CC_BASELINE = state.getBaseline().getFullyQualifiedName();
-				} else {
-					CC_BASELINE = "";
-				}
-			} catch( Exception e2 ) {
-				System.out.println( "Variables not available: " + e2.getMessage() );
-				
-				/* Try env vars */
-				try {
-					System.out.println( "Trying with env vars" );
-					String VAR_JOBNAME = env.get( "JOB_NAME" );
-					String n = env.get( "BUILD_NUMBER" );
-					int VAR_BUILDNUMBER = Integer.parseInt( n );
-					
-					System.out.println( "VARS: " + VAR_JOBNAME + ", " + VAR_BUILDNUMBER );
-					
-					State state = ccucm.getState( VAR_JOBNAME, VAR_BUILDNUMBER );
-					
-					/* Baseline */
-					if( state.getBaseline() != null ) {
-						CC_BASELINE = state.getBaseline().getFullyQualifiedName();
-					} else {
-						CC_BASELINE = "";
-					}
-				} catch( Exception e3 ) {
-					System.out.println( "Not possible to retrieve variables: " + e3.getMessage() );
-				}
-			}
 		}
 		
 		/* View tag */
@@ -791,8 +589,6 @@ public class CCUCMScm extends SCM {
 
 		PollingResult p = PollingResult.NO_CHANGES;
 
-
-
 		/* Interrupt polling if: */
 		if( this.getMultisitePolling() ) {
 			/* multisite polling and a build is in progress */
@@ -808,88 +604,51 @@ public class CCUCMScm extends SCM {
 			}
 		}
 
-		boolean createdByThisPoll = false;
-		State state = null;
-		try {
-			state = ccucm.getState( jobName, jobNumber );
-			logger.fine( "The existing state is: " + state.stringify() );
-			logger.info( "Let's NOT poll" );
-			System.out.println( "Undo polling for " + jobName + " " + jobNumber );
-			return p;
-		} catch( IllegalStateException e ) {
-			logger.fine( e.getMessage() );
-			state = ccucm.create( jobName, jobNumber );
-			createdByThisPoll = true;
-		}
-		
 		logger.fine( "Need for polling" );
 
-		storeStateParameters( state );
-		
 		PrintStream out = listener.getLogger();
-		printParameters( out );
-		
-		/* The Stream must be loaded */
-		try {
-			state.setStream( (Stream) RemoteUtil.loadEntity( workspace, state.getStream(), getSlavePolling() ) );
-		} catch( CCUCMException e1 ) {
-			ExceptionUtils.print( e1, out, true );
-			throw new AbortException( "Unable to load " + state.getStream() );
-		}
 
-		out.println( "[" + Config.nameShort + "] polling streams: " + polling );
+        Stream stream = null;
+        Component component = null;
+        try {
+            stream = Stream.get( this.stream );
+            component = Component.get( this.component );
+        } catch( UnableToInitializeEntityException e ) {
+            Util.println( out, e );
+            throw new AbortException( "Unable initialize ClearCase entities" );
+        }
 
-		state.setCreatebaseline( createBaseline );
-		/* Trim template, strip out quotes */
-		if( nameTemplate.matches( "^\".+\"$" ) ) {
-			nameTemplate = nameTemplate.substring( 1, nameTemplate.length() - 1 );
-		}
-		state.setNameTemplate( nameTemplate );
-
-        /*
-		StopWatch sw = StopWatch.get( jobName + "-" + jobNumber );
-		sw.reset();
-		sw.start();
-		*/
-
-		logger.fine( "Let's go!" );
+        logger.fine( "Let's go!" );
 
 		/* Check input */
 		if( checkInput( listener ) ) {
 			try {
 				List<Baseline> baselines = null;
 
+                Baseline foundBaseline = null;
+                CCUCMBuildAction lastAction = getLastAction( project );
+                Date date = null;
+                if( lastAction != null ) {
+                    date = lastAction.getBaseline().getDate();
+                    lastBaseline = lastAction.getBaseline();
+                }
+
 				/* Old skool self polling */
 				if( polling.isPollingSelf() ) {
-					baselines = getValidBaselinesFromStream( workspace, state, plevel, state.getStream(), state.getComponent() );
+					baselines = getValidBaselinesFromStream( workspace, plevel, stream, component, date );
 				} else {
 					/* Find the Baselines and store them */
-					baselines = getBaselinesFromStreams( workspace, listener, out, state, state.getStream(), state.getComponent(), polling.isPollingChilds() );
+					baselines = getBaselinesFromStreams( workspace, listener, out, stream, component, polling.isPollingChilds(), date );
 				}
-
-				logger.fine( "I found " + baselines.size() + " baseline" + ( baselines.size() == 1 ? "" : "s" ) );
-
-				/* Discard baselines */
-				filterBaselines( project,state.getStream(), baselines );
-
-				logger.fine( "When filtered, I have " + baselines.size() + " baseline" + ( baselines.size() == 1 ? "" : "s" ) );
 
 				if( baselines.size() > 0 ) {
 					p = PollingResult.BUILD_NOW;
-					/* Sort by date */
-					Collections.sort( baselines, new AscendingDateSort() );
 
-					state.setBaselines( baselines );
-					state.setBaseline( selectBaseline( state.getBaselines(), plevel ) );
+                    /* The next Baseline */
+
 
 					/* If ANY */
 					if( plevel == null ) {
-						try {
-							lastBaseline = getLastBaseline( project, listener );
-						} catch( ScmException e ) {
-							out.println( e.getMessage() );
-						}
-
 						boolean newer = false;
 
 						/*
@@ -907,17 +666,12 @@ public class CCUCMScm extends SCM {
 							}
 
 							try {
-								out.println( "The found baseline: " + state.getBaseline().stringify() );
+								out.println( "The found baseline: " + foundBaseline.stringify() );
 							} catch( Exception e ) {
 								out.println( "Could not stringify state baseline" );
 							}
 
-							// if( lastBaseline.getDate().after(
-							// state.getBaseline().getDate() ) ) {
-							if( state.getBaseline().getDate().after( lastBaseline.getDate() ) ) {
-								// if
-								// (lastBaseline.getFullyQualifiedName().equals(state.getBaseline().getFullyQualifiedName()))
-								// {
+							if( foundBaseline.getDate().after( lastBaseline.getDate() ) ) {
 								newer = true;
 							}
 						} else {
@@ -933,45 +687,27 @@ public class CCUCMScm extends SCM {
 					p = PollingResult.NO_CHANGES;
 				}
 
-				logger.fine( id + "The POLL state:\n" + state.stringify() ); // 5413_dev_from_BUILT
-
-				/* Remove state if not being built */
-				if( p == PollingResult.NO_CHANGES ) {
-					state.remove();
-				}
-			} catch( ScmException e ) {
+			} catch( CCUCMException e ) {
 				out.println( "Error while retrieving baselines: " + e.getMessage() );
 				logger.warning( "Error while retrieving baselines: " + e.getMessage() );
 				p = PollingResult.NO_CHANGES;
 			}
 		}
 
-		/* Remove state if not being built */
-		if( p.equals( PollingResult.NO_CHANGES ) ) {
-			logger.fine( id + "No new baselines to build" );
-			if( createdByThisPoll ) {
-				logger.fine( id + "Removing: " + state.stringify() );
-				state.remove();
-			}
-		} else {
-			logger.fine( id + "New baseline to build" );
-			state.setAddedByPoller( true );
-		}
-
-        /*
-		sw.stop();
-		logger.fine( "Polling took " + sw.getSeconds() + " seconds" );
-		out.println( "Polling took " + sw.getSeconds() + " seconds" );
-		sw.stop();
-		*/
-
 		return p;
 	}
 
-	/**
-	 * Get the {@link Baseline}s from a {@link Stream}s related Streams.
-	 */
-	private List<Baseline> getBaselinesFromStreams( FilePath workspace, TaskListener listener, PrintStream consoleOutput, State state, Stream stream, Component component, boolean pollingChildStreams ) {
+    /**
+     * Get the {@link Baseline}s from a {@link Stream}s related Streams.
+     * @param workspace
+     * @param listener
+     * @param consoleOutput
+     * @param stream
+     * @param component
+     * @param pollingChildStreams
+     * @return A list of {@link Baseline}'s
+     */
+	private List<Baseline> getBaselinesFromStreams( FilePath workspace, TaskListener listener, PrintStream consoleOutput, Stream stream, Component component, boolean pollingChildStreams, Date date ) {
 
 		List<Stream> streams = null;
 		List<Baseline> baselines = new ArrayList<Baseline>();
@@ -992,7 +728,7 @@ public class CCUCMScm extends SCM {
 			try {
 				consoleOutput.printf( "[" + Config.nameShort + "] [%02d] %s ", c, s.getShortname() );
 				c++;
-				List<Baseline> found = RemoteUtil.getRemoteBaselinesFromStream( workspace, component, s, plevel, this.getSlavePolling(), this.getMultisitePolling() );
+				List<Baseline> found = RemoteUtil.getRemoteBaselinesFromStream( workspace, component, s, plevel, this.getSlavePolling(), this.getMultisitePolling(), date );
 				for( Baseline b : found ) {
 					baselines.add( b );
 				}
@@ -1007,100 +743,74 @@ public class CCUCMScm extends SCM {
 		return baselines;
 	}
 
-	/**
-	 * Given the {@link Stream}, {@link Component} and {@link net.praqma.clearcase.ucm.entities.Project.PromotionLevel} a list of
-	 * valid {@link Baseline}s is returned.
-	 */
-	private List<Baseline> getValidBaselinesFromStream( FilePath workspace, State state, Project.PromotionLevel plevel, Stream stream, Component component ) throws ScmException {
+    /**
+     * Given the {@link Stream}, {@link Component} and {@link net.praqma.clearcase.ucm.entities.Project.PromotionLevel} a list of
+     * valid {@link Baseline}s is returned.
+     * @param workspace
+     * @param plevel
+     * @param stream
+     * @param component
+     * @return A list of {@link Baseline}'s
+     * @throws CCUCMException
+     */
+	private List<Baseline> getValidBaselinesFromStream( FilePath workspace, Project.PromotionLevel plevel, Stream stream, Component component, Date date ) throws CCUCMException {
 		logger.fine( id + "Retrieving valid baselines." );
 
 		/* The baseline list */
 		List<Baseline> baselines = new ArrayList<Baseline>();
 
 		try {
-			baselines = RemoteUtil.getRemoteBaselinesFromStream( workspace, component, stream, plevel, this.getSlavePolling(), this.getMultisitePolling() );
+			baselines = RemoteUtil.getRemoteBaselinesFromStream( workspace, component, stream, plevel, this.getSlavePolling(), this.getMultisitePolling(), date );
 		} catch( CCUCMException e1 ) {
-			// throw new ScmException("Unable to get baselines from " +
-			// stream.getShortname() + ": " + e1.getMessage());
-			/* no op */
 			logger.fine( "No baselines: " + e1.getMessage() );
-			throw new ScmException("Unable to get baselines from " + stream.getShortname(), e1 );
+			throw new CCUCMException("Unable to get baselines from " + stream.getShortname(), e1 );
 		}
 
 		return baselines;
 	}
 
-	/**
-	 * Filter out baselines that is involved in a deliver or does not have a
-	 * label
-	 * 
-	 * @param baselines
-	 */
-	private void filterBaselines( AbstractProject<?, ?> project, Stream stream, List<Baseline> baselines ) {
+    /**
+     * Returns the last {@link CCUCMBuildAction}, that has a valid {@link Baseline}
+     * @param project
+     * @return An Action
+     */
+    public CCUCMBuildAction getLastAction( AbstractProject<?, ?> project ) throws CCUCMException {
+        for( AbstractBuild<?, ?> b = project.getLastBuild() ; b != null ; b = b.getPreviousBuild() ) {
+            CCUCMBuildAction action = b.getAction( CCUCMBuildAction.class );
+            if( action != null && action.getBaseline() != null ) {
+                return action;
+            }
+        }
 
-		/* Remove deliver baselines */
-		Iterator<Baseline> it = baselines.iterator();
-		while( it.hasNext() ) {
-			Baseline baseline = it.next();
+        throw new CCUCMException( "No valid action" );
+    }
 
-			/* Get the state for the current baseline */
-			State cstate = ccucm.getStateByBaseline( jobName, baseline.getFullyQualifiedName() );
 
-			if( baseline.getShortname().startsWith( "deliverbl." ) || baseline.getLabelStatus().equals( LabelStatus.UNLABLED ) ) {
-				it.remove();
-			} else if( !baseline.getMastership().equals( stream.getMastership() ) ) {
-				it.remove();
-			} else if( cstate != null ) {
-				/* The baseline is in progress, determine if the job is still running */
-				Integer bnum = cstate.getJobNumber();
-				Build bld = (Build) project.getBuildByNumber( bnum );
+    private CCUCMBuildAction getBuildAction() throws UnableToInitializeEntityException {
+        CCUCMBuildAction action = new CCUCMBuildAction( Stream.get( stream ), Component.get( component ) );
 
-				/* prevent null pointer exceptions */
-				if( bld != null ) {
-					if( baseline.getPromotionLevel( true ).equals( cstate.getBaseline().getPromotionLevel( true ) ) ) {
-						logger.fine( id + baseline.getShortname() + " has the same promotion level" );
-						it.remove();
-					} else if( bld.isLogUpdated() ) {
-						logger.fine( id + "Job " + bld.getNumber() + " is building " + cstate.getBaseline().getFullyQualifiedName() );
-						it.remove();
-					} else {
-						/* The job is not running */
-						logger.fine( id + "Job " + bld.getNumber() + " is not building" );
-					} 
-				}
-			}
-		}
-	}
+        action.setDescription( setDescription );
+        action.setMakeTag( makeTag );
+        action.setRecommend( recommend );
+        action.setForceDeliver( forceDeliver );
+        action.setPromotionLevel( plevel );
+        action.setUnstable( treatUnstable );
+        action.setLoadModule( loadModule );
 
-	/**
-	 * Store the globally defined parameters in the state object
-	 * 
-	 * @param state
-	 */
-	private void storeStateParameters( State state ) {
+        /* Deliver and template */
+        action.setCreateBaseline( createBaseline );
 
-		try {
-			state.setStream( Stream.get( stream ) );
-		} catch( ClearCaseException e ) {
-            logger.log( Level.WARNING, "", e );
-		}
+        /* Trim template, strip out quotes */
+        if( nameTemplate.matches( "^\".+\"$" ) ) {
+            nameTemplate = nameTemplate.substring( 1, nameTemplate.length() - 1 );
+        }
+        action.setNameTemplate( nameTemplate );
 
-		try {
-			state.setComponent( Component.get( component ) );
-		} catch( ClearCaseException e ) {
-            logger.log( Level.WARNING, "", e );
-		}
+        action.setPolling( polling );
 
-		state.setUnstable( treatUnstable );
+        return action;
+    }
 
-		/* Notifier stuff */
-		state.setSetDescription( setDescription );
-		state.setMakeTag( makeTag );
-		state.setRecommend( recommend );
-		state.setForceDeliver( forceDeliver );
-
-		state.setPlevel( plevel );
-	}
 
 	@Override
 	public SCMRevisionState calcRevisionsFromBuild( AbstractBuild<?, ?> build, Launcher launcher, TaskListener listener ) throws IOException, InterruptedException {
@@ -1128,7 +838,7 @@ public class CCUCMScm extends SCM {
 		ps.println( "[" + Config.nameShort + "] Getting baselines for :" );
 		ps.println( "[" + Config.nameShort + "] * Stream:          " + stream );
 		ps.println( "[" + Config.nameShort + "] * Component:       " + component );
-		ps.println( "[" + Config.nameShort + "] * Promotion level: " + levelToPoll );
+		ps.println( "[" + Config.nameShort + "] * Promotion level: " + plevel.name() );
 		ps.println( "" );
 	}
 
@@ -1157,7 +867,7 @@ public class CCUCMScm extends SCM {
 	 * userdata in Hudsons gui
 	 */
 	public String getLevelToPoll() {
-		return levelToPoll;
+		return plevel.name();
 	}
 
 	public String getComponent() {

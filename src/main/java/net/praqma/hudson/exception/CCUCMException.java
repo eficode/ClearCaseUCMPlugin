@@ -7,6 +7,10 @@ public class CCUCMException extends Exception {
         super( msg, e );
     }
 
+    public CCUCMException( String m ) {
+        super( m );
+    }
+
     public CCUCMException( Exception e ) {
         super( e );
     }
