@@ -501,6 +501,8 @@ public class CCUCMScm extends SCM {
 					consoleOutput.println( "[" + Config.nameShort + "] Changes need to be manually merged, The stream " + state.getBaseline().getStream().getShortname() + " must be rebased to the most recent baseline on " + state.getStream().getShortname() + " - During the rebase the merge conflict should be solved manually. Hereafter create a new baseline on " + state.getBaseline().getStream().getShortname() + "." );
                     state.setError( "merge error" );
 				}
+
+                throw new CCUCMException( e );
 				
 			/* Force deliver not cancelled */
 			} catch( DeliverNotCancelledException e1 ) {

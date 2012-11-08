@@ -30,9 +30,9 @@ public class Any extends BaseTestClass {
     }
 
     @Test
-    @ClearCaseUniqueVobName( name = "self-nop" )
+    @ClearCaseUniqueVobName( name = "self-any" )
     @TestDescription( title = "Self polling", text = "baseline available" )
     public void test() {
-        
+
     }
 }
