@@ -121,7 +121,7 @@ public class Any extends BaseTestClass {
             logger.info( "Build failed: " + e.getMessage() );
         }
 
-        new SystemValidator( build )
+        new SystemValidator( build2 )
                 .validateBuild( Result.SUCCESS )
                 .validateBuiltBaseline( Project.PromotionLevel.INITIAL, b2, false )
                 .validate();
