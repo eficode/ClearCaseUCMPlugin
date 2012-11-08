@@ -1,11 +1,11 @@
 package net.praqma.hudson.nametemplates;
 
-import net.praqma.hudson.scm.CCUCMState.State;
+import net.praqma.hudson.CCUCMBuildAction;
 
 public class VersionNumberTemplate extends Template {
 	
 	@Override
-	public String parse( State state, String args ) {
+	public String parse( CCUCMBuildAction action, String args ) {
 		
 		if( args != null && args.length() > 0 ) {
 			String result = "";

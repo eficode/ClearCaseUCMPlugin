@@ -1,13 +1,13 @@
 package net.praqma.hudson.nametemplates;
 
-import net.praqma.hudson.scm.CCUCMState.State;
+import net.praqma.hudson.CCUCMBuildAction;
 
 public class NumberTemplate extends Template {
 
 	@Override
-	public String parse( State state, String args ) {
+	public String parse( CCUCMBuildAction action, String args ) {
 		try {
-			return state.getJobNumber().toString();
+			return action.getBuild().getNumber()+"";
 		} catch( NullPointerException e ) {
 			return "?";
 		}

@@ -1,14 +1,14 @@
 package net.praqma.hudson.nametemplates;
 
-import net.praqma.hudson.scm.CCUCMState.State;
+import net.praqma.hudson.CCUCMBuildAction;
 
 public class ComponentTemplate extends Template {
 	
 	@Override
-	public String parse( State state, String args ) {
+	public String parse( CCUCMBuildAction action, String args ) {
 		
 		try {
-			return state.getBaseline().getComponent().getShortname();
+			return action.getBaseline().getComponent().getShortname();
 		} catch ( Exception e ) {
 			return "unknowncomponent";
 		}
