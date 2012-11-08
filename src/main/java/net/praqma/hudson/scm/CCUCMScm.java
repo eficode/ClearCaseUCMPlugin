@@ -616,6 +616,7 @@ public class CCUCMScm extends SCM {
                 CCUCMBuildAction lastAction = getLastAction( project );
                 Date date = null;
                 if( lastAction != null ) {
+                    out.println( lastAction );
                     date = lastAction.getBaseline().getDate();
                     lastBaseline = lastAction.getBaseline();
                 }
@@ -628,7 +629,7 @@ public class CCUCMScm extends SCM {
 					baselines = getBaselinesFromStreams( workspace, listener, out, stream, component, polling.isPollingChilds(), date );
 				}
 
-                out.println( "BASELINES: " + baselines );
+                out.println( "MY BASELINES: " + baselines );
 
 				if( baselines.size() > 0 ) {
 					p = PollingResult.BUILD_NOW;
