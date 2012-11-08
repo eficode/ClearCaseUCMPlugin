@@ -49,13 +49,17 @@ public class CCUCMRule extends JenkinsRule {
 	}
 	
 	public FreeStyleProject setupProject( String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean createBaseline, boolean forceDeliver, String template ) throws Exception {
+        return setupProject(projectName, type, component, stream, recommend, tag, description, createBaseline, forceDeliver, template, "INITIAL" );
+    }
+
+    public FreeStyleProject setupProject( String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean createBaseline, boolean forceDeliver, String template, String promotionLevel ) throws Exception {
 	
 		logger.info( "Setting up build for self polling, recommend:" + recommend + ", tag:" + tag + ", description:" + description );
 		
 		System.out.println( "==== [Setting up ClearCase UCM project] ====" );
 		System.out.println( " * Stream         : " + stream );
 		System.out.println( " * Component      : " + component );
-		//System.out.println( " * Level          : " + "INITIAL" );
+		System.out.println( " * Level          : " + promotionLevel );
 		System.out.println( " * Polling        : " + type );
 		System.out.println( " * Recommend      : " + recommend );
 		System.out.println( " * Tag            : " + tag );
@@ -69,7 +73,7 @@ public class CCUCMRule extends JenkinsRule {
 		
 		// boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription
 		//CCUCMScm scm = new CCUCMScm( component, "INITIAL", "ALL", false, type, stream, "successful", createBaseline, "[project]_build_[number]", forceDeliver, recommend, tag, description, "jenkins" );
-		CCUCMScm scm = new CCUCMScm( component, "INITIAL", "ALL", false, type, stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "" );
+		CCUCMScm scm = new CCUCMScm( component, promotionLevel, "ALL", false, type, stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "" );
 		this.scm = scm;
 		project.setScm( scm );
 		
@@ -113,9 +117,13 @@ public class CCUCMRule extends JenkinsRule {
 	public AbstractBuild<?, ?> initiateBuild( String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean fail, boolean createBaseline, boolean forceDeliver ) throws Exception {
 		return initiateBuild( projectName, type, component, stream, recommend, tag, description, fail, createBaseline, forceDeliver, "[project]_build_[number]" );
 	}
-	
+
 	public AbstractBuild<?, ?> initiateBuild( String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean fail, boolean createBaseline, boolean forceDeliver, String template ) throws Exception {
-		FreeStyleProject project = setupProject( projectName, type, component, stream, recommend, tag, description, createBaseline, forceDeliver, template );
+        return  initiateBuild(projectName, type, component, stream, recommend, tag, description, fail, createBaseline, forceDeliver, template, "INITIAL" );
+    }
+
+    public AbstractBuild<?, ?> initiateBuild( String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean fail, boolean createBaseline, boolean forceDeliver, String template, String promotionLevel ) throws Exception {
+		FreeStyleProject project = setupProject( projectName, type, component, stream, recommend, tag, description, createBaseline, forceDeliver, template, promotionLevel );
 		
 		FreeStyleBuild build = null;
 		

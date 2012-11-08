@@ -209,8 +209,13 @@ public class CCUCMScm extends SCM {
 			} else {
 				/* Only start deliver when NOT polling self */
 				logger.fine( "Deliver" );
-				beginDeliver( build, action, listener, changelogFile );
-			}
+                try {
+                    beginDeliver( build, action, listener, changelogFile );
+                } catch( CCUCMException e ) {
+                    e.printStackTrace( out );
+                    throw new AbortException( "Unable to begin deliver" );
+                }
+            }
 
 			action.setViewTag( viewtag );
 		}
@@ -413,7 +418,7 @@ public class CCUCMScm extends SCM {
         out.println( "" );
 	}
 
-	public boolean beginDeliver( AbstractBuild<?, ?> build, CCUCMBuildAction state, BuildListener listener, File changelogFile ) {
+	public void beginDeliver( AbstractBuild<?, ?> build, CCUCMBuildAction state, BuildListener listener, File changelogFile ) throws CCUCMException {
 		FilePath workspace = build.getWorkspace();
 		PrintStream consoleOutput = listener.getLogger();
 		boolean result = true;
@@ -504,7 +509,7 @@ public class CCUCMScm extends SCM {
 			} catch( Exception e1 ) {
                 logger.log( Level.WARNING, "", e );
 				ExceptionUtils.print( e, consoleOutput, true );
-				result = false;
+				throw new CCUCMException( e );
 			}
 		}
 
@@ -514,10 +519,8 @@ public class CCUCMScm extends SCM {
 		} catch( ClearCaseException e ) {
 			consoleOutput.println( "[" + Config.nameShort + "] " + e.getMessage() );
             logger.log( Level.WARNING, "", e );
-			result = false;
+            throw new CCUCMException( e );
 		}
-
-		return result;
 	}
 
 	@Override
