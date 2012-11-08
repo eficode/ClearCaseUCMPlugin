@@ -182,16 +182,16 @@ public class CCUCMScm extends SCM {
             try {
                 resolveBaselineInput( build, baselineInput, action, listener );
             } catch( Exception e ) {
-                Util.println( out, e );
-                throw new AbortException( "Unable to resolve baseline input" );
+                logger.log( Level.WARNING, "Resolving baseline input failed", e );
+                Util.println( out, "No Baselines found" );
             }
         } else {
 			out.println( "[" + Config.nameShort + "] Polling streams: " + polling.toString() );
             try {
                 resolveBaseline( workspace, build.getProject(), action, listener );
             } catch( CCUCMException e ) {
-                Util.println( out, e );
-                throw new AbortException( "Unable to resolve Baseline" );
+                Util.println( out, "No Baselines found" );
+                logger.log( Level.WARNING, "Resolving baseline failed", e );
             }
         }
 
@@ -369,10 +369,9 @@ public class CCUCMScm extends SCM {
      * @param project
      * @param action
      * @param listener
-     * @throws CCUCMException
-     * @throws AbortException
+     * @throws CCUCMException is thrown if no valid baselines are found
      */
-	private void resolveBaseline( FilePath workspace, AbstractProject<?, ?> project, CCUCMBuildAction action, BuildListener listener ) throws CCUCMException, AbortException {
+	private void resolveBaseline( FilePath workspace, AbstractProject<?, ?> project, CCUCMBuildAction action, BuildListener listener ) throws CCUCMException {
         logger.fine( "Resolving Baseline from the Stream " + action.getStream().getNormalizedName() );
 		PrintStream out = listener.getLogger();
 
@@ -399,14 +398,14 @@ public class CCUCMScm extends SCM {
 
         /* if we did not find any baselines we should return false */
         if( baselines.size() < 1 ) {
-            throw new AbortException( "No valid Baselines found" );
+            throw new CCUCMException( "No valid Baselines found" );
         }
 
         action.setBaselines( baselines );
         action.setBaseline( selectBaseline( action.getBaselines(), plevel ) );
 
         if( action.getBaselines() == null || action.getBaselines().size() < 1 ) {
-            throw new AbortException( "Unable to get Baselines" );
+            throw new CCUCMException( "Unable to get Baselines" );
         }
 
         /* Print the baselines to jenkins out */

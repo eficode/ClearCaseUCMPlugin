@@ -59,11 +59,11 @@ public class BaselinesFound extends BaseTestClass {
 
 		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getUniqueName(), false, false, false, false );
 
-//		SystemValidator validator = new SystemValidator( build )
-//			.validateBuild( Result.SUCCESS )
-//			.validateBuiltBaseline( PromotionLevel.BUILT, baseline, false )
-//			.validateCreatedBaseline( true )
-//			.validate();
+		SystemValidator validator = new SystemValidator( build )
+			.validateBuild( Result.SUCCESS )
+			.validateBuiltBaseline( PromotionLevel.BUILT, baseline, false )
+			.validateCreatedBaseline( true )
+			.validate();
 	}
 	
 	@Test
