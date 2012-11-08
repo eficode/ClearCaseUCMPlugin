@@ -840,7 +840,7 @@ public class CCUCMScm extends SCM {
 		ps.println( "[" + Config.nameShort + "] Getting baselines for :" );
 		ps.println( "[" + Config.nameShort + "] * Stream:          " + stream );
 		ps.println( "[" + Config.nameShort + "] * Component:       " + component );
-		ps.println( "[" + Config.nameShort + "] * Promotion level: " + plevel.name() );
+		ps.println( "[" + Config.nameShort + "] * Promotion level: " + plevel );
 		ps.println( "" );
 	}
 
