@@ -44,9 +44,12 @@ class RemotePostBuild implements FileCallable<Status> {
 	private PrintStream hudsonOut = null;
 	private Unstable unstable;
 
+
+    private boolean any;
+
 	public RemotePostBuild( Result result, Status status, BuildListener listener,
 	/* Values for */
-	boolean makeTag, boolean recommended, Unstable unstable,
+	boolean makeTag, boolean recommended, Unstable unstable, boolean any,
 	/* Common values */
 	Baseline sourcebaseline, Baseline targetbaseline, Stream sourcestream, Stream targetstream, String displayName, String buildNumber ) {
 
@@ -69,6 +72,8 @@ class RemotePostBuild implements FileCallable<Status> {
 
 		this.status = status;
 		this.listener = listener;
+
+        this.any = any;
 	}
 
 	public Status invoke( File workspace, VirtualChannel channel ) throws IOException {
@@ -108,27 +113,33 @@ class RemotePostBuild implements FileCallable<Status> {
 			}
 
 			try {
-				if( hasRemoteMastership() ) {
-					printPostedOutput( sourcebaseline );
-					noticeString = "*";
-				} else {
-					Project.PromotionLevel pl;
-					if( !status.isStable() && !unstable.treatSuccessful() ) {
-						/* Treat the not stable build as unsuccessful */
-						pl = sourcebaseline.demote();
-						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + pl.toString() + "." );
-					} else {
-						/* Treat the build as successful */
-						pl = sourcebaseline.promote();
-						hudsonOut.print( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " promoted to " + pl.toString() );
-						if( !status.isStable() ) {
-							hudsonOut.println( ", even though the build is unstable." );
-						} else {
-							hudsonOut.println( "." );
-						}
-					}
-					status.setPromotedLevel( pl );
-				}
+                /* Promote baseline, not any */
+                if( !any ) {
+                    if( hasRemoteMastership() ) {
+                        printPostedOutput( sourcebaseline );
+                        noticeString = "*";
+                    } else {
+                        Project.PromotionLevel pl;
+                        if( !status.isStable() && !unstable.treatSuccessful() ) {
+                            /* Treat the not stable build as unsuccessful */
+                            pl = sourcebaseline.demote();
+                            hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + pl.toString() + "." );
+                        } else {
+                            /* Treat the build as successful */
+                            pl = sourcebaseline.promote();
+                            hudsonOut.print( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " promoted to " + pl.toString() );
+                            if( !status.isStable() ) {
+                                hudsonOut.println( ", even though the build is unstable." );
+                            } else {
+                                hudsonOut.println( "." );
+                            }
+                        }
+                        status.setPromotedLevel( pl );
+                    }
+                } else {
+                    status.setPromotedLevel( sourcebaseline.getPromotionLevel( false ) );
+                }
+
 				/* Recommend the Baseline */
 				if( recommend ) {
 					try {
@@ -170,23 +181,28 @@ class RemotePostBuild implements FileCallable<Status> {
 				tag.setEntry( "buildstatus", "FAILURE" );
 			}
 
-			try {
-				if( hasRemoteMastership() ) {
-					printPostedOutput( sourcebaseline );
-					noticeString = "*";
-				} else {
-					logger.warning( id + "Demoting baseline" );
-					Project.PromotionLevel pl = sourcebaseline.demote();
-					status.setPromotedLevel( pl );
-					hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
-				}
-			} catch( Exception e ) {
-				status.setStable( false );
-				// throw new NotifierException(
-				// "Could not demote baseline. " + e.getMessage() );
-				hudsonOut.println( "[" + Config.nameShort + "] Could not demote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
-				logger.warning( id + "Could not demote baseline. " + e.getMessage() );
-			}
+            /* Demote baseline, not any */
+            if( !any) {
+                try {
+                    if( hasRemoteMastership() ) {
+                        printPostedOutput( sourcebaseline );
+                        noticeString = "*";
+                    } else {
+                        logger.warning( id + "Demoting baseline" );
+                        Project.PromotionLevel pl = sourcebaseline.demote();
+                        status.setPromotedLevel( pl );
+                        hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
+                    }
+                } catch( Exception e ) {
+                    status.setStable( false );
+                    // throw new NotifierException(
+                    // "Could not demote baseline. " + e.getMessage() );
+                    hudsonOut.println( "[" + Config.nameShort + "] Could not demote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
+                    logger.warning( id + "Could not demote baseline. " + e.getMessage() );
+                }
+            } else {
+                status.setPromotedLevel( sourcebaseline.getPromotionLevel( false ) );
+            }
 
 		}
 

@@ -1,9 +1,13 @@
 package net.praqma.hudson.test.integration.self;
 
 import hudson.model.AbstractBuild;
+import hudson.model.Result;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
+import net.praqma.clearcase.ucm.entities.Baseline;
+import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.hudson.test.BaseTestClass;
+import net.praqma.hudson.test.SystemValidator;
 import net.praqma.junit.DescriptionRule;
 import net.praqma.junit.TestDescription;
 import net.praqma.util.debug.Logger;
@@ -32,7 +36,13 @@ public class Any extends BaseTestClass {
     @Test
     @ClearCaseUniqueVobName( name = "self-any" )
     @TestDescription( title = "Self polling", text = "baseline available" )
-    public void test() {
+    public void test() throws Exception {
+        AbstractBuild<?, ?> build = initiateBuild( ccenv.getUniqueName(), false, false, false, false );
 
+        Baseline baseline = ccenv.context.baselines.get( "client-3" );
+        SystemValidator validator = new SystemValidator( build )
+                .validateBuild( Result.SUCCESS )
+                .validateBuiltBaseline( Project.PromotionLevel.INITIAL, baseline, false )
+                .validate();
     }
 }
