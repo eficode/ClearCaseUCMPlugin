@@ -14,19 +14,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
-import org.junit.ClassRule;
-import org.junit.Rule;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestBuilder;
 
-import net.praqma.clearcase.Environment;
 import net.praqma.clearcase.PVob;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.exceptions.CleartoolException;
-import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
-import net.praqma.clearcase.exceptions.UnableToLoadEntityException;
-import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.HyperLink;
 import net.praqma.clearcase.ucm.entities.Stream;
@@ -36,13 +31,12 @@ import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.scm.ChangeLogEntryImpl;
-import net.praqma.util.debug.Logger;
 
 import static org.junit.Assert.*;
 
 public class CCUCMRule extends JenkinsRule {
 	
-	private static Logger logger = Logger.getLogger();
+	private static Logger logger = Logger.getLogger( CCUCMRule.class.getName() );
 
 	private CCUCMScm scm;
 	
@@ -162,7 +156,7 @@ public class CCUCMRule extends JenkinsRule {
 	
 	public void printList( List<String> list ) {
 		for( String l : list ) {
-			logger.debug( l );
+			logger.fine( l );
 		}
 	}
 	
@@ -203,13 +197,13 @@ public class CCUCMRule extends JenkinsRule {
 			logger.info( "Recommended baselines: " + baselines );
 			
 			for( Baseline rb : baselines ) {
-				logger.debug( "BRB: " + rb );
+				logger.fine( "BRB: " + rb );
 				if( baseline.equals( rb ) ) {
 					return true;
 				}
 			}
 		} catch( Exception e ) {
-			logger.debug( "" );
+			logger.fine( "" );
 			ExceptionUtils.log( e, true );
 		}
 		
@@ -222,8 +216,8 @@ public class CCUCMRule extends JenkinsRule {
 	}
 	
 	public Tag getTag( Baseline baseline, AbstractBuild<?, ?> build ) throws ClearCaseException {
-		logger.fatal( "Getting tag with \"" + build.getParent().getDisplayName() + "\" - \"" + build.getNumber() + "\"" );
-		logger.fatal( "--->" + build.getParent().getDisplayName() );
+		logger.severe( "Getting tag with \"" + build.getParent().getDisplayName() + "\" - \"" + build.getNumber() + "\"" );
+		logger.severe( "--->" + build.getParent().getDisplayName() );
 		Tag tag = Tag.getTag( baseline, build.getParent().getDisplayName(), build.getNumber()+"", false );
 		
 		if( tag != null ) {
