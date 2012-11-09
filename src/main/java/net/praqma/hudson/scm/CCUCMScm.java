@@ -95,6 +95,8 @@ public class CCUCMScm extends SCM {
 	private String viewtag = "";
 	private Baseline lastBaseline;
 
+    private String levelToPoll;
+
 	private static DateFormat dateFormatter = new SimpleDateFormat( "yyyyMMdd" );
 
 	/**
@@ -123,6 +125,7 @@ public class CCUCMScm extends SCM {
 		this.makeTag = makeTag;
 		this.setDescription = setDescription;
 		this.plevel = Util.getLevel( levelToPoll );
+        this.levelToPoll = levelToPoll;
 	}
 
 	@Override
@@ -168,7 +171,7 @@ public class CCUCMScm extends SCM {
         action.setBuild( build );
         build.addAction( action );
 
-        out.println( "LISTENER IS " + listener );
+        //out.println( "LISTENER IS " + listener );
         //action.setListener( listener );
 
 		/* Determining the user has parameterized a Baseline */
@@ -250,6 +253,11 @@ public class CCUCMScm extends SCM {
 			/* Sanity check */
 			if( polling.isPollingOther() ) {
 				if( nameTemplate != null && nameTemplate.length() > 0 ) {
+
+                    if( nameTemplate.matches( "^\".+\"$" ) ) {
+                        nameTemplate = nameTemplate.substring( 1, nameTemplate.length() - 1 );
+                    }
+
 					try {
 						NameTemplate.testTemplate( nameTemplate );
 					} catch( TemplateException e ) {
@@ -609,6 +617,9 @@ public class CCUCMScm extends SCM {
 
 		/* Check input */
 		if( checkInput( listener ) ) {
+
+            printParameters( out );
+
 			try {
 				List<Baseline> baselines = null;
 
@@ -628,8 +639,6 @@ public class CCUCMScm extends SCM {
 					/* Find the Baselines and store them */
 					baselines = getBaselinesFromStreams( workspace, listener, out, stream, component, polling.isPollingChilds(), date );
 				}
-
-                out.println( "MY BASELINES: " + baselines );
 
 				if( baselines.size() > 0 ) {
 					p = PollingResult.BUILD_NOW;
@@ -815,7 +824,7 @@ public class CCUCMScm extends SCM {
 	 * userdata in Hudsons gui
 	 */
 	public String getLevelToPoll() {
-		return plevel.name();
+		return levelToPoll;
 	}
 
 	public String getComponent() {

@@ -92,7 +92,6 @@ public class CCUCMNotifier extends Notifier {
 		Baseline baseline = null;
 		
 		CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
-        out.println( "ACTION:\n" + action.stringify() );
 
 		if( action != null ) {
             logger.fine( action.stringify() );

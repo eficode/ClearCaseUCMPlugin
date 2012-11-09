@@ -75,7 +75,7 @@ public class NameTemplate {
 			}
 		}
 
-                Matcher f = rx_checkFinal.matcher( result );
+        Matcher f = rx_checkFinal.matcher( result );
 		if( !f.find() ) {
 			throw new TemplateException( "The template is not correct" );
 		}
