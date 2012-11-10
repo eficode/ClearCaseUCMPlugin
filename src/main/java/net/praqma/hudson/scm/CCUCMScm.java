@@ -172,7 +172,7 @@ public class CCUCMScm extends SCM {
         build.addAction( action );
 
         //out.println( "LISTENER IS " + listener );
-        //action.setListener( listener );
+        action.setListener( listener );
 
 		/* Determining the user has parameterized a Baseline */
 		String baselineInput = getBaselineValue( build );
@@ -197,6 +197,9 @@ public class CCUCMScm extends SCM {
                 logger.log( Level.WARNING, "Resolving baseline failed", e );
             }
         }
+
+        /* Try to save */
+        build.save();
 
         boolean result = true;
 

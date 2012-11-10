@@ -17,7 +17,7 @@ import net.praqma.hudson.scm.Unstable;
 public class CCUCMBuildAction implements Action {
 
     private AbstractBuild<?, ?> build;
-    private TaskListener listener;
+    private transient TaskListener listener;
 	
 	private Stream stream;
 	private Component component;
