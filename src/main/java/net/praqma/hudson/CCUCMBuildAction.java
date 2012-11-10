@@ -50,7 +50,7 @@ public class CCUCMBuildAction implements Action {
     /**
      * The list of found {@link Baseline}'s. Typically used when polled
      */
-    private List<Baseline> baselines = null;
+    //private List<Baseline> baselines = null;
 
     /**
      * The type of polling
@@ -97,7 +97,7 @@ public class CCUCMBuildAction implements Action {
     }
 
     public void setListener( TaskListener listener ) {
-        //this.listener = listener;
+        this.listener = listener;
     }
 
     public Baseline getBaseline() {
@@ -220,6 +220,7 @@ public class CCUCMBuildAction implements Action {
         this.addedByPoller = addedByPoller;
     }
 
+    /*
     public List<Baseline> getBaselines() {
         return baselines;
     }
@@ -227,6 +228,7 @@ public class CCUCMBuildAction implements Action {
     public void setBaselines( List<Baseline> baselines ) {
         this.baselines = baselines;
     }
+    */
 
     public Polling getPolling() {
         return polling;

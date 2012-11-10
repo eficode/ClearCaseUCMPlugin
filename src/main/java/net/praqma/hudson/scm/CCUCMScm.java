@@ -412,15 +412,15 @@ public class CCUCMScm extends SCM {
             throw new CCUCMException( "No valid Baselines found" );
         }
 
-        action.setBaselines( baselines );
-        action.setBaseline( selectBaseline( action.getBaselines(), plevel ) );
+        //action.setBaselines( baselines );
+        action.setBaseline( selectBaseline( baselines, plevel ) );
 
-        if( action.getBaselines() == null || action.getBaselines().size() < 1 ) {
+        if( baselines == null || baselines.size() < 1 ) {
             throw new CCUCMException( "Unable to get Baselines" );
         }
 
         /* Print the baselines to jenkins out */
-        printBaselines( action.getBaselines(), out );
+        printBaselines( baselines, out );
         out.println( "" );
 	}
 
