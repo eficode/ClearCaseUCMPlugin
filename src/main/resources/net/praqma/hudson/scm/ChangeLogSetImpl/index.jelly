@@ -6,7 +6,9 @@
   <h2>Summary</h2>
 
 
-  <table class="pane" style="border:none">
+  <!--<table class="pane" style="border:none">
+    -->
+    <!--
     <j:forEach var="cs" items="${it.entries}" varStatus="loop">
       <tr class="pane">
         <td colspan="2" class="changeset">
@@ -17,5 +19,35 @@
         </td>
       </tr>
     </j:forEach>
-  </table>
+    -->
+    <j:forEach var="cs" items="${it.entries}" varStatus="loop">
+        <table style="border-style:none;border-width:0px">
+            <tr class="pane">
+                <td>
+                    <b>Activity: ${cs.msg} "${cs.actHeadline}" by ${cs.author}</b>
+                    <br/>
+                    <table>
+                        <thead>                        
+                            <tr>
+                                <th>File</th>
+                                <th>Version</th>
+                                <th>User</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <j:forEach var="file" items="${cs.affectedPaths}" varStatus="loop">
+                                <tr>
+                                    <td>${cs.getOnlyChangedFile(file)}</td>
+                                    <td>${cs.getOnlyClearCaseChangedFile(file)}</td>
+                                    <td>${cs.getUserClearCaseNumber(file)}</td>
+                                </tr>
+                            </j:forEach>
+                        </tbody>
+                  </table> 
+              </td> 
+            </tr>
+        </table>
+    </j:forEach>
+    
+  <!-- </table> -->
 </j:jelly>
