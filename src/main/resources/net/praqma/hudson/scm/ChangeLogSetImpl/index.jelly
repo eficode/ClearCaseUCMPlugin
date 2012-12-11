@@ -26,12 +26,12 @@
                 <td>
                     <b>Activity: ${cs.msg} "${cs.actHeadline}" by ${cs.author}</b>
                     <br/>
-                    <table>
+                    <table style="border-style:solid;border-width:1px;border-color:black">
                         <thead>                        
                             <tr>
-                                <th>File</th>
-                                <th>Version</th>
-                                <th>User</th>
+                                <th style="text-align:left">File</th>
+                                <th style="text-align:left">Version</th>
+                                <th style="text-align:left">User</th>
                             </tr>
                         </thead>
                         <tbody>
