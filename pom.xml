@@ -59,8 +59,6 @@
         </developer>
     </developers>
 
-
-
     <profiles>
         <profile>
             <id>hudson</id>
