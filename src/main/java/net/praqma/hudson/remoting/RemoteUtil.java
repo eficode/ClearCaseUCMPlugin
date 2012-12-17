@@ -13,14 +13,19 @@ import net.praqma.hudson.exception.CCUCMException;
 import hudson.FilePath;
 import hudson.model.BuildListener;
 import hudson.model.TaskListener;
+import java.util.logging.Logger;
 
 public abstract class RemoteUtil {
+    
+    private static final Logger logger = Logger.getLogger(RemoteUtil.class.getName());
+    
     private RemoteUtil() {}
 
 	public static void completeRemoteDeliver( FilePath workspace, BuildListener listener, Baseline baseline, Stream stream, String viewtag, File viewPath, boolean complete ) throws CCUCMException {
 		try {
             workspace.act( new RemoteDeliverComplete( baseline, stream, viewtag, viewPath, complete, listener ) );
 		} catch( Exception e ) {
+            logger.warning(String.format("Caught exception in RemoteUtil: %s", e));
 			throw new CCUCMException( "Failed to " + ( complete ? "complete" : "cancel" ) + " the deliver", e );
 		}
 	}
@@ -29,6 +34,7 @@ public abstract class RemoteUtil {
 		try {
             return workspace.act( new CreateRemoteBaseline( baseName, component, view, username, listener ) );
 		} catch( Exception e ) {
+            logger.warning(String.format("Caught exception in RemoteUtil(createRemoteBaseline): %s", e));
 			throw new CCUCMException( e );
 		}
 	}
@@ -43,6 +49,7 @@ public abstract class RemoteUtil {
 				return t.invoke( null, null );
 			}
 		} catch( Exception e ) {
+            logger.warning(String.format("Caught exception in RemoteUtil(loadEntity): %s", e));
 			throw new CCUCMException( e );
 		}
 	}
@@ -51,6 +58,7 @@ public abstract class RemoteUtil {
 		try {
 			return workspace.act( new GetClearCaseVersion( project ) );
 		} catch( Exception e ) {
+            logger.warning(String.format("Caught exception in RemoteUtil(getClearCaseVersion): %s", e));
 			throw new CCUCMException( e );
 		}
 	}
@@ -59,6 +67,7 @@ public abstract class RemoteUtil {
 		try {
 			workspace.act( new EndView( viewtag ) );
 		} catch( Exception e ) {
+            logger.warning(String.format("Caught exception in RemoteUtil(endView): %s", e));
 			throw new CCUCMException( e );
 		}
 	}
@@ -72,13 +81,15 @@ public abstract class RemoteUtil {
                 return t.invoke( null, null );
             }
         } catch( Exception e ) {
+            logger.warning(String.format("Caught exception in RemoteUtil: %s", e.getMessage()));
+            logger.warning(String.format("Caught exception in RemoteUtil(getRealtedStreams): %s",e));
             throw new CCUCMException( e );
         }
     }
 
 
     public static List<Baseline> getRemoteBaselinesFromStream( FilePath workspace, Component component, Stream stream, Project.PromotionLevel plevel, boolean slavePolling, boolean multisitePolling, Date date ) throws CCUCMException {
-
+        
         try {
             if( slavePolling ) {
                 return workspace.act( new GetRemoteBaselineFromStream( component, stream, plevel, multisitePolling, date ) );
@@ -88,6 +99,8 @@ public abstract class RemoteUtil {
             }
 
         } catch( Exception e ) {
+            logger.warning(String.format("Caught exception in RemoteUtil: %s", e.getMessage()));
+            logger.warning(String.format("Caught exception in RemoteUtil: %s", e.toString()));
             throw new CCUCMException( e );
         }
     }

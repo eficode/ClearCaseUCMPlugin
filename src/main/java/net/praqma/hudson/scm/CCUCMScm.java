@@ -194,6 +194,7 @@ public class CCUCMScm extends SCM {
                 resolveBaseline( workspace, build.getProject(), action, listener );
             } catch( CCUCMException e ) {
                 Util.println( out, "No Baselines found" );
+                logger.log(Level.WARNING, "Resolving baseline failed: underlying exception:",e.getCause());
                 logger.log( Level.WARNING, "Resolving baseline failed", e );
             }
         }

@@ -2,22 +2,14 @@ package net.praqma.hudson.remoting;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.Date;
-import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
-import net.praqma.clearcase.exceptions.UnableToListBaselinesException;
-import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.utils.BaselineList;
-import net.praqma.clearcase.ucm.utils.Baselines;
 import hudson.FilePath.FileCallable;
-import hudson.remoting.Pipe;
 import hudson.remoting.VirtualChannel;
 import net.praqma.clearcase.ucm.utils.filters.AfterDate;
 import net.praqma.clearcase.ucm.utils.filters.NoDeliver;
@@ -25,6 +17,7 @@ import net.praqma.clearcase.ucm.utils.filters.NoDeliver;
 public class GetRemoteBaselineFromStream implements FileCallable<BaselineList> {
 
 	private static final long serialVersionUID = -8984877325832486334L;
+    private static final Logger logger = Logger.getLogger(GetRemoteBaselineFromStream.class.getName());
 
 	private Component component;
 	private Stream stream;
@@ -42,10 +35,7 @@ public class GetRemoteBaselineFromStream implements FileCallable<BaselineList> {
     
     @Override
     public BaselineList invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
-    	
-    	Logger logger = Logger.getLogger( GetRemoteBaselineFromStream.class.getName() );
 
-    	
     	logger.fine( "Retrieving remote baselines from " + stream.getShortname() );
     	
         /* The baseline list */
@@ -55,15 +45,19 @@ public class GetRemoteBaselineFromStream implements FileCallable<BaselineList> {
                 setSorting( new BaselineList.AscendingDateSort() ).
                 addFilter( new NoDeliver() ).
                 load();
+        logger.fine("Loaded BaselineList");
 
         /* Only filter by date, if it is valid */
         if( date != null ) {
+            logger.fine("Adding AfterDate filter");
             baselines.addFilter( new AfterDate( date ) );
         }
 
         try {
+            logger.fine("Applying baselines");
             baselines.apply();
         } catch( Exception e ) {
+            logger.warning(String.format("Caught exception in GetRemoteBaselineFromStream: %s", e));
             throw new IOException( "Unable get list of Baselines", e );
         }
 
