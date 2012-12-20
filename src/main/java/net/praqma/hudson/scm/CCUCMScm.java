@@ -193,8 +193,18 @@ public class CCUCMScm extends SCM {
             try {
                 resolveBaseline( workspace, build.getProject(), action, listener );
             } catch( CCUCMException e ) {
-                Util.println( out, "No Baselines found" );
-                logger.log( Level.WARNING, "Resolving baseline failed", e );
+                /* If the promotion level is not set, ANY, use the last found Baseline */
+                if( plevel == null ) {
+                    logger.fine( "Promotion level was null, finding the last build baseline" );
+                    CCUCMBuildAction last = getLastAction( build.getProject() );
+                    if( action != null ) {
+                        action.setBaseline( last.getBaseline() );
+                    } else {
+                        Util.println( out, "No Baselines found" );
+                    }
+                } else {
+                    Util.println( out, "No new Baseline found" );
+                }
             }
         }
 
