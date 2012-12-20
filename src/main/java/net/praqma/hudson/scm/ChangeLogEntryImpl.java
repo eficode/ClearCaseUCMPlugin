@@ -7,6 +7,8 @@ import java.util.logging.Logger;
 
 import hudson.model.User;
 import hudson.scm.ChangeLogSet.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A change set is a collection of changed entries. This classes represents one
@@ -18,6 +20,9 @@ import hudson.scm.ChangeLogSet.Entry;
  */
 public class ChangeLogEntryImpl extends Entry {
 
+    
+    /*Pattern we use to tablify the 'file' entry */
+    private static final transient Pattern splitChangeSet = Pattern.compile("^([^\\(]+)\\(([^\\)]+)(.*?)(\\S+)(\\S+)(.*)");
     private ChangeLogSetImpl parent;
     private String actName;
     private String actHeadline;
@@ -40,6 +45,42 @@ public class ChangeLogEntryImpl extends Entry {
 		// build
 		return affectedPaths;
 	}
+    
+    public String getOnlyChangedFile(String fulltext) {
+        Matcher m = splitChangeSet.matcher(fulltext);
+        try {
+            while(m.find()) {
+                return m.group(1);
+            }
+        } catch (Exception ex) {
+            //ignore;
+        }
+        return null;
+    }
+    
+    public String getOnlyClearCaseChangedFile(String fulltext) {
+        Matcher m = splitChangeSet.matcher(fulltext);
+        try {
+            while(m.find()) {
+                return m.group(2);
+            } 
+        } catch (Exception ex) {
+            //ignore
+        }
+        return null;
+    }
+    
+    public String getUserClearCaseNumber(String fulltext) {
+        Matcher m = splitChangeSet.matcher(fulltext);
+        try {
+            while(m.find()) {
+                return m.group(6);
+            } 
+        } catch (Exception ex) {
+            //ignore
+        }
+        return null;
+    }
 
 	public void setNextFilepath( String filepath ) {
 		affectedPaths.add( filepath );

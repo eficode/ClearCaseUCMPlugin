@@ -3,10 +3,13 @@
   This page is shown in http://localhost:8080/job/[jobname]/[buildnumber]/changes
 -->
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  
   <h2>Summary</h2>
 
 
-  <table class="pane" style="border:none">
+  <!--<table class="pane" style="border:none">
+    -->
+    <!--
     <j:forEach var="cs" items="${it.entries}" varStatus="loop">
       <tr class="pane">
         <td colspan="2" class="changeset">
@@ -17,5 +20,35 @@
         </td>
       </tr>
     </j:forEach>
-  </table>
+    -->
+    <j:forEach var="cs" items="${it.entries}" varStatus="loop">
+        <table style="border-style:none;border-width:0px">
+            <tr class="pane">
+                <td>
+                    <b>Activity: ${cs.msg} "${cs.actHeadline}" by ${cs.author}</b>
+                    <br/>
+                    <table style="border-style:solid;border-width:1px;border-color:black;border-collapse:collapse">
+                        <thead>                        
+                            <tr>
+                                <th style="border-style:solid;border-width:1px;border-color:black">File</th>
+                                <th style="border-style:solid;border-width:1px;border-color:black">Version</th>
+                                <th style="border-style:solid;border-width:1px;border-color:black">User</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <j:forEach var="file" items="${cs.affectedPaths}" varStatus="loop">
+                                <tr>
+                                    <td style="border-style:solid;border-width:1px;border-color:black;">${cs.getOnlyChangedFile(file)}</td>
+                                    <td style="border-style:solid;border-width:1px;border-color:black;">${cs.getOnlyClearCaseChangedFile(file)}</td>
+                                    <td style="border-style:solid;border-width:1px;border-color:black;">${cs.getUserClearCaseNumber(file)}</td>
+                                </tr>
+                            </j:forEach>
+                        </tbody>
+                  </table> 
+              </td> 
+            </tr>
+        </table>
+    </j:forEach>
+    
+  <!-- </table> -->
 </j:jelly>

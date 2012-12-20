@@ -44,7 +44,7 @@ public class GetRelatedStreams implements FileCallable<List<Stream>> {
 			}
 		} catch( Exception e1 ) {
 			e1.printStackTrace( out );
-
+            
 			throw new IOException( "Could not find any related streams: " + e1.getMessage() );
 		}
 
