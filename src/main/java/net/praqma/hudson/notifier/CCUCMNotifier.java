@@ -45,6 +45,7 @@ public class CCUCMNotifier extends Notifier {
 	private static Logger logger = Logger.getLogger( CCUCMNotifier.class.getName() );
 	private String jobName = "";
 	private Integer jobNumber = 0;
+    private static String logShortPrefix = String.format("[%s]",Config.nameShort);
 
 	public CCUCMNotifier() {
 	}
@@ -110,9 +111,11 @@ public class CCUCMNotifier extends Notifier {
 				processBuild( build, launcher, listener, action );
 				if( action.doSetDescription() ) {
 					String d = build.getDescription();
+                    logger.fine( String.format( "build.getDesciption() is: %s",d ) );
 					if( d != null ) {
 						build.setDescription( ( d.length() > 0 ? d + "<br/>" : "" ) + status.getBuildDescr() );
 					} else {
+                        logger.fine( String.format( "Setting build description to: %s",status.getBuildDescr() ) );
 						build.setDescription( status.getBuildDescr() );
 					}
 
@@ -121,10 +124,12 @@ public class CCUCMNotifier extends Notifier {
 			} catch( NotifierException ne ) {
 				out.println( ne.getMessage() );
 			} catch( IOException e ) {
-				out.println( "[" + Config.nameShort + "] Couldn't set build description." );
+                out.println( String.format( "%s Couldn't set build description",logShortPrefix ) );
+				//out.println( "[" + Config.nameShort + "] Couldn't set build description." );
 			}
 		} else {
-			out.println( "[" + Config.nameShort + "] Nothing to do!" );
+			//out.println( "[" + Config.nameShort + "] Nothing to do!" );
+            out.println( String.format( "%s Nothing to do!", logShortPrefix ) );
 			String d = build.getDescription();
 			if( d != null ) {
 				build.setDescription( ( d.length() > 0 ? d + "<br/>" : "" ) + "Nothing to do" );
@@ -181,7 +186,8 @@ public class CCUCMNotifier extends Notifier {
 			throw new NotifierException( "Workspace is null" );
 		}
 
-		out.println( "[" + Config.nameShort + "] Build result: " + buildResult );
+        out.println(String.format("%s Build result: %s",logShortPrefix,buildResult));
+		//out.println( "[" + Config.nameShort + "] Build result: " + buildResult );
 		
 		CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
 
@@ -191,8 +197,8 @@ public class CCUCMNotifier extends Notifier {
 		Stream sourcestream = targetstream;
 		Baseline sourcebaseline = pstate.getBaseline();
 		Baseline targetbaseline = sourcebaseline;
-
-		logger.fine( "NTBC: " + pstate.doNeedsToBeCompleted() );
+        logger.fine(String.format("NTBC: %s",pstate.doNeedsToBeCompleted()));
+		//logger.fine( "NTBC: " + pstate.doNeedsToBeCompleted() );
 
         /*
 		 * Determine whether to treat the build as successful
@@ -202,11 +208,6 @@ public class CCUCMNotifier extends Notifier {
 		 * Fail: - deliver cancel
 		 */
 		boolean treatSuccessful = buildResult.isBetterThan( pstate.getUnstable().treatSuccessful() ? Result.FAILURE : Result.UNSTABLE );
-
-
-        //out.println( "LISTENER IS " + listener );
-        //pstate.setListener( listener );
-        //pstate.setListener( null );
 
 		/*
 		 * Finalize CCUCM, deliver + baseline Only do this for child and sibling
@@ -224,8 +225,8 @@ public class CCUCMNotifier extends Notifier {
 				if( treatSuccessful && pstate.doCreateBaseline() ) {
 
 					try {
-
-						out.print( "[" + Config.nameShort + "] Creating baseline on Integration stream. " );
+                        out.println( String.format("%s Creating baseline on Integration stream.", logShortPrefix) );
+						//out.println( "[" + Config.nameShort + "] Creating baseline on Integration stream. " );
 
 						pstate.setWorkspace( workspace );
 						NameTemplate.validateTemplates( pstate );
@@ -243,7 +244,8 @@ public class CCUCMNotifier extends Notifier {
 						logger.log( Level.WARNING, "", e );
 						/* We cannot recommend a baseline that is not created */
 						if( pstate.doRecommend() ) {
-							out.println( "[" + Config.nameShort + "] Cannot recommend Baseline when not created" );
+                            out.println( String.format("%s Cannot recommend Baseline when not created", logShortPrefix) );
+							//out.println( "[" + Config.nameShort + "] Cannot recommend Baseline when not created" );
 						}
 
 						/* Set unstable? */
@@ -262,14 +264,16 @@ public class CCUCMNotifier extends Notifier {
 
 				/* We cannot recommend a baseline that is not created */
 				if( pstate.doRecommend() ) {
-					out.println( "[" + Config.nameShort + "] Cannot recommend a baseline when deliver failed" );
+                    out.println( String.format("%s Cannot recommend a baseline when deliver failed", logShortPrefix) );
+					//out.println( "[" + Config.nameShort + "] Cannot recommend a baseline when deliver failed" );
 				}
 				pstate.setRecommend( false );
 
 				/* If trying to complete and it failed, try to cancel it */
 				if( treatSuccessful ) {
 					try {
-						out.print( "[" + Config.nameShort + "] Trying to cancel the deliver. " );
+                        out.println( String.format("%s Trying to cancel the deliver.", logShortPrefix) );
+						//out.print( "[" + Config.nameShort + "] Trying to cancel the deliver. " );
 						RemoteUtil.completeRemoteDeliver( workspace, listener, pstate.getBaseline(), pstate.getStream(), action.getViewTag(), action.getViewPath(), false );
 						out.println( "Success." );
 					} catch( Exception e1 ) {
@@ -289,14 +293,16 @@ public class CCUCMNotifier extends Notifier {
 
 		/* Remote post build step, common to all types */
 		try {
-			logger.fine( id + "Remote post build step" );
-			out.println( "[" + Config.nameShort + "] Performing common post build steps" );
+            logger.fine(String.format("%sRemote post build step",id));
+            out.println( String.format("%s Performing common post build steps",logShortPrefix) );
+			//out.println( "[" + Config.nameShort + "] Performing common post build steps" );
 
 			status = workspace.act( new RemotePostBuild( buildResult, status, listener, pstate.doMakeTag(), pstate.doRecommend(), pstate.getUnstable(), ( pstate.getPromotionLevel() == null ? true : false ), sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) ) );
 		} catch( Exception e ) {
 			status.setStable( false );
             logger.log( Level.WARNING, "", e );
-			out.println( "[" + Config.nameShort + "] Error: Post build failed" );
+            out.println(String.format("%s Error: Post build failed", logShortPrefix));
+			//out.println( "[" + Config.nameShort + "] Error: Post build failed" );
 			Throwable cause = net.praqma.util.ExceptionUtils.unpackFrom( IOException.class, e );
 
 			ExceptionUtils.print( cause, out, true );
@@ -304,12 +310,16 @@ public class CCUCMNotifier extends Notifier {
 
 		/* If the promotion level of the baseline was changed on the remote */
 		if( status.getPromotedLevel() != null ) {
+            logger.fine("Baseline promotion level was changed on the remote: promotedLevel != null");    
 			try {
+                logger.fine(String.format("%sBaselines promotion planned to be set to %",id,status.getPromotedLevel().toString()));    
 				pstate.getBaseline().setPromotionLevel( status.getPromotedLevel() );
-				logger.fine( id + "Baselines promotion level sat to " + status.getPromotedLevel().toString() );
+                logger.fine(String.format("%sBaselines promotion level updates to %",id,status.getPromotedLevel().toString()));                
 			} catch( UnableToPromoteBaselineException e ) {
-				logger.warning( "Unable to set promotion level of baseline: " + e.getMessage() );
+                logger.warning("===UnableToPromoteBaseline===");
+                logger.warning(String.format("Unable to set promotion level of baseline %s to %s",e.getEntity() != null ? e.getEntity().getFullyQualifiedName() : "null", e.getPromotionLevel()));
 				e.print( out );
+                logger.warning("===UnableToPromoteBaseline===");
 			}
 		}
 
