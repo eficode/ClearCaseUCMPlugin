@@ -70,7 +70,7 @@ public class CCUCMBuildAction implements Action {
 	/* View, possibly remote */
 	private File viewPath;
 	private String viewTag;
-    private FilePath workspace;
+    private transient FilePath workspace;
 
     /**
      * The created {@link Baseline} when deliver
