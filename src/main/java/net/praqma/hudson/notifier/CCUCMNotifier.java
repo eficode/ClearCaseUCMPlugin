@@ -312,14 +312,14 @@ public class CCUCMNotifier extends Notifier {
 		if( status.getPromotedLevel() != null ) {
             logger.fine("Baseline promotion level was changed on the remote: promotedLevel != null");    
 			try {
-                logger.fine( String.format( "%sBaselines promotion planned to be set to %", id, status.getPromotedLevel().toString() ) );    
+                logger.fine( String.format( "%sBaselines promotion planned to be set to %s", id, status.getPromotedLevel().toString() ) );    
 				pstate.getBaseline().setPromotionLevel( status.getPromotedLevel() );
-                logger.fine( String.format( "%sBaselines promotion level updates to %", id, status.getPromotedLevel().toString() ) );                
+                logger.fine( String.format( "%sBaselines promotion level updates to %s", id, status.getPromotedLevel().toString() ) );                
 			} catch( UnableToPromoteBaselineException e ) {
                 logger.warning( "===UnableToPromoteBaseline===" );
                 logger.warning( String.format( "Unable to set promotion level of baseline %s to %s",e.getEntity() != null ? e.getEntity().getFullyQualifiedName() : "null", e.getPromotionLevel() ) );
-				e.print( out );
-                logger.warning( "===UnableToPromoteBaseline===" );
+				e.print( out ); 
+               logger.warning( "===UnableToPromoteBaseline===" );
 			}
 		}
         logger.fine("Setting build status on Status object");
