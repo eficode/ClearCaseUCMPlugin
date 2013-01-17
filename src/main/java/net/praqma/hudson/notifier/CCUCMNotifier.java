@@ -180,7 +180,7 @@ public class CCUCMNotifier extends Notifier {
 		}
 
 		FilePath workspace = build.getExecutor().getCurrentWorkspace();
-
+        
 		if( workspace == null ) {
 			logger.warning( "Workspace is null" );
 			throw new NotifierException( "Workspace is null" );
@@ -322,10 +322,11 @@ public class CCUCMNotifier extends Notifier {
                 logger.warning( "===UnableToPromoteBaseline===" );
 			}
 		}
-
+        logger.fine("Setting build status on Status object");
 		status.setBuildStatus( buildResult );
 
 		if( !status.isStable() ) {
+            logger.fine("BuildStatus object marked build unstable");
 			build.setResult( Result.UNSTABLE );
 		}
 	}
