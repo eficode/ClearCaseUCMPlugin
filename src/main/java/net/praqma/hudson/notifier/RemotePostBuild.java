@@ -4,12 +4,10 @@ import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.remoting.VirtualChannel;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.logging.Logger;
-
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.exceptions.TagException;
 import net.praqma.clearcase.exceptions.TagException.Type;
@@ -75,7 +73,8 @@ class RemotePostBuild implements FileCallable<Status> {
 
         this.any = any;
 	}
-
+    
+    @Override
 	public Status invoke( File workspace, VirtualChannel channel ) throws IOException {
 		hudsonOut = listener.getLogger();
 
@@ -90,6 +89,7 @@ class RemotePostBuild implements FileCallable<Status> {
 		/* Create the Tag object */
 		Tag tag = null;
 		if( makeTag ) {
+            logger.fine( "Trying to get/make tag" );
 			try {
 				// Getting tag to set buildstatus
 				tag = sourcebaseline.getTag( this.displayName, this.buildNumber );
@@ -101,10 +101,11 @@ class RemotePostBuild implements FileCallable<Status> {
 
 		/* The build was a success and the deliver did not fail */
 		if( result.equals( Result.SUCCESS ) ) {
-
+            
 			status.setRecommended( true );
 
 			if( status.isTagAvailable() ) {
+                logger.fine( "Tag is available" );
 				if( status.isStable() ) {
 					tag.setEntry( "buildstatus", "SUCCESS" );
 				} else {
@@ -116,6 +117,7 @@ class RemotePostBuild implements FileCallable<Status> {
                 /* Promote baseline, not any */
                 if( !any ) {
                     if( hasRemoteMastership() ) {
+                        logger.fine( "Source/Target masterships differ, hasRemoteMastership = true" );
                         printPostedOutput( sourcebaseline );
                         noticeString = "*";
                     } else {
@@ -123,11 +125,11 @@ class RemotePostBuild implements FileCallable<Status> {
                         if( !status.isStable() && !unstable.treatSuccessful() ) {
                             /* Treat the not stable build as unsuccessful */
                             pl = sourcebaseline.demote();
-                            hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + pl.toString() + "." );
+                            hudsonOut.println( CCUCMNotifier.logShortPrefix + " Baseline " + sourcebaseline.getShortname() + " is " + pl.toString() + "." );
                         } else {
                             /* Treat the build as successful */
                             pl = sourcebaseline.promote();
-                            hudsonOut.print( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " promoted to " + pl.toString() );
+                            hudsonOut.print( CCUCMNotifier.logShortPrefix + " Baseline " + sourcebaseline.getShortname() + " promoted to " + pl.toString() );
                             if( !status.isStable() ) {
                                 hudsonOut.println( ", even though the build is unstable." );
                             } else {
@@ -144,11 +146,11 @@ class RemotePostBuild implements FileCallable<Status> {
 				if( recommend ) {
 					try {
 						targetstream.recommendBaseline( targetbaseline );
-						hudsonOut.println( "[" + Config.nameShort + "] Baseline " + targetbaseline.getShortname() + " is now recommended." );
+						hudsonOut.println( CCUCMNotifier.logShortPrefix+" Baseline " + targetbaseline.getShortname() + " is now recommended." );
 					} catch( ClearCaseException e ) {
 						status.setStable( false );
 						status.setRecommended( false );
-						hudsonOut.println( "[" + Config.nameShort + "] Could not recommend Baseline " + targetbaseline.getShortname() + ": " + e.getMessage() );
+						hudsonOut.println( CCUCMNotifier.logShortPrefix +" Could not recommend Baseline " + targetbaseline.getShortname() + ": " + e.getMessage() );
 						logger.warning( id + "Could not recommend baseline: " + e.getMessage() );
 					}
 				}
@@ -160,14 +162,14 @@ class RemotePostBuild implements FileCallable<Status> {
 				 */
 				if( recommend ) {
 					status.setRecommended( false );
-					hudsonOut.println( "[" + Config.nameShort + "] Could not promote baseline " + sourcebaseline.getShortname() + " and will not recommend " + targetbaseline.getShortname() + ". " + e.getMessage() );
+					hudsonOut.println( CCUCMNotifier.logShortPrefix +" Could not promote baseline " + sourcebaseline.getShortname() + " and will not recommend " + targetbaseline.getShortname() + ". " + e.getMessage() );
 					logger.warning( id + "Could not promote baseline and will not recommend. " + e.getMessage() );
 				} else {
 					/*
 					 * As we will not recommend if we cannot promote, it's ok to
 					 * break method here
 					 */
-					hudsonOut.println( "[" + Config.nameShort + "] Could not promote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
+					hudsonOut.println( CCUCMNotifier.logShortPrefix+" Could not promote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
 					logger.warning( id + "Could not promote baseline. " + e.getMessage() );
 				}
 			}
@@ -191,13 +193,13 @@ class RemotePostBuild implements FileCallable<Status> {
                         logger.warning( id + "Demoting baseline" );
                         Project.PromotionLevel pl = sourcebaseline.demote();
                         status.setPromotedLevel( pl );
-                        hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " is " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
+                        hudsonOut.println( CCUCMNotifier.logShortPrefix + " Baseline " + sourcebaseline.getShortname() + " is " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
                     }
                 } catch( Exception e ) {
                     status.setStable( false );
                     // throw new NotifierException(
                     // "Could not demote baseline. " + e.getMessage() );
-                    hudsonOut.println( "[" + Config.nameShort + "] Could not demote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
+                    hudsonOut.println( CCUCMNotifier.logShortPrefix +" Could not demote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
                     logger.warning( id + "Could not demote baseline. " + e.getMessage() );
                 }
             } else {
@@ -213,13 +215,13 @@ class RemotePostBuild implements FileCallable<Status> {
 			if( tag != null ) {
 				try {
 					if( hasRemoteMastership() ) {
-						hudsonOut.println( "[" + Config.nameShort + "] Baseline not marked with tag as it has different mastership" );
+						hudsonOut.println( CCUCMNotifier.logShortPrefix + " Baseline not marked with tag as it has different mastership" );
 					} else {
 						tag = tag.persist();
-						hudsonOut.println( "[" + Config.nameShort + "] Baseline now marked with tag: \n" + tag.stringify() );
+						hudsonOut.println( CCUCMNotifier.logShortPrefix + " Baseline now marked with tag: \n" + tag.stringify() );
 					}
 				} catch( Exception e ) {
-					hudsonOut.println( "[" + Config.nameShort + "] Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
+					hudsonOut.println( CCUCMNotifier.logShortPrefix + " Could not change tag in ClearCase. Contact ClearCase administrator to do this manually." );
 					if( e instanceof TagException && ((TagException) e).getType().equals( Type.NO_SUCH_HYPERLINK ) ) {
 						logger.severe( "Hyperlink type not found, failing build" );
 						hudsonOut.println( "Hyperlink type not found, failing build" );
@@ -231,7 +233,7 @@ class RemotePostBuild implements FileCallable<Status> {
 				}
 			} else {
 				logger.warning( id + "Tag object was null" );
-				hudsonOut.println( "[" + Config.nameShort + "] Tag object was null, tag not set." );
+				hudsonOut.println( CCUCMNotifier.logShortPrefix + " Tag object was null, tag not set." );
 			}
 		}
 		newPLevel = sourcebaseline.getPromotionLevel( true ).toString();
@@ -251,8 +253,8 @@ class RemotePostBuild implements FileCallable<Status> {
 	}
 
 	private void printPostedOutput( Baseline sourcebaseline ) throws ClearCaseException {
-		hudsonOut.println( "[" + Config.nameShort + "] Baseline " + sourcebaseline.getShortname() + " was a posted delivery, and has a different mastership." );
-		hudsonOut.println( "[" + Config.nameShort + "] Its promotion level cannot be updated, but is left as " + sourcebaseline.getPromotionLevel( true ).toString() );
+		hudsonOut.println( CCUCMNotifier.logShortPrefix + " Baseline " + sourcebaseline.getShortname() + " was a posted delivery, and has a different mastership." );
+		hudsonOut.println( CCUCMNotifier.logShortPrefix + " Its promotion level cannot be updated, but is left as " + sourcebaseline.getPromotionLevel( true ).toString() );
 	}
 
 	private boolean hasRemoteMastership() throws ClearCaseException {

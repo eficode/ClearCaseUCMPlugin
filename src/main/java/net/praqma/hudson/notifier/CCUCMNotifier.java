@@ -45,7 +45,7 @@ public class CCUCMNotifier extends Notifier {
 	private static Logger logger = Logger.getLogger( CCUCMNotifier.class.getName() );
 	private String jobName = "";
 	private Integer jobNumber = 0;
-    private static String logShortPrefix = String.format("[%s]",Config.nameShort);
+    public static String logShortPrefix = String.format("[%s]", Config.nameShort);
 
 	public CCUCMNotifier() {
 	}
@@ -217,7 +217,7 @@ public class CCUCMNotifier extends Notifier {
 			status.setBuildStatus( buildResult );
 
 			try {
-				out.print( "[" + Config.nameShort + "] " + ( treatSuccessful ? "Completing" : "Cancelling" ) + " the deliver. " );
+				out.print( logShortPrefix + " " + ( treatSuccessful ? "Completing" : "Cancelling" ) + " the deliver. " );
 				RemoteUtil.completeRemoteDeliver( workspace, listener, pstate.getBaseline(), pstate.getStream(), action.getViewTag(), action.getViewPath(), treatSuccessful );
 				out.println( "Success." );
 
@@ -312,9 +312,9 @@ public class CCUCMNotifier extends Notifier {
 		if( status.getPromotedLevel() != null ) {
             logger.fine("Baseline promotion level was changed on the remote: promotedLevel != null");    
 			try {
-                logger.fine(String.format("%sBaselines promotion planned to be set to %",id,status.getPromotedLevel().toString()));    
+                logger.fine(String.format("%sBaselines promotion planned to be set to %", id, status.getPromotedLevel().toString()));    
 				pstate.getBaseline().setPromotionLevel( status.getPromotedLevel() );
-                logger.fine(String.format("%sBaselines promotion level updates to %",id,status.getPromotedLevel().toString()));                
+                logger.fine(String.format("%sBaselines promotion level updates to %", id, status.getPromotedLevel().toString()));                
 			} catch( UnableToPromoteBaselineException e ) {
                 logger.warning("===UnableToPromoteBaseline===");
                 logger.warning(String.format("Unable to set promotion level of baseline %s to %s",e.getEntity() != null ? e.getEntity().getFullyQualifiedName() : "null", e.getPromotionLevel()));

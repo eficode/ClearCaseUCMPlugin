@@ -1,10 +1,8 @@
 package net.praqma.hudson.notifier;
 
-import java.io.Serializable;
-
-import net.praqma.clearcase.ucm.entities.Project;
-
 import hudson.model.Result;
+import java.io.Serializable;
+import net.praqma.clearcase.ucm.entities.Project;
 
 public class Status implements Serializable {
 	private static final long serialVersionUID = 1113020858633109523L;
