@@ -225,7 +225,7 @@ public class CCUCMNotifier extends Notifier {
 				if( treatSuccessful && pstate.doCreateBaseline() ) {
 
 					try {
-                        out.println( String.format("%s Creating baseline on Integration stream.", logShortPrefix) );
+                        out.println( String.format( "%s Creating baseline on Integration stream.", logShortPrefix ) );
 						//out.println( "[" + Config.nameShort + "] Creating baseline on Integration stream. " );
 
 						pstate.setWorkspace( workspace );
@@ -244,7 +244,7 @@ public class CCUCMNotifier extends Notifier {
 						logger.log( Level.WARNING, "", e );
 						/* We cannot recommend a baseline that is not created */
 						if( pstate.doRecommend() ) {
-                            out.println( String.format("%s Cannot recommend Baseline when not created", logShortPrefix) );
+                            out.println( String.format( "%s Cannot recommend Baseline when not created", logShortPrefix ) );
 							//out.println( "[" + Config.nameShort + "] Cannot recommend Baseline when not created" );
 						}
 
@@ -264,7 +264,7 @@ public class CCUCMNotifier extends Notifier {
 
 				/* We cannot recommend a baseline that is not created */
 				if( pstate.doRecommend() ) {
-                    out.println( String.format("%s Cannot recommend a baseline when deliver failed", logShortPrefix) );
+                    out.println( String.format( "%s Cannot recommend a baseline when deliver failed", logShortPrefix ) );
 					//out.println( "[" + Config.nameShort + "] Cannot recommend a baseline when deliver failed" );
 				}
 				pstate.setRecommend( false );
@@ -279,11 +279,11 @@ public class CCUCMNotifier extends Notifier {
 					} catch( Exception e1 ) {
 						out.println( " Failed." );
 						logger.warning( "Failed to cancel deliver" );
-                        logger.log( Level.WARNING, "", e );
+                        logger.log( Level.WARNING, "Exception caught - RemoteUtil.completeRemoteDeliver() - TreatSuccesful == true", e1 );
 					}
 				} else {
 					logger.warning( "Failed to cancel deliver" );
-                    logger.log( Level.WARNING, "", e );
+                    logger.log( Level.WARNING, "TreatSuccesful == false", e );
 				}
 			}
 		}
@@ -293,15 +293,15 @@ public class CCUCMNotifier extends Notifier {
 
 		/* Remote post build step, common to all types */
 		try {
-            logger.fine(String.format("%sRemote post build step",id));
-            out.println( String.format("%s Performing common post build steps",logShortPrefix) );
+            logger.fine( String.format( "%sRemote post build step", id ) );
+            out.println( String.format( "%s Performing common post build steps",logShortPrefix ) );
 			//out.println( "[" + Config.nameShort + "] Performing common post build steps" );
 
 			status = workspace.act( new RemotePostBuild( buildResult, status, listener, pstate.doMakeTag(), pstate.doRecommend(), pstate.getUnstable(), ( pstate.getPromotionLevel() == null ? true : false ), sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) ) );
 		} catch( Exception e ) {
 			status.setStable( false );
             logger.log( Level.WARNING, "", e );
-            out.println(String.format("%s Error: Post build failed", logShortPrefix));
+            out.println( String.format( "%s Error: Post build failed", logShortPrefix ) );
 			//out.println( "[" + Config.nameShort + "] Error: Post build failed" );
 			Throwable cause = net.praqma.util.ExceptionUtils.unpackFrom( IOException.class, e );
 
@@ -312,14 +312,14 @@ public class CCUCMNotifier extends Notifier {
 		if( status.getPromotedLevel() != null ) {
             logger.fine("Baseline promotion level was changed on the remote: promotedLevel != null");    
 			try {
-                logger.fine(String.format("%sBaselines promotion planned to be set to %", id, status.getPromotedLevel().toString()));    
+                logger.fine( String.format( "%sBaselines promotion planned to be set to %", id, status.getPromotedLevel().toString() ) );    
 				pstate.getBaseline().setPromotionLevel( status.getPromotedLevel() );
-                logger.fine(String.format("%sBaselines promotion level updates to %", id, status.getPromotedLevel().toString()));                
+                logger.fine( String.format( "%sBaselines promotion level updates to %", id, status.getPromotedLevel().toString() ) );                
 			} catch( UnableToPromoteBaselineException e ) {
-                logger.warning("===UnableToPromoteBaseline===");
-                logger.warning(String.format("Unable to set promotion level of baseline %s to %s",e.getEntity() != null ? e.getEntity().getFullyQualifiedName() : "null", e.getPromotionLevel()));
+                logger.warning( "===UnableToPromoteBaseline===" );
+                logger.warning( String.format( "Unable to set promotion level of baseline %s to %s",e.getEntity() != null ? e.getEntity().getFullyQualifiedName() : "null", e.getPromotionLevel() ) );
 				e.print( out );
-                logger.warning("===UnableToPromoteBaseline===");
+                logger.warning( "===UnableToPromoteBaseline===" );
 			}
 		}
 
@@ -347,7 +347,7 @@ public class CCUCMNotifier extends Notifier {
 
 		@Override
 		public String getDisplayName() {
-			return "ClearCase UCM";
+			return Config.nameLong;
 		}
 
 		/**
