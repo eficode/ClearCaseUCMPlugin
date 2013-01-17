@@ -70,7 +70,7 @@ public class CCUCMBuildAction implements Action {
 	/* View, possibly remote */
 	private File viewPath;
 	private String viewTag;
-    private transient FilePath workspace;
+    private String workspace;
 
     /**
      * The created {@link Baseline} when deliver
@@ -262,11 +262,11 @@ public class CCUCMBuildAction implements Action {
         this.error = error;
     }
 
-    public FilePath getWorkspace() {
+    public String getWorkspace() {
         return workspace;
     }
 
-    public void setWorkspace( FilePath workspace ) {
+    public void setWorkspace( String workspace ) {
         this.workspace = workspace;
     }
 

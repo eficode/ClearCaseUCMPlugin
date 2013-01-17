@@ -34,6 +34,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
+import org.apache.commons.lang.StringUtils;
 
 
 public class CCUCMNotifier extends Notifier {
@@ -122,9 +123,9 @@ public class CCUCMNotifier extends Notifier {
 				}
 
 			} catch( NotifierException ne ) {
-				out.println( ne.getMessage() );
+				out.println("NotifierException: "+ ne.getMessage() );
 			} catch( IOException e ) {
-                out.println( String.format( "%s Couldn't set build description",logShortPrefix ) );
+                out.println( String.format( "%s Couldn't set build description", logShortPrefix ) );
 				//out.println( "[" + Config.nameShort + "] Couldn't set build description." );
 			}
 		} else {
@@ -146,7 +147,7 @@ public class CCUCMNotifier extends Notifier {
 				logger.fine( "Ending view " + action.getViewTag() );
 				RemoteUtil.endView( build.getWorkspace(), action.getViewTag() );
 			} catch( CCUCMException e ) {
-				out.println( e.getMessage() );
+				out.println("CCUCMException: "+ e.getMessage() );
 				logger.warning( e.getMessage() );
 			}
 		}
@@ -179,9 +180,16 @@ public class CCUCMNotifier extends Notifier {
 			logger.fine( "The channel was null" );
 		}
 
-		FilePath workspace = build.getExecutor().getCurrentWorkspace();
+		String workspace = null;
+        try {
+            workspace = build.getExecutor().getCurrentWorkspace().absolutize().getRemote();
+        } catch (IOException ex) {
+            logger.log(Level.SEVERE, String.format("%s Failed to get remote workspace", Config.nameShort), ex);
+        } catch (InterruptedException ex) {
+            logger.log(Level.SEVERE, String.format("%s Failed to get remote workspace", Config.nameShort), ex);
+        }
         
-		if( workspace == null ) {
+		if( StringUtils.isBlank(workspace) ) {
 			logger.warning( "Workspace is null" );
 			throw new NotifierException( "Workspace is null" );
 		}
@@ -218,7 +226,7 @@ public class CCUCMNotifier extends Notifier {
 
 			try {
 				out.print( logShortPrefix + " " + ( treatSuccessful ? "Completing" : "Cancelling" ) + " the deliver. " );
-				RemoteUtil.completeRemoteDeliver( workspace, listener, pstate.getBaseline(), pstate.getStream(), action.getViewTag(), action.getViewPath(), treatSuccessful );
+				RemoteUtil.completeRemoteDeliver( build.getExecutor().getCurrentWorkspace(), listener, pstate.getBaseline(), pstate.getStream(), action.getViewTag(), action.getViewPath(), treatSuccessful );
 				out.println( "Success." );
 
 				/* If deliver was completed, create the baseline */
@@ -227,12 +235,14 @@ public class CCUCMNotifier extends Notifier {
 					try {
                         out.println( String.format( "%s Creating baseline on Integration stream.", logShortPrefix ) );
 						//out.println( "[" + Config.nameShort + "] Creating baseline on Integration stream. " );
-
+                        String remoteWorkspace = build.getExecutor().getCurrentWorkspace().absolutize().getRemote();
+                        out.println("Absolute path of remoteWorkspace: "+remoteWorkspace);
+                        
 						pstate.setWorkspace( workspace );
 						NameTemplate.validateTemplates( pstate );
 						String name = NameTemplate.parseTemplate( pstate.getNameTemplate(), pstate );
 
-						targetbaseline = RemoteUtil.createRemoteBaseline( workspace, listener, name, pstate.getBaseline().getComponent(), action.getViewPath(), pstate.getBaseline().getUser() );
+						targetbaseline = RemoteUtil.createRemoteBaseline( build.getExecutor().getCurrentWorkspace(), listener, name, pstate.getBaseline().getComponent(), action.getViewPath(), pstate.getBaseline().getUser() );
 
 
 						if( action != null ) {
@@ -274,7 +284,7 @@ public class CCUCMNotifier extends Notifier {
 					try {
                         out.println( String.format("%s Trying to cancel the deliver.", logShortPrefix) );
 						//out.print( "[" + Config.nameShort + "] Trying to cancel the deliver. " );
-						RemoteUtil.completeRemoteDeliver( workspace, listener, pstate.getBaseline(), pstate.getStream(), action.getViewTag(), action.getViewPath(), false );
+						RemoteUtil.completeRemoteDeliver( build.getExecutor().getCurrentWorkspace(), listener, pstate.getBaseline(), pstate.getStream(), action.getViewTag(), action.getViewPath(), false );
 						out.println( "Success." );
 					} catch( Exception e1 ) {
 						out.println( " Failed." );
@@ -297,7 +307,7 @@ public class CCUCMNotifier extends Notifier {
             out.println( String.format( "%s Performing common post build steps",logShortPrefix ) );
 			//out.println( "[" + Config.nameShort + "] Performing common post build steps" );
 
-			status = workspace.act( new RemotePostBuild( buildResult, status, listener, pstate.doMakeTag(), pstate.doRecommend(), pstate.getUnstable(), ( pstate.getPromotionLevel() == null ? true : false ), sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) ) );
+			status = build.getExecutor().getCurrentWorkspace().act( new RemotePostBuild( buildResult, status, listener, pstate.doMakeTag(), pstate.doRecommend(), pstate.getUnstable(), ( pstate.getPromotionLevel() == null ? true : false ), sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) ) );
 		} catch( Exception e ) {
 			status.setStable( false );
             logger.log( Level.WARNING, "", e );

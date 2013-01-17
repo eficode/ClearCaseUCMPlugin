@@ -1,5 +1,7 @@
 package net.praqma.hudson.nametemplates;
 
+import hudson.FilePath;
+import java.io.File;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.exception.TemplateException;
@@ -9,7 +11,7 @@ import java.util.logging.Logger;
 
 public class ClearCaseVersionNumberTemplate extends Template {
 
-	private static final Logger logger = Logger.getLogger( ClearCaseVersionNumberTemplate.class.getName() );
+	private static Logger logger = Logger.getLogger( ClearCaseVersionNumberTemplate.class.getName() );
 	
 	@Override
 	public String parse( CCUCMBuildAction action, String args ) throws TemplateException {
@@ -18,7 +20,7 @@ public class ClearCaseVersionNumberTemplate extends Template {
 			logger.fine( "STREAM: " + action.getStream() );
 			logger.fine( "PROJECT: " + action.getStream().getProject() );
 			Project project = action.getStream().getProject();
-			return RemoteUtil.getClearCaseVersion( action.getWorkspace(), project );
+			return RemoteUtil.getClearCaseVersion( new FilePath(new File(action.getWorkspace())), project );
 		} catch( Exception e ) {
 			logger.warning( "Getting cc version error: " + e.getMessage() );
 			return "unknownccversion";

@@ -1,10 +1,9 @@
 package net.praqma.hudson.nametemplates;
 
 import hudson.FilePath;
-
-import net.praqma.hudson.CCUCMBuildAction;
-
+import java.io.File;
 import java.util.logging.Logger;
+import net.praqma.hudson.CCUCMBuildAction;
 
 public class FileTemplate extends Template {
 	
@@ -13,7 +12,7 @@ public class FileTemplate extends Template {
 	@Override
 	public String parse( CCUCMBuildAction action, String filename ) {
 		try {
-			FilePath file = new FilePath( action.getWorkspace(), filename );
+			FilePath file = new FilePath(new File(action.getWorkspace() + filename) );
 			logger.fine( "FILE: " + file );
 			return file.readToString().trim();
 		} catch( Exception e ) {
