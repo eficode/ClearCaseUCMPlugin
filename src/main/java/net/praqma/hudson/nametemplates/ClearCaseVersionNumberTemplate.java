@@ -2,12 +2,11 @@ package net.praqma.hudson.nametemplates;
 
 import hudson.FilePath;
 import java.io.File;
+import java.util.logging.Logger;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.exception.TemplateException;
 import net.praqma.hudson.remoting.RemoteUtil;
-
-import java.util.logging.Logger;
 
 public class ClearCaseVersionNumberTemplate extends Template {
 

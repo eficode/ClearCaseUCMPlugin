@@ -181,6 +181,7 @@ public class CCUCMNotifier extends Notifier {
 		}
 
 		String workspace = null;
+        FilePath currentWorkspace = build.getExecutor().getCurrentWorkspace();
         try {
             workspace = build.getExecutor().getCurrentWorkspace().absolutize().getRemote();
         } catch (IOException ex) {
@@ -194,8 +195,7 @@ public class CCUCMNotifier extends Notifier {
 			throw new NotifierException( "Workspace is null" );
 		}
 
-        out.println(String.format("%s Build result: %s",logShortPrefix,buildResult));
-		//out.println( "[" + Config.nameShort + "] Build result: " + buildResult );
+        out.println( String.format( "%s Build result: %s", logShortPrefix, buildResult ) );
 		
 		CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
 
@@ -206,8 +206,7 @@ public class CCUCMNotifier extends Notifier {
 		Baseline sourcebaseline = pstate.getBaseline();
 		Baseline targetbaseline = sourcebaseline;
         logger.fine(String.format("NTBC: %s",pstate.doNeedsToBeCompleted()));
-		//logger.fine( "NTBC: " + pstate.doNeedsToBeCompleted() );
-
+        
         /*
 		 * Determine whether to treat the build as successful
 		 * 
@@ -235,14 +234,13 @@ public class CCUCMNotifier extends Notifier {
 					try {
                         out.println( String.format( "%s Creating baseline on Integration stream.", logShortPrefix ) );
 						//out.println( "[" + Config.nameShort + "] Creating baseline on Integration stream. " );
-                        String remoteWorkspace = build.getExecutor().getCurrentWorkspace().absolutize().getRemote();
-                        out.println("Absolute path of remoteWorkspace: "+remoteWorkspace);
+                        out.println( String.format( "%s Absolute path of remoteWorkspace: %s", logShortPrefix, workspace ) );
                         
 						pstate.setWorkspace( workspace );
 						NameTemplate.validateTemplates( pstate );
 						String name = NameTemplate.parseTemplate( pstate.getNameTemplate(), pstate );
 
-						targetbaseline = RemoteUtil.createRemoteBaseline( build.getExecutor().getCurrentWorkspace(), listener, name, pstate.getBaseline().getComponent(), action.getViewPath(), pstate.getBaseline().getUser() );
+						targetbaseline = RemoteUtil.createRemoteBaseline( currentWorkspace, listener, name, pstate.getBaseline().getComponent(), action.getViewPath(), pstate.getBaseline().getUser() );
 
 
 						if( action != null ) {
@@ -275,8 +273,8 @@ public class CCUCMNotifier extends Notifier {
 				/* We cannot recommend a baseline that is not created */
 				if( pstate.doRecommend() ) {
                     out.println( String.format( "%s Cannot recommend a baseline when deliver failed", logShortPrefix ) );
-					//out.println( "[" + Config.nameShort + "] Cannot recommend a baseline when deliver failed" );
 				}
+                
 				pstate.setRecommend( false );
 
 				/* If trying to complete and it failed, try to cancel it */
@@ -284,7 +282,7 @@ public class CCUCMNotifier extends Notifier {
 					try {
                         out.println( String.format("%s Trying to cancel the deliver.", logShortPrefix) );
 						//out.print( "[" + Config.nameShort + "] Trying to cancel the deliver. " );
-						RemoteUtil.completeRemoteDeliver( build.getExecutor().getCurrentWorkspace(), listener, pstate.getBaseline(), pstate.getStream(), action.getViewTag(), action.getViewPath(), false );
+						RemoteUtil.completeRemoteDeliver( currentWorkspace, listener, pstate.getBaseline(), pstate.getStream(), action.getViewTag(), action.getViewPath(), false );
 						out.println( "Success." );
 					} catch( Exception e1 ) {
 						out.println( " Failed." );
@@ -305,14 +303,11 @@ public class CCUCMNotifier extends Notifier {
 		try {
             logger.fine( String.format( "%sRemote post build step", id ) );
             out.println( String.format( "%s Performing common post build steps",logShortPrefix ) );
-			//out.println( "[" + Config.nameShort + "] Performing common post build steps" );
-
-			status = build.getExecutor().getCurrentWorkspace().act( new RemotePostBuild( buildResult, status, listener, pstate.doMakeTag(), pstate.doRecommend(), pstate.getUnstable(), ( pstate.getPromotionLevel() == null ? true : false ), sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) ) );
+			status = currentWorkspace.act( new RemotePostBuild( buildResult, status, listener, pstate.doMakeTag(), pstate.doRecommend(), pstate.getUnstable(), ( pstate.getPromotionLevel() == null ? true : false ), sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) ) );
 		} catch( Exception e ) {
 			status.setStable( false );
             logger.log( Level.WARNING, "", e );
             out.println( String.format( "%s Error: Post build failed", logShortPrefix ) );
-			//out.println( "[" + Config.nameShort + "] Error: Post build failed" );
 			Throwable cause = net.praqma.util.ExceptionUtils.unpackFrom( IOException.class, e );
 
 			ExceptionUtils.print( cause, out, true );
