@@ -9,7 +9,7 @@ public class Polling {
 		siblings
 	}
 	
-	public PollingType type;
+	private PollingType type;
 	
 	public Polling() {
 		type = PollingType.none;
@@ -36,6 +36,10 @@ public class Polling {
 			return false;
 		}
 	}
+    
+    public PollingType getType() {
+        return this.type;
+    }
 	
 	public boolean isPollingSiblings() {
 		if( this.type.equals(PollingType.siblings) ) {
