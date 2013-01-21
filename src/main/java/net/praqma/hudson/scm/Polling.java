@@ -2,14 +2,14 @@ package net.praqma.hudson.scm;
 
 public class Polling {
 	
-	enum PollingType {
+	public enum PollingType {
 		none,
 		self,
 		childs,
 		siblings
 	}
 	
-	private PollingType type;
+	public PollingType type;
 	
 	public Polling() {
 		type = PollingType.none;
@@ -73,6 +73,7 @@ public class Polling {
 		}
 	}
 	
+    @Override
 	public String toString() {
 		return type.toString();
 	}
