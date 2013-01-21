@@ -191,11 +191,13 @@ public class CCUCMScm extends SCM {
         } else {
 			out.println( "[" + Config.nameShort + "] Polling streams: " + polling.toString() );
             try {
-                resolveBaseline( workspace, build.getProject(), action, listener );
+                resolveBaseline( workspace, build.getProject(), action, listener );                
             } catch( CCUCMException e ) {
+                e.printStackTrace(out);
+                logger.warning(e.getMessage());
                 /* If the promotion level is not set, ANY, use the last found Baseline */
-                if( plevel == null ) {
-                    logger.fine( "Promotion level was null, finding the last build baseline" );
+                if( plevel == null ) {                    
+                    logger.fine( "Promotion level was null [=ANY], finding the last built baseline" );
                     CCUCMBuildAction last = getLastAction( build.getProject() );
                     if( action != null ) {
                         action.setBaseline( last.getBaseline() );
@@ -408,7 +410,7 @@ public class CCUCMScm extends SCM {
         if( lastAction != null ) {
             date = lastAction.getBaseline().getDate();
         }
-
+        
         /* Find the Baselines and store them */
         /* Old skool self polling */
         if( polling.isPollingSelf() ) {
@@ -644,7 +646,7 @@ public class CCUCMScm extends SCM {
                     date = lastAction.getBaseline().getDate();
                     lastBaseline = lastAction.getBaseline();
                 }
-
+                
 				/* Old skool self polling */
 				if( polling.isPollingSelf() ) {
 					baselines = getValidBaselinesFromStream( workspace, plevel, stream, component, date );
@@ -728,9 +730,15 @@ public class CCUCMScm extends SCM {
 
 		/* The baseline list */
 		List<Baseline> baselines = new ArrayList<Baseline>();
-
+        
+        /**
+         * When polling for self. (The other polling options uses different RemoteUtil methods) Passing in 'true' for multisite polling is not a good idea! Set this to false. 
+         * 
+         * TODO:Needs to be reviewed by chw and les. Remove upon release.
+         */
+        
 		try {
-			baselines = RemoteUtil.getRemoteBaselinesFromStream( workspace, component, stream, plevel, this.getSlavePolling(), this.getMultisitePolling(), date );
+			baselines = RemoteUtil.getRemoteBaselinesFromStream( workspace, component, stream, plevel, this.getSlavePolling(), false, date );
 		} catch( CCUCMException e1 ) {
 			logger.fine( "No baselines: " + e1.getMessage() );
 			throw new CCUCMException("Unable to get baselines from " + stream.getShortname(), e1 );
@@ -808,7 +816,14 @@ public class CCUCMScm extends SCM {
 		ps.println( "[" + Config.nameShort + "] Getting baselines for :" );
 		ps.println( "[" + Config.nameShort + "] * Stream:          " + stream );
 		ps.println( "[" + Config.nameShort + "] * Component:       " + component );
-		ps.println( "[" + Config.nameShort + "] * Promotion level: " + plevel );
+        
+        if(plevel == null) {
+            ps.println( "[" + Config.nameShort + "] * Promotion level: " + "ANY" );
+        } else {
+            ps.println( "[" + Config.nameShort + "] * Promotion level: " + plevel );
+        }
+        
+		
 		ps.println( "" );
 	}
 

@@ -11,8 +11,10 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.utils.BaselineList;
 import hudson.FilePath.FileCallable;
 import hudson.remoting.VirtualChannel;
+import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.utils.filters.AfterDate;
 import net.praqma.clearcase.ucm.utils.filters.NoDeliver;
+import net.praqma.hudson.notifier.CCUCMNotifier;
 
 public class GetRemoteBaselineFromStream implements FileCallable<BaselineList> {
 
@@ -45,8 +47,7 @@ public class GetRemoteBaselineFromStream implements FileCallable<BaselineList> {
                 setSorting( new BaselineList.AscendingDateSort() ).
                 addFilter( new NoDeliver() ).
                 load();
-        logger.fine("Loaded BaselineList");
-
+        
         /* Only filter by date, if it is valid */
         if( date != null ) {
             logger.fine("Adding AfterDate filter");
@@ -56,6 +57,9 @@ public class GetRemoteBaselineFromStream implements FileCallable<BaselineList> {
         try {
             logger.fine("Applying baselines");
             baselines.apply();
+            logger.fine("Loaded BaselineList");
+            logger.fine(String.format("Loaded BaselineList contains %s elements", baselines.size()));            
+            
         } catch( Exception e ) {
             logger.warning(String.format("Caught exception in GetRemoteBaselineFromStream: %s", e));
             throw new IOException( "Unable get list of Baselines", e );
