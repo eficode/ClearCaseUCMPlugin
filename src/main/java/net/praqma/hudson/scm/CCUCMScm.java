@@ -738,7 +738,7 @@ public class CCUCMScm extends SCM {
          */
         
 		try {
-			baselines = RemoteUtil.getRemoteBaselinesFromStream( workspace, component, stream, plevel, this.getSlavePolling(), false, date );
+			baselines = RemoteUtil.getRemoteBaselinesFromStream( workspace, component, stream, plevel, this.getSlavePolling(), this.getMultisitePolling(), date );
 		} catch( CCUCMException e1 ) {
 			logger.fine( "No baselines: " + e1.getMessage() );
 			throw new CCUCMException("Unable to get baselines from " + stream.getShortname(), e1 );
