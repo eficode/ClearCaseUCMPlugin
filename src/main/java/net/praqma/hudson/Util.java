@@ -201,4 +201,8 @@ public abstract class Util {
 		return snapview;
 	}
 
+    public static void println( PrintStream out, Object msg ) {
+        out.println( "[" + Config.nameShort + "] " + msg.toString()  );
+    }
+
 }

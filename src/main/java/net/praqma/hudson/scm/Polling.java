@@ -2,7 +2,7 @@ package net.praqma.hudson.scm;
 
 public class Polling {
 	
-	enum PollingType {
+	public enum PollingType {
 		none,
 		self,
 		childs,
@@ -36,6 +36,10 @@ public class Polling {
 			return false;
 		}
 	}
+    
+    public PollingType getType() {
+        return this.type;
+    }
 	
 	public boolean isPollingSiblings() {
 		if( this.type.equals(PollingType.siblings) ) {
@@ -73,6 +77,7 @@ public class Polling {
 		}
 	}
 	
+    @Override
 	public String toString() {
 		return type.toString();
 	}

@@ -3,7 +3,10 @@ package net.praqma.hudson.test.integration.child;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.util.logging.Level;
 
+import net.praqma.hudson.test.BaseTestClass;
+import net.praqma.util.test.junit.LoggingRule;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,10 +38,7 @@ import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.junit.TestDescription;
 import net.praqma.util.debug.Logger;
 
-public class Polling {
-	
-	@ClassRule
-	public static CCUCMRule jenkins = new CCUCMRule();
+public class Polling extends BaseTestClass {
 	
 	@Rule
 	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-child-polling" );

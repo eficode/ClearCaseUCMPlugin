@@ -14,19 +14,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
-import org.junit.ClassRule;
-import org.junit.Rule;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestBuilder;
 
-import net.praqma.clearcase.Environment;
 import net.praqma.clearcase.PVob;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.exceptions.CleartoolException;
-import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
-import net.praqma.clearcase.exceptions.UnableToLoadEntityException;
-import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.HyperLink;
 import net.praqma.clearcase.ucm.entities.Stream;
@@ -36,13 +31,12 @@ import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.scm.ChangeLogEntryImpl;
-import net.praqma.util.debug.Logger;
 
 import static org.junit.Assert.*;
 
 public class CCUCMRule extends JenkinsRule {
 	
-	private static Logger logger = Logger.getLogger();
+	private static Logger logger = Logger.getLogger( CCUCMRule.class.getName() );
 
 	private CCUCMScm scm;
 	
@@ -55,13 +49,17 @@ public class CCUCMRule extends JenkinsRule {
 	}
 	
 	public FreeStyleProject setupProject( String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean createBaseline, boolean forceDeliver, String template ) throws Exception {
+        return setupProject(projectName, type, component, stream, recommend, tag, description, createBaseline, forceDeliver, template, "INITIAL" );
+    }
+
+    public FreeStyleProject setupProject( String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean createBaseline, boolean forceDeliver, String template, String promotionLevel ) throws Exception {
 	
 		logger.info( "Setting up build for self polling, recommend:" + recommend + ", tag:" + tag + ", description:" + description );
 		
 		System.out.println( "==== [Setting up ClearCase UCM project] ====" );
 		System.out.println( " * Stream         : " + stream );
 		System.out.println( " * Component      : " + component );
-		//System.out.println( " * Level          : " + "INITIAL" );
+		System.out.println( " * Level          : " + promotionLevel );
 		System.out.println( " * Polling        : " + type );
 		System.out.println( " * Recommend      : " + recommend );
 		System.out.println( " * Tag            : " + tag );
@@ -75,7 +73,7 @@ public class CCUCMRule extends JenkinsRule {
 		
 		// boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription
 		//CCUCMScm scm = new CCUCMScm( component, "INITIAL", "ALL", false, type, stream, "successful", createBaseline, "[project]_build_[number]", forceDeliver, recommend, tag, description, "jenkins" );
-		CCUCMScm scm = new CCUCMScm( component, "INITIAL", "ALL", false, type, stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "" );
+		CCUCMScm scm = new CCUCMScm( component, promotionLevel, "ALL", false, type, stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "" );
 		this.scm = scm;
 		project.setScm( scm );
 		
@@ -119,9 +117,13 @@ public class CCUCMRule extends JenkinsRule {
 	public AbstractBuild<?, ?> initiateBuild( String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean fail, boolean createBaseline, boolean forceDeliver ) throws Exception {
 		return initiateBuild( projectName, type, component, stream, recommend, tag, description, fail, createBaseline, forceDeliver, "[project]_build_[number]" );
 	}
-	
+
 	public AbstractBuild<?, ?> initiateBuild( String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean fail, boolean createBaseline, boolean forceDeliver, String template ) throws Exception {
-		FreeStyleProject project = setupProject( projectName, type, component, stream, recommend, tag, description, createBaseline, forceDeliver, template );
+        return  initiateBuild(projectName, type, component, stream, recommend, tag, description, fail, createBaseline, forceDeliver, template, "INITIAL" );
+    }
+
+    public AbstractBuild<?, ?> initiateBuild( String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean fail, boolean createBaseline, boolean forceDeliver, String template, String promotionLevel ) throws Exception {
+		FreeStyleProject project = setupProject( projectName, type, component, stream, recommend, tag, description, createBaseline, forceDeliver, template, promotionLevel );
 		
 		FreeStyleBuild build = null;
 		
@@ -162,7 +164,7 @@ public class CCUCMRule extends JenkinsRule {
 	
 	public void printList( List<String> list ) {
 		for( String l : list ) {
-			logger.debug( l );
+			logger.fine( l );
 		}
 	}
 	
@@ -203,13 +205,13 @@ public class CCUCMRule extends JenkinsRule {
 			logger.info( "Recommended baselines: " + baselines );
 			
 			for( Baseline rb : baselines ) {
-				logger.debug( "BRB: " + rb );
+				logger.fine( "BRB: " + rb );
 				if( baseline.equals( rb ) ) {
 					return true;
 				}
 			}
 		} catch( Exception e ) {
-			logger.debug( "" );
+			logger.fine( "" );
 			ExceptionUtils.log( e, true );
 		}
 		
@@ -222,8 +224,8 @@ public class CCUCMRule extends JenkinsRule {
 	}
 	
 	public Tag getTag( Baseline baseline, AbstractBuild<?, ?> build ) throws ClearCaseException {
-		logger.fatal( "Getting tag with \"" + build.getParent().getDisplayName() + "\" - \"" + build.getNumber() + "\"" );
-		logger.fatal( "--->" + build.getParent().getDisplayName() );
+		logger.severe( "Getting tag with \"" + build.getParent().getDisplayName() + "\" - \"" + build.getNumber() + "\"" );
+		logger.severe( "--->" + build.getParent().getDisplayName() );
 		Tag tag = Tag.getTag( baseline, build.getParent().getDisplayName(), build.getNumber()+"", false );
 		
 		if( tag != null ) {

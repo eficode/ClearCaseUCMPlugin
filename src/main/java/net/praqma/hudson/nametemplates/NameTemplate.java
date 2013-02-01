@@ -7,8 +7,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.exception.TemplateException;
-import net.praqma.hudson.scm.CCUCMState.State;
 
 public class NameTemplate {
 
@@ -32,14 +32,14 @@ public class NameTemplate {
 	private static Pattern rx_ = Pattern.compile( "(\\[.*?\\])" );
 	private static Pattern rx_checkFinal = Pattern.compile( "^[\\w\\._-]*$" );
 
-	public static void validateTemplates( State state ) {
-		logger.finer( "Validating templates for " + state );
+	public static void validateTemplates( CCUCMBuildAction action ) {
+		logger.finer( "Validating templates for " + action );
 		Set<String> keys = templates.keySet();
 		for( String key : keys ) {
 			String r;
 			try {
 				logger.finer( "Validating " + key );
-				r = templates.get( key ).parse( state, "" );
+				r = templates.get( key ).parse( action, "" );
 			} catch (TemplateException e) {
 				logger.warning( "Could not validate " + key );
 			}
@@ -75,7 +75,7 @@ public class NameTemplate {
 			}
 		}
 
-                Matcher f = rx_checkFinal.matcher( result );
+        Matcher f = rx_checkFinal.matcher( result );
 		if( !f.find() ) {
 			throw new TemplateException( "The template is not correct" );
 		}
@@ -83,8 +83,8 @@ public class NameTemplate {
 		return true;
 	}
 
-	public static String parseTemplate( String template, State state ) throws TemplateException {
-		logger.finer( "Parsing template for " + state );
+	public static String parseTemplate( String template, CCUCMBuildAction action ) throws TemplateException {
+		logger.finer( "Parsing template for " + action );
 		Matcher m = rx_.matcher( template );
 		String result = template;
 		
@@ -109,7 +109,7 @@ public class NameTemplate {
 			if( !templates.containsKey( templateName ) ) {
 				throw new TemplateException( "The template " + templateName + " does not exist" );
 			} else {
-				String r = templates.get( templateName ).parse( state, args );
+				String r = templates.get( templateName ).parse( action, args );
 				result = result.replace( replace, r );
 			}
 		}

@@ -3,7 +3,10 @@ package net.praqma.hudson.test.integration.userstories;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
 
+import net.praqma.hudson.test.BaseTestClass;
+import net.praqma.util.test.junit.LoggingRule;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,10 +30,7 @@ import net.praqma.clearcase.test.junit.ClearCaseRule;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
-public class JENKINS14436 {
-
-	@ClassRule
-	public static CCUCMRule jenkins = new CCUCMRule();
+public class JENKINS14436 extends BaseTestClass {
 	
 	@Rule
 	public static ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-14436", "setup-JENKINS-14436.xml" );

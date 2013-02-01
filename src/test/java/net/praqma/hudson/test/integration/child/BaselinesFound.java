@@ -1,7 +1,10 @@
 package net.praqma.hudson.test.integration.child;
 
 import java.io.File;
+import java.util.logging.Level;
 
+import net.praqma.hudson.test.BaseTestClass;
+import net.praqma.util.test.junit.LoggingRule;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,10 +36,7 @@ import net.praqma.clearcase.test.junit.ClearCaseRule;
 
 import static org.junit.Assert.*;
 
-public class BaselinesFound {
-
-	@ClassRule
-	public static CCUCMRule jenkins = new CCUCMRule();
+public class BaselinesFound extends BaseTestClass {
 	
 	@Rule
 	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );
@@ -54,7 +54,7 @@ public class BaselinesFound {
 	@ClearCaseUniqueVobName( name = "nop-child" )
 	@TestDescription( title = "Child polling", text = "baseline available" )
 	public void testNoOptions() throws Exception {
-		
+		System.out.println( "1" );
 		Baseline baseline = getNewBaseline();
 
 		AbstractBuild<?, ?> build = initiateBuild( "no-options-" + ccenv.getUniqueName(), false, false, false, false );
@@ -70,7 +70,7 @@ public class BaselinesFound {
 	@ClearCaseUniqueVobName( name = "recommended-child" )
 	@TestDescription( title = "Child polling", text = "baseline available",	configurations = { "Recommended = true" } )
 	public void testRecommended() throws Exception {
-		
+        System.out.println( "2" );
 		Baseline baseline = getNewBaseline();
 		
 		AbstractBuild<?, ?> build = initiateBuild( "recommended-" + ccenv.getUniqueName(), true, false, false, false );
@@ -86,7 +86,7 @@ public class BaselinesFound {
 	@ClearCaseUniqueVobName( name = "description-child" )
 	@TestDescription( title = "Child polling", text = "baseline available",	configurations = { "Set description = true" } )
 	public void testDescription() throws Exception {
-		
+        System.out.println( "3" );
 		Baseline baseline = getNewBaseline();
 		
 		AbstractBuild<?, ?> build = initiateBuild( "description-" + ccenv.getUniqueName(), false, false, true, false );
@@ -103,6 +103,7 @@ public class BaselinesFound {
 	@ClearCaseUniqueVobName( name = "tagged-child" )
 	@TestDescription( title = "Child polling", text = "baseline available", configurations = { "Set tag = true" } )
 	public void testTagged() throws Exception {
+        System.out.println( "4" );
 		jenkins.makeTagType( ccenv.getPVob() );
 		Baseline baseline = getNewBaseline();
 		

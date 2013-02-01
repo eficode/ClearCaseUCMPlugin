@@ -1,5 +1,7 @@
 package net.praqma.hudson.test.integration.userstories;
 
+import net.praqma.hudson.test.BaseTestClass;
+import net.praqma.util.test.junit.LoggingRule;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -15,10 +17,9 @@ import net.praqma.junit.TestDescription;
 
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 
-public class JENKINS14702 {
+import java.util.logging.Level;
 
-	@ClassRule
-	public static CCUCMRule jenkins = new CCUCMRule();
+public class JENKINS14702 extends BaseTestClass {
 	
 	@Rule
 	public static ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-14702", "setup-JENKINS-14702.xml" );

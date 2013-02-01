@@ -2,7 +2,6 @@ package net.praqma.hudson;
 
 import java.util.List;
 import java.util.logging.Logger;
-
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project;
@@ -12,7 +11,7 @@ import net.praqma.hudson.exception.ScmException;
 public class Config {
 
 	public static String nameShort = "CCUCM";
-	public static String nameLong = "ClearCase UCM";
+	public static String nameLong = "ClearCase UCM";    
 
 	protected static Logger logger = Logger.getLogger( Config.class.getName() );
 

@@ -13,8 +13,8 @@
 
 
     <artifactId>clearcase-ucm-plugin</artifactId>
-    <version>1.2.0-SNAPSHOT</version>
-    <name>ClearCase UCM Plugin</name>
+    <version>1.3.4-SNAPSHOT</version>
+    <name>ClearCase UCM Plugin!</name>
     <description>Integrates Jenkins to ClearCase UCM</description>
     <url>https://wiki.jenkins-ci.org/display/JENKINS/ClearCase+UCM+Plugin</url>
     <packaging>hpi</packaging>
@@ -50,7 +50,7 @@
         </developer>
         <developer>
             <id>les-praqma</id>
-            <name>Leif Sørensen</name>
+            <name>Leif Soerensen</name>
         </developer>
         <developer>
             <id>lak-praqma</id>
@@ -58,8 +58,6 @@
             <email>support@praqma.net</email>
         </developer>
     </developers>
-
-
 
     <profiles>
         <profile>
@@ -208,20 +206,28 @@
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>praqmajutils</artifactId>
-            <version>0.1.25</version>
+            <version>0.1.28</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.praqma</groupId>
+            <artifactId>praqmajutils</artifactId>
+            <version>0.1.28</version>
+            <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
         
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>cool</artifactId>
-            <version>0.6.5</version>
+            <version>0.6.8</version>
             <type>jar</type>
         </dependency>
         
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>cool</artifactId>
-            <version>0.6.5</version>
+            <version>0.6.8</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>

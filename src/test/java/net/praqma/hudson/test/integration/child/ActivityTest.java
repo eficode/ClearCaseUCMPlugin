@@ -2,7 +2,10 @@ package net.praqma.hudson.test.integration.child;
 
 import java.io.File;
 import java.util.List;
+import java.util.logging.Level;
 
+import net.praqma.hudson.test.BaseTestClass;
+import net.praqma.junit.LoggingRule;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,10 +35,7 @@ import net.praqma.clearcase.test.junit.ClearCaseRule;
 
 import static org.junit.Assert.*;
 
-public class ActivityTest {
-
-	@ClassRule
-	public static CCUCMRule jenkins = new CCUCMRule();
+public class ActivityTest extends BaseTestClass {
 	
 	@Rule
 	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );

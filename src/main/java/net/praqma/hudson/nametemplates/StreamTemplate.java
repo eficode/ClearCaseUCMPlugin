@@ -1,14 +1,14 @@
 package net.praqma.hudson.nametemplates;
 
-import net.praqma.hudson.scm.CCUCMState.State;
+import net.praqma.hudson.CCUCMBuildAction;
 
 public class StreamTemplate extends Template {
 	
 	@Override
-	public String parse( State state, String args ) {
+	public String parse( CCUCMBuildAction action, String args ) {
 		
 		try {
-			return state.getStream().getShortname();
+			return action.getStream().getShortname();
 		} catch ( Exception e ) {
 			return "unknownstream";
 		}
