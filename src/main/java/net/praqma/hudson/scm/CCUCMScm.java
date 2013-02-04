@@ -4,11 +4,7 @@ import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.BuildListener;
-import hudson.model.TaskListener;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Hudson;
+import hudson.model.*;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.PollingResult;
 import hudson.scm.SCMDescriptor;
@@ -408,7 +404,17 @@ public class CCUCMScm extends SCM {
         CCUCMBuildAction lastAction = getLastAction( project );
         Date date = null;
         if( lastAction != null ) {
-            date = lastAction.getBaseline().getDate();
+            AbstractBuild lastBuild = lastAction.getBuild();
+            if( lastBuild.getResult().isBetterThan( Result.FAILURE ) ) {
+                date = lastAction.getBaseline().getDate();
+            } else {
+                /* We need to include the last baseline as well, see JENKINS-16620 */
+                date = lastAction.getBaseline().getDate();
+                Calendar cal = Calendar.getInstance();
+                cal.setTime( date );
+                cal.add( Calendar.MINUTE, -1 );
+                date = cal.getTime();
+            }
         }
         
         /* Find the Baselines and store them */
