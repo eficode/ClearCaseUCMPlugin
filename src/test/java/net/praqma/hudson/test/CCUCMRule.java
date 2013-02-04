@@ -1,12 +1,7 @@
 package net.praqma.hudson.test;
 
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
-import hudson.model.FreeStyleBuild;
-import hudson.model.FreeStyleProject;
-import hudson.model.User;
+import hudson.model.*;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.ChangeLogSet.Entry;
 
@@ -14,8 +9,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
+import hudson.tasks.Builder;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestBuilder;
 
@@ -39,6 +37,85 @@ public class CCUCMRule extends JenkinsRule {
 	private static Logger logger = Logger.getLogger( CCUCMRule.class.getName() );
 
 	private CCUCMScm scm;
+
+    public static class ProjectCreator {
+
+        public enum Type {
+            self,
+            child
+        }
+        String name;
+        Type type = Type.self;
+        String component;
+        String stream;
+        boolean recommend = false;
+        boolean tag = false;
+        boolean description = false;
+        boolean createBaseline = false;
+        boolean forceDeliver = false;
+
+        String template = "";
+        PromotionLevel promotionLevel = PromotionLevel.INITIAL;
+
+        Class<? extends TopLevelItem> projectClass = FreeStyleProject.class;
+
+        public ProjectCreator( String name, String component, String stream ) {
+            this.name = name;
+            this.component = component;
+            this.stream = stream;
+        }
+
+        public ProjectCreator setType( Type type ) {
+            this.type = type;
+            return this;
+        }
+
+        public ProjectCreator setTagged( boolean tagged ) {
+            this.tag = tagged;
+            return this;
+        }
+
+        public ProjectCreator setDescribed( boolean described ) {
+            this.description = described;
+            return this;
+        }
+
+        public ProjectCreator setRecommend( boolean recommend ) {
+            this.recommend = recommend;
+            return this;
+        }
+
+        public ProjectCreator setCreateBaseline( boolean createBaseline ) {
+            this.createBaseline = createBaseline;
+            return this;
+        }
+
+        public Project getProject() throws IOException {
+            logger.info( "Setting up build for self polling, recommend:" + recommend + ", tag:" + tag + ", description:" + description );
+
+            System.out.println( "==== [Setting up ClearCase UCM project] ====" );
+            System.out.println( " * Stream         : " + stream );
+            System.out.println( " * Component      : " + component );
+            System.out.println( " * Level          : " + promotionLevel );
+            System.out.println( " * Polling        : " + type );
+            System.out.println( " * Recommend      : " + recommend );
+            System.out.println( " * Tag            : " + tag );
+            System.out.println( " * Description    : " + description );
+            System.out.println( " * Create baseline: " + createBaseline );
+            System.out.println( " * Template       : " + template );
+            System.out.println( " * Force deliver  : " + forceDeliver );
+            System.out.println( "============================================" );
+
+            Project project = (Project) Hudson.getInstance().createProject( projectClass, name );
+
+            // boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription
+            //CCUCMScm scm = new CCUCMScm( component, "INITIAL", "ALL", false, type, stream, "successful", createBaseline, "[project]_build_[number]", forceDeliver, recommend, tag, description, "jenkins" );
+            CCUCMScm scm = new CCUCMScm( component, promotionLevel.name(), "ALL", false, type.name(), stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "" );
+            project.setScm( scm );
+
+            return project;
+        }
+    }
 	
 	public FreeStyleProject setupProject( String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean createBaseline ) throws Exception {
 		return setupProject( projectName, type, component, stream, recommend, tag, description, createBaseline, false );
@@ -138,11 +215,63 @@ public class CCUCMRule extends JenkinsRule {
 		
 		return buildProject( project, fail );
 	}
+
+    public static class ProjectBuilder {
+        Project<?, ?> project;
+
+        boolean fail = false;
+
+        boolean displayOutput = true;
+
+        public ProjectBuilder( Project<?, ?> project ) {
+            this.project = project;
+        }
+
+        public ProjectBuilder failBuild( boolean cancel ) {
+            this.fail = cancel;
+            return this;
+        }
+
+        public AbstractBuild build() throws ExecutionException, InterruptedException, IOException {
+            if( fail ) {
+                logger.info( "Failing " + project );
+                project.getBuildersList().add(new Failer() );
+            } else {
+                /* Should remove fail task */
+                project.getBuildersList().remove( Failer.class );
+            }
+
+            Future<? extends Build<?, ?>> futureBuild = project.scheduleBuild2( 0, new Cause.UserCause() );
+
+            AbstractBuild build = futureBuild.get();
+
+            if( displayOutput ) {
+                logger.info( "Build info for: " + build );
+                logger.info( "Workspace: " + build.getWorkspace() );
+                logger.info( "Logfile: " + build.getLogFile() );
+                logger.info( "DESCRIPTION: " + build.getDescription() );
+
+                logger.info( "-------------------------------------------------\nJENKINS LOG: " );
+                logger.info( getLog( build ) );
+                logger.info( "\n-------------------------------------------------\n" );
+            }
+
+            return build;
+        }
+    }
+
+    public static class Failer extends TestBuilder {
+
+        @Override
+        public boolean perform( AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener ) throws InterruptedException, IOException {
+            return false;
+        }
+    }
 	
 	public AbstractBuild<?, ?> buildProject( AbstractProject<?, ?> project, boolean fail ) throws IOException {
 		AbstractBuild<?, ?> build = null;
 		try {
-			build = project.scheduleBuild2( 0 ).get();
+			build = project.scheduleBuild2( 0, new Cause.UserCause() ).get();
 		} catch( Exception e ) {
 			logger.info( "Build failed(" + (fail?"on purpose":"it should not?") + "): " + e.getMessage() );
 		}
