@@ -32,7 +32,6 @@ import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.UCMEntity.LabelStatus;
-import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.Util;
@@ -47,6 +46,8 @@ import net.praqma.util.execute.AbnormalProcessTerminationException;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 
+import org.apache.commons.httpclient.util.ExceptionUtil;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -146,9 +147,8 @@ public class CCUCMScm extends SCM {
 		try {
 			workspace.act( new RemoteClearCaseCheck() );
 		} catch( AbnormalProcessTerminationException e ) {
-			ExceptionUtils.print( e, out, true );
 			build.setDescription( e.getMessage() );
-			throw new AbortException( e.getMessage() );
+			throw e;
 		}
 
         /* Make build action */
@@ -295,46 +295,27 @@ public class CCUCMScm extends SCM {
 		return true;
 	}
 
-	private boolean initializeWorkspace( AbstractBuild<?, ?> build, FilePath workspace, File changelogFile, BuildListener listener, CCUCMBuildAction action ) {
+	private boolean initializeWorkspace( AbstractBuild<?, ?> build, FilePath workspace, File changelogFile, BuildListener listener, CCUCMBuildAction action ) throws IOException, InterruptedException {
 
 		PrintStream consoleOutput = listener.getLogger();
 
 		EstablishResult er = null;
-		try {
-            CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), action.getStream(), loadModule, action.getBaseline(), buildProject, ( plevel == null ) );
-            er = workspace.act( ct );
-			String changelog = er.getMessage();
+        CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), action.getStream(), loadModule, action.getBaseline(), buildProject, ( plevel == null ) );
+        er = workspace.act( ct );
+        String changelog = er.getMessage();
 
-			this.viewtag = er.getViewtag();
+        this.viewtag = er.getViewtag();
 
-			/* Write change log */
-			try {
-				FileOutputStream fos = new FileOutputStream( changelogFile );
-				fos.write( changelog.getBytes() );
-				fos.close();
-			} catch( IOException e ) {
-				logger.fine( id + "Could not write change log file" );
-				consoleOutput.println( "[" + Config.nameShort + "] Could not write change log file" );
-			}
+        /* Write change log */
+        try {
+            FileOutputStream fos = new FileOutputStream( changelogFile );
+            fos.write( changelog.getBytes() );
+            fos.close();
+        } catch( IOException e ) {
+            logger.fine( id + "Could not write change log file" );
+            consoleOutput.println( "[" + Config.nameShort + "] Could not write change log file" );
+        }
 
-		} catch( Exception e ) {
-			consoleOutput.println( "[" + Config.nameShort + "] Unable to initialize workspace" );
-			Exception cause = (Exception) e.getCause();
-			
-			if( cause != null ) {
-				try {
-					throw cause;
-				} catch( Exception e1 ) {
-					ExceptionUtils.print( cause, consoleOutput, true );
-					ExceptionUtils.log( cause, true );
-				}
-			} else {
-				ExceptionUtils.print( cause, consoleOutput, true );
-				ExceptionUtils.log( cause, true );
-			}
-			
-			return false;
-		}
 
 		return true;
 	}
@@ -348,7 +329,7 @@ public class CCUCMScm extends SCM {
      * @throws UnableToInitializeEntityException
      * @throws CCUCMException
      */
-	public void resolveBaselineInput( AbstractBuild<?, ?> build, String baselineInput, CCUCMBuildAction action, BuildListener listener ) throws UnableToInitializeEntityException, CCUCMException {
+	public void resolveBaselineInput( AbstractBuild<?, ?> build, String baselineInput, CCUCMBuildAction action, BuildListener listener ) throws UnableToInitializeEntityException, IOException, InterruptedException {
 
 		PrintStream consoleOutput = listener.getLogger();
 
@@ -387,7 +368,7 @@ public class CCUCMScm extends SCM {
      * @param listener
      * @throws CCUCMException is thrown if no valid baselines are found
      */
-	private void resolveBaseline( FilePath workspace, AbstractProject<?, ?> project, CCUCMBuildAction action, BuildListener listener ) throws CCUCMException {
+	private void resolveBaseline( FilePath workspace, AbstractProject<?, ?> project, CCUCMBuildAction action, BuildListener listener ) throws IOException, InterruptedException, CCUCMException {
         logger.fine( "Resolving Baseline from the Stream " + action.getStream().getNormalizedName() );
 		PrintStream out = listener.getLogger();
 
@@ -476,7 +457,7 @@ public class CCUCMScm extends SCM {
 			
 			/* Re-throw */
 			try {
-				ExceptionUtils.log( cause, true );
+                logger.log( Level.WARNING, "", cause );
 				throw cause;
 			} catch( DeliverException de ) {
 
@@ -498,12 +479,8 @@ public class CCUCMScm extends SCM {
 
 					} catch( Exception ex ) {
 						consoleOutput.println( "[" + Config.nameShort + "] Failed to cancel deliver" );
-						consoleOutput.println( "[" + Config.nameShort + "] Original error:" );
-						ExceptionUtils.print( de, consoleOutput, true );
-						consoleOutput.println( "[" + Config.nameShort + "] Cancellation error:" );
-						ExceptionUtils.print( ex, consoleOutput, true );
-						logger.log( Level.WARNING, "", de );
-                        logger.log( Level.WARNING, "", ex );
+						consoleOutput.println( ExceptionUtils.getFullStackTrace( e ) );
+                        logger.warning( ExceptionUtils.getFullStackTrace( e ) );
 					}
 				} else {
 					logger.fine( id + "No need for completing deliver" );
@@ -522,7 +499,7 @@ public class CCUCMScm extends SCM {
 				state.setNeedsToBeCompleted( false );
 			} catch( Exception e1 ) {
                 logger.log( Level.WARNING, "", e );
-				ExceptionUtils.print( e, consoleOutput, true );
+				e.printStackTrace( consoleOutput );
 			}
 		}
 
@@ -582,13 +559,8 @@ public class CCUCMScm extends SCM {
 	@Override
 	public PollingResult compareRemoteRevisionWith( AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState rstate ) throws IOException, InterruptedException {
 
-		/**/
-		try {
-			workspace.act( new RemoteClearCaseCheck() );
-		} catch( AbnormalProcessTerminationException e )  {
-			throw new AbortException( e.getMessage() );
-		}
-		
+    	workspace.act( new RemoteClearCaseCheck() );
+
 		jobName = project.getDisplayName().replace( ' ', '_' );
 		jobNumber = project.getNextBuildNumber();
 		this.id = "[" + jobName + "::" + jobNumber + "]";
@@ -631,36 +603,30 @@ public class CCUCMScm extends SCM {
 
             printParameters( out );
 
-			try {
-				List<Baseline> baselines = null;
+            List<Baseline> baselines = null;
 
-                Baseline foundBaseline = null;
-                CCUCMBuildAction lastAction = getLastAction( project );
-                Date date = null;
-                if( lastAction != null ) {
-                    out.println( lastAction );
-                    date = lastAction.getBaseline().getDate();
-                    lastBaseline = lastAction.getBaseline();
-                }
-                
-				/* Old skool self polling */
-				if( polling.isPollingSelf() ) {
-					baselines = getValidBaselinesFromStream( workspace, plevel, stream, component, date );
-				} else {
-					/* Find the Baselines and store them */
-					baselines = getBaselinesFromStreams( workspace, listener, out, stream, component, polling.isPollingChilds(), date );
-				}
+            Baseline foundBaseline = null;
+            CCUCMBuildAction lastAction = getLastAction( project );
+            Date date = null;
+            if( lastAction != null ) {
+                out.println( lastAction );
+                date = lastAction.getBaseline().getDate();
+                lastBaseline = lastAction.getBaseline();
+            }
 
-				if( baselines.size() > 0 ) {
-					p = PollingResult.BUILD_NOW;
-				}
+            /* Old skool self polling */
+            if( polling.isPollingSelf() ) {
+                baselines = getValidBaselinesFromStream( workspace, plevel, stream, component, date );
+            } else {
+                /* Find the Baselines and store them */
+                baselines = getBaselinesFromStreams( workspace, listener, out, stream, component, polling.isPollingChilds(), date );
+            }
 
-			} catch( CCUCMException e ) {
-				out.println( "Error while retrieving baselines: " + e.getMessage() );
-				logger.warning( "Error while retrieving baselines: " + e.getMessage() );
-				p = PollingResult.NO_CHANGES;
-			}
-		}
+            if( baselines.size() > 0 ) {
+                p = PollingResult.BUILD_NOW;
+            }
+
+        }
 
 		return p;
 	}
@@ -682,9 +648,9 @@ public class CCUCMScm extends SCM {
 
 		try {
 			streams = RemoteUtil.getRelatedStreams( workspace, listener, stream, pollingChildStreams, this.getSlavePolling(), this.getMultisitePolling() );
-		} catch( CCUCMException e1 ) {
-			e1.printStackTrace( consoleOutput );
-			logger.warning( "Could not retrieve streams: " + e1.getMessage() );
+		} catch( Exception e1 ) {
+            Throwable root = ExceptionUtils.getRootCause( e1 );
+            logger.log( Level.WARNING, "Could not get related streams from " + stream, root );
 			consoleOutput.println( "[" + Config.nameShort + "] No streams found" );
 			return baselines;
 		}
@@ -701,8 +667,10 @@ public class CCUCMScm extends SCM {
 					baselines.add( b );
 				}
 				consoleOutput.println( found.size() + " baseline" + ( found.size() == 1 ? "" : "s" ) + " found" );
-			} catch( CCUCMException e ) {
-				consoleOutput.println( "No baselines: " + e.getMessage() );
+			} catch( Exception e ) {
+                Throwable root = ExceptionUtils.getRootCause( e );
+                logger.log( Level.WARNING, "Could not get baselines from " + s, root );
+				consoleOutput.println( "No baselines: " + root.getMessage() );
 			}
 		}
 
@@ -721,7 +689,7 @@ public class CCUCMScm extends SCM {
      * @return A list of {@link Baseline}'s
      * @throws CCUCMException
      */
-	private List<Baseline> getValidBaselinesFromStream( FilePath workspace, Project.PromotionLevel plevel, Stream stream, Component component, Date date ) throws CCUCMException {
+	private List<Baseline> getValidBaselinesFromStream( FilePath workspace, Project.PromotionLevel plevel, Stream stream, Component component, Date date ) throws IOException, InterruptedException {
 		logger.fine( id + "Retrieving valid baselines." );
 
 		/* The baseline list */
@@ -732,13 +700,8 @@ public class CCUCMScm extends SCM {
          * 
          * TODO:Needs to be reviewed by chw and les. Remove upon release.
          */
-        
-		try {
-			baselines = RemoteUtil.getRemoteBaselinesFromStream( workspace, component, stream, plevel, this.getSlavePolling(), this.getMultisitePolling(), date );
-		} catch( CCUCMException e1 ) {
-			logger.fine( "No baselines: " + e1.getMessage() );
-			throw new CCUCMException("Unable to get baselines from " + stream.getShortname(), e1 );
-		}
+
+		baselines = RemoteUtil.getRemoteBaselinesFromStream( workspace, component, stream, plevel, this.getSlavePolling(), this.getMultisitePolling(), date );
 
 		return baselines;
 	}

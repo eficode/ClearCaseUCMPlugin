@@ -143,14 +143,9 @@ public class CCUCMNotifier extends Notifier {
 
 		if( action != null && action.getViewTag() != null ) {
 			/* End the view */
-			try {
-				logger.fine( "Ending view " + action.getViewTag() );
-				RemoteUtil.endView( build.getWorkspace(), action.getViewTag() );
-			} catch( CCUCMException e ) {
-				out.println("CCUCMException: "+ e.getMessage() );
-				logger.warning( e.getMessage() );
-			}
-		}
+            logger.fine( "Ending view " + action.getViewTag() );
+            RemoteUtil.endView( build.getWorkspace(), action.getViewTag() );
+        }
 
 		out.println( "[" + Config.nameShort + "] Post build steps done" );
 
