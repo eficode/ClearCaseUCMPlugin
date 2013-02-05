@@ -52,7 +52,7 @@ public class JENKINS16620 extends BaseTestClass {
     public void jenkins16620Any() throws Exception {
         Project project = new CCUCMRule.ProjectCreator( "JENKINS-16620-ANY", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).setPromotionLevel( null ).getProject();
 
-        AbstractBuild build1 = new CCUCMRule.ProjectBuilder( project ).failBuild( true ).build();
+        AbstractBuild build1 = new CCUCMRule.ProjectBuilder( project ).failBuild( false ).build();
 
         new SystemValidator( build1 ).validateBuild( Result.SUCCESS ).validate();
 
