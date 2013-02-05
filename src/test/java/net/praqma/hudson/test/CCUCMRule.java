@@ -116,7 +116,7 @@ public class CCUCMRule extends JenkinsRule {
 
             // boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription
             //CCUCMScm scm = new CCUCMScm( component, "INITIAL", "ALL", false, type, stream, "successful", createBaseline, "[project]_build_[number]", forceDeliver, recommend, tag, description, "jenkins" );
-            CCUCMScm scm = new CCUCMScm( component, promotionLevel.name(), "ALL", false, type.name(), stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "" );
+            CCUCMScm scm = new CCUCMScm( component, ( promotionLevel != null ? promotionLevel.name() : "ANY" ), "ALL", false, type.name(), stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "" );
             project.setScm( scm );
 
             return project;
