@@ -26,7 +26,7 @@ import static org.junit.Assert.assertTrue;
 public class JENKINS16636 extends BaseTestClass {
 
     @Rule
-    public static ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-16636", "setup-basic.xml" );
+    public static ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-16636", "setup-JENKINS-16620.xml" );
 
     @Rule
     public static DescriptionRule desc = new DescriptionRule();
@@ -35,6 +35,9 @@ public class JENKINS16636 extends BaseTestClass {
     @TestDescription( title = "JENKINS-16636", text = "No new baseline found --> But the job builds anyway" )
     public void jenkins16636() throws Exception {
         Project project = new CCUCMRule.ProjectCreator( "JENKINS-16636", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).setType( child ).getProject();
+
+        /* We need a first job to be able to poll! */
+        new CCUCMRule.ProjectBuilder( project ).build();
 
         PollingResult result = project.poll( jenkins.createTaskListener() );
 
