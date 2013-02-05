@@ -194,9 +194,11 @@ public class CCUCMScm extends SCM {
                     if( action != null ) {
                         action.setBaseline( last.getBaseline() );
                     } else {
+                        build.setDescription( "No valid baselines found" );
                         throw new AbortException( "No valid baselines found" );
                     }
                 } else {
+                    build.setDescription( "No valid baselines found" );
                     throw new AbortException( "No valid baselines found" );
                 }
             }
