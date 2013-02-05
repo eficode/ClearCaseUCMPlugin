@@ -33,7 +33,7 @@ public class JENKINS16636 extends BaseTestClass {
     public static DescriptionRule desc = new DescriptionRule();
 
     @Test
-    @TestDescription( title = "JENKINS-16636", text = "No new baseline found --> But the job builds anyway" )
+    @TestDescription( title = "JENKINS-16636", text = "No new baseline found, but can be build anyway" )
     @ClearCaseUniqueVobName( name = "NORMAL" )
     public void jenkins16636() throws Exception {
         Project project = new CCUCMRule.ProjectCreator( "JENKINS-16636", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).getProject();
@@ -49,7 +49,7 @@ public class JENKINS16636 extends BaseTestClass {
     }
 
     @Test
-    @TestDescription( title = "JENKINS-16636", text = "No new baseline found --> But the job builds anyway" )
+    @TestDescription( title = "JENKINS-16636", text = "No new baseline found, but can be build anyway. Correct behaviour for ANY" )
     @ClearCaseUniqueVobName( name = "ANY" )
     public void jenkins16636Any() throws Exception {
         Project project = new CCUCMRule.ProjectCreator( "JENKINS-16636-any", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).setPromotionLevel( null ).getProject();
