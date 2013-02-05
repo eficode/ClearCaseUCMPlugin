@@ -54,7 +54,7 @@ public class CCUCMRule extends JenkinsRule {
         boolean createBaseline = false;
         boolean forceDeliver = false;
 
-        String template = "";
+        String template = "[project]_build_[number]";
         PromotionLevel promotionLevel = PromotionLevel.INITIAL;
 
         Class<? extends TopLevelItem> projectClass = FreeStyleProject.class;
@@ -97,8 +97,6 @@ public class CCUCMRule extends JenkinsRule {
         }
 
         public Project getProject() throws IOException {
-            logger.info( "Setting up build for self polling, recommend:" + recommend + ", tag:" + tag + ", description:" + description );
-
             System.out.println( "==== [Setting up ClearCase UCM project] ====" );
             System.out.println( " * Stream         : " + stream );
             System.out.println( " * Component      : " + component );
