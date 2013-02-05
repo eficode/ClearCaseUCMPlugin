@@ -4,6 +4,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.Project;
 import hudson.model.Result;
 import hudson.scm.PollingResult;
+import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.hudson.test.BaseTestClass;
@@ -33,15 +34,34 @@ public class JENKINS16636 extends BaseTestClass {
 
     @Test
     @TestDescription( title = "JENKINS-16636", text = "No new baseline found --> But the job builds anyway" )
+    @ClearCaseUniqueVobName( name = "NORMAL" )
     public void jenkins16636() throws Exception {
-        Project project = new CCUCMRule.ProjectCreator( "JENKINS-16636", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).setType( child ).getProject();
+        Project project = new CCUCMRule.ProjectCreator( "JENKINS-16636", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).getProject();
 
-        /* We need a first job to be able to poll! */
-        new CCUCMRule.ProjectBuilder( project ).build();
+        /* First build must be a success, because there is a valid baseline.
+         * This build is done because we need a previous action object */
+        AbstractBuild build1 = new CCUCMRule.ProjectBuilder( project ).build();
+        new SystemValidator( build1 ).validateBuild( Result.SUCCESS ).validate();
 
-        PollingResult result = project.poll( jenkins.createTaskListener() );
+        /* Because there are no new baselines, the build must fail */
+        AbstractBuild build2 = new CCUCMRule.ProjectBuilder( project ).build();
+        new SystemValidator( build2 ).validateBuild( Result.FAILURE ).validate();
+    }
 
-        assertFalse( result.hasChanges() );
+    @Test
+    @TestDescription( title = "JENKINS-16636", text = "No new baseline found --> But the job builds anyway" )
+    @ClearCaseUniqueVobName( name = "ANY" )
+    public void jenkins16636Any() throws Exception {
+        Project project = new CCUCMRule.ProjectCreator( "JENKINS-16636-any", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).setPromotionLevel( null ).getProject();
+
+        /* First build must be a success, because there is a valid baseline.
+         * This build is done because we need a previous action object */
+        AbstractBuild build1 = new CCUCMRule.ProjectBuilder( project ).build();
+        new SystemValidator( build1 ).validateBuild( Result.SUCCESS ).validate();
+
+        /* Because we have ANY promotion level, the build must NOT fail */
+        AbstractBuild build2 = new CCUCMRule.ProjectBuilder( project ).build();
+        new SystemValidator( build2 ).validateBuild( Result.SUCCESS ).validate();
     }
 
 
