@@ -45,7 +45,7 @@ public class JENKINS16636 extends BaseTestClass {
 
         /* Because there are no new baselines, the build must fail */
         AbstractBuild build2 = new CCUCMRule.ProjectBuilder( project ).build();
-        new SystemValidator( build2 ).validateBuild( Result.FAILURE ).validate();
+        new SystemValidator( build2 ).validateBuild( Result.NOT_BUILT ).validate();
     }
 
     @Test
