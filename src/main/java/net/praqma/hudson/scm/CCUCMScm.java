@@ -258,6 +258,8 @@ public class CCUCMScm extends SCM {
 	private boolean checkInput( TaskListener listener ) {
 		PrintStream out = listener.getLogger();
 
+        out.println( "[" + Config.nameShort + "] Verifying input" );
+
 		/* Check baseline template */
 		if( createBaseline ) {
 			/* Sanity check */
