@@ -401,19 +401,12 @@ public class CCUCMScm extends SCM {
 
         List<Baseline> baselines = null;
 
-        CCUCMBuildAction lastAction = getLastAction( project );
+        /* We need to discriminate on promotion level, JENKINS-16620 */
         Date date = null;
-        if( lastAction != null ) {
-            AbstractBuild lastBuild = lastAction.getBuild();
-            if( lastBuild.getResult().isBetterThan( Result.FAILURE ) ) {
+        if( plevel == null ) {
+            CCUCMBuildAction lastAction = getLastAction( project );
+            if( lastAction != null ) {
                 date = lastAction.getBaseline().getDate();
-            } else {
-                /* We need to include the last baseline as well, see JENKINS-16620 */
-                date = lastAction.getBaseline().getDate();
-                Calendar cal = Calendar.getInstance();
-                cal.setTime( date );
-                cal.add( Calendar.MINUTE, -1 );
-                date = cal.getTime();
             }
         }
         
