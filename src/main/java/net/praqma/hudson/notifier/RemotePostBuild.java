@@ -184,7 +184,7 @@ class RemotePostBuild implements FileCallable<Status> {
 			}
 
             /* Demote baseline, not any */
-            if( !any) {
+            if( !any ) {
                 try {
                     if( hasRemoteMastership() ) {
                         printPostedOutput( sourcebaseline );
