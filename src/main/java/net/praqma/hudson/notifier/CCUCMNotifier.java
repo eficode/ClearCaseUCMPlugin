@@ -112,18 +112,18 @@ public class CCUCMNotifier extends Notifier {
 				processBuild( build, launcher, listener, action );
 				if( action.doSetDescription() ) {
 					String d = build.getDescription();
-                    logger.fine( String.format( "build.getDesciption() is: %s",d ) );
+                    logger.fine( String.format( "build.getDesciption() is: %s", d ) );
 					if( d != null ) {
 						build.setDescription( ( d.length() > 0 ? d + "<br/>" : "" ) + status.getBuildDescr() );
 					} else {
-                        logger.fine( String.format( "Setting build description to: %s",status.getBuildDescr() ) );
+                        logger.fine( String.format( "Setting build description to: %s", status.getBuildDescr() ) );
 						build.setDescription( status.getBuildDescr() );
 					}
 
 				}
 
 			} catch( NotifierException ne ) {
-				out.println("NotifierException: "+ ne.getMessage() );
+				out.println( "NotifierException: " + ne.getMessage() );
 			} catch( IOException e ) {
                 out.println( String.format( "%s Couldn't set build description", logShortPrefix ) );
 				//out.println( "[" + Config.nameShort + "] Couldn't set build description." );

@@ -197,10 +197,10 @@ public class CCUCMScm extends SCM {
                     if( action != null ) {
                         action.setBaseline( last.getBaseline() );
                     } else {
-                        Util.println( out, "No Baselines found" );
+                        throw new AbortException( "No valid baselines found" );
                     }
                 } else {
-                    Util.println( out, "No new Baseline found" );
+                    throw new AbortException( "No valid baselines found" );
                 }
             }
         }
@@ -247,7 +247,7 @@ public class CCUCMScm extends SCM {
 
         /* If there's a result let's find out whether a baseline is found or not */
         if( action.getBaseline() == null ) {
-            out.println( "[" + Config.nameShort + "] Finished processing; the baseline is null, this could pose as a problem!" );
+            out.println( "[" + Config.nameShort + "] Finished processing, no baseline found" );
         } else {
             out.println( "[" + Config.nameShort + "] Finished processing " + action.getBaseline() );
         }
