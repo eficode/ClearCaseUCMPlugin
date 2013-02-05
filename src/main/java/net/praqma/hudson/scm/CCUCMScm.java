@@ -189,7 +189,6 @@ public class CCUCMScm extends SCM {
             try {
                 resolveBaseline( workspace, build.getProject(), action, listener );                
             } catch( CCUCMException e ) {
-                //e.printStackTrace(out);
                 logger.warning(e.getMessage());
                 /* If the promotion level is not set, ANY, use the last found Baseline */
                 if( plevel == null ) {                    

@@ -90,6 +90,12 @@ public class CCUCMRule extends JenkinsRule {
             return this;
         }
 
+        public ProjectCreator setPromotionLevel( PromotionLevel level ) {
+            this.promotionLevel = level;
+
+            return this;
+        }
+
         public Project getProject() throws IOException {
             logger.info( "Setting up build for self polling, recommend:" + recommend + ", tag:" + tag + ", description:" + description );
 
