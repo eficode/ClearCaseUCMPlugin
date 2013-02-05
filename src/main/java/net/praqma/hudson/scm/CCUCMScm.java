@@ -71,7 +71,6 @@ public class CCUCMScm extends SCM {
 	private String bl;
 	private StringBuffer pollMsgs = new StringBuffer();
 	private Stream integrationstream;
-	private boolean doPostBuild = true;
 	private String buildProject;
 	private String jobName = "";
 	private Integer jobNumber;
@@ -151,8 +150,6 @@ public class CCUCMScm extends SCM {
 			build.setDescription( e.getMessage() );
 			throw new AbortException( e.getMessage() );
 		}
-
-		doPostBuild = true;
 
         /* Make build action */
         /* Store the configuration */
@@ -336,7 +333,6 @@ public class CCUCMScm extends SCM {
 				ExceptionUtils.log( cause, true );
 			}
 			
-			doPostBuild = false;
 			return false;
 		}
 
@@ -903,11 +899,6 @@ public class CCUCMScm extends SCM {
 	@Exported
 	public String getTreatUnstable() {
 		return treatUnstable.toString();
-	}
-
-	@Exported
-	public boolean doPostbuild() {
-		return doPostBuild;
 	}
 
 	public String getBuildProject() {
