@@ -3,6 +3,7 @@ package net.praqma.hudson.test.integration.userstories;
 import hudson.model.*;
 import hudson.model.Project;
 import hudson.scm.PollingResult;
+import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.clearcase.ucm.entities.*;
 import net.praqma.hudson.test.BaseTestClass;
@@ -30,6 +31,7 @@ public class JENKINS16620 extends BaseTestClass {
 
     @Test
     @TestDescription( title = "JENKINS-16620", text = "Changed baselines cannot be rebuild" )
+    @ClearCaseUniqueVobName( name = "NORMAL" )
     public void jenkins16620() throws Exception {
         Project project = new CCUCMRule.ProjectCreator( "JENKINS-16620", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).getProject();
 
@@ -46,8 +48,9 @@ public class JENKINS16620 extends BaseTestClass {
 
     @Test
     @TestDescription( title = "JENKINS-16620", text = "Changed baselines MUST NOT ABLE TO be rebuild on ANY" )
+    @ClearCaseUniqueVobName( name = "ANY" )
     public void jenkins16620Any() throws Exception {
-        Project project = new CCUCMRule.ProjectCreator( "JENKINS-16620", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).setPromotionLevel( null ).getProject();
+        Project project = new CCUCMRule.ProjectCreator( "JENKINS-16620-ANY", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).setPromotionLevel( null ).getProject();
 
         AbstractBuild build1 = new CCUCMRule.ProjectBuilder( project ).failBuild( true ).build();
 
