@@ -235,7 +235,7 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 					if( oldViewtag == null ) {
 						newView = snapview.getViewRoot();
 					} else {
-						newView = new File( workspace + "\\rm_delv_view" );
+						newView = new File( workspace, "rm_delv_view" );
 					}
 	
 					try {
