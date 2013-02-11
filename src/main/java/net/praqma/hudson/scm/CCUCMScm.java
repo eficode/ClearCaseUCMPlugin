@@ -607,13 +607,13 @@ public class CCUCMScm extends SCM {
 
             List<Baseline> baselines = null;
 
-            Baseline foundBaseline = null;
-            CCUCMBuildAction lastAction = getLastAction( project );
+            /* We need to discriminate on promotion level, JENKINS-16620 */
             Date date = null;
-            if( lastAction != null ) {
-                out.println( lastAction );
-                date = lastAction.getBaseline().getDate();
-                lastBaseline = lastAction.getBaseline();
+            if( plevel == null ) {
+                CCUCMBuildAction lastAction = getLastAction( project );
+                if( lastAction != null ) {
+                    date = lastAction.getBaseline().getDate();
+                }
             }
 
             /* Old skool self polling */
