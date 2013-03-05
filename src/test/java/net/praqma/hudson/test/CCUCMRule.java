@@ -14,6 +14,7 @@ import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
 import hudson.tasks.Builder;
+import jenkins.model.Jenkins;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestBuilder;
 
@@ -271,8 +272,18 @@ public class CCUCMRule extends JenkinsRule {
             return false;
         }
     }
+
+    public AbstractBuild<?, ?> buildProject( AbstractProject<?, ?> project, boolean fail ) throws IOException {
+        return buildProject( project, fail, null );
+    }
 	
-	public AbstractBuild<?, ?> buildProject( AbstractProject<?, ?> project, boolean fail ) throws IOException {
+	public AbstractBuild<?, ?> buildProject( AbstractProject<?, ?> project, boolean fail, Slave slave ) throws IOException {
+
+        if( slave != null ) {
+            logger.fine( "Running on " + slave );
+            project.setAssignedNode( slave );
+        }
+
 		AbstractBuild<?, ?> build = null;
 		try {
 			build = project.scheduleBuild2( 0, new Cause.UserCause() ).get();

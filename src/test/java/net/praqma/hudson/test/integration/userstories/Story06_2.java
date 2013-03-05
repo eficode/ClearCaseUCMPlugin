@@ -3,17 +3,14 @@ package net.praqma.hudson.test.integration.userstories;
 import java.io.File;
 import java.util.logging.Level;
 
+import hudson.model.*;
+import hudson.model.labels.LabelAtom;
 import net.praqma.hudson.test.BaseTestClass;
 import net.praqma.util.test.junit.LoggingRule;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.FreeStyleProject;
-import hudson.model.Result;
-import hudson.model.TaskListener;
 import hudson.scm.PollingResult;
 import net.praqma.clearcase.Deliver;
 import net.praqma.clearcase.ucm.entities.Baseline;
@@ -47,14 +44,18 @@ public class Story06_2 extends BaseTestClass {
 
 
 	@Test
-	public void placeholder() throws Exception {
-		/* We need at least one test, or else the whole test will fail */
-		assertTrue( true );
-	}
-	
-	//@Test
-	@TestDescription( title = "Story 6", text = "New baseline, bl1, on dev stream, poll on childs. Deliver in progress, forced cancelled", configurations = { "Force deliver = true" } )
-	public void story06() throws Exception {
+    @TestDescription( title = "Story 6", text = "New baseline, bl1, on dev stream, poll on childs. Deliver in progress, forced cancelled", configurations = { "Force deliver = true" } )
+         public void story06_1() throws Exception {
+        run( null );
+    }
+
+    //@Test
+    @TestDescription( title = "Story 6", text = "New baseline, bl1, on dev stream, poll on childs. Deliver in progress, forced cancelled", configurations = { "Force deliver = true", "Slave = YES" } )
+    public void story06_2() throws Exception {
+        run( jenkins.createSlave( new LabelAtom( "ClearCaseSlave" ) ) );
+    }
+
+    public void run( Slave slave ) throws Exception{
 		
 		/* First build to create a view */
 		AbstractBuild<?, ?> firstbuild = jenkins.initiateBuild( ccenv.getUniqueName(), "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true, true );
@@ -68,22 +69,10 @@ public class Story06_2 extends BaseTestClass {
 		File d2path = ccenv.setDynamicActivity( dev2, d2viewtag, "dip2" );
 		Baseline bl2 = getNewBaseline( d2path, "dip2.txt", "dip2" );
 		
-		AbstractBuild<?, ?> build = jenkins.buildProject( firstbuild.getProject(), false );
+		AbstractBuild<?, ?> build = jenkins.buildProject( firstbuild.getProject(), false, slave );
 		
 		SystemValidator validator = new SystemValidator( build );
 		validator.validateBuild( Result.SUCCESS ).validateBuiltBaseline( PromotionLevel.BUILT, bl2, false ).validateCreatedBaseline( true ).validate();
-
-//		/* Build validation */
-//		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
-//		
-//		/* Expected build baseline */
-//		Baseline buildBaseline = jenkins.getBuildBaseline( build );
-//		assertEquals( bl2, buildBaseline );
-//		assertEquals( PromotionLevel.BUILT, buildBaseline.getPromotionLevel( true ) );
-//		
-//		/* Created baseline */
-//		Baseline createdBaseline = jenkins.getCreatedBaseline( build );
-//		assertNotNull( createdBaseline );
 	}
 
 	

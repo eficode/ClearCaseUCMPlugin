@@ -3,17 +3,13 @@ package net.praqma.hudson.test.integration.userstories;
 import java.io.File;
 import java.util.logging.Level;
 
+import hudson.model.*;
 import net.praqma.hudson.test.BaseTestClass;
 import net.praqma.util.test.junit.LoggingRule;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.FreeStyleProject;
-import hudson.model.Result;
-import hudson.model.TaskListener;
 import hudson.scm.PollingResult;
 import net.praqma.clearcase.Deliver;
 import net.praqma.clearcase.ucm.entities.Baseline;
@@ -45,14 +41,12 @@ public class Story06 extends BaseTestClass {
 	private static Logger logger = Logger.getLogger();
 
 	@Test
-	public void placeholder() throws Exception {
-		/* We need at least one test, or else the whole test will fail */
-		assertTrue( true );
-	}
-	
-	//@Test
 	@TestDescription( title = "Story 6", text = "New baseline, bl1, on dev stream, poll on childs. Deliver in progress, forced cancelled", configurations = { "Force deliver = true" }	)
 	public void story06() throws Exception {
+        run( null );
+    }
+
+    public void run( Slave slave ) throws Exception{
 		
 		/* First build to create a view */
 		AbstractBuild<?, ?> firstbuild = jenkins.initiateBuild( ccenv.getUniqueName(), "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true, true );
@@ -84,7 +78,7 @@ public class Story06 extends BaseTestClass {
 		Baseline bl2 = getNewBaseline( d2path, "dip2.txt", "dip2" );
 		
 		
-		AbstractBuild<?, ?> build = jenkins.buildProject( firstbuild.getProject(), false );
+		AbstractBuild<?, ?> build = jenkins.buildProject( firstbuild.getProject(), false, slave );
 		
 
 		/* Build validation */
