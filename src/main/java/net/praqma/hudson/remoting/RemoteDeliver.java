@@ -169,79 +169,14 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 				out.println( "[" + Config.nameShort + "] Deliver already in progress" );
 
 				if( forceDeliver ) {
-	
-					/**
-					 * rollback deliver.. *******A DELIVER OPERATION IS ALREADY IN
-					 * PROGRESS. Details about the delivery:
-					 * 
-					 * <b Deliver operation in progress on stream
-					 * "stream:pds316_deliver_test@\PDS_PVOB"/> Started by "PDS316"
-					 * on "2011-09-28T11:23:53+02:00" Using integration activity
-					 * "deliver.pds316_deliver_test.20110928.112353". <bUsing view
-					 * "pds316_deliver_test_int" />. Baselines will be delivered to
-					 * the default target stream "stream:deliver_test_int@\PDS_PVOB"
-					 * in project "project:deliver_test@\PDS_PVOB".
-					 * 
-					 * Baselines to be delivered:
-					 * 
-					 * *******Please try again later.
-					 */
-	
-					String msg = e.getMessage();
-					//String msg = deliver.getStatus();
-					String stream = null;
-					String oldViewtag = null;
-	
-					out.println( "[" + Config.nameShort + "] Forcing this deliver." );
-					out.println( "MESSAGE IS " + e.getMessage() );
-	
-					Pattern STREAM_PATTERN = Pattern.compile( "Deliver operation .* on stream \\\"(.*)\\\"", Pattern.MULTILINE );
-					Pattern TAG_PATTERN = Pattern.compile( "Using view \\\"(.*)\\\".", Pattern.MULTILINE );
-	
-					Matcher mSTREAM = STREAM_PATTERN.matcher( msg );
-					if( mSTREAM.find() ) {
-						stream = mSTREAM.group( 1 );
-					}
-	
-					Matcher mTAG = TAG_PATTERN.matcher( msg );
-					if( mTAG.find() ) {
-						oldViewtag = mTAG.group( 1 );
-					}
-					
-					/* Validate arguments */
-					if( oldViewtag == null || stream == null ) {
-						logger.fine( "Unable to get arguments for rollback, trying to get status" );
-						//String status = deliver.getStatus();
-						String status = Deliver.getStatus( dstream );
-						logger.fine( "Deliver rollback status: " + status );
-						/* Get stream */
-						mSTREAM = STREAM_PATTERN.matcher( status );
-						if( mSTREAM.find() ) {
-							stream = mSTREAM.group( 1 );
-						} else {
-							throw new DeliverNotCancelledException( "Could not force deliver cancel, no stream found" );
-						}
-						
-						/* Get old view tag */
-						mTAG = TAG_PATTERN.matcher( status );
-						if( mTAG.find() ) {
-							oldViewtag = mTAG.group( 1 );
-						} else {
-							throw new DeliverNotCancelledException( "Could not force deliver cancel, no view tag found" );
-						}
-					}
-	
-					File newView = null;
-					if( oldViewtag == null ) {
-						newView = snapview.getViewRoot();
-					} else {
-						newView = new File( workspace, "rm_delv_view" );
-					}
-	
+
+    				out.println( e.getMessage() );
+                    out.println( "[" + Config.nameShort + "] Forcing this deliver." );
+
 					try {
-						// rolling back the previous deliver operation
-						Stream ostream = Stream.get( stream, baseline.getPVob() ).load(); //.deliverRollBack( oldViewtag, newView );
-						Deliver.rollBack( oldViewtag, ostream, newView );
+	                    Deliver.cancel( dstream );
+                        snapview.Update( true, true, true, false, new SnapshotView.LoadRules( snapview, SnapshotView.Components.valueOf( loadModule.toUpperCase() ) ) );
+
 					} catch( ClearCaseException ex ) {
 						throw ex;
 					}
