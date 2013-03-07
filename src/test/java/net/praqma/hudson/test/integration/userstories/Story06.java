@@ -4,7 +4,9 @@ import java.io.File;
 import java.util.logging.Level;
 
 import hudson.model.*;
+import hudson.model.labels.LabelAtom;
 import net.praqma.hudson.test.BaseTestClass;
+import net.praqma.hudson.test.SystemValidator;
 import net.praqma.util.test.junit.LoggingRule;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -41,12 +43,18 @@ public class Story06 extends BaseTestClass {
 	private static Logger logger = Logger.getLogger();
 
 	@Test
-	@TestDescription( title = "Story 6", text = "New baseline, bl1, on dev stream, poll on childs. Deliver in progress, forced cancelled", configurations = { "Force deliver = true" }	)
-	public void story06() throws Exception {
-        run( null );
+	@TestDescription( title = "Story 6", text = "New baseline, bl1, on dev stream, poll on childs. Deliver in progress", configurations = { "Force deliver = true" }	)
+	public void story06_1() throws Exception {
+        differentStream( null );
     }
 
-    public void run( Slave slave ) throws Exception{
+    @Test
+    @TestDescription( title = "Story 6", text = "New baseline, bl1, on dev stream, poll on childs. Deliver in progress", configurations = { "Force deliver = true", "Remote" }	)
+    public void story06_2() throws Exception {
+        differentStream( jenkins.createSlave( new LabelAtom( "ClearCaseSlave" ) ) );
+    }
+
+    public void differentStream( Slave slave ) throws Exception{
 		
 		/* First build to create a view */
 		AbstractBuild<?, ?> firstbuild = jenkins.initiateBuild( ccenv.getUniqueName(), "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true, true );
@@ -80,18 +88,9 @@ public class Story06 extends BaseTestClass {
 		
 		AbstractBuild<?, ?> build = jenkins.buildProject( firstbuild.getProject(), false, slave );
 		
-
-		/* Build validation */
-		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );
-		
-		/* Expected build baseline */
-		Baseline buildBaseline = jenkins.getBuildBaseline( build );
-		assertEquals( bl2, buildBaseline );
-		assertEquals( PromotionLevel.BUILT, buildBaseline.getPromotionLevel( true ) );
-		
-		/* Created baseline */
-		Baseline createdBaseline = jenkins.getCreatedBaseline( build );
-		assertNotNull( createdBaseline );
+        /* Validate */
+        SystemValidator validator = new SystemValidator( build );
+        validator.validateBuild( Result.SUCCESS ).validateBuiltBaseline( PromotionLevel.BUILT, bl2, false ).validateCreatedBaseline( true ).validate();
 	}
 
 	
