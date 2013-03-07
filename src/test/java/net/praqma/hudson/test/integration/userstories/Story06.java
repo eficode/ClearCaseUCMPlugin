@@ -3,6 +3,7 @@ package net.praqma.hudson.test.integration.userstories;
 import java.io.File;
 
 import hudson.model.*;
+import hudson.model.labels.LabelAtom;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.hudson.notifier.CCUCMNotifier;
 import net.praqma.hudson.scm.CCUCMScm;
@@ -47,7 +48,7 @@ public class Story06 extends BaseTestClass {
         run( dev1, dev2, ccenv.getUniqueName() + "_one_dev", ccenv.getUniqueName() + "_two_dev", null, false );
     }
 
-    //@Test
+    @Test
     @ClearCaseUniqueVobName( name = "dip2" )
     @TestDescription( title = "Story 6", text = "New baseline on dev stream. Deliver in progress from same stream, different view", configurations = { "Force deliver = true", "Poll childs" }	)
     public void story06_2() throws Exception {
@@ -63,14 +64,33 @@ public class Story06 extends BaseTestClass {
         run( null, dev1, null, ccenv.getUniqueName() + "_one_dev", null, true );
     }
 
-    /*
     @Test
-    @TestDescription( title = "Story 6", text = "New baseline, bl1, on dev stream, poll on childs. Deliver in progress", configurations = { "Force deliver = true", "Remote" }	)
-    public void story06_2() throws Exception {
-        run( jenkins.createSlave( new LabelAtom( "ClearCaseSlave" ) ) );
+    @ClearCaseUniqueVobName( name = "dip4" )
+    @TestDescription( title = "Story 6", text = "New baseline on dev stream. Deliver in progress from another stream, different view", configurations = { "Force deliver = true", "Poll childs", "On slave" }	)
+    public void story06_4() throws Exception {
+        Stream dev1 = ccenv.context.streams.get( "one_dev" );
+        Stream dev2 = ccenv.context.streams.get( "two_dev" );
+        Slave slave = jenkins.createSlave( new LabelAtom( "ClearCaseSlave" ) );
+        run( dev1, dev2, ccenv.getUniqueName() + "_one_dev", ccenv.getUniqueName() + "_two_dev", slave, false );
     }
-    */
 
+    @Test
+    @ClearCaseUniqueVobName( name = "dip5" )
+    @TestDescription( title = "Story 6", text = "New baseline on dev stream. Deliver in progress from same stream, different view", configurations = { "Force deliver = true", "Poll childs", "On slave" }	)
+    public void story06_5() throws Exception {
+        Stream dev1 = ccenv.context.streams.get( "one_dev" );
+        Slave slave = jenkins.createSlave( new LabelAtom( "ClearCaseSlave" ) );
+        run( dev1, dev1, ccenv.getUniqueName() + "_one_dev", ccenv.getUniqueName() + "_one_dev", slave, false );
+    }
+
+    @Test
+    @ClearCaseUniqueVobName( name = "dip6" )
+    @TestDescription( title = "Story 6", text = "New baseline on dev stream. Deliver in progress from previous build, different view", configurations = { "Force deliver = true", "Poll childs", "On slave" }	)
+    public void story06_6() throws Exception {
+        Stream dev1 = ccenv.context.streams.get( "one_dev" );
+        Slave slave = jenkins.createSlave( new LabelAtom( "ClearCaseSlave" ) );
+        run( null, dev1, null, ccenv.getUniqueName() + "_one_dev", slave, true );
+    }
 
     /**
      *
