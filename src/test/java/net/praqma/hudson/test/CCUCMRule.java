@@ -97,6 +97,12 @@ public class CCUCMRule extends JenkinsRule {
             return this;
         }
 
+        public ProjectCreator setForceDeliver( boolean forceDeliver ) {
+            this.forceDeliver = forceDeliver;
+
+            return this;
+        }
+
         public Project getProject() throws IOException {
             System.out.println( "==== [Setting up ClearCase UCM project] ====" );
             System.out.println( " * Stream         : " + stream );

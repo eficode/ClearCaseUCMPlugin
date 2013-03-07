@@ -93,6 +93,8 @@ public class CCUCMScm extends SCM {
 
     private String levelToPoll;
 
+    private boolean addPostBuild = true;
+
 	private static DateFormat dateFormatter = new SimpleDateFormat( "yyyyMMdd" );
 
 	/**
@@ -238,10 +240,13 @@ public class CCUCMScm extends SCM {
             }
         }
 
-        if( !used ) {
+        if( !used && addPostBuild ) {
             logger.info( "Adding notifier to project" );
             build.getParent().getPublishersList().add( new CCUCMNotifier() );
         }
+
+        /* We'll switch it back after using it, because it is only for testing purposes */
+        addPostBuild = true;
 
 
         /* If there's a result let's find out whether a baseline is found or not */
@@ -253,6 +258,10 @@ public class CCUCMScm extends SCM {
 
 		return result;
 	}
+
+    public void setAddPostBuild( boolean addPostBuild ) {
+        this.addPostBuild = addPostBuild;
+    }
 
 	private boolean checkInput( TaskListener listener ) {
 		PrintStream out = listener.getLogger();

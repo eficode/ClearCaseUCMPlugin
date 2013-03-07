@@ -1,18 +1,16 @@
 package net.praqma.hudson.test.integration.userstories;
 
 import java.io.File;
-import java.util.logging.Level;
 
 import hudson.model.*;
-import hudson.model.labels.LabelAtom;
+import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
+import net.praqma.hudson.notifier.CCUCMNotifier;
+import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.test.BaseTestClass;
 import net.praqma.hudson.test.SystemValidator;
-import net.praqma.util.test.junit.LoggingRule;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import hudson.scm.PollingResult;
 import net.praqma.clearcase.Deliver;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Baseline.LabelBehaviour;
@@ -20,17 +18,15 @@ import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.CCUCMBuildAction;
-import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.junit.DescriptionRule;
 import net.praqma.junit.TestDescription;
 import net.praqma.util.debug.Logger;
 
 import net.praqma.clearcase.exceptions.ClearCaseException;
-import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 
-import static org.junit.Assert.*;
+import static net.praqma.hudson.test.CCUCMRule.ProjectCreator.Type;
 
 public class Story06 extends BaseTestClass {
 	
@@ -42,49 +38,96 @@ public class Story06 extends BaseTestClass {
 
 	private static Logger logger = Logger.getLogger();
 
-	@Test
-	@TestDescription( title = "Story 6", text = "New baseline, bl1, on dev stream, poll on childs. Deliver in progress", configurations = { "Force deliver = true" }	)
+	//@Test
+    @ClearCaseUniqueVobName( name = "dip1" )
+	@TestDescription( title = "Story 6", text = "New baseline on dev stream. Deliver in progress from another stream, different view", configurations = { "Force deliver = true", "Poll childs" }	)
 	public void story06_1() throws Exception {
-        differentStream( null );
+        Stream dev1 = ccenv.context.streams.get( "one_dev" );
+        Stream dev2 = ccenv.context.streams.get( "two_dev" );
+        run( dev1, dev2, ccenv.getUniqueName() + "_one_dev", ccenv.getUniqueName() + "_two_dev", null, false );
+    }
+
+    //@Test
+    @ClearCaseUniqueVobName( name = "dip2" )
+    @TestDescription( title = "Story 6", text = "New baseline on dev stream. Deliver in progress from same stream, different view", configurations = { "Force deliver = true", "Poll childs" }	)
+    public void story06_2() throws Exception {
+        Stream dev1 = ccenv.context.streams.get( "one_dev" );
+        run( dev1, dev1, ccenv.getUniqueName() + "_one_dev", ccenv.getUniqueName() + "_one_dev", null, false );
     }
 
     @Test
-    @TestDescription( title = "Story 6", text = "New baseline, bl1, on dev stream, poll on childs. Deliver in progress", configurations = { "Force deliver = true", "Remote" }	)
-    public void story06_2() throws Exception {
-        differentStream( jenkins.createSlave( new LabelAtom( "ClearCaseSlave" ) ) );
+    @ClearCaseUniqueVobName( name = "dip3" )
+    @TestDescription( title = "Story 6", text = "New baseline on dev stream. Deliver in progress from previous build, different view", configurations = { "Force deliver = true", "Poll childs" }	)
+    public void story06_3() throws Exception {
+        Stream dev1 = ccenv.context.streams.get( "one_dev" );
+        run( null, dev1, null, ccenv.getUniqueName() + "_one_dev", null, true );
     }
 
-    public void differentStream( Slave slave ) throws Exception{
+    /*
+    @Test
+    @TestDescription( title = "Story 6", text = "New baseline, bl1, on dev stream, poll on childs. Deliver in progress", configurations = { "Force deliver = true", "Remote" }	)
+    public void story06_2() throws Exception {
+        run( jenkins.createSlave( new LabelAtom( "ClearCaseSlave" ) ) );
+    }
+    */
+
+
+    /**
+     *
+     * @param stream1 If set a new baseline will be delivered from this stream in a view
+     * @param streamToMakeAnotherBaseline The stream used to make the baseline found for the second build
+     * @param viewTag1 .... Using this view tag to create the first baseline
+     * @param viewTagToMakeAnotherBaseline .... Using this view tag to create the second baseline
+     * @param slave The slave executing the build, null if on master
+     * @param jenkinsWorkspace If true, the first build will not run the post build and therefore not complete the deliver
+     * @throws Exception
+     */
+    public void run( Stream stream1, Stream streamToMakeAnotherBaseline, String viewTag1, String viewTagToMakeAnotherBaseline, Slave slave, boolean jenkinsWorkspace ) throws Exception {
 		
 		/* First build to create a view */
-		AbstractBuild<?, ?> firstbuild = jenkins.initiateBuild( ccenv.getUniqueName(), "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true, true );
-		
-		/* Do the deliver */
-		Stream dev1 = ccenv.context.streams.get( "one_dev" );
-		Stream dev2 = ccenv.context.streams.get( "two_dev" );
-		//Stream target = ccenv.context.streams.get( "one_int" );
-		CCUCMBuildAction preaction = jenkins.getBuildAction( firstbuild );
-		Stream target = preaction.getStream();
-		
-		/* Target */
-		String tviewtag = preaction.getViewTag();
-		File tpath = preaction.getViewPath();
-		
-		/* Set deliver one up and make sure the baseline is not found by polling */
-		String d1viewtag = ccenv.getUniqueName() + "_one_dev";
-		File d1path = ccenv.setDynamicActivity( dev1, d1viewtag, "dip1" );
-		Baseline bl1 = getNewBaseline( d1path, "dip1.txt", "dip1" );
-		bl1.setPromotionLevel( PromotionLevel.BUILT );
-		
-		/* Do not complete deliver */
-		Deliver deliver1 = new Deliver( bl1, dev1, target, tpath, tviewtag );
-		deliver1.deliver( true, false, true, false );
+        Project project = new CCUCMRule.ProjectCreator( ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() )
+                .setType( Type.child )
+                .setForceDeliver( true )
+                .setCreateBaseline( true )
+                .getProject();
+
+        if( jenkinsWorkspace ) {
+            //project.getBuildersList().add( builder );
+            project.getPublishersList().remove( CCUCMNotifier.class );
+            ( (CCUCMScm)project.getScm() ).setAddPostBuild( false );
+        }
+
+        AbstractBuild<?, ?> firstbuild = jenkins.buildProject( project, false, slave );
+
+        Stream target = null;
+        if( firstbuild != null ) {
+            CCUCMBuildAction preaction = jenkins.getBuildAction( firstbuild );
+            target = preaction.getStream();
+        } else {
+            target = Stream.get( ( (CCUCMScm)project.getScm() ).getStream() );
+        }
+
+        logger.debug( "Target stream is " + target );
+
+        if( !jenkinsWorkspace ) {
+            /* Set deliver one up and make sure the baseline is not found by polling */
+            Baseline bl1 = createNewContent( stream1, viewTag1, 1, PromotionLevel.BUILT );
+
+            /* Do not complete deliver */
+            Deliver deliver1 = new Deliver( stream1, target );
+            deliver1.deliver( true, false, true, false );
+        }
 		
 		/* Setup dev 2 with new baseline */
-		String d2viewtag = ccenv.getUniqueName() + "_two_dev";
-		File d2path = ccenv.setDynamicActivity( dev2, d2viewtag, "dip2" );
-		Baseline bl2 = getNewBaseline( d2path, "dip2.txt", "dip2" );
-		
+		Baseline bl2 = createNewContent( streamToMakeAnotherBaseline, viewTagToMakeAnotherBaseline, 2, null );
+
+        if( jenkinsWorkspace ) {
+            //project.getBuildersList().remove( builder.getClass() );
+            project.getPublishersList().add( new CCUCMNotifier() );
+
+            CCUCMBuildAction preaction = jenkins.getBuildAction( firstbuild );
+            preaction.getBaseline().setPromotionLevel( PromotionLevel.BUILT );
+        }
 		
 		AbstractBuild<?, ?> build = jenkins.buildProject( firstbuild.getProject(), false, slave );
 		
@@ -93,12 +136,28 @@ public class Story06 extends BaseTestClass {
         validator.validateBuild( Result.SUCCESS ).validateBuiltBaseline( PromotionLevel.BUILT, bl2, false ).validateCreatedBaseline( true ).validate();
 	}
 
+    protected Baseline createNewContent( Stream stream, String viewtag, int num, PromotionLevel level ) throws ClearCaseException {
+        File path = null;
+        try {
+            path = ccenv.setDynamicActivity( stream, viewtag, "dip-" + stream.getShortname() );
+        } catch ( Exception e ) {
+            logger.warning( e );
+            path = ccenv.getDynamicPath( viewtag );
+        }
+
+        Baseline baseline = getNewBaseline( path, "dip" + num + ".txt", "dip" + num + "_" + stream.getShortname() );
+        if( level != null ) {
+            baseline.setPromotionLevel( level );
+        }
+
+        return baseline;
+    }
 	
 	protected Baseline getNewBaseline( File path, String filename, String bname ) throws ClearCaseException {
 		
 		try {
 			ccenv.addNewElement( ccenv.context.components.get( "Model" ), path, filename );
-		} catch( ClearCaseException e ) {
+		} catch( Exception e ) {
 			ExceptionUtils.print( e, System.out, true );
 		}
 		return Baseline.create( bname, ccenv.context.components.get( "_System" ), path, LabelBehaviour.FULL, false );
