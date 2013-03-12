@@ -64,7 +64,7 @@ public class Story06 extends BaseTestClass {
         run( null, dev1, null, ccenv.getUniqueName() + "_one_dev", null, true );
     }
 
-    @Test
+    //@Test
     @ClearCaseUniqueVobName( name = "dip4" )
     @TestDescription( title = "Story 6", text = "New baseline on dev stream. Deliver in progress from another stream, different view", configurations = { "Force deliver = true", "Poll childs", "On slave" }	)
     public void story06_4() throws Exception {
@@ -74,7 +74,7 @@ public class Story06 extends BaseTestClass {
         run( dev1, dev2, ccenv.getUniqueName() + "_one_dev", ccenv.getUniqueName() + "_two_dev", slave, false );
     }
 
-    @Test
+    //@Test
     @ClearCaseUniqueVobName( name = "dip5" )
     @TestDescription( title = "Story 6", text = "New baseline on dev stream. Deliver in progress from same stream, different view", configurations = { "Force deliver = true", "Poll childs", "On slave" }	)
     public void story06_5() throws Exception {
@@ -83,7 +83,7 @@ public class Story06 extends BaseTestClass {
         run( dev1, dev1, ccenv.getUniqueName() + "_one_dev", ccenv.getUniqueName() + "_one_dev", slave, false );
     }
 
-    @Test
+    //@Test
     @ClearCaseUniqueVobName( name = "dip6" )
     @TestDescription( title = "Story 6", text = "New baseline on dev stream. Deliver in progress from previous build, different view", configurations = { "Force deliver = true", "Poll childs", "On slave" }	)
     public void story06_6() throws Exception {
