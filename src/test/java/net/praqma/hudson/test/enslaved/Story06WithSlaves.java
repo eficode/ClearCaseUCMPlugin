@@ -1,15 +1,11 @@
-package net.praqma.hudson.test.integration.enslaved;
+package net.praqma.hudson.test.enslaved;
 
 import hudson.model.Slave;
 import hudson.model.labels.LabelAtom;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
-import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.clearcase.ucm.entities.Stream;
-import net.praqma.hudson.test.BaseTestClass;
 import net.praqma.hudson.test.integration.userstories.Story06Base;
-import net.praqma.junit.DescriptionRule;
 import net.praqma.junit.TestDescription;
-import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.logging.Logger;

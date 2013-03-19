@@ -152,7 +152,6 @@
                             <includes>
                                 <!-- <include>net/praqma/hudson/test/integration/child/*.java</include> -->
                                 <include>net/praqma/hudson/test/integration/*/*.java</include>
-                                <exclude>net/praqma/hudson/test/integration/enslaved/*</exclude>
                                 <!-- <include>net/praqma/hudson/test/integration/child/GetBaselinesTest.java</include> -->
                             </includes>
                         </configuration>
@@ -181,7 +180,7 @@
                         </dependencies>
                         <configuration>
                             <includes>
-                                <include>net/praqma/hudson/test/integration/enslaved/*</include>
+                                <include>net/praqma/hudson/test/enslaved/*</include>
                             </includes>
                         </configuration>
                     </plugin>
