@@ -119,6 +119,7 @@
                         </dependencies>
                         -->
                         <configuration>
+                            <argLine>-Xmx512m</argLine>
                             <includes>
                                 <include>net/praqma/hudson/test/unit/*.java</include>
                             </includes>
@@ -153,6 +154,7 @@
                         </dependencies>
                         -->
                         <configuration>
+                            <argLine>-Xmx512m</argLine>
                             <includes>
                                 <!-- <include>net/praqma/hudson/test/integration/child/*.java</include> -->
                                 <include>net/praqma/hudson/test/integration/*/*.java</include>
@@ -185,6 +187,7 @@
                         </dependencies>
                         -->
                         <configuration>
+                            <argLine>-Xmx512m</argLine>
                             <includes>
                                 <include>net/praqma/hudson/test/enslaved/*</include>
                             </includes>
