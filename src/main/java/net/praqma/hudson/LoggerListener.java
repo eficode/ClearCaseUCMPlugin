@@ -11,7 +11,7 @@ import java.util.logging.Level;
 /**
  * @author cwolfgang
  */
-@Extension
+//@Extension
 public class LoggerListener extends RunListener<Run> {
 
     public LoggerListener() {
