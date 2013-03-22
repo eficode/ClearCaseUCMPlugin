@@ -190,7 +190,7 @@ public class CCUCMScm extends SCM {
             try {
                 resolveBaseline( workspace, build.getProject(), action, listener );                
             } catch( CCUCMException e ) {
-                logger.warning(e.getMessage());
+                logger.warning( e.getMessage() );
                 /* If the promotion level is not set, ANY, use the last found Baseline */
                 if( plevel == null ) {
                     logger.fine( "Promotion level was null [=ANY], finding the last built baseline" );
@@ -204,6 +204,15 @@ public class CCUCMScm extends SCM {
                 } else {
                     build.setDescription( "No valid baselines found" );
                     throw new AbortException( "No valid baselines found" );
+                }
+            } catch( IOException e ) {
+                Exception cause = (Exception) e.getCause();
+                if( cause != null ) {
+                    action.setResolveBaselineException( cause );
+                    build.setDescription( cause.getMessage() );
+                    throw new AbortException( cause.getMessage() );
+                } else {
+                    throw new AbortException( "Unable to list baselines" );
                 }
             }
         }

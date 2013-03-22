@@ -24,7 +24,7 @@ public class LoadEntity implements FileCallable<UCMEntity> {
 		try {
 			entity.load();
 		} catch( Exception e ) {
-			throw new IOException( "Unable to load " + entity.getShortname() + ":" + e.getMessage() );
+			throw new IOException( "Unable to load " + entity.getShortname(), e );
 		}
 
 		return entity;

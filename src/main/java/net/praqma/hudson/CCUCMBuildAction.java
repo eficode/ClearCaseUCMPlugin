@@ -72,6 +72,9 @@ public class CCUCMBuildAction implements Action {
 	private String viewTag;
     private String workspace;
 
+    /*  */
+    private Exception resolveBaselineException;
+
     /**
      * The created {@link Baseline} when deliver
      */
@@ -284,6 +287,14 @@ public class CCUCMBuildAction implements Action {
 	public String getUrlName() {
 		return null;
 	}
+
+    public Exception getResolveBaselineException() {
+        return resolveBaselineException;
+    }
+
+    public void setResolveBaselineException( Exception resolveBaselineException ) {
+        this.resolveBaselineException = resolveBaselineException;
+    }
 
     @Override
     public String toString() {

@@ -47,7 +47,7 @@ public class Story08 extends BaseTestClass {
 		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
 		
 		SystemValidator validator = new SystemValidator( build )
-		.validateBuild( Result.FAILURE )
+		.validateBuild( Result.NOT_BUILT )
 		.validateBuiltBaselineNotFound()
 		.validateCreatedBaseline( false )
 		.validate();

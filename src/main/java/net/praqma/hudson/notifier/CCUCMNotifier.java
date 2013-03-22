@@ -131,16 +131,19 @@ public class CCUCMNotifier extends Notifier {
 				//out.println( "[" + Config.nameShort + "] Couldn't set build description." );
 			}
 		} else {
-			//out.println( "[" + Config.nameShort + "] Nothing to do!" );
-            out.println( String.format( "%s Nothing to do!", logShortPrefix ) );
-			String d = build.getDescription();
-			if( d != null ) {
-				build.setDescription( ( d.length() > 0 ? d + "<br/>" : "" ) + "Nothing to do" );
-			} else {
-				build.setDescription( "Nothing to do" );
-			}
+			if( action.getResolveBaselineException() != null ) {
+                build.setResult( Result.FAILURE );
+            } else {
+                out.println( String.format( "%s Nothing to do!", logShortPrefix ) );
+                String d = build.getDescription();
+                if( d != null ) {
+                    build.setDescription( ( d.length() > 0 ? d + "<br/>" : "" ) + "Nothing to do" );
+                } else {
+                    build.setDescription( "Nothing to do" );
+                }
 
-			build.setResult( Result.NOT_BUILT );
+                build.setResult( Result.NOT_BUILT );
+            }
 		}
 
 		if( action != null && action.getViewTag() != null ) {
