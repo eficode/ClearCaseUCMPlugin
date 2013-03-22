@@ -75,6 +75,8 @@ public class CCUCMNotifier extends Notifier {
 	@Override
 	public boolean perform( AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener ) throws InterruptedException, IOException {
 
+        logger.fine( "ClearCase UCM plugin notifier" );
+
 		boolean result = true;
 		out = listener.getLogger();
 

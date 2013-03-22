@@ -10,8 +10,6 @@ import java.util.logging.Level;
 
 /**
  * @author cwolfgang
- *         Date: 15-02-13
- *         Time: 08:57
  */
 @Extension
 public class LoggerListener extends RunListener<Run> {

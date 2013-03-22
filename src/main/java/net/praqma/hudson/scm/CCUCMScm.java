@@ -172,6 +172,8 @@ public class CCUCMScm extends SCM {
 		/* Determining the user has parameterized a Baseline */
 		String baselineInput = getBaselineValue( build );
 
+        ensurePublisher( build );
+
 		/* The special Baseline parameter case */
 		if( build.getBuildVariables().get( baselineInput ) != null ) {
 			logger.fine( "Baseline parameter: " + baselineInput );
@@ -190,7 +192,7 @@ public class CCUCMScm extends SCM {
             } catch( CCUCMException e ) {
                 logger.warning(e.getMessage());
                 /* If the promotion level is not set, ANY, use the last found Baseline */
-                if( plevel == null ) {                    
+                if( plevel == null ) {
                     logger.fine( "Promotion level was null [=ANY], finding the last built baseline" );
                     CCUCMBuildAction last = getLastAction( build.getProject() );
                     if( action != null ) {
@@ -231,20 +233,6 @@ public class CCUCMScm extends SCM {
 
 		out.println( "[" + Config.nameShort + "] Pre build steps done" );
 
-        boolean used = false;
-        for( Publisher p : build.getParent().getPublishersList() ) {
-            logger.fine( "NOTIFIER: " + p.toString() );
-            if( p instanceof CCUCMNotifier ) {
-                used = true;
-                break;
-            }
-        }
-
-        if( !used && addPostBuild ) {
-            logger.info( "Adding notifier to project" );
-            build.getParent().getPublishersList().add( new CCUCMNotifier() );
-        }
-
         /* We'll switch it back after using it, because it is only for testing purposes */
         addPostBuild = true;
 
@@ -258,6 +246,14 @@ public class CCUCMScm extends SCM {
 
 		return result;
 	}
+
+    public void ensurePublisher( AbstractBuild build ) throws IOException {
+        Describable describable = build.getProject().getPublishersList().get( CCUCMNotifier.class );
+        if( describable == null ) {
+            logger.info( "Adding notifier to project" );
+            build.getProject().getPublishersList().add( new CCUCMNotifier() );
+        }
+    }
 
     public void setAddPostBuild( boolean addPostBuild ) {
         this.addPostBuild = addPostBuild;
