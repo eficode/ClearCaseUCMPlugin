@@ -66,6 +66,10 @@ public class CCUCMRule extends JenkinsRule {
             this.stream = stream;
         }
 
+        public String getName() {
+            return name;
+        }
+
         public ProjectCreator setType( Type type ) {
             this.type = type;
             return this;
