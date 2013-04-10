@@ -5,6 +5,7 @@ import hudson.model.Project;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.hudson.test.BaseTestClass;
 import net.praqma.hudson.test.CCUCMRule;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -14,7 +15,6 @@ import java.io.IOException;
  * @author cwolfgang
  */
 public class Story11 extends BaseTestClass {
-
 
     @Rule
     public static ClearCaseRule ccenv = new ClearCaseRule( "Story11" );

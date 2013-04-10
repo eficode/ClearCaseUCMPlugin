@@ -39,6 +39,29 @@ public class CCUCMRule extends JenkinsRule {
 
 	private CCUCMScm scm;
 
+    private File outputDir;
+
+    public CCUCMRule setOutputDir( String name ) {
+        if( System.getenv().containsKey( "BUILD_NUMBER" ) ) {
+            String bname = System.getenv( "JOB_NAME" );
+            Integer number = new Integer( System.getenv( "BUILD_NUMBER" ) );
+
+            this.outputDir = new File( new File( new File( new File( System.getProperty( "user.dir" ) ), "test-logs" ), number.toString() ), getSafeName( name ) );
+        } else {
+            this.outputDir = new File( new File( System.getProperty( "user.dir" ) ), "runs" );
+        }
+
+        logger.fine( "Logging to " + outputDir.getAbsolutePath() );
+
+        this.outputDir.mkdirs();
+
+        return this;
+    }
+
+    public static String getSafeName( String name ) {
+        return name.replaceAll( "[^\\w]", "_" );
+    }
+
     public static class ProjectCreator {
 
         public enum Type {
@@ -292,6 +315,11 @@ public class CCUCMRule extends JenkinsRule {
         if( slave != null ) {
             logger.fine( "Running on " + slave );
             project.setAssignedNode( slave );
+        }
+
+        if( outputDir != null ) {
+            logger.fine( "Enabling logging" );
+            EnableLoggerAction action = new EnableLoggerAction( outputDir );
         }
 
 		AbstractBuild<?, ?> build = null;
