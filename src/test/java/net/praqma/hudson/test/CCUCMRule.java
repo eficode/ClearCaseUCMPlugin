@@ -7,6 +7,7 @@ import hudson.scm.ChangeLogSet.Entry;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -328,18 +329,21 @@ public class CCUCMRule extends JenkinsRule {
 		} catch( Exception e ) {
 			logger.info( "Build failed(" + (fail?"on purpose":"it should not?") + "): " + e.getMessage() );
 		}
-		
-		logger.info( "Build info for: " + build );
-		
-		logger.info( "Workspace: " + build.getWorkspace() );
-		
-		logger.info( "Logfile: " + build.getLogFile() );
-		
-		logger.info( "DESCRIPTION: " + build.getDescription() );
-		
-		logger.info( "-------------------------------------------------\nJENKINS LOG: " );
-		logger.info( getLog( build ) );
-		logger.info( "\n-------------------------------------------------\n" );
+
+        PrintStream out = new PrintStream( new File( outputDir, "jenkins." + getSafeName( project.getDisplayName() ) + "." + build.getNumber() + ".log" ) );
+
+        out.println( "Build      : " + build );
+        out.println( "Workspace  : " + build.getWorkspace() );
+        out.println( "Logfile    : " + build.getLogFile() );
+        out.println( "Description: " + build.getDescription() );
+        out.println();
+        out.println( "-------------------------------------------------" );
+        out.println( "                JENKINS LOG: " );
+        out.println( "-------------------------------------------------" );
+        out.println( getLog( build ) );
+        out.println( "-------------------------------------------------" );
+        out.println( "-------------------------------------------------" );
+        out.println();
 		
 		return build;
 	}
