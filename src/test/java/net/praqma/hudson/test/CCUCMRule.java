@@ -318,14 +318,15 @@ public class CCUCMRule extends JenkinsRule {
             project.setAssignedNode( slave );
         }
 
+        EnableLoggerAction action = null;
         if( outputDir != null ) {
             logger.fine( "Enabling logging" );
-            EnableLoggerAction action = new EnableLoggerAction( outputDir );
+            action = new EnableLoggerAction( outputDir );
         }
 
 		AbstractBuild<?, ?> build = null;
 		try {
-			build = project.scheduleBuild2( 0, new Cause.UserCause() ).get();
+			build = project.scheduleBuild2( 0, new Cause.UserCause(), action ).get();
 		} catch( Exception e ) {
 			logger.info( "Build failed(" + (fail?"on purpose":"it should not?") + "): " + e.getMessage() );
 		}
