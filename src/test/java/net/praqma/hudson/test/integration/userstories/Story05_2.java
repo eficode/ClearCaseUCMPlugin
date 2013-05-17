@@ -24,8 +24,8 @@ import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.test.CCUCMRule;
-import net.praqma.junit.DescriptionRule;
-import net.praqma.junit.TestDescription;
+import net.praqma.util.test.junit.DescriptionRule;
+import net.praqma.util.test.junit.TestDescription;
 import net.praqma.util.debug.Logger;
 
 import net.praqma.clearcase.exceptions.ClearCaseException;

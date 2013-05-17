@@ -1,22 +1,18 @@
 package net.praqma.hudson.test.integration.userstories;
 
+import net.praqma.clearcase.test.junit.ClearCaseRule;
+import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.hudson.test.BaseTestClass;
+import net.praqma.util.test.junit.DescriptionRule;
 import net.praqma.util.test.junit.LoggingRule;
+import net.praqma.util.test.junit.TestDescription;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
 import hudson.model.AbstractBuild;
 import hudson.model.Result;
-import net.praqma.clearcase.ucm.entities.Baseline;
-import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.hudson.test.SystemValidator;
-import net.praqma.junit.DescriptionRule;
-import net.praqma.junit.TestDescription;
-
-import net.praqma.clearcase.test.junit.ClearCaseRule;
-
-import java.util.logging.Level;
 
 public class JENKINS13944 extends BaseTestClass {
 	

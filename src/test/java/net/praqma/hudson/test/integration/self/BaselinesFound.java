@@ -16,7 +16,7 @@ import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.hudson.test.SystemValidator;
-import net.praqma.junit.TestDescription;
+import net.praqma.util.test.junit.TestDescription;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;

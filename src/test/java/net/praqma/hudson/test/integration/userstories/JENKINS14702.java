@@ -1,7 +1,9 @@
 package net.praqma.hudson.test.integration.userstories;
 
 import net.praqma.hudson.test.BaseTestClass;
+import net.praqma.util.test.junit.DescriptionRule;
 import net.praqma.util.test.junit.LoggingRule;
+import net.praqma.util.test.junit.TestDescription;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -12,8 +14,6 @@ import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.hudson.test.SystemValidator;
-import net.praqma.junit.DescriptionRule;
-import net.praqma.junit.TestDescription;
 
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 

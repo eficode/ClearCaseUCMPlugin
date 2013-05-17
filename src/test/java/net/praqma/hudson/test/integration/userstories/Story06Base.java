@@ -18,7 +18,7 @@ import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.test.BaseTestClass;
 import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.hudson.test.SystemValidator;
-import net.praqma.junit.DescriptionRule;
+import net.praqma.util.test.junit.DescriptionRule;
 import org.junit.Rule;
 import org.junit.Test;
 

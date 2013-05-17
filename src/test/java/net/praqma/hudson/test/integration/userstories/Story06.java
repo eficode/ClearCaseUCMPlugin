@@ -4,7 +4,7 @@ import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import org.junit.Test;
 
 import net.praqma.clearcase.ucm.entities.Stream;
-import net.praqma.junit.TestDescription;
+import net.praqma.util.test.junit.TestDescription;
 
 import java.util.logging.Logger;
 

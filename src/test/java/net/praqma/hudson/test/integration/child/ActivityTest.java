@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.logging.Level;
 
 import net.praqma.hudson.test.BaseTestClass;
-import net.praqma.junit.LoggingRule;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;

@@ -3,9 +3,7 @@ package net.praqma.hudson;
 import hudson.FilePath;
 import hudson.model.BuildListener;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -203,6 +201,13 @@ public abstract class Util {
 
     public static void println( PrintStream out, Object msg ) {
         out.println( "[" + Config.nameShort + "] " + msg.toString()  );
+    }
+
+    public static void storeException( File file, Throwable throwable ) throws IOException {
+        file.delete();
+        PrintWriter out = new PrintWriter( file );
+        throwable.printStackTrace( out );
+        out.close();
     }
 
 }

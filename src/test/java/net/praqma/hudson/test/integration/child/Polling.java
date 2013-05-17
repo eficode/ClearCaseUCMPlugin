@@ -35,7 +35,7 @@ import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.test.CCUCMRule;
-import net.praqma.junit.TestDescription;
+import net.praqma.util.test.junit.TestDescription;
 import net.praqma.util.debug.Logger;
 
 public class Polling extends BaseTestClass {
