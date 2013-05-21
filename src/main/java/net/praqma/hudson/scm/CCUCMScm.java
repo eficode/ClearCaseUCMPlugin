@@ -143,7 +143,7 @@ public class CCUCMScm extends SCM {
 		out.println( "[" + Config.nameShort + "] Poll for posted deliveries: " + this.getMultisitePolling() );
 		out.println( "[" + Config.nameShort + "] Forcing deliver: " + forceDeliver );
 
-		logger.info( id + "CCUCMSCM checkout v. " + version );
+		logger.info( id + "ClearCase UCM plugin v. " + version );
 		
 		/* Check for ClearCase on remote */
 		try {
@@ -353,7 +353,7 @@ public class CCUCMScm extends SCM {
         action.setBaseline( Baseline.get( baselinename ) );
 
         /* Load the baseline */
-        RemoteUtil.loadEntity( build.getWorkspace(), action.getBaseline(), true );
+        action.setBaseline( (Baseline) RemoteUtil.loadEntity( build.getWorkspace(), action.getBaseline(), true ) );
 
         action.setStream( action.getBaseline().getStream() );
         consoleOutput.println( "[" + Config.nameShort + "] Starting parameterized build with a Baseline." );
