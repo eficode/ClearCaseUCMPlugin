@@ -40,12 +40,19 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	private BuildListener listener;
 	private Integer jobNumber;
 	private String id = "";
+
+    /**
+     * Determines whether to swipe the view or not.
+     *
+     * @since 1.4.0
+     */
+    private boolean swipe = true;
 	
 	private boolean any = false;
 
     private Logger logger;
 
-	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, Stream targetStream, String loadModule, Baseline baseline, String buildProject, boolean any ) {
+	public CheckoutTask( BuildListener listener, String jobname, Integer jobNumber, Stream targetStream, String loadModule, Baseline baseline, String buildProject, boolean any, boolean swipe ) {
 		this.jobname = jobname;
 		this.jobNumber = jobNumber;
 		this.targetStream = targetStream;
@@ -55,6 +62,8 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		this.listener = listener;
 		
 		this.any = any;
+
+        this.swipe = swipe;
 
 		this.id = "[" + jobname + "::" + jobNumber + "-cotask]";
 	}
@@ -196,7 +205,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
             hudsonOut.println("[" + Config.nameShort + "] Updating view using " + loadModule.toLowerCase() + " modules");
             logger.fine( id + "Updating stream" );
             //sv.Update(true, true, true, false, Components.valueOf(loadModule.toUpperCase()), null);
-            sv.Update(true, true, true, false, new LoadRules( sv, Components.valueOf(loadModule.toUpperCase()) ));
+            sv.Update(swipe, true, true, false, new LoadRules( sv, Components.valueOf(loadModule.toUpperCase()) ));
             logger.fine( id + "Updating done" );
         } catch (ClearCaseException e) {
             e.print( hudsonOut );

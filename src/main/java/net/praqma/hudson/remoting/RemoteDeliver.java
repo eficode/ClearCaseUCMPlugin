@@ -58,7 +58,14 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 	private PrintStream pstream;
 	private File workspace;
 
-	public RemoteDeliver( String destinationstream, BuildListener listener, String loadModule, String baseline, String jobName, boolean forceDeliver ) {
+    /**
+     * Determines whether to swipe the view or not.
+     *
+     * @since 1.4.0
+     */
+    private boolean swipe = true;
+
+	public RemoteDeliver( String destinationstream, BuildListener listener, String loadModule, String baseline, String jobName, boolean forceDeliver, boolean swipe ) {
 		this.jobName = jobName;
 
 		this.baseline = baseline;
@@ -68,6 +75,7 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 		this.loadModule = loadModule;
 		
 		this.forceDeliver = forceDeliver;
+        this.swipe = swipe;
 	}
 
 	public EstablishResult invoke( File workspace, VirtualChannel channel ) throws IOException {
@@ -175,7 +183,7 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 
 					try {
 	                    Deliver.cancel( dstream );
-                        snapview.Update( true, true, true, false, new SnapshotView.LoadRules( snapview, SnapshotView.Components.valueOf( loadModule.toUpperCase() ) ) );
+                        snapview.Update( swipe, true, true, false, new SnapshotView.LoadRules( snapview, SnapshotView.Components.valueOf( loadModule.toUpperCase() ) ) );
 
 					} catch( ClearCaseException ex ) {
 						throw ex;

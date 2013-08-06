@@ -10,7 +10,6 @@ import hudson.scm.PollingResult;
 import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
 import hudson.scm.SCM;
-import hudson.tasks.Publisher;
 import hudson.util.FormValidation;
 
 import java.io.File;
@@ -23,7 +22,6 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.exceptions.DeliverException;
 import net.praqma.clearcase.exceptions.DeliverException.Type;
 import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
@@ -31,7 +29,6 @@ import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
-import net.praqma.clearcase.ucm.entities.UCMEntity.LabelStatus;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.Util;
@@ -46,7 +43,6 @@ import net.praqma.util.execute.AbnormalProcessTerminationException;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 
-import org.apache.commons.httpclient.util.ExceptionUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -110,7 +106,7 @@ public class CCUCMScm extends SCM {
 
 	@DataBoundConstructor
 	public CCUCMScm( String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable, 
-			         boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean removeViewPrivateFiles, boolean recommend, boolean makeTag, boolean setDescription, String buildProject ) {
+			         boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject, boolean removeViewPrivateFiles ) {
 
 		this.component = component;
 		this.loadModule = loadModule;
@@ -323,7 +319,7 @@ public class CCUCMScm extends SCM {
 		PrintStream consoleOutput = listener.getLogger();
 
 		EstablishResult er = null;
-        CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), action.getStream(), loadModule, action.getBaseline(), buildProject, ( plevel == null ) );
+        CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), action.getStream(), loadModule, action.getBaseline(), buildProject, ( plevel == null ), action.doRemoveViewPrivateFiles() );
         er = workspace.act( ct );
         String changelog = er.getMessage();
 
@@ -446,7 +442,7 @@ public class CCUCMScm extends SCM {
 		try {
 			logger.config( "Starting remote deliver" );
 
-            RemoteDeliver rmDeliver = new RemoteDeliver( state.getStream().getFullyQualifiedName(), listener, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), state.doForceDeliver() );
+            RemoteDeliver rmDeliver = new RemoteDeliver( state.getStream().getFullyQualifiedName(), listener, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), state.doForceDeliver(), state.doRemoveViewPrivateFiles() );
             er = workspace.act( rmDeliver );
 
 			CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
@@ -756,6 +752,7 @@ public class CCUCMScm extends SCM {
         action.setPromotionLevel( plevel );
         action.setUnstable( treatUnstable );
         action.setLoadModule( loadModule );
+        action.setRemoveViewPrivateFiles( removeViewPrivateFiles );
 
         /* Deliver and template */
         action.setCreateBaseline( createBaseline );

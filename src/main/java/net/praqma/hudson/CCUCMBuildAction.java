@@ -1,9 +1,7 @@
 package net.praqma.hudson;
 
 import java.io.File;
-import java.util.List;
 
-import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import hudson.model.TaskListener;
 import net.praqma.clearcase.ucm.entities.Baseline;
@@ -39,6 +37,13 @@ public class CCUCMBuildAction implements Action {
     private boolean makeTag = false;
     private boolean recommend = false;
     private boolean forceDeliver = false;
+
+    /**
+     * Determines whether to swipe the view or not.
+     *
+     * @since 1.4.0
+     */
+    private boolean removeViewPrivateFiles = true;
 
     /**
      * The found {@link Baseline} for the build
@@ -287,6 +292,14 @@ public class CCUCMBuildAction implements Action {
 	public String getUrlName() {
 		return null;
 	}
+
+    public boolean doRemoveViewPrivateFiles() {
+        return removeViewPrivateFiles;
+    }
+
+    public void setRemoveViewPrivateFiles( boolean removeViewPrivateFiles ) {
+        this.removeViewPrivateFiles = removeViewPrivateFiles;
+    }
 
     public Exception getResolveBaselineException() {
         return resolveBaselineException;
