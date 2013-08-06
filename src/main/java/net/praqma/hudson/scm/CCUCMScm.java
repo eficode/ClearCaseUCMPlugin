@@ -79,6 +79,11 @@ public class CCUCMScm extends SCM {
 
 	private boolean forceDeliver;
 
+    /**
+     * Determines whether to remove the view private files or not
+     */
+    private boolean removeViewPrivateFiles;
+
 	/* Old notifier fields */
 	private boolean recommend;
 	private boolean makeTag;
@@ -105,7 +110,7 @@ public class CCUCMScm extends SCM {
 
 	@DataBoundConstructor
 	public CCUCMScm( String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable, 
-			         boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject ) {
+			         boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean removeViewPrivateFiles, boolean recommend, boolean makeTag, boolean setDescription, String buildProject ) {
 
 		this.component = component;
 		this.loadModule = loadModule;
@@ -119,6 +124,8 @@ public class CCUCMScm extends SCM {
 		this.nameTemplate = nameTemplate;
 
 		this.forceDeliver = forceDeliver;
+        this.removeViewPrivateFiles = removeViewPrivateFiles;
+
 		this.recommend = recommend;
 		this.makeTag = makeTag;
 		this.setDescription = setDescription;
@@ -888,7 +895,11 @@ public class CCUCMScm extends SCM {
 		return forceDeliver;
 	}
 
-	public boolean isCreateBaseline() {
+    public boolean isRemoveViewPrivateFiles() {
+        return removeViewPrivateFiles;
+    }
+
+    public boolean isCreateBaseline() {
 		return this.createBaseline;
 	}
 
@@ -1040,5 +1051,18 @@ public class CCUCMScm extends SCM {
 			loadModules.add( "Modifiable" );
 			return loadModules;
 		}
+
+        public FormValidation doCheckMode( @QueryParameter String mode, @QueryParameter String checked ) throws IOException {
+            boolean isChecked = checked.equalsIgnoreCase( "true" );
+            if( isChecked ) {
+                if( mode.equals( "self" ) ) {
+                    return FormValidation.warning( "You cannot create a baseline in self mode!" );
+                } else {
+                    return FormValidation.ok();
+                }
+            } else {
+                return FormValidation.ok();
+            }
+        }
 	}
 }
