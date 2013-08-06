@@ -1,7 +1,13 @@
 package net.praqma.hudson.test;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
 
+import hudson.FilePath;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.core.IsNot;
 import org.hamcrest.core.IsNull;
@@ -27,7 +33,13 @@ import static org.hamcrest.CoreMatchers.*;
 
 public class SystemValidator {
 
+    private static Logger logger = Logger.getLogger( SystemValidator.class.getName() );
+
 	private AbstractBuild<?, ?> build;
+
+    /* Validate path elements */
+    private boolean checkPathElements = false;
+    private Map<FilePath, List<Element>> pathsToCheck = new HashMap<FilePath, List<Element>>();
 	
 	public SystemValidator( AbstractBuild<?, ?> build ) {
 		this.build = build;
@@ -66,6 +78,16 @@ public class SystemValidator {
 			System.out.println( "[Validating created baseline]" );
 			checkCreatedBaseline();
 		}
+
+        /* Check the path elements */
+        if( checkPathElements ) {
+            logger.info( "Checking path elements" );
+            try {
+                doCheckPaths();
+            } catch( Exception e ) {
+                fail( e.getMessage() );
+            }
+        }
 		
 		/**/
 		
@@ -210,6 +232,55 @@ public class SystemValidator {
 		}
 		
 	}
+
+
+    /* Path checks */
+
+    public static class Element {
+        private boolean mustExist;
+        private String element;
+
+        public Element( String element, boolean mustExist ) {
+            this.element = element;
+            this.mustExist = mustExist;
+        }
+
+        @Override
+        public String toString() {
+            return element;
+        }
+    }
+
+    public SystemValidator addElementToPathCheck( FilePath path, Element element ) {
+        this.checkPathElements = true;
+
+        if( pathsToCheck.containsKey( path ) ) {
+            pathsToCheck.get( path ).add( element );
+        } else {
+            List<Element> e = new ArrayList<Element>();
+            e.add( element );
+            pathsToCheck.put( path, e );
+        }
+
+        return this;
+    }
+
+    private void doCheckPaths() throws IOException, InterruptedException {
+        for( FilePath path : pathsToCheck.keySet() ) {
+            List<Element> elements = pathsToCheck.get( path );
+            logger.info( "Checking " + path );
+
+            for( Element element : elements ) {
+                if( element.mustExist ) {
+                    logger.info( "Path must have " + element );
+                    assertTrue( "The path " + path + " does not have " + element, new FilePath( path, element.element ).exists() );
+                } else {
+                    logger.info( "Path must NOT have " + element );
+                    assertFalse( "The path " + path + " does have " + element, new FilePath( path, element.element ).exists() );
+                }
+            }
+        }
+    }
 	
 	/* Helpers */
 	private CCUCMBuildAction action;

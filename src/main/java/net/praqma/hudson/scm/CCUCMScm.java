@@ -104,6 +104,16 @@ public class CCUCMScm extends SCM {
 	public CCUCMScm() {
 	}
 
+    /**
+     * To support backwards compatibility.
+     * @since 1.4.0
+     */
+    public CCUCMScm( String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable,
+                     boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject ) {
+
+        this( component, levelToPoll, loadModule, newest, polling, stream, treatUnstable, createBaseline, nameTemplate, forceDeliver, recommend, makeTag, setDescription, buildProject, true );
+    }
+
 	@DataBoundConstructor
 	public CCUCMScm( String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable, 
 			         boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject, boolean removeViewPrivateFiles ) {

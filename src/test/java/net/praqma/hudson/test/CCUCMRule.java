@@ -78,6 +78,7 @@ public class CCUCMRule extends JenkinsRule {
         boolean description = false;
         boolean createBaseline = false;
         boolean forceDeliver = false;
+        boolean swipe = true;
 
         String template = "[project]_build_[number]";
         PromotionLevel promotionLevel = PromotionLevel.INITIAL;
@@ -131,6 +132,12 @@ public class CCUCMRule extends JenkinsRule {
             return this;
         }
 
+        public ProjectCreator setSwipe( boolean swipe ) {
+            this.swipe = swipe;
+
+            return this;
+        }
+
         public Project getProject() throws IOException {
             System.out.println( "==== [Setting up ClearCase UCM project] ====" );
             System.out.println( " * Stream         : " + stream );
@@ -143,13 +150,14 @@ public class CCUCMRule extends JenkinsRule {
             System.out.println( " * Create baseline: " + createBaseline );
             System.out.println( " * Template       : " + template );
             System.out.println( " * Force deliver  : " + forceDeliver );
+            System.out.println( " * Swipe          : " + swipe );
             System.out.println( "============================================" );
 
             Project project = (Project) Hudson.getInstance().createProject( projectClass, name );
 
             // boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription
             //CCUCMScm scm = new CCUCMScm( component, "INITIAL", "ALL", false, type, stream, "successful", createBaseline, "[project]_build_[number]", forceDeliver, recommend, tag, description, "jenkins" );
-            CCUCMScm scm = new CCUCMScm( component, ( promotionLevel != null ? promotionLevel.name() : "ANY" ), "ALL", false, type.name(), stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "" );
+            CCUCMScm scm = new CCUCMScm( component, ( promotionLevel != null ? promotionLevel.name() : "ANY" ), "ALL", false, type.name(), stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "", swipe );
             project.setScm( scm );
 
             return project;
@@ -189,7 +197,7 @@ public class CCUCMRule extends JenkinsRule {
 		
 		// boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription
 		//CCUCMScm scm = new CCUCMScm( component, "INITIAL", "ALL", false, type, stream, "successful", createBaseline, "[project]_build_[number]", forceDeliver, recommend, tag, description, "jenkins" );
-		CCUCMScm scm = new CCUCMScm( component, promotionLevel, "ALL", false, type, stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "" );
+		CCUCMScm scm = new CCUCMScm( component, promotionLevel, "ALL", false, type, stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "", true );
 		this.scm = scm;
 		project.setScm( scm );
 		
@@ -210,7 +218,7 @@ public class CCUCMRule extends JenkinsRule {
 		System.out.println( " * Force deliver  : " + forceDeliver );
 		System.out.println( "============================================" );
 		
-		CCUCMScm scm = new CCUCMScm( component, promotionLevel, "ALL", false, type, stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "" );
+		CCUCMScm scm = new CCUCMScm( component, promotionLevel, "ALL", false, type, stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "", true );
 		
 		return scm;
 	}
@@ -255,7 +263,11 @@ public class CCUCMRule extends JenkinsRule {
 		return buildProject( project, fail );
 	}
 
-    public static class ProjectBuilder {
+    public ProjectBuilder getProjectBuilder( Project<?, ?> project ) {
+        return new ProjectBuilder( project );
+    }
+
+    public class ProjectBuilder {
         Project<?, ?> project;
 
         boolean fail = false;
@@ -272,6 +284,7 @@ public class CCUCMRule extends JenkinsRule {
         }
 
         public AbstractBuild build() throws ExecutionException, InterruptedException, IOException {
+
             if( fail ) {
                 logger.info( "Failing " + project );
                 project.getBuildersList().add(new Failer() );
@@ -280,20 +293,30 @@ public class CCUCMRule extends JenkinsRule {
                 project.getBuildersList().remove( Failer.class );
             }
 
-            Future<? extends Build<?, ?>> futureBuild = project.scheduleBuild2( 0, new Cause.UserCause() );
+            EnableLoggerAction action = null;
+            if( outputDir != null ) {
+                logger.info( "Enabling logging" );
+                action = new EnableLoggerAction( outputDir );
+            }
+
+            Future<? extends Build<?, ?>> futureBuild = project.scheduleBuild2( 0, new Cause.UserCause(), action );
 
             AbstractBuild build = futureBuild.get();
 
-            if( displayOutput ) {
-                logger.info( "Build info for: " + build );
-                logger.info( "Workspace: " + build.getWorkspace() );
-                logger.info( "Logfile: " + build.getLogFile() );
-                logger.info( "DESCRIPTION: " + build.getDescription() );
+            PrintStream out = new PrintStream( new File( outputDir, "jenkins." + getSafeName( project.getDisplayName() ) + "." + build.getNumber() + ".log" ) );
 
-                logger.info( "-------------------------------------------------\nJENKINS LOG: " );
-                logger.info( getLog( build ) );
-                logger.info( "\n-------------------------------------------------\n" );
-            }
+            out.println( "Build      : " + build );
+            out.println( "Workspace  : " + build.getWorkspace() );
+            out.println( "Logfile    : " + build.getLogFile() );
+            out.println( "Description: " + build.getDescription() );
+            out.println();
+            out.println( "-------------------------------------------------" );
+            out.println( "                JENKINS LOG: " );
+            out.println( "-------------------------------------------------" );
+            out.println( getLog( build ) );
+            out.println( "-------------------------------------------------" );
+            out.println( "-------------------------------------------------" );
+            out.println();
 
             return build;
         }

@@ -36,13 +36,13 @@ public class JENKINS16620 extends BaseTestClass {
     public void jenkins16620() throws Exception {
         Project project = new CCUCMRule.ProjectCreator( "JENKINS-16620", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).getProject();
 
-        AbstractBuild build1 = new CCUCMRule.ProjectBuilder( project ).failBuild( true ).build();
+        AbstractBuild build1 = jenkins.getProjectBuilder( project ).failBuild( true ).build();
 
         Baseline bl = ccenv.context.baselines.get( "model-1" ).load();
 
         bl.setPromotionLevel( net.praqma.clearcase.ucm.entities.Project.PromotionLevel.INITIAL );
 
-        AbstractBuild build2 = new CCUCMRule.ProjectBuilder( project ).build();
+        AbstractBuild build2 = jenkins.getProjectBuilder( project ).build();
 
         new SystemValidator( build2 ).validateBuild( Result.SUCCESS ).validate();
     }
@@ -53,7 +53,7 @@ public class JENKINS16620 extends BaseTestClass {
     public void jenkins16620Any() throws Exception {
         Project project = new CCUCMRule.ProjectCreator( "JENKINS-16620-ANY", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).setPromotionLevel( null ).getProject();
 
-        AbstractBuild build1 = new CCUCMRule.ProjectBuilder( project ).failBuild( false ).build();
+        AbstractBuild build1 = jenkins.getProjectBuilder( project ).failBuild( false ).build();
 
         new SystemValidator( build1 ).validateBuild( Result.SUCCESS ).validate();
 
