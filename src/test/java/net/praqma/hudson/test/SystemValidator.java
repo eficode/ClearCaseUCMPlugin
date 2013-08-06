@@ -268,14 +268,14 @@ public class SystemValidator {
     private void doCheckPaths() throws IOException, InterruptedException {
         for( FilePath path : pathsToCheck.keySet() ) {
             List<Element> elements = pathsToCheck.get( path );
-            logger.info( "Checking " + path );
+            logger.fine( "Checking " + path );
 
             for( Element element : elements ) {
                 if( element.mustExist ) {
-                    logger.info( "Path must have " + element );
+                    logger.fine( "Path must have " + element );
                     assertTrue( "The path " + path + " does not have " + element, new FilePath( path, element.element ).exists() );
                 } else {
-                    logger.info( "Path must NOT have " + element );
+                    logger.fine( "Path must NOT have " + element );
                     assertFalse( "The path " + path + " does have " + element, new FilePath( path, element.element ).exists() );
                 }
             }
