@@ -2,6 +2,7 @@ package net.praqma.hudson.test;
 
 import hudson.Launcher;
 import hudson.model.*;
+import hudson.model.Project;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.ChangeLogSet.Entry;
 
@@ -16,16 +17,14 @@ import java.util.logging.Logger;
 
 import hudson.tasks.Builder;
 import jenkins.model.Jenkins;
+import net.praqma.clearcase.ucm.entities.*;
+import net.praqma.clearcase.ucm.view.UCMView;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestBuilder;
 
 import net.praqma.clearcase.PVob;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.exceptions.CleartoolException;
-import net.praqma.clearcase.ucm.entities.Baseline;
-import net.praqma.clearcase.ucm.entities.HyperLink;
-import net.praqma.clearcase.ucm.entities.Stream;
-import net.praqma.clearcase.ucm.entities.Tag;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.CCUCMBuildAction;
