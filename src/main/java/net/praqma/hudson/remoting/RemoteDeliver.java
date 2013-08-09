@@ -7,6 +7,7 @@ import hudson.remoting.VirtualChannel;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import java.util.logging.Level;
@@ -120,20 +121,11 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 		logger.fine( "View: " + workspace );
 
 		String diff = "";
-		ClearCaseChangeset changeset = new ClearCaseChangeset();
 
+        List<Activity> bldiff = new ArrayList<Activity>(  );
 		try {
-			List<Activity> bldiff = Version.getBaselineDiff( destinationStream, baseline, true, snapview.getViewRoot() );
+			bldiff = Version.getBaselineDiff( destinationStream, baseline, true, snapview.getViewRoot() );
 			out.print( "[" + Config.nameShort + "] Found " + bldiff.size() + " activit" + ( bldiff.size() == 1 ? "y" : "ies" ) + ". " );
-
-			int c = 0;
-			for( Activity a : bldiff ) {
-				c += a.changeset.versions.size();
-				for( Version version : a.changeset.versions ) {
-					changeset.addChange( version.getFullyQualifiedName(), version.getUser() );
-				}
-			}
-			out.println( c + " version" + ( c == 1 ? "" : "s" ) + " involved" );
 			diff = Util.createChangelog( bldiff, baseline );
 		} catch( Exception e1 ) {
 			out.println( "[" + Config.nameShort + "] Unable to create change log: " + e1.getMessage() );
@@ -143,8 +135,8 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 
 		EstablishResult er = new EstablishResult( viewtag );
 		er.setView( snapview );
+        er.setActivities( bldiff );
 		er.setMessage( diff );
-		er.setChangeset( changeset );
 
 		/* Make the deliver. Inline manipulation of er */
 		try {

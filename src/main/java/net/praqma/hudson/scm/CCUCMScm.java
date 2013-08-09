@@ -332,6 +332,7 @@ public class CCUCMScm extends SCM {
         CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), action.getStream(), loadModule, action.getBaseline(), buildProject, ( plevel == null ), action.doRemoveViewPrivateFiles() );
         er = workspace.act( ct );
         String changelog = er.getMessage();
+        action.setActivities( er.getActivities() );
 
         this.viewtag = er.getViewtag();
 

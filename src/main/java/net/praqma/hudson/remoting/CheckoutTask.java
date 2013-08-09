@@ -3,6 +3,7 @@ package net.praqma.hudson.remoting;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -14,6 +15,8 @@ import net.praqma.clearcase.Rebase;
 import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Version;
+import net.praqma.clearcase.ucm.utils.BaselineList;
+import net.praqma.clearcase.ucm.utils.filters.BeforeBaseline;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.SnapshotView.Components;
 import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules;
@@ -119,21 +122,20 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 					bldiff = Version.getBaselineDiff( foundation, bl, true, sv.getViewRoot() );
 				}
 			} else {
-				//bldiff = bl.getDifferences( sv );
-				bldiff = Version.getBaselineDiff( bl, null, true, sv.getViewRoot() );
+                /* Find the previous Baseline on the same Stream.
+                * Currently, the Baseline is found regardless of promotion level. */
+                BaselineList previous = new BaselineList( targetStream, bl.getComponent(), null ).addFilter( new BeforeBaseline( bl ) ).setLimit( 1 ).apply();
+                if( previous.size() > 0 ) {
+                    bldiff = Version.getBaselineDiff( bl, previous.get( 0 ), true, sv.getViewRoot() );
+                } else {
+                    bldiff = Collections.emptyList();
+                }
 			}
-			
-			logger.fine( id + "Creating change log" );
-			//List<Activity> bldiff = Version.getBaselineDiff( bl, null, true, sv.getViewRoot() );
+
 			diff = Util.createChangelog( bldiff, bl );
 			hudsonOut.print( "[" + Config.nameShort + "] Found " + bldiff.size() + " activit" + ( bldiff.size() == 1 ? "y" : "ies" ) + ". " );
 			int c = 0;
-			for( Activity a : bldiff ) {
-				c += a.changeset.versions.size();
-				for( Version version : a.changeset.versions ) {
-					changeset.addChange( version.getFullyQualifiedName(), version.getUser() );
-				}
-			}
+			er.setActivities( bldiff );
 			
 			logger.fine( id + "DONE" );
 			hudsonOut.println( c + " version" + ( c == 1 ? "" : "s" ) + " involved" );
@@ -146,7 +148,6 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 
 		er.setMessage( diff );
 		er.setViewtag( viewtag );
-		er.setChangeset( changeset );
 		
 		return er;
 	}

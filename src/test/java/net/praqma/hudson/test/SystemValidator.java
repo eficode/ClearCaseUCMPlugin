@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import hudson.FilePath;
+import net.praqma.clearcase.ucm.entities.Activity;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.core.IsNot;
 import org.hamcrest.core.IsNull;
@@ -81,12 +82,17 @@ public class SystemValidator {
 
         /* Check the path elements */
         if( checkPathElements ) {
-            logger.info( "Checking path elements" );
+            logger.info( "[Validating path elements]" );
             try {
                 doCheckPaths();
             } catch( Exception e ) {
                 fail( e.getMessage() );
             }
+        }
+
+        if( activities.size() > 0 ) {
+            System.out.println( "[Validating changeset]" );
+            doCheckActivities();
         }
 		
 		/**/
@@ -279,6 +285,30 @@ public class SystemValidator {
                     assertFalse( "The path " + path + " does have " + element, new FilePath( path, element.element ).exists() );
                 }
             }
+        }
+    }
+
+    private List<Activity> activities = new ArrayList<Activity>(  );
+
+    public SystemValidator addActivityToCheck( Activity activity ) {
+        activities.add( activity );
+        return this;
+    }
+
+    public SystemValidator addActivitiesToCheck( List<Activity> activities ) {
+        this.activities = activities;
+        return this;
+    }
+
+    private void doCheckActivities() {
+        CCUCMBuildAction action = getBuildAction();
+
+        logger.fine( "The number of activities is " + action.getActivities().size() + ", must be " + activities.size() );
+        assertThat( action.getActivities().size(), is( activities.size() ) );
+
+        for( Activity a : activities ) {
+            logger.fine( "The changeset must have " + a.getNormalizedName() );
+            assertTrue( action.getActivities().contains( a ) );
         }
     }
 	
