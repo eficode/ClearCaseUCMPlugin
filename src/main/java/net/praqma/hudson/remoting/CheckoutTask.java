@@ -124,14 +124,6 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 				}
 			} else {
 				//bldiff = bl.getDifferences( sv );
-                /* Find the previous Baseline on the same Stream.
-                 * Currently, the Baseline is found regardless of promotion level. */
-                BaselineList previous = new BaselineList( targetStream, bl.getComponent(), null ).addFilter( new BeforeBaseline( bl ) ).setLimit( 1 ).apply();
-                if( previous.size() > 0 ) {
-				    bldiff = Version.getBaselineDiff( bl, previous.get( 0 ), true, sv.getViewRoot() );
-                } else {
-                    bldiff = Collections.emptyList();
-                }
 
                 bldiff = Version.getBaselineDiff( bl, null, true, sv.getViewRoot() );
                 logger.fine( "BLDFI IS " + bldiff );
