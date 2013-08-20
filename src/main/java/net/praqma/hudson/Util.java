@@ -5,6 +5,7 @@ import hudson.model.BuildListener;
 
 import java.io.*;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import net.praqma.clearcase.PVob;
@@ -20,6 +21,7 @@ import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.ucm.view.SnapshotView.Components;
+import net.praqma.clearcase.util.CleanChangeSet;
 import net.praqma.hudson.exception.ScmException;
 
 public abstract class Util {
@@ -60,15 +62,19 @@ public abstract class Util {
 		buffer.append( "<changeset>" );
 		buffer.append( "<entry>" );
 		buffer.append( ( "<blName>" + bl.getShortname() + "</blName>" ) );
-		for( Activity act : changes ) {
+
+        VersionList vl = new VersionList().addActivities( changes );
+        Map<Activity, List<Version>> changeSet = vl.getLatestForActivities();
+
+		for( Activity activity : changeSet.keySet() ) {
 			try {
-				act.load();
+				activity.load();
 				buffer.append( "<activity>" );
-				buffer.append( ( "<actName>" + act.getShortname() + "</actName>" ) );
-				buffer.append( ( "<actHeadline>" + act.getHeadline() + "</actHeadline>" ) );
-				buffer.append( ( "<author>" + act.getUser() + "</author>" ) );
-				//List<Version> versions = act.changeset.versions;
-				VersionList versions = new VersionList( act.changeset.versions ).getLatest();
+				buffer.append( ( "<actName>" + activity.getShortname() + "</actName>" ) );
+				buffer.append( ( "<actHeadline>" + activity.getHeadline() + "</actHeadline>" ) );
+				buffer.append( ( "<author>" + activity.getUser() + "</author>" ) );
+				//List<Version> versions = activity.changeset.versions;
+				VersionList versions = new VersionList( activity.changeset.versions ).getLatest();
 				String temp = null;
 				for( Version v : versions ) {
 					try {
@@ -80,7 +86,7 @@ public abstract class Util {
 				}
 				buffer.append( "</activity>" );
 			} catch( ClearCaseException e ) {
-				logger.warning( "Unable to use activity \"" + act.getNormalizedName() + "\": " + e.getMessage() );
+				logger.warning( "Unable to use activity \"" + activity.getNormalizedName() + "\": " + e.getMessage() );
 			}
 		}
 		buffer.append( "</entry>" );

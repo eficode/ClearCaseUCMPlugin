@@ -1,7 +1,10 @@
 package net.praqma.hudson.remoting;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
+import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.scm.ClearCaseChangeset;
 
@@ -11,7 +14,7 @@ public class EstablishResult implements Serializable {
 	private String viewtag = "";
 	private String log = "";
 	
-	private ClearCaseChangeset changeset = new ClearCaseChangeset();
+	private List<Activity> activities;
 	
 	private SnapshotView view;
 	
@@ -48,15 +51,15 @@ public class EstablishResult implements Serializable {
 		this.message = message;
 	}
 
-	public ClearCaseChangeset getChangeset() {
-		return changeset;
-	}
-	
-	public void setChangeset( ClearCaseChangeset changeset ) {
-		this.changeset = changeset;
-	}
+    public List<Activity> getActivities() {
+        return activities;
+    }
 
-	public SnapshotView getView() {
+    public void setActivities( List<Activity> activities ) {
+        this.activities = activities;
+    }
+
+    public SnapshotView getView() {
 		return view;
 	}
 

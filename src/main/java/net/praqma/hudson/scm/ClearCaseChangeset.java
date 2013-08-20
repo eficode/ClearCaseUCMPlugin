@@ -6,10 +6,7 @@ import java.util.List;
 
 public class ClearCaseChangeset implements Serializable {
 
-	private static final long serialVersionUID = -641415231946264343L;
-	
 	public class Element implements Serializable {
-		private static final long serialVersionUID = 3359962418061746143L;
 		private String version;
 		private String user;
 		

@@ -1,13 +1,11 @@
 package net.praqma.hudson;
 
 import java.io.File;
+import java.util.List;
 
 import hudson.model.AbstractBuild;
 import hudson.model.TaskListener;
-import net.praqma.clearcase.ucm.entities.Baseline;
-import net.praqma.clearcase.ucm.entities.Component;
-import net.praqma.clearcase.ucm.entities.Project;
-import net.praqma.clearcase.ucm.entities.Stream;
+import net.praqma.clearcase.ucm.entities.*;
 import hudson.model.Action;
 import net.praqma.hudson.scm.Polling;
 import net.praqma.hudson.scm.Unstable;
@@ -86,6 +84,8 @@ public class CCUCMBuildAction implements Action {
 	private Baseline createdBaseline;
 
     private String error;
+
+    private List<Activity> activities;
 
 	public CCUCMBuildAction( Stream stream, Component component ) {
 		this.stream = stream;
@@ -307,6 +307,14 @@ public class CCUCMBuildAction implements Action {
 
     public void setResolveBaselineException( Exception resolveBaselineException ) {
         this.resolveBaselineException = resolveBaselineException;
+    }
+
+    public List<Activity> getActivities() {
+        return activities;
+    }
+
+    public void setActivities( List<Activity> activities ) {
+        this.activities = activities;
     }
 
     @Override
