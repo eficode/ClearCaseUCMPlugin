@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import net.praqma.clearcase.Cool;
 import net.praqma.clearcase.PVob;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.exceptions.ViewException;
@@ -21,7 +22,6 @@ import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.ucm.view.SnapshotView.Components;
-import net.praqma.clearcase.util.CleanChangeSet;
 import net.praqma.hudson.exception.ScmException;
 
 public abstract class Util {
@@ -63,31 +63,28 @@ public abstract class Util {
 		buffer.append( "<entry>" );
 		buffer.append( ( "<blName>" + bl.getShortname() + "</blName>" ) );
 
-        VersionList vl = new VersionList().addActivities( changes );
+        VersionList vl = new VersionList().addActivities( changes ).setBranchName( "^.*" + Cool.qfs + bl.getStream().getShortname() + ".*$" );
         Map<Activity, List<Version>> changeSet = vl.getLatestForActivities();
+        logger.fine( "The change set: " + changeSet );
 
 		for( Activity activity : changeSet.keySet() ) {
-			try {
-				activity.load();
-				buffer.append( "<activity>" );
-				buffer.append( ( "<actName>" + activity.getShortname() + "</actName>" ) );
-				buffer.append( ( "<actHeadline>" + activity.getHeadline() + "</actHeadline>" ) );
-				buffer.append( ( "<author>" + activity.getUser() + "</author>" ) );
-				//List<Version> versions = activity.changeset.versions;
-				VersionList versions = new VersionList( activity.changeset.versions ).getLatest();
-				String temp = null;
-				for( Version v : versions ) {
-					try {
-						temp = "<file>" + v.getSFile() + " (" + v.getVersion() + ") user: " + v.blame() + "</file>";
-					} catch( ClearCaseException e ) {
-						logger.warning( "Could not generate log" );
-					}
-					buffer.append( temp );
-				}
-				buffer.append( "</activity>" );
-			} catch( ClearCaseException e ) {
-				logger.warning( "Unable to use activity \"" + activity.getNormalizedName() + "\": " + e.getMessage() );
-			}
+            buffer.append( "<activity>" );
+            buffer.append( ( "<actName>" + activity.getShortname() + "</actName>" ) );
+            buffer.append( ( "<actHeadline>" + activity.getHeadline() + "</actHeadline>" ) );
+            buffer.append( ( "<author>" + activity.getUser() + "</author>" ) );
+            //List<Version> versions = activity.changeset.versions;
+            //VersionList versions = new VersionList( activity.changeset.versions ).getLatest();
+            String temp = null;
+            for( Version v : changeSet.get( activity ) ) {
+                try {
+                    temp = "<file>" + v.getSFile() + " (" + v.getVersion() + ") user: " + v.blame() + "</file>";
+                } catch( ClearCaseException e ) {
+                    logger.warning( "Could not generate log" );
+                }
+                buffer.append( temp );
+            }
+            buffer.append( "</activity>" );
+
 		}
 		buffer.append( "</entry>" );
 		buffer.append( "</changeset>" );
