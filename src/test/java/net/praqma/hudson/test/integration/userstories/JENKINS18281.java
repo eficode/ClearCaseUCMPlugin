@@ -42,7 +42,7 @@ public class JENKINS18281 extends BaseTestClass {
     public static DescriptionRule desc = new DescriptionRule();
 
     @Test
-    @TestDescription( title = "JENKINS-18281", text = "Possibility to remove the contributing activities from the change set of the build" )
+    @TestDescription( title = "JENKINS-18281", text = "Possibility to remove the contributing activities from the change set of the build. The WASHED CHANGESET fix." )
     public void jenkins18281() throws Exception {
 
         Stream target = ccenv.context.streams.get( "one_int" );
@@ -50,31 +50,44 @@ public class JENKINS18281 extends BaseTestClass {
         Component component = ccenv.context.components.get( "_System" );
 
         /* Create first baseline on int and rebase dev */
-        ClearCaseRule.ContentCreator ccint1 = ccenv.getContentCreator().setBaselineName( "blint-1" ).setFilename( "foo.bar" ).setActivityName( "int-act1" ).setStreamName( "one_int" ).setPostFix( "_one_int" ).setNewElement( true ).create();
-        new Rebase( stream ).addBaseline( ccint1.getBaseline() ).rebase( true );
+        ClearCaseRule.ContentCreator ccint1_1 = ccenv.getContentCreator().setFilename( "model.h" ).setActivityName( "int-act1" ).setStreamName( "one_int" ).setPostFix( "_one_int" ).setNewElement( true ).create();
+        ClearCaseRule.ContentCreator ccint1_2 = ccenv.getContentCreator().setFilename( "common.h" ).setStreamName( "one_int" ).setPostFix( "_one_int" ).setNewElement( true ).create();
+        ClearCaseRule.ContentCreator ccint1_3 = ccenv.getContentCreator().setFilename( "algorithm.h" ).setStreamName( "one_int" ).setPostFix( "_one_int" ).setNewElement( true ).create();
+        Baseline bl_int_1 = Baseline.create( "blint1", component, ccint1_1.getPath(), Baseline.LabelBehaviour.FULL, false );
 
-        /* Create baselines on dev and deliver them to int */
-        ClearCaseRule.ContentCreator cc1 = ccenv.getContentCreator().setBaselineName( "bl-1" ).setFilename( "foo.bar" ).setActivityName( "dev-act1" ).create();
-        ClearCaseRule.ContentCreator cc2 = ccenv.getContentCreator().setBaselineName( "bl-2" ).setFilename( "foo.bar" ).setActivityName( "dev-act2" ).create();
-        ClearCaseRule.ContentCreator cc3 = ccenv.getContentCreator().setBaselineName( "bl-3" ).setFilename( "foo.bar" ).setActivityName( "dev-act3" ).create();
+        new Rebase( stream ).addBaseline( bl_int_1 ).rebase( true );
 
-        /* First */
-        Deliver deliver = new Deliver( cc1.getBaseline(), stream, target, ccint1.getPath(), ccint1.getViewTag() );
-        deliver.deliver( true, true, false, false );
+        /* Create baseline on dev */
+        ClearCaseRule.ContentCreator cc1_1 = ccenv.getContentCreator().setFilename( "model.h" ).setActivityName( "dev-act1" ).create();
+        ClearCaseRule.ContentCreator cc1_2 = ccenv.getContentCreator().setFilename( "common.h" ).create();
+        ClearCaseRule.ContentCreator cc1_3 = ccenv.getContentCreator().setFilename( "algorithm.h" ).create();
 
-        /* second */
-        Deliver deliver2 = new Deliver( cc2.getBaseline(), stream, target, ccint1.getPath(), ccint1.getViewTag() );
-        deliver2.deliver( true, true, false, false );
+        Baseline bl_dev_1 = Baseline.create( "bl1", component, cc1_1.getPath(), Baseline.LabelBehaviour.FULL, false );
 
-        /* Third */
-        Deliver deliver3 = new Deliver( cc3.getBaseline(), stream, target, ccint1.getPath(), ccint1.getViewTag() );
-        deliver3.deliver( true, true, false, false );
+        /* Create second baseline on int and rebase dev */
+        ClearCaseRule.ContentCreator ccint2_1 = ccenv.getContentCreator().setFilename( "model.h" ).setActivityName( "int-act2" ).setStreamName( "one_int" ).setPostFix( "_one_int" ).create();
+        ClearCaseRule.ContentCreator ccint2_2 = ccenv.getContentCreator().setFilename( "common.h" ).setStreamName( "one_int" ).setPostFix( "_one_int" ).create();
+        ClearCaseRule.ContentCreator ccint2_3 = ccenv.getContentCreator().setFilename( "algorithm.h" ).setStreamName( "one_int" ).setPostFix( "_one_int" ).create();
+        Baseline bl_int_2 = Baseline.create( "blint1", component, ccint1_1.getPath(), Baseline.LabelBehaviour.FULL, false );
 
-        /* Create the last baseline on dev */
-        Baseline blint2 = Baseline.create( "blint-2", component,ccint1.getPath(), Baseline.LabelBehaviour.FULL, false );
+        new Rebase( stream ).addBaseline( bl_int_2 ).rebase( true );
+
+        /* Create baseline on dev */
+        ClearCaseRule.ContentCreator cc2_1 = ccenv.getContentCreator().setFilename( "model.h" ).setActivityName( "dev-act2" ).create();
+        ClearCaseRule.ContentCreator cc2_2 = ccenv.getContentCreator().setFilename( "common.h" ).create();
+        ClearCaseRule.ContentCreator cc2_3 = ccenv.getContentCreator().setFilename( "algorithm.h" ).create();
+
+        ClearCaseRule.ContentCreator cc3_1 = ccenv.getContentCreator().setFilename( "model.h" ).setActivityName( "dev-act3" ).create();
+        ClearCaseRule.ContentCreator cc3_2 = ccenv.getContentCreator().setFilename( "common.h" ).create();
+        ClearCaseRule.ContentCreator cc3_3 = ccenv.getContentCreator().setFilename( "algorithm.h" ).create();
+
+        ClearCaseRule.ContentCreator cc4_1 = ccenv.getContentCreator().setFilename( "model.h" ).setActivityName( "dev-act4" ).create();
+        ClearCaseRule.ContentCreator cc4_2 = ccenv.getContentCreator().setFilename( "common.h" ).create();
+
+        Baseline bl_dev_2 = Baseline.create( "bl2", component, cc2_1.getPath(), Baseline.LabelBehaviour.FULL, false );
 
         /* Create the Jenkins project for the dev stream */
-        Project project = new CCUCMRule.ProjectCreator( "JENKINS-18281", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).getProject();
+        Project project = new CCUCMRule.ProjectCreator( "JENKINS-18281", "_System@" + ccenv.getPVob(), "one_dev@" + ccenv.getPVob() ).getProject();
 
         /* I need a first build */
         jenkins.getProjectBuilder( project ).build();
@@ -84,8 +97,10 @@ public class JENKINS18281 extends BaseTestClass {
         //deliver.deliver( true, true, false, false );
         //new Rebase( target ).addBaseline( bl1 ).rebase( true );
 
-        printDiffs( blint2, ccint1.getBaseline(), ccint1.getPath() );
-        printDiffs( blint2, cc2.getBaseline(), ccint1.getPath() );
+        /*
+        printDiffs( bl_int_2, bl_dev_2, cc1_1.getPath() );
+        printDiffs( bl_dev_1, bl_dev_2, cc1_1.getPath() );
+        */
 
         AbstractBuild build2 = jenkins.getProjectBuilder( project ).build();
         printChangeLog( build2 );
