@@ -294,8 +294,8 @@ public class CCUCMRule extends JenkinsRule {
 
             EnableLoggerAction action = null;
             if( outputDir != null ) {
+                logger.info( "Enabling logging" );
                 action = new EnableLoggerAction( outputDir );
-                System.out.println("TOTALT I ORDEN, DER");
             }
 
             Future<? extends Build<?, ?>> futureBuild = project.scheduleBuild2( 0, new Cause.UserCause(), action );
@@ -303,7 +303,6 @@ public class CCUCMRule extends JenkinsRule {
             AbstractBuild build = futureBuild.get();
 
             PrintStream out = new PrintStream( new File( outputDir, "jenkins." + getSafeName( project.getDisplayName() ) + "." + build.getNumber() + ".log" ) );
-            System.out.println("PRINT STREAM IS " + out);
 
             out.println( "Build      : " + build );
             out.println( "Workspace  : " + build.getWorkspace() );
