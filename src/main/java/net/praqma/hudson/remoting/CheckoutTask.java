@@ -132,13 +132,13 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
                 }
 			}
 
-			diff = Util.createChangelog( bldiff, bl );
-			hudsonOut.print( "[" + Config.nameShort + "] Found " + bldiff.size() + " activit" + ( bldiff.size() == 1 ? "y" : "ies" ) + ". " );
-			int c = 0;
+			//diff = Util.createChangelog( bldiff, bl );
+			//hudsonOut.print( "[" + Config.nameShort + "] Found " + bldiff.size() + " activit" + ( bldiff.size() == 1 ? "y" : "ies" ) + ". " );
+			//int c = 0;
 			er.setActivities( bldiff );
 			
 			logger.fine( id + "DONE" );
-			hudsonOut.println( c + " version" + ( c == 1 ? "" : "s" ) + " involved" );
+			//hudsonOut.println( c + " version" + ( c == 1 ? "" : "s" ) + " involved" );
 			
 			logger.info( "CheckoutTask finished normally" );
 			

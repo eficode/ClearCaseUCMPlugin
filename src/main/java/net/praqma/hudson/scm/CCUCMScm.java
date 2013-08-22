@@ -333,7 +333,9 @@ public class CCUCMScm extends SCM {
 		EstablishResult er = null;
         CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), action.getStream(), loadModule, action.getBaseline(), buildProject, ( plevel == null ), action.doRemoveViewPrivateFiles() );
         er = workspace.act( ct );
-        String changelog = er.getMessage();
+        //String changelog = er.getMessage();
+        String changelog = "";
+        changelog = Util.createChangelog( er.getActivities(), action.getBaseline(), trimmedChangeSet );
         action.setActivities( er.getActivities() );
 
         this.viewtag = er.getViewtag();
@@ -906,7 +908,7 @@ public class CCUCMScm extends SCM {
 		return forceDeliver;
 	}
 
-    private boolean isTrimmedChangeSet() {
+    public boolean isTrimmedChangeSet() {
         return trimmedChangeSet;
     }
 

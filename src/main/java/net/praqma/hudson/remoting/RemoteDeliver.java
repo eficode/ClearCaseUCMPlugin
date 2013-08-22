@@ -120,23 +120,23 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 		
 		logger.fine( "View: " + workspace );
 
-		String diff = "";
+		//String diff = "";
 
         List<Activity> bldiff = new ArrayList<Activity>(  );
 		try {
 			bldiff = Version.getBaselineDiff( destinationStream, baseline, true, snapview.getViewRoot() );
-			out.print( "[" + Config.nameShort + "] Found " + bldiff.size() + " activit" + ( bldiff.size() == 1 ? "y" : "ies" ) + ". " );
-			diff = Util.createChangelog( bldiff, baseline );
+			//out.print( "[" + Config.nameShort + "] Found " + bldiff.size() + " activit" + ( bldiff.size() == 1 ? "y" : "ies" ) + ". " );
+			//diff = Util.createChangelog( bldiff, baseline );
 		} catch( Exception e1 ) {
 			out.println( "[" + Config.nameShort + "] Unable to create change log: " + e1.getMessage() );
 		}
 		
-		logger.fine( "Changeset created" );
+		//logger.fine( "Changeset created" );
 
 		EstablishResult er = new EstablishResult( viewtag );
 		er.setView( snapview );
         er.setActivities( bldiff );
-		er.setMessage( diff );
+		//er.setMessage( diff );
 
 		/* Make the deliver. Inline manipulation of er */
 		try {

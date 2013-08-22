@@ -54,28 +54,46 @@ public abstract class Util {
 		return devstream;
 	}
 
-	public static String createChangelog( List<Activity> changes, Baseline bl ) {
-		StringBuffer buffer = new StringBuffer();
+    public static String createChangelog( List<Activity> activities, Baseline bl, boolean trimmed ) {
+        logger.fine( "Generating change set, " + trimmed );
+        ChangeSetGenerator csg = new ChangeSetGenerator().createHeader( bl.getShortname() );
 
-		buffer.append( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
-		buffer.append( "<changelog>" );
-		buffer.append( "<changeset>" );
-		buffer.append( "<entry>" );
-		buffer.append( ( "<blName>" + bl.getShortname() + "</blName>" ) );
+        if( trimmed ) {
+            VersionList vl = new VersionList().addActivities( activities ).setBranchName( "^.*" + Cool.qfs + bl.getStream().getShortname() + ".*$" );
+            Map<Activity, List<Version>> changeSet = vl.getLatestForActivities();
+            for( Activity activity : changeSet.keySet() ) {
+                csg.addAcitivity( activity.getShortname(), activity.getHeadline(), activity.getUser(), changeSet.get( activity ) );
+            }
+        } else {
+            for( Activity activity : activities ) {
+                VersionList versions = new VersionList( activity.changeset.versions ).getLatest();
+                csg.addAcitivity( activity.getShortname(), activity.getHeadline(), activity.getUser(), versions );
+            }
+        }
 
-        VersionList vl = new VersionList().addActivities( changes ).setBranchName( "^.*" + Cool.qfs + bl.getStream().getShortname() + ".*$" );
-        Map<Activity, List<Version>> changeSet = vl.getLatestForActivities();
-        logger.fine( "The change set: " + changeSet );
+        return csg.close().get();
+    }
 
-		for( Activity activity : changeSet.keySet() ) {
+    public static class ChangeSetGenerator {
+        private StringBuilder buffer = new StringBuilder(  );
+
+        public ChangeSetGenerator createHeader( String header ) {
+            buffer.append( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
+            buffer.append( "<changelog>" );
+            buffer.append( "<changeset>" );
+            buffer.append( "<entry>" );
+            buffer.append( ( "<blName>" + header + "</blName>" ) );
+
+            return this;
+        }
+
+        public ChangeSetGenerator addAcitivity( String name, String header, String username, List<Version> versions ) {
             buffer.append( "<activity>" );
-            buffer.append( ( "<actName>" + activity.getShortname() + "</actName>" ) );
-            buffer.append( ( "<actHeadline>" + activity.getHeadline() + "</actHeadline>" ) );
-            buffer.append( ( "<author>" + activity.getUser() + "</author>" ) );
-            //List<Version> versions = activity.changeset.versions;
-            //VersionList versions = new VersionList( activity.changeset.versions ).getLatest();
+            buffer.append( "<actName>" + name + "</actName>" );
+            buffer.append( "<actHeadline>" + header + "</actHeadline>" );
+            buffer.append( "<author>" + username + "</author>" );
             String temp = null;
-            for( Version v : changeSet.get( activity ) ) {
+            for( Version v : versions ) {
                 try {
                     temp = "<file>" + v.getSFile() + " (" + v.getVersion() + ") user: " + v.blame() + "</file>";
                 } catch( ClearCaseException e ) {
@@ -85,14 +103,21 @@ public abstract class Util {
             }
             buffer.append( "</activity>" );
 
-		}
-		buffer.append( "</entry>" );
-		buffer.append( "</changeset>" );
+            return this;
+        }
 
-		buffer.append( "</changelog>" );
+        public ChangeSetGenerator close() {
+            buffer.append( "</entry>" );
+            buffer.append( "</changeset>" );
+            buffer.append( "</changelog>" );
 
-		return buffer.toString();
-	}
+            return this;
+        }
+
+        public String get() {
+            return buffer.toString();
+        }
+    }
 
 	public static SnapshotView makeView( Stream stream, File workspace, BuildListener listener, String loadModule, File viewroot, String viewtag ) throws ScmException {
 		return makeView( stream, workspace, listener, loadModule, viewroot, viewtag, true );

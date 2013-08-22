@@ -78,6 +78,7 @@ public class CCUCMRule extends JenkinsRule {
         boolean createBaseline = false;
         boolean forceDeliver = false;
         boolean swipe = true;
+        boolean trim = false;
 
         String template = "[project]_build_[number]";
         PromotionLevel promotionLevel = PromotionLevel.INITIAL;
@@ -137,6 +138,11 @@ public class CCUCMRule extends JenkinsRule {
             return this;
         }
 
+        public ProjectCreator setTrim( boolean trim ) {
+            this.trim = trim;
+            return this;
+        }
+
         public Project getProject() throws IOException {
             System.out.println( "==== [Setting up ClearCase UCM project] ====" );
             System.out.println( " * Stream         : " + stream );
@@ -150,13 +156,14 @@ public class CCUCMRule extends JenkinsRule {
             System.out.println( " * Template       : " + template );
             System.out.println( " * Force deliver  : " + forceDeliver );
             System.out.println( " * Swipe          : " + swipe );
+            System.out.println( " * Trim          : " + trim );
             System.out.println( "============================================" );
 
             Project project = (Project) Hudson.getInstance().createProject( projectClass, name );
 
             // boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription
             //CCUCMScm scm = new CCUCMScm( component, "INITIAL", "ALL", false, type, stream, "successful", createBaseline, "[project]_build_[number]", forceDeliver, recommend, tag, description, "jenkins" );
-            CCUCMScm scm = new CCUCMScm( component, ( promotionLevel != null ? promotionLevel.name() : "ANY" ), "ALL", false, type.name(), stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "", swipe );
+            CCUCMScm scm = new CCUCMScm( component, ( promotionLevel != null ? promotionLevel.name() : "ANY" ), "ALL", false, type.name(), stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "", swipe, trim );
             project.setScm( scm );
 
             return project;
@@ -196,7 +203,7 @@ public class CCUCMRule extends JenkinsRule {
 		
 		// boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription
 		//CCUCMScm scm = new CCUCMScm( component, "INITIAL", "ALL", false, type, stream, "successful", createBaseline, "[project]_build_[number]", forceDeliver, recommend, tag, description, "jenkins" );
-		CCUCMScm scm = new CCUCMScm( component, promotionLevel, "ALL", false, type, stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "", true );
+		CCUCMScm scm = new CCUCMScm( component, promotionLevel, "ALL", false, type, stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "", true, false );
 		this.scm = scm;
 		project.setScm( scm );
 		
@@ -217,7 +224,7 @@ public class CCUCMRule extends JenkinsRule {
 		System.out.println( " * Force deliver  : " + forceDeliver );
 		System.out.println( "============================================" );
 		
-		CCUCMScm scm = new CCUCMScm( component, promotionLevel, "ALL", false, type, stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "", true );
+		CCUCMScm scm = new CCUCMScm( component, promotionLevel, "ALL", false, type, stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "", true, false );
 		
 		return scm;
 	}

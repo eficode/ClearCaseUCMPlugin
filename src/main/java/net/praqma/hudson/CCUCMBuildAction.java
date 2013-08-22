@@ -45,10 +45,11 @@ public class CCUCMBuildAction implements Action {
 
     /**
      * Determine whether to trim the change set or not.
+     * Not persisted due to large memory foot print.
      *
      * @since 1.4.0
      */
-    private boolean trimmedChangeSet = false;
+    private transient boolean trimmedChangeSet = false;
 
     /**
      * The found {@link Baseline} for the build
