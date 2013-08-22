@@ -44,6 +44,13 @@ public class CCUCMBuildAction implements Action {
     private boolean removeViewPrivateFiles = true;
 
     /**
+     * Determine whether to trim the change set or not.
+     *
+     * @since 1.4.0
+     */
+    private boolean trimmedChangeSet = false;
+
+    /**
      * The found {@link Baseline} for the build
      */
 	private Baseline baseline;
@@ -299,6 +306,14 @@ public class CCUCMBuildAction implements Action {
 
     public void setRemoveViewPrivateFiles( boolean removeViewPrivateFiles ) {
         this.removeViewPrivateFiles = removeViewPrivateFiles;
+    }
+
+    public boolean isTrimmedChangeSet() {
+        return trimmedChangeSet;
+    }
+
+    public void setTrimmedChangeSet( boolean trimmedChangeSet ) {
+        this.trimmedChangeSet = trimmedChangeSet;
     }
 
     public Exception getResolveBaselineException() {

@@ -79,6 +79,7 @@ public class CCUCMScm extends SCM {
      * Determines whether to remove the view private files or not
      */
     private boolean removeViewPrivateFiles;
+    private boolean trimmedChangeSet;
 
 	/* Old notifier fields */
 	private boolean recommend;
@@ -111,12 +112,12 @@ public class CCUCMScm extends SCM {
     public CCUCMScm( String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable,
                      boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject ) {
 
-        this( component, levelToPoll, loadModule, newest, polling, stream, treatUnstable, createBaseline, nameTemplate, forceDeliver, recommend, makeTag, setDescription, buildProject, true );
+        this( component, levelToPoll, loadModule, newest, polling, stream, treatUnstable, createBaseline, nameTemplate, forceDeliver, recommend, makeTag, setDescription, buildProject, true, false );
     }
 
 	@DataBoundConstructor
 	public CCUCMScm( String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable, 
-			         boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject, boolean removeViewPrivateFiles ) {
+			         boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject, boolean removeViewPrivateFiles, boolean trimmedChangeSet ) {
 
 		this.component = component;
 		this.loadModule = loadModule;
@@ -131,6 +132,7 @@ public class CCUCMScm extends SCM {
 
 		this.forceDeliver = forceDeliver;
         this.removeViewPrivateFiles = removeViewPrivateFiles;
+        this.trimmedChangeSet = trimmedChangeSet;
 
 		this.recommend = recommend;
 		this.makeTag = makeTag;
@@ -764,6 +766,7 @@ public class CCUCMScm extends SCM {
         action.setUnstable( treatUnstable );
         action.setLoadModule( loadModule );
         action.setRemoveViewPrivateFiles( removeViewPrivateFiles );
+        action.setTrimmedChangeSet( trimmedChangeSet );
 
         /* Deliver and template */
         action.setCreateBaseline( createBaseline );
@@ -902,6 +905,10 @@ public class CCUCMScm extends SCM {
 	public boolean getForceDeliver() {
 		return forceDeliver;
 	}
+
+    private boolean isTrimmedChangeSet() {
+        return trimmedChangeSet;
+    }
 
     public boolean isRemoveViewPrivateFiles() {
         return removeViewPrivateFiles;
