@@ -467,10 +467,14 @@ public class CCUCMScm extends SCM {
 			//state.setSnapView( er.getView() );
 			this.viewtag = er.getViewtag();
 
+            String changelog = "";
+            changelog = Util.createChangelog( er.getActivities(), action.getBaseline(), trimmedChangeSet );
+            action.setActivities( er.getActivities() );
+
 			/* Write change log */
 			try {
 				FileOutputStream fos = new FileOutputStream( changelogFile );
-				fos.write( er.getMessage().getBytes() );
+				fos.write( changelog.getBytes() );
 				fos.close();
 			} catch( IOException e ) {
 				logger.fine( id + "Could not write change log file" );
