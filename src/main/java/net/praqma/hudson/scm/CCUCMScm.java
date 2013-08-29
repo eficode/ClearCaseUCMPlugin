@@ -71,7 +71,6 @@ public class CCUCMScm extends SCM {
 	private String buildProject;
 	private String jobName = "";
 	private Integer jobNumber;
-	private String id = "";
 
 	private boolean forceDeliver;
 
@@ -147,7 +146,6 @@ public class CCUCMScm extends SCM {
 
 		jobName = build.getParent().getDisplayName().replace( ' ', '_' );
 		jobNumber = build.getNumber();
-		this.id = "[" + jobName + "::" + jobNumber + "]";
 
 		PrintStream out = listener.getLogger();
 
@@ -158,7 +156,7 @@ public class CCUCMScm extends SCM {
 		out.println( "[" + Config.nameShort + "] Poll for posted deliveries: " + this.getMultisitePolling() );
 		out.println( "[" + Config.nameShort + "] Forcing deliver: " + forceDeliver );
 
-		logger.info( id + "ClearCase UCM plugin v. " + version );
+		logger.info( "ClearCase UCM plugin v. " + version );
 		
 		/* Check for ClearCase on remote */
 		try {
@@ -346,7 +344,7 @@ public class CCUCMScm extends SCM {
             fos.write( changelog.getBytes() );
             fos.close();
         } catch( IOException e ) {
-            logger.fine( id + "Could not write change log file" );
+            logger.fine( "Could not write change log file" );
             consoleOutput.println( "[" + Config.nameShort + "] Could not write change log file" );
         }
 
@@ -477,7 +475,7 @@ public class CCUCMScm extends SCM {
 				fos.write( changelog.getBytes() );
 				fos.close();
 			} catch( IOException e ) {
-				logger.fine( id + "Could not write change log file" );
+				logger.fine( "Could not write change log file" );
 				consoleOutput.println( "[" + Config.nameShort + "] Could not write change log file" );
 			}
 
@@ -521,7 +519,7 @@ public class CCUCMScm extends SCM {
                         logger.warning( ExceptionUtils.getFullStackTrace( e ) );
 					}
 				} else {
-					logger.fine( id + "No need for completing deliver" );
+					logger.fine( "No need for completing deliver" );
 					state.setNeedsToBeCompleted( false );
 				}
 				
@@ -601,7 +599,6 @@ public class CCUCMScm extends SCM {
 
 		jobName = project.getDisplayName().replace( ' ', '_' );
 		jobNumber = project.getNextBuildNumber();
-		this.id = "[" + jobName + "::" + jobNumber + "]";
 
 		PollingResult p = PollingResult.NO_CHANGES;
 
@@ -643,7 +640,10 @@ public class CCUCMScm extends SCM {
 
             List<Baseline> baselines = null;
 
-            /* We need to discriminate on promotion level, JENKINS-16620 */
+            /* We need to discriminate on promotion level, JENKINS-16620.
+             *
+             * This is ONLY for ANY!
+              * */
             Date date = null;
             if( plevel == null ) {
                 CCUCMBuildAction lastAction = getLastAction( project );
@@ -728,7 +728,7 @@ public class CCUCMScm extends SCM {
      * @throws CCUCMException
      */
 	private List<Baseline> getValidBaselinesFromStream( FilePath workspace, Project.PromotionLevel plevel, Stream stream, Component component, Date date ) throws IOException, InterruptedException {
-		logger.fine( id + "Retrieving valid baselines." );
+		logger.fine( "Retrieving valid baselines." );
 
 		/* The baseline list */
 		List<Baseline> baselines = new ArrayList<Baseline>();

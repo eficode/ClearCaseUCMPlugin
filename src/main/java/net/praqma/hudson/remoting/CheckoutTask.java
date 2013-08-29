@@ -42,7 +42,6 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 	private Stream targetStream;
 	private BuildListener listener;
 	private Integer jobNumber;
-	private String id = "";
 
     /**
      * Determines whether to swipe the view or not.
@@ -67,8 +66,6 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		this.any = any;
 
         this.swipe = swipe;
-
-		this.id = "[" + jobname + "::" + jobNumber + "-cotask]";
 	}
 
 	@Override
@@ -78,7 +75,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 
 		hudsonOut = listener.getLogger();
 		
-		logger.fine( id + "Starting CheckoutTask" );
+		logger.fine( "Starting CheckoutTask" );
 
 		String diff = "";
 		String viewtag = makeViewtag();
@@ -97,11 +94,11 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		}
 
 		try {
-			logger.fine( id + "Getting dev stream" );
+			logger.fine( "Getting dev stream" );
 			Stream devstream = getDeveloperStream( "stream:" + viewtag, targetStream.getPVob() );
 			devstream.load();
 			
-			logger.fine( id + "Getting foundation baseline" );
+			logger.fine( "Getting foundation baseline" );
 			Baseline foundation = devstream.getFoundationBaseline();
 			foundation.load();
 			
@@ -109,7 +106,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 				hudsonOut.println( "[" + Config.nameShort + "] The foundation baseline " + foundation.getShortname() + " does not match the stream " + targetStream.getShortname() + ". Changelog will probably be bogus." );
 			}
 			
-			logger.fine( id + "Making workspace" );
+			logger.fine( "Making workspace" );
 			
 			makeWorkspace( workspace, viewtag );
 			List<Activity> bldiff = null;
@@ -137,7 +134,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 			//int c = 0;
 			er.setActivities( bldiff );
 			
-			logger.fine( id + "DONE" );
+			logger.fine( "DONE" );
 			//hudsonOut.println( c + " version" + ( c == 1 ? "" : "s" ) + " involved" );
 			
 			logger.info( "CheckoutTask finished normally" );
@@ -163,23 +160,23 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		// We know we have a stream (st), because it is set in
 		// baselinesToBuild()
 		if( workspace != null ) {
-			logger.fine( id + "workspace: " + workspace.getAbsolutePath() );
+			logger.fine( "workspace: " + workspace.getAbsolutePath() );
 		} else {
-			logger.fine( id + "workspace must be null???" );
+			logger.fine( "workspace must be null???" );
 		}
 
 		File viewroot = new File( workspace, "view" );
 		
-		logger.fine( id + "Creating dev strem" );
+		logger.fine( "Creating dev strem" );
 		Stream devstream = getDeveloperStream( "stream:" + viewtag, targetStream.getPVob() );
 
-		logger.fine( id + "Making view" );
+		logger.fine( "Making view" );
 		sv = Util.makeView( devstream, workspace, listener, loadModule, viewroot, viewtag, false );
 		
 
 		// Now we have to rebase - if a rebase is in progress, the
 		// old one must be stopped and the new started instead
-		logger.fine( id + "Checking rebasing" );
+		logger.fine( "Checking rebasing" );
 		if( Rebase.isInProgress( devstream ) ) {
 			hudsonOut.print( "[" + Config.nameShort + "] Cancelling previous rebase." );
 			Rebase.cancelRebase( devstream );
@@ -190,12 +187,12 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		// to LAK
 		hudsonOut.print( "[" + Config.nameShort + "] Rebasing development stream (" + devstream.getShortname() + ") against parent stream (" + targetStream.getShortname() + ")" );
 		try {
-			logger.fine( id + "Rebasing" );
+			logger.fine( "Rebasing" );
 			Rebase rebase = new Rebase( devstream, sv, bl );
 			rebase.rebase( true );
-			logger.fine( id + "Rebasing done" );
+			logger.fine( "Rebasing done" );
 		} catch( RebaseException e1 ) {
-			logger.fine( id + "Rebasing failed: " + e1.getMessage() );
+			logger.fine( "Rebasing failed: " + e1.getMessage() );
 			hudsonOut.println( " Failed" );
 			throw e1;
 		}
@@ -204,10 +201,10 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		
 		try {
             hudsonOut.println("[" + Config.nameShort + "] Updating view using " + loadModule.toLowerCase() + " modules");
-            logger.fine( id + "Updating stream" );
+            logger.fine( "Updating stream" );
             //sv.Update(true, true, true, false, Components.valueOf(loadModule.toUpperCase()), null);
             sv.Update(swipe, true, true, false, new LoadRules( sv, Components.valueOf(loadModule.toUpperCase()) ));
-            logger.fine( id + "Updating done" );
+            logger.fine( "Updating done" );
         } catch (ClearCaseException e) {
             e.print( hudsonOut );
             throw new ScmException("Could not update snapshot view", e );

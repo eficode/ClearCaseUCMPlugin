@@ -45,7 +45,6 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 	private String baseline;
 	private String destinationstream;
 	private BuildListener listener;
-	private String id = "";
 	private SnapshotView snapview;
 
 	/*

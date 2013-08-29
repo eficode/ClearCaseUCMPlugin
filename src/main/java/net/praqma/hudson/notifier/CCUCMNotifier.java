@@ -42,7 +42,6 @@ public class CCUCMNotifier extends Notifier {
 	private PrintStream out;
 
 	private Status status;
-	private String id = "";
 	private static Logger logger = Logger.getLogger( CCUCMNotifier.class.getName() );
 	private String jobName = "";
 	private Integer jobNumber = 0;
@@ -85,7 +84,6 @@ public class CCUCMNotifier extends Notifier {
 		/* Prepare job variables */
 		jobName = build.getParent().getDisplayName().replace( ' ', '_' );
 		jobNumber = build.getNumber();
-		this.id = "[" + jobName + "::" + jobNumber + "]";
 
 		SCM scmTemp = build.getProject().getScm();
 		if( !( scmTemp instanceof CCUCMScm ) ) {
@@ -301,7 +299,7 @@ public class CCUCMNotifier extends Notifier {
 
 		/* Remote post build step, common to all types */
 		try {
-            logger.fine( String.format( "%sRemote post build step", id ) );
+            logger.fine( String.format( "Remote post build step" ) );
             out.println( String.format( "%s Performing common post build steps",logShortPrefix ) );
 			status = currentWorkspace.act( new RemotePostBuild( buildResult, status, listener, pstate.doMakeTag(), pstate.doRecommend(), pstate.getUnstable(), ( pstate.getPromotionLevel() == null ? true : false ), sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) ) );
 		} catch( Exception e ) {
@@ -317,9 +315,9 @@ public class CCUCMNotifier extends Notifier {
 		if( status.getPromotedLevel() != null ) {
             logger.fine("Baseline promotion level was changed on the remote: promotedLevel != null");    
 			try {
-                logger.fine( String.format( "%sBaselines promotion planned to be set to %s", id, status.getPromotedLevel().toString() ) );    
+                logger.fine( String.format( "Baselines promotion planned to be set to %s", status.getPromotedLevel().toString() ) );
 				pstate.getBaseline().setPromotionLevel( status.getPromotedLevel() );
-                logger.fine( String.format( "%sBaselines promotion level updates to %s", id, status.getPromotedLevel().toString() ) );                
+                logger.fine( String.format( "Baselines promotion level updates to %s", status.getPromotedLevel().toString() ) );
 			} catch( UnableToPromoteBaselineException e ) {
                 logger.warning( "===UnableToPromoteBaseline===" );
                 logger.warning( String.format( "Unable to set promotion level of baseline %s to %s",e.getEntity() != null ? e.getEntity().getFullyQualifiedName() : "null", e.getPromotionLevel() ) );

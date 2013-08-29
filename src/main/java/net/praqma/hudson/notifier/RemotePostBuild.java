@@ -38,7 +38,6 @@ class RemotePostBuild implements FileCallable<Status> {
 	private boolean recommend = false;
 	private Status status;
 	private BuildListener listener;
-	private String id = "";
 	private PrintStream hudsonOut = null;
 	private Unstable unstable;
 
@@ -53,8 +52,6 @@ class RemotePostBuild implements FileCallable<Status> {
 
 		this.displayName = displayName;
 		this.buildNumber = buildNumber;
-
-		this.id = "[" + displayName + "::" + buildNumber + "]";
 
 		this.sourcebaseline = sourcebaseline;
 		this.targetbaseline = targetbaseline;
@@ -151,7 +148,7 @@ class RemotePostBuild implements FileCallable<Status> {
 						status.setStable( false );
 						status.setRecommended( false );
 						hudsonOut.println( CCUCMNotifier.logShortPrefix +" Could not recommend Baseline " + targetbaseline.getShortname() + ": " + e.getMessage() );
-						logger.warning( id + "Could not recommend baseline: " + e.getMessage() );
+						logger.warning( "Could not recommend baseline: " + e.getMessage() );
 					}
 				}
 			} catch( Exception e ) {
@@ -163,14 +160,14 @@ class RemotePostBuild implements FileCallable<Status> {
 				if( recommend ) {
 					status.setRecommended( false );
 					hudsonOut.println( CCUCMNotifier.logShortPrefix +" Could not promote baseline " + sourcebaseline.getShortname() + " and will not recommend " + targetbaseline.getShortname() + ". " + e.getMessage() );
-					logger.warning( id + "Could not promote baseline and will not recommend. " + e.getMessage() );
+					logger.warning( "Could not promote baseline and will not recommend. " + e.getMessage() );
 				} else {
 					/*
 					 * As we will not recommend if we cannot promote, it's ok to
 					 * break method here
 					 */
 					hudsonOut.println( CCUCMNotifier.logShortPrefix+" Could not promote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
-					logger.warning( id + "Could not promote baseline. " + e.getMessage() );
+					logger.warning( "Could not promote baseline. " + e.getMessage() );
 				}
 			}
 
@@ -190,7 +187,7 @@ class RemotePostBuild implements FileCallable<Status> {
                         printPostedOutput( sourcebaseline );
                         noticeString = "*";
                     } else {
-                        logger.warning( id + "Demoting baseline" );
+                        logger.warning( "Demoting baseline" );
                         Project.PromotionLevel pl = sourcebaseline.demote();
                         status.setPromotedLevel( pl );
                         hudsonOut.println( CCUCMNotifier.logShortPrefix + " Baseline " + sourcebaseline.getShortname() + " is " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
@@ -200,7 +197,7 @@ class RemotePostBuild implements FileCallable<Status> {
                     // throw new NotifierException(
                     // "Could not demote baseline. " + e.getMessage() );
                     hudsonOut.println( CCUCMNotifier.logShortPrefix +" Could not demote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
-                    logger.warning( id + "Could not demote baseline. " + e.getMessage() );
+                    logger.warning( "Could not demote baseline. " + e.getMessage() );
                 }
             } else {
                 status.setPromotedLevel( sourcebaseline.getPromotionLevel( false ) );
@@ -232,7 +229,7 @@ class RemotePostBuild implements FileCallable<Status> {
 					}
 				}
 			} else {
-				logger.warning( id + "Tag object was null" );
+				logger.warning( "Tag object was null" );
 				hudsonOut.println( CCUCMNotifier.logShortPrefix + " Tag object was null, tag not set." );
 			}
 		}
@@ -248,7 +245,7 @@ class RemotePostBuild implements FileCallable<Status> {
 			throw new IOException( failBuild );
 		}		
 		
-		logger.info( id + "Remote post build finished normally" );
+		logger.info( "Remote post build finished normally" );
 		return status;
 	}
 
