@@ -154,7 +154,6 @@ public class CCUCMScm extends SCM {
 		out.println( "[" + Config.nameShort + "] ClearCase UCM Plugin version " + version );
 		out.println( "[" + Config.nameShort + "] Allow for slave polling: " + this.getSlavePolling() );
 		out.println( "[" + Config.nameShort + "] Poll for posted deliveries: " + this.getMultisitePolling() );
-		out.println( "[" + Config.nameShort + "] Forcing deliver: " + forceDeliver );
 
 		logger.info( "ClearCase UCM plugin v. " + version );
 		
@@ -420,7 +419,7 @@ public class CCUCMScm extends SCM {
             }
         }
         
-        /* Find the Baselines and store them */
+        /* Find the Baselines and store them, none of the methods returns null! At least an empty list */
         /* Old skool self polling */
         if( polling.isPollingSelf() ) {
             baselines = getValidBaselinesFromStream( workspace, plevel, action.getStream(), action.getComponent(), date );
@@ -435,10 +434,6 @@ public class CCUCMScm extends SCM {
 
         //action.setBaselines( baselines );
         action.setBaseline( selectBaseline( baselines, plevel ) );
-
-        if( baselines == null || baselines.size() < 1 ) {
-            throw new CCUCMException( "Unable to get Baselines" );
-        }
 
         /* Print the baselines to jenkins out */
         printBaselines( baselines, out );
@@ -671,12 +666,7 @@ public class CCUCMScm extends SCM {
 
     /**
      * Get the {@link Baseline}s from a {@link Stream}s related Streams.
-     * @param workspace
-     * @param listener
-     * @param consoleOutput
-     * @param stream
-     * @param component
-     * @param pollingChildStreams
+     *
      * @return A list of {@link Baseline}'s
      */
 	private List<Baseline> getBaselinesFromStreams( FilePath workspace, TaskListener listener, PrintStream consoleOutput, Stream stream, Component component, boolean pollingChildStreams, Date date ) {
@@ -729,19 +719,7 @@ public class CCUCMScm extends SCM {
      */
 	private List<Baseline> getValidBaselinesFromStream( FilePath workspace, Project.PromotionLevel plevel, Stream stream, Component component, Date date ) throws IOException, InterruptedException {
 		logger.fine( "Retrieving valid baselines." );
-
-		/* The baseline list */
-		List<Baseline> baselines = new ArrayList<Baseline>();
-        
-        /**
-         * When polling for self. (The other polling options uses different RemoteUtil methods) Passing in 'true' for multisite polling is not a good idea! Set this to false. 
-         * 
-         * TODO:Needs to be reviewed by chw and les. Remove upon release.
-         */
-
-		baselines = RemoteUtil.getRemoteBaselinesFromStream( workspace, component, stream, plevel, this.getSlavePolling(), this.getMultisitePolling(), date );
-
-		return baselines;
+		return RemoteUtil.getRemoteBaselinesFromStream( workspace, component, stream, plevel, this.getSlavePolling(), this.getMultisitePolling(), date );
 	}
 
     /**

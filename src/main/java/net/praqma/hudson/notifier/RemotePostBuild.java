@@ -7,6 +7,7 @@ import hudson.remoting.VirtualChannel;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.exceptions.TagException;
@@ -121,7 +122,7 @@ class RemotePostBuild implements FileCallable<Status> {
                         Project.PromotionLevel pl;
                         if( !status.isStable() && !unstable.treatSuccessful() ) {
                             /* Treat the not stable build as unsuccessful */
-                            pl = sourcebaseline.demote();
+                            pl = sourcebaseline.reject();
                             hudsonOut.println( CCUCMNotifier.logShortPrefix + " Baseline " + sourcebaseline.getShortname() + " is " + pl.toString() + "." );
                         } else {
                             /* Treat the build as successful */
@@ -180,24 +181,22 @@ class RemotePostBuild implements FileCallable<Status> {
 				tag.setEntry( "buildstatus", "FAILURE" );
 			}
 
-            /* Demote baseline, not any */
+            /* Reject baseline, not any */
             if( !any ) {
                 try {
                     if( hasRemoteMastership() ) {
                         printPostedOutput( sourcebaseline );
                         noticeString = "*";
                     } else {
-                        logger.warning( "Demoting baseline" );
-                        Project.PromotionLevel pl = sourcebaseline.demote();
+                        logger.warning( "Rejecting baseline" );
+                        Project.PromotionLevel pl = sourcebaseline.reject();
                         status.setPromotedLevel( pl );
                         hudsonOut.println( CCUCMNotifier.logShortPrefix + " Baseline " + sourcebaseline.getShortname() + " is " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
                     }
                 } catch( Exception e ) {
                     status.setStable( false );
-                    // throw new NotifierException(
-                    // "Could not demote baseline. " + e.getMessage() );
-                    hudsonOut.println( CCUCMNotifier.logShortPrefix +" Could not demote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
-                    logger.warning( "Could not demote baseline. " + e.getMessage() );
+                    hudsonOut.println( CCUCMNotifier.logShortPrefix +" Could not reject baseline " + sourcebaseline.getShortname() );
+                    logger.log( Level.WARNING, "Could not reject baseline", e );
                 }
             } else {
                 status.setPromotedLevel( sourcebaseline.getPromotionLevel( false ) );
