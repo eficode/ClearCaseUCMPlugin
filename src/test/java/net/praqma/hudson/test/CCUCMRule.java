@@ -156,7 +156,7 @@ public class CCUCMRule extends JenkinsRule {
             System.out.println( " * Template       : " + template );
             System.out.println( " * Force deliver  : " + forceDeliver );
             System.out.println( " * Swipe          : " + swipe );
-            System.out.println( " * Trim          : " + trim );
+            System.out.println( " * Trim           : " + trim );
             System.out.println( "============================================" );
 
             Project project = (Project) Hudson.getInstance().createProject( projectClass, name );
