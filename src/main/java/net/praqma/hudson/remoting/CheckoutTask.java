@@ -123,6 +123,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
                 * Currently, the Baseline is found regardless of promotion level. */
                 BaselineList previous = new BaselineList( targetStream, bl.getComponent(), null ).addFilter( new BeforeBaseline( bl ) ).setLimit( 1 ).apply();
                 if( previous.size() > 0 ) {
+                    hudsonOut.println( "[" + Config.nameShort + "] Comparing " + bl.getNormalizedName() + " and " + previous.get( 0 ).getNormalizedName() );
                     bldiff = Version.getBaselineDiff( bl, previous.get( 0 ), true, sv.getViewRoot() );
                 } else {
                     bldiff = Collections.emptyList();
