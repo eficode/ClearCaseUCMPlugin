@@ -33,7 +33,8 @@ import net.praqma.hudson.scm.ClearCaseChangeset;
 /**
  * 
  * @author wolfgang
- * 
+ *
+ * @deprecated since 1.4.0
  */
 public class RemoteDeliver implements FileCallable<EstablishResult> {
 

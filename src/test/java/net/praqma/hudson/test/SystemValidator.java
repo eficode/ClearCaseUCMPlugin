@@ -9,17 +9,9 @@ import java.util.logging.Logger;
 
 import hudson.FilePath;
 import net.praqma.clearcase.ucm.entities.Activity;
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.core.IsNot;
-import org.hamcrest.core.IsNull;
+import net.praqma.hudson.Util;
 
 import net.praqma.clearcase.exceptions.ClearCaseException;
-import net.praqma.clearcase.exceptions.TagException;
-import net.praqma.clearcase.exceptions.UCMEntityNotFoundException;
-import net.praqma.clearcase.exceptions.UnableToCreateEntityException;
-import net.praqma.clearcase.exceptions.UnableToGetEntityException;
-import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
-import net.praqma.clearcase.exceptions.UnableToLoadEntityException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Tag;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
@@ -27,6 +19,7 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.hudson.CCUCMBuildAction;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
+import net.praqma.hudson.scm.ChangeLogSetImpl;
 
 import static org.junit.Assert.*;
 
@@ -67,6 +60,12 @@ public class SystemValidator {
 			System.out.println( "[Validating built baseline]" );
 			checkBuiltBaseline();
 		}
+
+        /* Build view */
+        if( validateView ) {
+            System.out.println( "[Validating build view]" );
+            doValidateBuildView();
+        }
 		
 		/* Check tagged baseline */
 		if( checkTagOnBuiltBaseline ) {
@@ -90,6 +89,11 @@ public class SystemValidator {
             }
         }
 
+        if( checkChangeset ) {
+            logger.info( "[Validating changeset]" );
+            doCheckChangeset();
+        }
+
         if( activities.size() > 0 ) {
             System.out.println( "[Validating changeset]" );
             doCheckActivities();
@@ -99,6 +103,23 @@ public class SystemValidator {
 		
 		return this;
 	}
+
+    /* Validate build view */
+    private boolean validateView = false;
+
+    public SystemValidator validateBuildView() {
+        validateView = true;
+
+        return this;
+    }
+
+    private void doValidateBuildView() {
+        CCUCMBuildAction action = getBuildAction();
+        Stream stream = action.getStream();
+        String viewTag = Util.createViewTag( build.getParent().getDisplayName(), stream );
+        System.out.println( "[assert] The view tag must be " + viewTag );
+        assertThat( action.getViewTag(), is( viewTag ) );
+    }
 	
 	/* Validate build */
 	private boolean checkBuild = false;
@@ -309,6 +330,29 @@ public class SystemValidator {
         for( Activity a : activities ) {
             logger.fine( "The changeset must have " + a.getNormalizedName() );
             assertTrue( action.getActivities().contains( a ) );
+        }
+    }
+
+    private boolean checkChangeset = false;
+    private int numberOfChanges = 0;
+
+    public SystemValidator checkChangeset( int numberOfChanges ) {
+        this.checkChangeset = true;
+        this.numberOfChanges = numberOfChanges;
+
+        return this;
+    }
+
+    private void doCheckChangeset() {
+        System.out.println( "[assert] The number of changesets must be " + numberOfChanges );
+
+        try {
+            ChangeLogSetImpl cls = (ChangeLogSetImpl) build.getChangeSet();
+            assertThat( cls.getEntries().size(), is( numberOfChanges ) );
+        } catch( ClassCastException e ) {
+            if( numberOfChanges > 0 ) {
+                fail( "The number of changes is zero!" );
+            }
         }
     }
 	

@@ -148,11 +148,11 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 		
 		return er;
 	}
-	
+
 	private String makeViewtag() {
 		String newJobName = jobname.replaceAll("\\s", "_");
 		String viewtag = "CCUCM_" + newJobName + "_" + System.getenv("COMPUTERNAME");
-		
+
 		return viewtag;
 	}
 
