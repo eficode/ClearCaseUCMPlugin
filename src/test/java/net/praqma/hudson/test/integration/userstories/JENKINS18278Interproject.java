@@ -31,7 +31,7 @@ public class JENKINS18278Interproject extends JENKINS18278Base {
     @Rule
     public static ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-18278", "setup-interproject-basic.xml" );
 
-    @Test
+    //@Test
     @ClearCaseUniqueVobName( name = "interproject" )
     @TestDescription( title = "JENKINS-18278", text = "When the foundation of a Stream has changed, the change set is miscalculated, because -pred selects the foundation baseline of the other Stream - interproject" )
     public void jenkins18278() throws Exception {

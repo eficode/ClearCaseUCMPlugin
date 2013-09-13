@@ -89,7 +89,7 @@ public class JENKINS18278 extends BaseTestClass {
         new SystemValidator( build2 ).validateBuild( Result.SUCCESS ).addActivitiesToCheck( activities ).validate();
     }
 
-    //@Test
+    @Test
     @ClearCaseUniqueVobName( name = "trimmed" )
     @TestDescription( title = "JENKINS-18278", text = "When the foundation of a Stream has changed, the change set is miscalculated, because -pred selects the foundation baseline of the other Stream AND trim changeset is enabled" )
     public void jenkins18278Trimmed() throws Exception {
