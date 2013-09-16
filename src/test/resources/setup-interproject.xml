@@ -7,7 +7,7 @@
 
 	  <project name="two" comment="" pvob="${pvobname}" in="one_folder">
 	    <components>
-	      <component name="Service" ponevob="${pvobname}" />
+	      <component name="Service" pvob="${pvobname}" />
 	      <component name="Model" pvob="${pvobname}" />
 	      <component name="Clientapp" pvob="${pvobname}" />
 	    </components>
