@@ -11,7 +11,7 @@
         <powermock.version>1.4.12</powermock.version>
     </properties>
 
-    <groupId>net.praqma</groupId>
+    <!--<groupId>net.praqma</groupId>-->
     <artifactId>clearcase-ucm-plugin</artifactId>
     <version>1.4.1-SNAPSHOT</version>
     <name>ClearCase UCM Plugin!</name>
