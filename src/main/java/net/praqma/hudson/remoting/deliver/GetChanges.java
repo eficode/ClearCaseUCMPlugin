@@ -43,10 +43,14 @@ public class GetChanges implements FilePath.FileCallable<List<Activity>> {
     public List<Activity> invoke( File workspace, VirtualChannel channel ) throws IOException, InterruptedException {
 
         logger = Logger.getLogger( GetChanges.class.getName() );
-        logger.fine( "Get changeset " );
+        logger.fine( "Get changeset" );
 
         try {
-            return Version.getBaselineDiff( destinationStream, baseline, true, new File( viewPath ) );
+            List<Activity> activities = Version.getBaselineDiff( destinationStream, baseline, true, new File( viewPath ) );
+            for( Activity activity : activities ) {
+                activity.load();
+            }
+            return activities;
         } catch( Exception e ) {
             throw new IOException( "Error while retrieving changes", e );
         }

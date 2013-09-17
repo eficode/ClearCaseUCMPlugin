@@ -36,14 +36,22 @@ public class JENKINS19558 extends BaseTestClass {
         CCUCMBuildAction action1 = build1.getAction( CCUCMBuildAction.class );
         action1.getViewPath();
 
-
         Stream target = ccenv.context.streams.get( "one_int" );
         Stream source = ccenv.context.streams.get( "one_dev" );
+
+        System.out.println( "SOURCE: " + source );
+        System.out.println( "TARGET: " + target );
+        System.out.println( "PATH: " + action1.getViewPath() );
+        System.out.println( "TAG: " + action1.getViewTag() );
         Deliver deliver = new Deliver( source, target, action1.getViewPath(), action1.getViewTag() );
-        deliver.deliver( true, false, false, false );
+        boolean b = deliver.deliver( true, false, false, false );
+        System.out.println( "DELIVER: " + b );
 
 
         AbstractBuild build2 = jenkins.getProjectBuilder( project ).build();
+
+        System.out.println( "1CHANGE LOG: " + build2.getChangeSet() );
+        System.out.println( "1CHANGE LOG: " + build2.getChangeSet().getClass() );
 
         new SystemValidator( build2 ).
                 validateBuild( Result.FAILURE ).

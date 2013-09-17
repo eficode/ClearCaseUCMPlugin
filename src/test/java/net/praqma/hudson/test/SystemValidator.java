@@ -347,7 +347,10 @@ public class SystemValidator {
         System.out.println( "[assert] The number of changesets must be " + numberOfChanges );
 
         try {
+            System.out.println( "CHANGE LOG: " + build.getChangeSet() );
+            System.out.println( "CHANGE LOG: " + build.getChangeSet().getClass() );
             ChangeLogSetImpl cls = (ChangeLogSetImpl) build.getChangeSet();
+
             assertThat( cls.getEntries().size(), is( numberOfChanges ) );
         } catch( ClassCastException e ) {
             if( numberOfChanges > 0 ) {

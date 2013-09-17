@@ -442,46 +442,42 @@ public class CCUCMScm extends SCM {
         out.println( "" );
 	}
 
-	public boolean beginDeliver( AbstractBuild<?, ?> build, CCUCMBuildAction state, BuildListener listener, File changelogFile ) {
+	public boolean beginDeliver( AbstractBuild<?, ?> build, CCUCMBuildAction state, BuildListener listener, File changelogFile ) throws IOException, InterruptedException {
 		FilePath workspace = build.getWorkspace();
 		PrintStream consoleOutput = listener.getLogger();
 		boolean result = true;
 
-		try {
-			logger.config( "Starting remote deliver" );
+        logger.config( "Starting remote deliver" );
+        CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
 
-            CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
+        logger.fine( "Creating deliver view" );
+        MakeDeliverView mdv = new MakeDeliverView( listener, build.getParent().getDisplayName(), loadModule, state.getStream() );
+        SnapshotView view = workspace.act( mdv );
+        action.setViewPath( view.getViewRoot() );
+        action.setViewTag( view.getViewtag() );
+        this.viewtag = view.getViewtag();
 
-            /* Create the deliver view */
-            logger.fine( "Creating deliver view" );
-            MakeDeliverView mdv = new MakeDeliverView( listener, build.getParent().getDisplayName(), loadModule, state.getStream() );
-            SnapshotView view = workspace.act( mdv );
-            action.setViewPath( view.getViewRoot() );
-            action.setViewTag( view.getViewtag() );
-            this.viewtag = view.getViewtag();
+        logger.fine( "Getting changes" );
+        GetChanges gc = new GetChanges( listener, state.getStream(), state.getBaseline(), view.getPath() );
+        List<Activity> activities = workspace.act( gc );
 
-            /* Get changes */
-            logger.fine( "Getting changes" );
-            GetChanges gc = new GetChanges( listener, state.getStream(), state.getBaseline(), view.getPath() );
-            List<Activity> activities = workspace.act( gc );
+        /* ... And create the changelog */
+        String changelog = "";
+        changelog = Util.createChangelog( activities, action.getBaseline(), trimmedChangeSet );
+        //logger.fine( changelog );
+        action.setActivities( activities );
 
-            /* ... And create the changelog */
-            String changelog = "";
-            changelog = Util.createChangelog( activities, action.getBaseline(), trimmedChangeSet );
-            //logger.fine( changelog );
-            action.setActivities( activities );
+        /* Write change log */
+        try {
+            FileOutputStream fos = new FileOutputStream( changelogFile );
+            fos.write( changelog.getBytes() );
+            fos.close();
+        } catch( IOException e ) {
+            logger.fine( "Could not write change log file" );
+            consoleOutput.println( "[" + Config.nameShort + "] Could not write change log file" );
+        }
 
-			/* Write change log */
-            try {
-                FileOutputStream fos = new FileOutputStream( changelogFile );
-                fos.write( changelog.getBytes() );
-                fos.close();
-            } catch( IOException e ) {
-                logger.fine( "Could not write change log file" );
-                consoleOutput.println( "[" + Config.nameShort + "] Could not write change log file" );
-            }
-
-            /* Starting deliver */
+        try {
             logger.fine( "Starting deliver" );
             StartDeliver sd = new StartDeliver( listener, state.getStream(), state.getBaseline(), view, loadModule, state.doForceDeliver(), state.doRemoveViewPrivateFiles() );
             workspace.act( sd );
@@ -569,7 +565,7 @@ public class CCUCMScm extends SCM {
 		String CC_BASELINE = "";
 		String CC_VIEWPATH = "";
 		String CC_VIEWTAG  = "";
-		
+
 		try {
 			
 			CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
