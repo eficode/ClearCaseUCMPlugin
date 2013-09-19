@@ -42,7 +42,7 @@ public class FileTemplate extends Template {
                 path  = new FilePath(new FilePath(f), filename);
                 String readFile = path.readToString().trim();
                 logger.fine(String.format("[FileTemplate] This file was read on the slave: %s", readFile));
-                return readFile; 
+                return readFile;
            } catch (IOException ex) {
                 logger.fine(String.format("[FileTemplate] Using this file on remote: %s",path.absolutize().getRemote()));
                 logger.fine(String.format("[FileTemplate] Invoke caught exception with message %s", ex.getMessage()));
