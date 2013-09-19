@@ -25,10 +25,9 @@ import java.util.logging.Logger;
 import net.praqma.clearcase.exceptions.DeliverException;
 import net.praqma.clearcase.exceptions.DeliverException.Type;
 import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
-import net.praqma.clearcase.ucm.entities.Baseline;
-import net.praqma.clearcase.ucm.entities.Component;
+import net.praqma.clearcase.ucm.entities.*;
 import net.praqma.clearcase.ucm.entities.Project;
-import net.praqma.clearcase.ucm.entities.Stream;
+import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.Util;
@@ -38,6 +37,9 @@ import net.praqma.hudson.exception.TemplateException;
 import net.praqma.hudson.nametemplates.NameTemplate;
 import net.praqma.hudson.notifier.CCUCMNotifier;
 import net.praqma.hudson.remoting.*;
+import net.praqma.hudson.remoting.deliver.GetChanges;
+import net.praqma.hudson.remoting.deliver.MakeDeliverView;
+import net.praqma.hudson.remoting.deliver.StartDeliver;
 import net.praqma.hudson.scm.Polling.PollingType;
 import net.praqma.util.execute.AbnormalProcessTerminationException;
 import net.sf.json.JSONException;
@@ -440,39 +442,45 @@ public class CCUCMScm extends SCM {
         out.println( "" );
 	}
 
-	public boolean beginDeliver( AbstractBuild<?, ?> build, CCUCMBuildAction state, BuildListener listener, File changelogFile ) {
+	public boolean beginDeliver( AbstractBuild<?, ?> build, CCUCMBuildAction state, BuildListener listener, File changelogFile ) throws IOException, InterruptedException {
 		FilePath workspace = build.getWorkspace();
 		PrintStream consoleOutput = listener.getLogger();
 		boolean result = true;
 
-		EstablishResult er = new EstablishResult();
+        logger.config( "Starting remote deliver" );
+        CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
 
-		try {
-			logger.config( "Starting remote deliver" );
+        logger.fine( "Creating deliver view" );
+        MakeDeliverView mdv = new MakeDeliverView( listener, build.getParent().getDisplayName(), loadModule, state.getStream() );
+        SnapshotView view = workspace.act( mdv );
+        action.setViewPath( view.getViewRoot() );
+        action.setViewTag( view.getViewtag() );
+        this.viewtag = view.getViewtag();
 
-            RemoteDeliver rmDeliver = new RemoteDeliver( state.getStream().getFullyQualifiedName(), listener, loadModule, state.getBaseline().getFullyQualifiedName(), build.getParent().getDisplayName(), state.doForceDeliver(), state.doRemoveViewPrivateFiles() );
-            er = workspace.act( rmDeliver );
+        logger.fine( "Getting changes" );
+        GetChanges gc = new GetChanges( listener, state.getStream(), state.getBaseline(), view.getPath() );
+        List<Activity> activities = workspace.act( gc );
 
-			CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
-			action.setViewPath( er.getView().getViewRoot() );
-			action.setViewTag( er.getViewtag() );
-			
-			//state.setSnapView( er.getView() );
-			this.viewtag = er.getViewtag();
+        /* ... And create the changelog */
+        String changelog = "";
+        changelog = Util.createChangelog( activities, action.getBaseline(), trimmedChangeSet );
+        //logger.fine( changelog );
+        action.setActivities( activities );
 
-            String changelog = "";
-            changelog = Util.createChangelog( er.getActivities(), action.getBaseline(), trimmedChangeSet );
-            action.setActivities( er.getActivities() );
+        /* Write change log */
+        try {
+            FileOutputStream fos = new FileOutputStream( changelogFile );
+            fos.write( changelog.getBytes() );
+            fos.close();
+        } catch( IOException e ) {
+            logger.fine( "Could not write change log file" );
+            consoleOutput.println( "[" + Config.nameShort + "] Could not write change log file" );
+        }
 
-			/* Write change log */
-			try {
-				FileOutputStream fos = new FileOutputStream( changelogFile );
-				fos.write( changelog.getBytes() );
-				fos.close();
-			} catch( IOException e ) {
-				logger.fine( "Could not write change log file" );
-				consoleOutput.println( "[" + Config.nameShort + "] Could not write change log file" );
-			}
+        try {
+            logger.fine( "Starting deliver" );
+            StartDeliver sd = new StartDeliver( listener, state.getStream(), state.getBaseline(), view, loadModule, state.doForceDeliver(), state.doRemoveViewPrivateFiles() );
+            workspace.act( sd );
 
 			consoleOutput.println( "[" + Config.nameShort + "] Deliver successful" );
 			
@@ -557,7 +565,7 @@ public class CCUCMScm extends SCM {
 		String CC_BASELINE = "";
 		String CC_VIEWPATH = "";
 		String CC_VIEWTAG  = "";
-		
+
 		try {
 			
 			CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );

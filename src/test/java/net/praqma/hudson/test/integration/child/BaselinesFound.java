@@ -61,6 +61,7 @@ public class BaselinesFound extends BaseTestClass {
 
 		SystemValidator validator = new SystemValidator( build )
 			.validateBuild( Result.SUCCESS )
+            .validateBuildView()
 			.validateBuiltBaseline( PromotionLevel.BUILT, baseline, false )
 			.validateCreatedBaseline( true )
 			.validate();
@@ -77,6 +78,7 @@ public class BaselinesFound extends BaseTestClass {
 
 		SystemValidator validator = new SystemValidator( build )
 		.validateBuild( Result.SUCCESS )
+        .validateBuildView()
 		.validateBuiltBaseline( PromotionLevel.BUILT, baseline, false )
 		.validateCreatedBaseline( true )
 		.validate();
@@ -93,6 +95,7 @@ public class BaselinesFound extends BaseTestClass {
 
 		SystemValidator validator = new SystemValidator( build )
 		.validateBuild( Result.SUCCESS )
+        .validateBuildView()
 		.validateBuiltBaseline( PromotionLevel.BUILT, baseline, false )
 		.validateCreatedBaseline( true )
 		.validate();
@@ -111,6 +114,7 @@ public class BaselinesFound extends BaseTestClass {
 
 		SystemValidator validator = new SystemValidator( build )
 		.validateBuild( Result.SUCCESS )
+        .validateBuildView()
 		.validateBuiltBaseline( PromotionLevel.BUILT, baseline, false )
 		.validateBaselineTag( baseline, true )
 		.validateCreatedBaseline( true )

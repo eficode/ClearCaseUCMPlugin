@@ -238,4 +238,12 @@ public abstract class Util {
         out.close();
     }
 
+    public static String sanitize( String str ) {
+        /* Replace evil characters with less evil characters */
+        return str.replaceAll( "\\s", "_" );
+    }
+
+    public static String createViewTag( String str, Stream stream ) {
+        return  "CCUCM_" + sanitize( str ) + "_" + System.getenv( "COMPUTERNAME" ) + "_" + stream.getShortname();
+    }
 }
