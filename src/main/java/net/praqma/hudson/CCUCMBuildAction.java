@@ -7,6 +7,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.TaskListener;
 import net.praqma.clearcase.ucm.entities.*;
 import hudson.model.Action;
+import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.scm.Polling;
 import net.praqma.hudson.scm.Unstable;
 
@@ -83,6 +84,10 @@ public class CCUCMBuildAction implements Action {
 	private String viewTag;
     private String workspace;
 
+    /** The {@link SnapshotView} used during the build.<br/>
+     * This not persisted. */
+    private transient SnapshotView snapshotView;
+
     /*  */
     private Exception resolveBaselineException;
 
@@ -156,7 +161,15 @@ public class CCUCMBuildAction implements Action {
 		this.viewTag = viewTag;
 	}
 
-	public Stream getStream() {
+    public SnapshotView getSnapshotView() {
+        return snapshotView;
+    }
+
+    public void setSnapshotView( SnapshotView snapshotView ) {
+        this.snapshotView = snapshotView;
+    }
+
+    public Stream getStream() {
 		return stream;
 	}
 

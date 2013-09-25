@@ -248,7 +248,8 @@ public class CCUCMScm extends SCM {
 			} else {
 				/* Only start deliver when NOT polling self */
 				logger.fine( "Deliver" );
-                result = beginDeliver( build, action, listener, changelogFile );
+                SnapshotView snapshotView = initializeDeliverView( build, action, listener );
+                generateChangeLog( build, action, listener, changelogFile, snapshotView );
             }
 
 			action.setViewTag( viewtag );
@@ -269,6 +270,81 @@ public class CCUCMScm extends SCM {
 
 		return result;
 	}
+
+    @Override
+    public void postCheckout( AbstractBuild<?, ?> build, Launcher launcher, FilePath workspace, BuildListener listener ) throws IOException, InterruptedException {
+        listener.getLogger().println("WHOOOOP! Writing from post checkout: " + workspace);
+
+        CCUCMBuildAction state = build.getAction( CCUCMBuildAction.class );
+
+        PrintStream consoleOutput = listener.getLogger();
+
+        try {
+            logger.fine( "Starting deliver" );
+            StartDeliver sd = new StartDeliver( listener, state.getStream(), state.getBaseline(), state.getSnapshotView(), loadModule, state.doForceDeliver(), state.doRemoveViewPrivateFiles() );
+            workspace.act( sd );
+
+            consoleOutput.println( "[" + Config.nameShort + "] Deliver successful" );
+
+		/* Deliver failed */
+        } catch( Exception e ) {
+            consoleOutput.println( "[" + Config.nameShort + "] Deliver failed" );
+
+			/* Check for exception types */
+            Exception cause = (Exception) net.praqma.util.ExceptionUtils.unpackFrom( IOException.class, e );
+
+            consoleOutput.println( "[" + Config.nameShort + "] Cause: " + cause.getClass() );
+
+			/* Re-throw */
+            try {
+                logger.log( Level.WARNING, "", cause );
+                throw cause;
+            } catch( DeliverException de ) {
+
+                consoleOutput.println( "[" + Config.nameShort + "] " + de.getType() );
+
+				/* We need to store this information anyway */
+                state.setViewPath( de.getDeliver().getViewContext() );
+                state.setViewTag( de.getDeliver().getViewtag() );
+
+				/* The deliver is started, cancel it */
+                if( de.isStarted() ) {
+                    try {
+                        consoleOutput.print( "[" + Config.nameShort + "] Cancelling deliver. " );
+                        RemoteUtil.completeRemoteDeliver( workspace, listener, state.getBaseline(), state.getStream(), de.getDeliver().getViewtag(), de.getDeliver().getViewContext(), false );
+                        consoleOutput.println( "Success" );
+
+						/* Make sure, that the post step is not run */
+                        state.setNeedsToBeCompleted( false );
+
+                    } catch( Exception ex ) {
+                        consoleOutput.println( "[" + Config.nameShort + "] Failed to cancel deliver" );
+                        consoleOutput.println( ExceptionUtils.getFullStackTrace( e ) );
+                        logger.warning( ExceptionUtils.getFullStackTrace( e ) );
+                    }
+                } else {
+                    logger.fine( "No need for completing deliver" );
+                    state.setNeedsToBeCompleted( false );
+                }
+
+				/* Write something useful to the output */
+                if( de.getType().equals( Type.MERGE_ERROR ) ) {
+                    consoleOutput.println( "[" + Config.nameShort + "] Changes need to be manually merged, The stream " + state.getBaseline().getStream().getShortname() + " must be rebased to the most recent baseline on " + state.getStream().getShortname() + " - During the rebase the merge conflict should be solved manually. Hereafter create a new baseline on " + state.getBaseline().getStream().getShortname() + "." );
+                    state.setError( "merge error" );
+                }
+
+			/* Force deliver not cancelled */
+            } catch( DeliverNotCancelledException e1 ) {
+                consoleOutput.println( "[" + Config.nameShort + "] Failed to force cancel existing deliver" );
+                state.setNeedsToBeCompleted( false );
+            } catch( Exception e1 ) {
+                logger.log( Level.WARNING, "", e );
+                e.printStackTrace( consoleOutput );
+            }
+
+            throw new AbortException( "Unable to start deliver" );
+        }
+    }
 
     public void ensurePublisher( AbstractBuild build ) throws IOException {
         Describable describable = build.getProject().getPublishersList().get( CCUCMNotifier.class );
@@ -442,30 +518,39 @@ public class CCUCMScm extends SCM {
         out.println( "" );
 	}
 
-	public boolean beginDeliver( AbstractBuild<?, ?> build, CCUCMBuildAction state, BuildListener listener, File changelogFile ) throws IOException, InterruptedException {
+    /**
+     * Initialize the deliver view
+     */
+	public SnapshotView initializeDeliverView( AbstractBuild<?, ?> build, CCUCMBuildAction state, BuildListener listener ) throws IOException, InterruptedException {
 		FilePath workspace = build.getWorkspace();
 		PrintStream consoleOutput = listener.getLogger();
-		boolean result = true;
 
-        logger.config( "Starting remote deliver" );
-        CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
-
-        logger.fine( "Creating deliver view" );
+        logger.fine( "Initializing deliver view" );
         MakeDeliverView mdv = new MakeDeliverView( listener, build.getParent().getDisplayName(), loadModule, state.getStream() );
         SnapshotView view = workspace.act( mdv );
-        action.setViewPath( view.getViewRoot() );
-        action.setViewTag( view.getViewtag() );
+        state.setViewPath( view.getViewRoot() );
+        state.setViewTag( view.getViewtag() );
+        state.setSnapshotView( view );
         this.viewtag = view.getViewtag();
 
-        logger.fine( "Getting changes" );
-        GetChanges gc = new GetChanges( listener, state.getStream(), state.getBaseline(), view.getPath() );
+        return view;
+	}
+
+    /**
+     * Generate the change log for poll/sibling mode
+     */
+    public void generateChangeLog( AbstractBuild<?, ?> build, CCUCMBuildAction state, BuildListener listener, File changelogFile, SnapshotView snapshotView ) throws IOException, InterruptedException {
+        FilePath workspace = build.getWorkspace();
+        PrintStream consoleOutput = listener.getLogger();
+
+        logger.fine( "Generating change log" );
+
+        GetChanges gc = new GetChanges( listener, state.getStream(), state.getBaseline(), snapshotView.getPath() );
         List<Activity> activities = workspace.act( gc );
 
-        /* ... And create the changelog */
         String changelog = "";
-        changelog = Util.createChangelog( activities, action.getBaseline(), trimmedChangeSet );
-        //logger.fine( changelog );
-        action.setActivities( activities );
+        changelog = Util.createChangelog( activities, state.getBaseline(), trimmedChangeSet );
+        state.setActivities( activities );
 
         /* Write change log */
         try {
@@ -476,76 +561,9 @@ public class CCUCMScm extends SCM {
             logger.fine( "Could not write change log file" );
             consoleOutput.println( "[" + Config.nameShort + "] Could not write change log file" );
         }
+    }
 
-        try {
-            logger.fine( "Starting deliver" );
-            StartDeliver sd = new StartDeliver( listener, state.getStream(), state.getBaseline(), view, loadModule, state.doForceDeliver(), state.doRemoveViewPrivateFiles() );
-            workspace.act( sd );
-
-			consoleOutput.println( "[" + Config.nameShort + "] Deliver successful" );
-			
-		/* Deliver failed */
-		} catch( Exception e ) {
-			consoleOutput.println( "[" + Config.nameShort + "] Deliver failed" );
-			result = false;
-			
-			/* Check for exception types */
-			Exception cause = (Exception) net.praqma.util.ExceptionUtils.unpackFrom( IOException.class, e );
-			
-			consoleOutput.println( "[" + Config.nameShort + "] Cause: " + cause.getClass() );
-			
-			/* Re-throw */
-			try {
-                logger.log( Level.WARNING, "", cause );
-				throw cause;
-			} catch( DeliverException de ) {
-
-				consoleOutput.println( "[" + Config.nameShort + "] " + de.getType() );
-				
-				/* We need to store this information anyway */
-				state.setViewPath( de.getDeliver().getViewContext() );
-				state.setViewTag( de.getDeliver().getViewtag() );
-				
-				/* The deliver is started, cancel it */
-				if( de.isStarted() ) {
-					try {
-						consoleOutput.print( "[" + Config.nameShort + "] Cancelling deliver. " );
-						RemoteUtil.completeRemoteDeliver( workspace, listener, state.getBaseline(), state.getStream(), de.getDeliver().getViewtag(), de.getDeliver().getViewContext(), false );
-						consoleOutput.println( "Success" );
-
-						/* Make sure, that the post step is not run */
-						state.setNeedsToBeCompleted( false );
-
-					} catch( Exception ex ) {
-						consoleOutput.println( "[" + Config.nameShort + "] Failed to cancel deliver" );
-						consoleOutput.println( ExceptionUtils.getFullStackTrace( e ) );
-                        logger.warning( ExceptionUtils.getFullStackTrace( e ) );
-					}
-				} else {
-					logger.fine( "No need for completing deliver" );
-					state.setNeedsToBeCompleted( false );
-				}
-				
-				/* Write something useful to the output */
-				if( de.getType().equals( Type.MERGE_ERROR ) ) {
-					consoleOutput.println( "[" + Config.nameShort + "] Changes need to be manually merged, The stream " + state.getBaseline().getStream().getShortname() + " must be rebased to the most recent baseline on " + state.getStream().getShortname() + " - During the rebase the merge conflict should be solved manually. Hereafter create a new baseline on " + state.getBaseline().getStream().getShortname() + "." );
-                    state.setError( "merge error" );
-				}
-				
-			/* Force deliver not cancelled */
-			} catch( DeliverNotCancelledException e1 ) {
-				consoleOutput.println( "[" + Config.nameShort + "] Failed to force cancel existing deliver" );
-				state.setNeedsToBeCompleted( false );
-			} catch( Exception e1 ) {
-                logger.log( Level.WARNING, "", e );
-				e.printStackTrace( consoleOutput );
-			}
-		}
-
-        return result;
-	}
-
-	@Override
+    @Override
 	public ChangeLogParser createChangeLogParser() {
 		return new ChangeLogParserImpl();
 	}
