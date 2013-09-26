@@ -273,76 +273,79 @@ public class CCUCMScm extends SCM {
 
     @Override
     public void postCheckout( AbstractBuild<?, ?> build, Launcher launcher, FilePath workspace, BuildListener listener ) throws IOException, InterruptedException {
-        listener.getLogger().println("WHOOOOP! Writing from post checkout: " + workspace);
 
-        CCUCMBuildAction state = build.getAction( CCUCMBuildAction.class );
+        /* This is really only interesting if child or sibling polling */
+        if( polling.isPollingOther() ) {
 
-        PrintStream consoleOutput = listener.getLogger();
+            CCUCMBuildAction state = build.getAction( CCUCMBuildAction.class );
 
-        try {
-            logger.fine( "Starting deliver" );
-            StartDeliver sd = new StartDeliver( listener, state.getStream(), state.getBaseline(), state.getSnapshotView(), loadModule, state.doForceDeliver(), state.doRemoveViewPrivateFiles() );
-            workspace.act( sd );
+            PrintStream consoleOutput = listener.getLogger();
 
-            consoleOutput.println( "[" + Config.nameShort + "] Deliver successful" );
-
-		/* Deliver failed */
-        } catch( Exception e ) {
-            consoleOutput.println( "[" + Config.nameShort + "] Deliver failed" );
-
-			/* Check for exception types */
-            Exception cause = (Exception) net.praqma.util.ExceptionUtils.unpackFrom( IOException.class, e );
-
-            consoleOutput.println( "[" + Config.nameShort + "] Cause: " + cause.getClass() );
-
-			/* Re-throw */
             try {
-                logger.log( Level.WARNING, "", cause );
-                throw cause;
-            } catch( DeliverException de ) {
+                logger.fine( "Starting deliver" );
+                StartDeliver sd = new StartDeliver( listener, state.getStream(), state.getBaseline(), state.getSnapshotView(), loadModule, state.doForceDeliver(), state.doRemoveViewPrivateFiles() );
+                workspace.act( sd );
 
-                consoleOutput.println( "[" + Config.nameShort + "] " + de.getType() );
+                consoleOutput.println( "[" + Config.nameShort + "] Deliver successful" );
 
-				/* We need to store this information anyway */
-                state.setViewPath( de.getDeliver().getViewContext() );
-                state.setViewTag( de.getDeliver().getViewtag() );
+            /* Deliver failed */
+            } catch( Exception e ) {
+                consoleOutput.println( "[" + Config.nameShort + "] Deliver failed" );
 
-				/* The deliver is started, cancel it */
-                if( de.isStarted() ) {
-                    try {
-                        consoleOutput.print( "[" + Config.nameShort + "] Cancelling deliver. " );
-                        RemoteUtil.completeRemoteDeliver( workspace, listener, state.getBaseline(), state.getStream(), de.getDeliver().getViewtag(), de.getDeliver().getViewContext(), false );
-                        consoleOutput.println( "Success" );
+                /* Check for exception types */
+                Exception cause = (Exception) net.praqma.util.ExceptionUtils.unpackFrom( IOException.class, e );
 
-						/* Make sure, that the post step is not run */
+                consoleOutput.println( "[" + Config.nameShort + "] Cause: " + cause.getClass() );
+
+                /* Re-throw */
+                try {
+                    logger.log( Level.WARNING, "", cause );
+                    throw cause;
+                } catch( DeliverException de ) {
+
+                    consoleOutput.println( "[" + Config.nameShort + "] " + de.getType() );
+
+                    /* We need to store this information anyway */
+                    state.setViewPath( de.getDeliver().getViewContext() );
+                    state.setViewTag( de.getDeliver().getViewtag() );
+
+                    /* The deliver is started, cancel it */
+                    if( de.isStarted() ) {
+                        try {
+                            consoleOutput.print( "[" + Config.nameShort + "] Cancelling deliver. " );
+                            RemoteUtil.completeRemoteDeliver( workspace, listener, state.getBaseline(), state.getStream(), de.getDeliver().getViewtag(), de.getDeliver().getViewContext(), false );
+                            consoleOutput.println( "Success" );
+
+                            /* Make sure, that the post step is not run */
+                            state.setNeedsToBeCompleted( false );
+
+                        } catch( Exception ex ) {
+                            consoleOutput.println( "[" + Config.nameShort + "] Failed to cancel deliver" );
+                            consoleOutput.println( ExceptionUtils.getFullStackTrace( e ) );
+                            logger.warning( ExceptionUtils.getFullStackTrace( e ) );
+                        }
+                    } else {
+                        logger.fine( "No need for completing deliver" );
                         state.setNeedsToBeCompleted( false );
-
-                    } catch( Exception ex ) {
-                        consoleOutput.println( "[" + Config.nameShort + "] Failed to cancel deliver" );
-                        consoleOutput.println( ExceptionUtils.getFullStackTrace( e ) );
-                        logger.warning( ExceptionUtils.getFullStackTrace( e ) );
                     }
-                } else {
-                    logger.fine( "No need for completing deliver" );
+
+                    /* Write something useful to the output */
+                    if( de.getType().equals( Type.MERGE_ERROR ) ) {
+                        consoleOutput.println( "[" + Config.nameShort + "] Changes need to be manually merged, The stream " + state.getBaseline().getStream().getShortname() + " must be rebased to the most recent baseline on " + state.getStream().getShortname() + " - During the rebase the merge conflict should be solved manually. Hereafter create a new baseline on " + state.getBaseline().getStream().getShortname() + "." );
+                        state.setError( "merge error" );
+                    }
+
+                /* Force deliver not cancelled */
+                } catch( DeliverNotCancelledException e1 ) {
+                    consoleOutput.println( "[" + Config.nameShort + "] Failed to force cancel existing deliver" );
                     state.setNeedsToBeCompleted( false );
+                } catch( Exception e1 ) {
+                    logger.log( Level.WARNING, "", e );
+                    e.printStackTrace( consoleOutput );
                 }
 
-				/* Write something useful to the output */
-                if( de.getType().equals( Type.MERGE_ERROR ) ) {
-                    consoleOutput.println( "[" + Config.nameShort + "] Changes need to be manually merged, The stream " + state.getBaseline().getStream().getShortname() + " must be rebased to the most recent baseline on " + state.getStream().getShortname() + " - During the rebase the merge conflict should be solved manually. Hereafter create a new baseline on " + state.getBaseline().getStream().getShortname() + "." );
-                    state.setError( "merge error" );
-                }
-
-			/* Force deliver not cancelled */
-            } catch( DeliverNotCancelledException e1 ) {
-                consoleOutput.println( "[" + Config.nameShort + "] Failed to force cancel existing deliver" );
-                state.setNeedsToBeCompleted( false );
-            } catch( Exception e1 ) {
-                logger.log( Level.WARNING, "", e );
-                e.printStackTrace( consoleOutput );
+                throw new AbortException( "Unable to start deliver" );
             }
-
-            throw new AbortException( "Unable to start deliver" );
         }
     }
 

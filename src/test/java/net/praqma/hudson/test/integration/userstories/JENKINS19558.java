@@ -55,7 +55,7 @@ public class JENKINS19558 extends BaseTestClass {
 
         new SystemValidator( build2 ).
                 validateBuild( Result.FAILURE ).
-                checkChangeset( 1 ).
+                checkChangeset( 2 ).
                 validate();
     }
 
