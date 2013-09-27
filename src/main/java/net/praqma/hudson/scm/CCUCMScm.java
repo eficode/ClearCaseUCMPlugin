@@ -186,7 +186,9 @@ public class CCUCMScm extends SCM {
 		/* Determining the user has parameterized a Baseline */
 		String baselineInput = getBaselineValue( build );
 
-        ensurePublisher( build );
+        if( addPostBuild ) {
+            ensurePublisher( build );
+        }
 
 		/* The special Baseline parameter case */
 		if( build.getBuildVariables().get( baselineInput ) != null ) {
@@ -267,6 +269,8 @@ public class CCUCMScm extends SCM {
         } else {
             out.println( "[" + Config.nameShort + "] Finished processing " + action.getBaseline() );
         }
+
+        out.println( "ENDING CHECKOUT" );
 
 		return result;
 	}
