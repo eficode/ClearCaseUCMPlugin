@@ -268,11 +268,15 @@ public class CCUCMScm extends SCM {
             out.println( "[" + Config.nameShort + "] Finished processing " + action.getBaseline() );
         }
 
+        out.println( "ENDING CHECKOUT" );
+
 		return result;
 	}
 
     @Override
     public void postCheckout( AbstractBuild<?, ?> build, Launcher launcher, FilePath workspace, BuildListener listener ) throws IOException, InterruptedException {
+
+        listener.getLogger().println( "BEGINNING POSTCHECKOUT" );
 
         /* This is really only interesting if child or sibling polling */
         if( polling.isPollingOther() ) {
@@ -347,6 +351,8 @@ public class CCUCMScm extends SCM {
                 throw new AbortException( "Unable to start deliver" );
             }
         }
+
+        listener.getLogger().println( "ENDING POSTCHECKOUT" );
     }
 
     public void ensurePublisher( AbstractBuild build ) throws IOException {
