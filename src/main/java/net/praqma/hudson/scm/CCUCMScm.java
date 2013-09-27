@@ -186,7 +186,9 @@ public class CCUCMScm extends SCM {
 		/* Determining the user has parameterized a Baseline */
 		String baselineInput = getBaselineValue( build );
 
+        out.println( "PUBLISHERS BEFORE: " + build.getProject().getPublishersList() );
         ensurePublisher( build );
+        out.println( "PUBLISHERS AFTER: " + build.getProject().getPublishersList() );
 
 		/* The special Baseline parameter case */
 		if( build.getBuildVariables().get( baselineInput ) != null ) {
