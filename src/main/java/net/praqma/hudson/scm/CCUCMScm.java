@@ -187,7 +187,9 @@ public class CCUCMScm extends SCM {
 		String baselineInput = getBaselineValue( build );
 
         out.println( "PUBLISHERS BEFORE: " + build.getProject().getPublishersList() );
-        ensurePublisher( build );
+        if( addPostBuild ) {
+            ensurePublisher( build );
+        }
         out.println( "PUBLISHERS AFTER: " + build.getProject().getPublishersList() );
 
 		/* The special Baseline parameter case */
