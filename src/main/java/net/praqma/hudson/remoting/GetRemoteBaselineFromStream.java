@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.logging.Logger;
 
+import net.praqma.clearcase.exceptions.ClearCaseException;
+import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
+import net.praqma.clearcase.exceptions.UnableToLoadEntityException;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
@@ -45,8 +48,7 @@ public class GetRemoteBaselineFromStream implements FileCallable<BaselineList> {
 
         baselines = new BaselineList( stream, component, plevel, multisitePolling ).
                 setSorting( new BaselineList.AscendingDateSort() ).
-                addFilter( new NoDeliver() ).
-                load();
+                addFilter( new NoDeliver() );
         
         /* Only filter by date, if it is valid */
         if( date != null ) {
