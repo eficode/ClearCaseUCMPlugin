@@ -47,8 +47,8 @@ public class GetChanges implements FilePath.FileCallable<List<Activity>> {
         logger.fine( "Get changeset" );
 
         try {
-            DiffBl diffBl = new DiffBl( destinationStream, baseline ).setVersions( true ).setActivities( true );
-            Activity.Parser parser = new Activity.Parser( diffBl ).setActivityUserAsVersionUser( true ).setDirection( Activity.Parser.Direction.RIGHT );
+            DiffBl diffBl = new DiffBl( baseline, destinationStream ).setVersions( true ).setActivities( true ).setViewRoot( new File( viewPath ) );
+            Activity.Parser parser = new Activity.Parser( diffBl ).setActivityUserAsVersionUser( true ).addDirection( Activity.Parser.Direction.RIGHT ).addDirection( Activity.Parser.Direction.RIGHTI );
             List<Activity> activities = parser.parse().getActivities();
             //List<Activity> activities = Version.getBaselineDiff( destinationStream, baseline, true, new File( viewPath ) );
             for( Activity activity : activities ) {
