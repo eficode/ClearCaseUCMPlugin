@@ -434,8 +434,8 @@ public class CCUCMScm extends SCM {
             throw new CCUCMException( "No valid Baselines found" );
         }
 
-        //action.setBaselines( baselines );
-        action.setBaseline( selectBaseline( baselines, plevel ) );
+        /* Select and load baseline */
+        action.setBaseline( selectBaseline( baselines, plevel, workspace ) );
 
         /* Print the baselines to jenkins out */
         printBaselines( baselines, out );
@@ -785,13 +785,16 @@ public class CCUCMScm extends SCM {
 		return scmRS;
 	}
 
-	private Baseline selectBaseline( List<Baseline> baselines, Project.PromotionLevel plevel ) {
+	private Baseline selectBaseline( List<Baseline> baselines, Project.PromotionLevel plevel, FilePath workspace ) throws IOException, InterruptedException {
+        Baseline selected = null;
 		if( baselines.size() > 0 ) {
 			if( plevel != null ) {
-				return baselines.get( 0 );
+				selected = baselines.get( 0 );
 			} else {
-				return baselines.get( baselines.size() - 1 );
+                selected = baselines.get( baselines.size() - 1 );
 			}
+
+            return (Baseline) RemoteUtil.loadEntity( workspace, selected, true );
 		} else {
 			return null;
 		}

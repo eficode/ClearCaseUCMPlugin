@@ -3,6 +3,7 @@ package net.praqma.hudson.remoting.deliver;
 import hudson.FilePath;
 import hudson.model.BuildListener;
 import hudson.remoting.VirtualChannel;
+import net.praqma.clearcase.api.DiffBl;
 import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
@@ -46,7 +47,10 @@ public class GetChanges implements FilePath.FileCallable<List<Activity>> {
         logger.fine( "Get changeset" );
 
         try {
-            List<Activity> activities = Version.getBaselineDiff( destinationStream, baseline, true, new File( viewPath ) );
+            DiffBl diffBl = new DiffBl( baseline, destinationStream ).setVersions( true ).setActivities( true ).setViewRoot( new File( viewPath ) );
+            Activity.Parser parser = new Activity.Parser( diffBl ).setActivityUserAsVersionUser( true ).addDirection( Activity.Parser.Direction.RIGHT ).addDirection( Activity.Parser.Direction.RIGHTI );
+            List<Activity> activities = parser.parse().getActivities();
+            //List<Activity> activities = Version.getBaselineDiff( destinationStream, baseline, true, new File( viewPath ) );
             for( Activity activity : activities ) {
                 activity.load();
             }

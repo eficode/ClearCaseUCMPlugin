@@ -6,49 +6,40 @@
   
   <h2>Summary</h2>
 
+    <ol>
 
-  <!--<table class="pane" style="border:none">
-    -->
-    <!--
+        <j:forEach var="cs" items="${it.entries}" varStatus="loop">
+            <li>${cs.actHeadline}
+                (<a href="#detail${cs.msg}">details</a>)
+            </li>
+        </j:forEach>
+
+    </ol>
+
+    <j:var set="" />
     <j:forEach var="cs" items="${it.entries}" varStatus="loop">
-      <tr class="pane">
-        <td colspan="2" class="changeset">
-	  <b>Activity: ${cs.msg} "${cs.actHeadline}"</b> by ${cs.author}<br />
-	  <j:forEach var="file" items="${cs.affectedPaths}" varStatus="loop">
-               ${file}<br />
-	  </j:forEach>
-        </td>
-      </tr>
-    </j:forEach>
-    -->
-    <j:forEach var="cs" items="${it.entries}" varStatus="loop">
-        <table style="border-style:none;border-width:0px">
-            <tr class="pane">
-                <td>
-                    <b>Activity: ${cs.msg} "${cs.actHeadline}" by ${cs.author}</b>
-                    <br/>
-                    <table style="border-style:solid;border-width:1px;border-color:black;border-collapse:collapse">
-                        <thead>                        
-                            <tr>
-                                <th style="border-style:solid;border-width:1px;border-color:black">File</th>
-                                <th style="border-style:solid;border-width:1px;border-color:black">Version</th>
-                                <th style="border-style:solid;border-width:1px;border-color:black">User</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <j:forEach var="file" items="${cs.affectedPaths}" varStatus="loop">
-                                <tr>
-                                    <td style="border-style:solid;border-width:1px;border-color:black;">${cs.getOnlyChangedFile(file)}</td>
-                                    <td style="border-style:solid;border-width:1px;border-color:black;">${cs.getOnlyClearCaseChangedFile(file)}</td>
-                                    <td style="border-style:solid;border-width:1px;border-color:black;">${cs.getUserClearCaseNumber(file)}</td>
-                                </tr>
-                            </j:forEach>
-                        </tbody>
-                  </table> 
-              </td> 
-            </tr>
+        <table style="border:none" class="pane">
+            <tbody>
+                <tr class="pane">
+                    <td class="changeset" colspan="2">
+                        <a name="detail${cs.msg}"></a>
+                        <div class="changeset-message">
+                            <b>${cs.msg} by <a href="/user/${cs.author}">${cs.author}</a></b>
+                            <pre>${cs.actHeadline}</pre>
+                        </div>
+                    </td>
+                </tr>
+
+                <j:forEach var="file" items="${cs.affectedPaths}" varStatus="loop">
+                    <tr>
+                        <td width="16">
+                            <img width="16" height="16" src="/images/16x16/document_edit.png" alt="The file was modified" title="The file was modified"></img>
+                        </td>
+                        <td>${cs.getOnlyChangedFile(file)} [${cs.getOnlyClearCaseChangedFile(file)}]</td>
+                    </tr>
+                </j:forEach>
+            </tbody>
         </table>
     </j:forEach>
-    
-  <!-- </table> -->
+
 </j:jelly>
