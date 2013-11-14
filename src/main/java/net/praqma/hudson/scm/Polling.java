@@ -56,7 +56,10 @@ public class Polling {
 			return false;
 		}
 	}
-	
+
+    /**
+     * Returns true if {@link Polling} other {@link net.praqma.clearcase.ucm.entities.Stream}'s
+     */
 	public boolean isPollingOther() {
 		if( this.type.equals(PollingType.childs) || this.type.equals( PollingType.siblings ) ) {
 			return true;

@@ -26,7 +26,7 @@ public class JENKINS19558 extends BaseTestClass {
     @Rule
     public static DescriptionRule desc = new DescriptionRule();
 
-    //@Test
+    @Test
     @TestDescription( title = "JENKINS-19558", text = "Failed deliver looses changeset, no changelog written" )
     public void jenkins19558() throws Exception {
         Project project = new CCUCMRule.ProjectCreator( "JENKINS-19558", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).setSwipe( false ).setType( CCUCMRule.ProjectCreator.Type.child ).getProject();
@@ -55,7 +55,7 @@ public class JENKINS19558 extends BaseTestClass {
 
         new SystemValidator( build2 ).
                 validateBuild( Result.FAILURE ).
-                checkChangeset( 1 ).
+                checkChangeset( 2 ).
                 validate();
     }
 
