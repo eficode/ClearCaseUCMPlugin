@@ -186,7 +186,7 @@ public class CCUCMScm extends SCM {
 		/* Determining the user has parameterized a Baseline */
 		String baselineInput = getBaselineValue( build );
 
-        out.println( "PUBLISHERS BEFORE: " + build.getProject().getPublishersList() );
+        logger.fine( "PUBLISHERS BEFORE: " + build.getProject().getPublishersList() );
         if( addPostBuild ) {
             ensurePublisher( build );
         }
@@ -272,7 +272,7 @@ public class CCUCMScm extends SCM {
             out.println( "[" + Config.nameShort + "] Finished processing " + action.getBaseline() );
         }
 
-        out.println( "ENDING CHECKOUT" );
+        logger.fine( "ENDING CHECKOUT" );
 
 		return result;
 	}
@@ -280,7 +280,7 @@ public class CCUCMScm extends SCM {
     @Override
     public void postCheckout( AbstractBuild<?, ?> build, Launcher launcher, FilePath workspace, BuildListener listener ) throws IOException, InterruptedException {
 
-        listener.getLogger().println( "BEGINNING POSTCHECKOUT" );
+        logger.fine( "BEGINNING POSTCHECKOUT" );
 
         /* This is really only interesting if child or sibling polling */
         if( polling.isPollingOther() ) {
@@ -356,7 +356,7 @@ public class CCUCMScm extends SCM {
             }
         }
 
-        listener.getLogger().println( "ENDING POSTCHECKOUT" );
+        logger.fine( "ENDING POSTCHECKOUT" );
     }
 
     public void ensurePublisher( AbstractBuild build ) throws IOException {
@@ -580,14 +580,6 @@ public class CCUCMScm extends SCM {
 	public ChangeLogParser createChangeLogParser() {
 		return new ChangeLogParserImpl();
 	}
-
-    /*
-	private String baselineName = "";
-	
-	public String getBaselineName() {
-		return baselineName;
-	}
-	*/
 
 	@Override
 	public void buildEnvVars( AbstractBuild<?, ?> build, Map<String, String> env ) {
