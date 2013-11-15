@@ -39,7 +39,7 @@ import static org.junit.Assert.*;
 public class BaselinesFound extends BaseTestClass {
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm", "setup-bl-on-dev.xml" );
+	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );
 
 	@Rule
 	public static DescriptionRule desc = new DescriptionRule();
