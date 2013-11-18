@@ -79,6 +79,8 @@ public class CCUCMNotifier extends Notifier {
 		boolean result = true;
 		out = listener.getLogger();
 
+        logger.fine( "BEGINNING NOTIFIER: " + build.getProject().getPublishersList() );
+
 		status = new Status();
 
 		/* Prepare job variables */
@@ -151,6 +153,8 @@ public class CCUCMNotifier extends Notifier {
         }
 
 		out.println( "[" + Config.nameShort + "] Post build steps done" );
+
+        logger.fine( "ENDING NOTIFIER" );
 
 		return result;
 	}
