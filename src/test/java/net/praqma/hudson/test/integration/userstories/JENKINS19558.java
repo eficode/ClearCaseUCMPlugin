@@ -34,19 +34,20 @@ public class JENKINS19558 extends BaseTestClass {
         Project project = new CCUCMRule.ProjectCreator( "JENKINS-19558", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).setSwipe( false ).setType( CCUCMRule.ProjectCreator.Type.child ).getProject();
 
         /* I need a first build */
+        
         AbstractBuild build1 = jenkins.getProjectBuilder( project ).build();
         CCUCMBuildAction action1 = build1.getAction( CCUCMBuildAction.class );
         
-        System.out.println("Changeset (build1):");
         ChangeLogSetImpl climpl = (ChangeLogSetImpl)build1.getChangeSet();
+        System.out.println("Changeset baseline (build1): "+climpl.getBaselineName());
+        
         for(ChangeLogEntryImpl itam : climpl.getEntries()) {
             System.out.println("Activity name: "+ itam);
+            for(String s: itam.getAffectedPaths()) {
+                System.out.println("Changed file: "+s);
+            }
         }
         
-        
-//        action1.getViewPath();
-        
-
         Stream target = ccenv.context.streams.get( "one_int" );
         Stream source = ccenv.context.streams.get( "one_dev" );
 
@@ -60,12 +61,14 @@ public class JENKINS19558 extends BaseTestClass {
 
 
         AbstractBuild build2 = jenkins.getProjectBuilder( project ).build();
-
-        System.out.println( "1CHANGE LOG: " + build2.getChangeSet() );
-        System.out.println("Changeset (build2):");
+        
         ChangeLogSetImpl climpl2 = (ChangeLogSetImpl)build2.getChangeSet();
+        System.out.println("Changeset baseline (build2): "+climpl2.getBaselineName());
         for(ChangeLogEntryImpl itam : climpl2.getEntries()) {
             System.out.println("Activity name: "+ itam);
+            for(String s: itam.getAffectedPaths()) {
+                System.out.println("Changed file: "+s);
+            }
         }
         System.out.println( "1CHANGE LOG: " + build2.getChangeSet().getClass() );
 
