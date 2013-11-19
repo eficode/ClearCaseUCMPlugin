@@ -128,5 +128,7 @@ public class ChangeLogEntryImpl extends Entry {
 	public String getActHeadline() {
 		return actHeadline;
 	}
+        
+        
 
 }
