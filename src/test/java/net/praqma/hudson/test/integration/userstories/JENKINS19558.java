@@ -7,6 +7,7 @@ import net.praqma.clearcase.Deliver;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.hudson.CCUCMBuildAction;
+import net.praqma.hudson.scm.ChangeLogSetImpl;
 import net.praqma.hudson.test.BaseTestClass;
 import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.hudson.test.SystemValidator;
@@ -34,7 +35,11 @@ public class JENKINS19558 extends BaseTestClass {
         /* I need a first build */
         AbstractBuild build1 = jenkins.getProjectBuilder( project ).build();
         CCUCMBuildAction action1 = build1.getAction( CCUCMBuildAction.class );
-        action1.getViewPath();
+        
+        System.out.println("Changeset (build1): "+((ChangeLogSetImpl)build1.getChangeSet()).getEntries());
+        
+//        action1.getViewPath();
+        
 
         Stream target = ccenv.context.streams.get( "one_int" );
         Stream source = ccenv.context.streams.get( "one_dev" );
@@ -44,13 +49,14 @@ public class JENKINS19558 extends BaseTestClass {
         System.out.println( "PATH: " + action1.getViewPath() );
         System.out.println( "TAG: " + action1.getViewTag() );
         Deliver deliver = new Deliver( source, target, action1.getViewPath(), action1.getViewTag() );
-        boolean b = deliver.deliver( true, false, false, false );
-        System.out.println( "DELIVER: " + b );
+        boolean b = deliver.deliver( true, false, false, false );        
+        System.out.println( "DELIVERED: " + b );
 
 
         AbstractBuild build2 = jenkins.getProjectBuilder( project ).build();
 
         System.out.println( "1CHANGE LOG: " + build2.getChangeSet() );
+        System.out.println("Changeset (build2): "+((ChangeLogSetImpl)build2.getChangeSet()).getEntries());
         System.out.println( "1CHANGE LOG: " + build2.getChangeSet().getClass() );
 
         new SystemValidator( build2 ).
