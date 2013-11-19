@@ -41,7 +41,7 @@ public class JENKINS19558 extends BaseTestClass {
         ChangeLogSetImpl climpl = (ChangeLogSetImpl)build1.getChangeSet();
         
         for(ChangeLogEntryImpl itam : climpl.getEntries()) {
-            System.out.println("Activity name: "+ itam);
+            System.out.println("Activity name: "+ itam.getMsg());
             for(String s: itam.getAffectedPaths()) {
                 System.out.println("Changed file: "+s);
             }
@@ -63,7 +63,7 @@ public class JENKINS19558 extends BaseTestClass {
         
         ChangeLogSetImpl climpl2 = (ChangeLogSetImpl)build2.getChangeSet();        
         for(ChangeLogEntryImpl itam : climpl2.getEntries()) {
-            System.out.println("Activity name: "+ itam);
+            System.out.println("Activity name: "+ itam.getMsg());
             for(String s: itam.getAffectedPaths()) {
                 System.out.println("Changed file: "+s);
             }

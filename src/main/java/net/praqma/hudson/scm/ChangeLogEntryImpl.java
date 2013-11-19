@@ -128,11 +128,6 @@ public class ChangeLogEntryImpl extends Entry {
 	public String getActHeadline() {
 		return actHeadline;
 	}
-
-    @Override
-    public String toString() {
-        return actName + " Headline = "+actHeadline;
-    }
         
         
 
