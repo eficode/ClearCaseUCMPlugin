@@ -39,7 +39,6 @@ public class JENKINS19558 extends BaseTestClass {
         CCUCMBuildAction action1 = build1.getAction( CCUCMBuildAction.class );
         
         ChangeLogSetImpl climpl = (ChangeLogSetImpl)build1.getChangeSet();
-        System.out.println("Changeset baseline (build1): "+climpl.getBaselineName());
         
         for(ChangeLogEntryImpl itam : climpl.getEntries()) {
             System.out.println("Activity name: "+ itam);
@@ -57,24 +56,22 @@ public class JENKINS19558 extends BaseTestClass {
         System.out.println( "TAG: " + action1.getViewTag() );
         Deliver deliver = new Deliver( source, target, action1.getViewPath(), action1.getViewTag() );
         boolean b = deliver.deliver( true, false, false, false );        
+        System.out.println( "We just ran a deliver behind the scenes, but did not complete");
         System.out.println( "DELIVERED: " + b );
-
 
         AbstractBuild build2 = jenkins.getProjectBuilder( project ).build();
         
-        ChangeLogSetImpl climpl2 = (ChangeLogSetImpl)build2.getChangeSet();
-        System.out.println("Changeset baseline (build2): "+climpl2.getBaselineName());
+        ChangeLogSetImpl climpl2 = (ChangeLogSetImpl)build2.getChangeSet();        
         for(ChangeLogEntryImpl itam : climpl2.getEntries()) {
             System.out.println("Activity name: "+ itam);
             for(String s: itam.getAffectedPaths()) {
                 System.out.println("Changed file: "+s);
             }
         }
-        System.out.println( "1CHANGE LOG: " + build2.getChangeSet().getClass() );
 
         new SystemValidator( build2 ).
                 validateBuild( Result.FAILURE ).
-                checkChangeset( 2 ).
+                checkChangeset( 1 ).
                 validate();
     }
 
