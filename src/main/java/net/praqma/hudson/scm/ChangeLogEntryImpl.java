@@ -129,4 +129,11 @@ public class ChangeLogEntryImpl extends Entry {
 		return actHeadline;
 	}
 
+    @Override
+    public String toString() {
+        return actName + " Headline = "+actHeadline;
+    }
+        
+        
+
 }

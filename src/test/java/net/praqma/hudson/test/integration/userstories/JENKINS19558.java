@@ -7,6 +7,7 @@ import net.praqma.clearcase.Deliver;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.hudson.CCUCMBuildAction;
+import net.praqma.hudson.scm.ChangeLogEntryImpl;
 import net.praqma.hudson.scm.ChangeLogSetImpl;
 import net.praqma.hudson.test.BaseTestClass;
 import net.praqma.hudson.test.CCUCMRule;
@@ -36,7 +37,12 @@ public class JENKINS19558 extends BaseTestClass {
         AbstractBuild build1 = jenkins.getProjectBuilder( project ).build();
         CCUCMBuildAction action1 = build1.getAction( CCUCMBuildAction.class );
         
-        System.out.println("Changeset (build1): "+((ChangeLogSetImpl)build1.getChangeSet()).getEntries());
+        System.out.println("Changeset (build1):");
+        ChangeLogSetImpl climpl = (ChangeLogSetImpl)build1.getChangeSet();
+        for(ChangeLogEntryImpl itam : climpl.getEntries()) {
+            System.out.println("Activity name: "+ itam);
+        }
+        
         
 //        action1.getViewPath();
         
@@ -56,7 +62,11 @@ public class JENKINS19558 extends BaseTestClass {
         AbstractBuild build2 = jenkins.getProjectBuilder( project ).build();
 
         System.out.println( "1CHANGE LOG: " + build2.getChangeSet() );
-        System.out.println("Changeset (build2): "+((ChangeLogSetImpl)build2.getChangeSet()).getEntries());
+        System.out.println("Changeset (build2):");
+        ChangeLogSetImpl climpl2 = (ChangeLogSetImpl)build2.getChangeSet();
+        for(ChangeLogEntryImpl itam : climpl2.getEntries()) {
+            System.out.println("Activity name: "+ itam);
+        }
         System.out.println( "1CHANGE LOG: " + build2.getChangeSet().getClass() );
 
         new SystemValidator( build2 ).
