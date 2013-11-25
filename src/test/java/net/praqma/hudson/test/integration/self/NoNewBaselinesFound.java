@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 public class NoNewBaselinesFound extends BaseTestClass {
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "no-new-baselines", "setup-basic.xml" );
+	public ClearCaseRule ccenv = new ClearCaseRule( "no-new-baselines", "setup-basic.xml" );
 	
 	private static Logger logger = Logger.getLogger( NoNewBaselinesFound.class.getName() );
 	

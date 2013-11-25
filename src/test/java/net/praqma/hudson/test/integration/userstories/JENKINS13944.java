@@ -17,10 +17,10 @@ import net.praqma.hudson.test.SystemValidator;
 public class JENKINS13944 extends BaseTestClass {
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-13944" );
+	public ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-13944" );
 	
 	@Rule
-	public static DescriptionRule desc = new DescriptionRule();
+	public DescriptionRule desc = new DescriptionRule();
 
 	@Test
 	@TestDescription( title = "JENKINS-13944", text = "A baseline ís built successfully, but the tagging is not done, because the tag tyoe is not installed", configurations = { "Tag = true" }	)

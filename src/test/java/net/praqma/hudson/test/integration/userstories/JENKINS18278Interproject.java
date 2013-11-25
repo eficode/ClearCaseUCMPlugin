@@ -29,7 +29,7 @@ public class JENKINS18278Interproject extends JENKINS18278Base {
     private static Logger logger = Logger.getLogger( JENKINS18278Interproject.class.getName() );
 
     @Rule
-    public static ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-18278", "setup-interproject-basic.xml" );
+    public ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-18278", "setup-interproject-basic.xml" );
 
     //@Test
     @ClearCaseUniqueVobName( name = "interproject" )

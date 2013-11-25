@@ -1,33 +1,28 @@
 package net.praqma.hudson.test.integration.self;
 
-import static org.junit.Assert.*;
 
 import net.praqma.hudson.test.BaseTestClass;
-import net.praqma.util.test.junit.LoggingRule;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.jvnet.hudson.test.JenkinsRule;
 
 import hudson.model.AbstractBuild;
-import hudson.model.FreeStyleProject;
 import hudson.model.Result;
-import net.praqma.clearcase.Environment;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
-import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.hudson.test.SystemValidator;
 import net.praqma.util.test.junit.TestDescription;
 import net.praqma.util.debug.Logger;
 
-import java.util.logging.Level;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class BaselinesFoundFails extends BaseTestClass {
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );
+	public ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );
 	
 	private static Logger logger = Logger.getLogger();
 	

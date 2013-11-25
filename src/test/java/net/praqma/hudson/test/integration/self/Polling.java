@@ -33,7 +33,7 @@ import net.praqma.util.debug.Logger;
 public class Polling extends BaseTestClass {
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );
+	public ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );
 
 	private static Logger logger = Logger.getLogger();
 

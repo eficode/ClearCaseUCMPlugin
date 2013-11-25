@@ -21,10 +21,10 @@ import org.junit.Test;
 public class JENKINS18280 extends BaseTestClass {
 
     @Rule
-    public static ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-18280" );
+    public ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-18280" );
 
     @Rule
-    public static DescriptionRule desc = new DescriptionRule();
+    public DescriptionRule desc = new DescriptionRule();
 
     @Test
     @TestDescription( title = "JENKINS-18280", text = "Testing the swipe function. Off and should leave the view private files as they were." )

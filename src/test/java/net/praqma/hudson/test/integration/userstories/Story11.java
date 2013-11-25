@@ -17,7 +17,7 @@ import java.io.IOException;
 public class Story11 extends BaseTestClass {
 
     @Rule
-    public static ClearCaseRule ccenv = new ClearCaseRule( "Story11" );
+    public ClearCaseRule ccenv = new ClearCaseRule( "Story11" );
 
     @Test
     public void test() throws IOException {

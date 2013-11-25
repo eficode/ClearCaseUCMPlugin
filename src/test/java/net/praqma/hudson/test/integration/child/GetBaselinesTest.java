@@ -42,7 +42,7 @@ public class GetBaselinesTest extends BaseTestClass {
 	public static LoggerRule loggerRule = new LoggerRule();
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-child-getbaselines" );
+	public ClearCaseRule ccenv = new ClearCaseRule( "ccucm-child-getbaselines" );
 
 	private static Logger logger = Logger.getLogger();
 		

@@ -23,10 +23,10 @@ import org.junit.Test;
 public class JENKINS19558 extends BaseTestClass {
 
     @Rule
-    public static ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-19558", "setup-bl-on-dev.xml" );
+    public ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-19558", "setup-bl-on-dev.xml" );
 
     @Rule
-    public static DescriptionRule desc = new DescriptionRule();
+    public DescriptionRule desc = new DescriptionRule();
 
     @Test
     @TestDescription( title = "JENKINS-19558", text = "Failed deliver looses changeset, no changelog written" )

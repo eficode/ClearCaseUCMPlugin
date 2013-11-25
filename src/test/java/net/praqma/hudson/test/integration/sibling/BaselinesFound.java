@@ -22,7 +22,7 @@ import java.util.logging.Level;
 public class BaselinesFound extends BaseTestClass {
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm", "setup-interproject.xml" );
+	public ClearCaseRule ccenv = new ClearCaseRule( "ccucm", "setup-interproject.xml" );
 
 	private static Logger logger = Logger.getLogger();
 		

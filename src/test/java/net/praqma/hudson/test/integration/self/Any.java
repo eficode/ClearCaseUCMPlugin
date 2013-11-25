@@ -23,19 +23,22 @@ import java.io.File;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * User: cwolfgang
  * Date: 08-11-12
  * Time: 22:12
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class Any extends BaseTestClass {
 
     @Rule
-    public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );
+    public ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );
 
     @Rule
-    public static DescriptionRule desc = new DescriptionRule();
+    public DescriptionRule desc = new DescriptionRule();
 
     private static Logger logger = Logger.getLogger();
 

@@ -31,10 +31,10 @@ import static net.praqma.hudson.test.CCUCMRule.ProjectCreator.Type;
 public abstract class Story06Base extends BaseTestClass {
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story06", "setup-story5.xml" );
+	public ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story06", "setup-story5.xml" );
 	
 	@Rule
-	public static DescriptionRule desc = new DescriptionRule();
+	public DescriptionRule desc = new DescriptionRule();
 
 	private static Logger logger = Logger.getLogger( Story06Base.class.getName() );
 

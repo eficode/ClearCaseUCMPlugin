@@ -27,10 +27,10 @@ public class JENKINS18279 extends BaseTestClass {
     private static Logger logger = Logger.getLogger( JENKINS18279.class.getName() );
 
     @Rule
-    public static ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-18279" );
+    public ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-18279" );
 
     @Rule
-    public static DescriptionRule desc = new DescriptionRule();
+    public DescriptionRule desc = new DescriptionRule();
 
     @Test
     @TestDescription( title = "JENKINS-18279", text = "Testing the swipe function. UPDT's must remain as non-view private files." )

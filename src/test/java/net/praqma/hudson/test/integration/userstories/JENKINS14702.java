@@ -22,10 +22,10 @@ import java.util.logging.Level;
 public class JENKINS14702 extends BaseTestClass {
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-14702", "setup-JENKINS-14702.xml" );
+	public ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-14702", "setup-JENKINS-14702.xml" );
 	
 	@Rule
-	public static DescriptionRule desc = new DescriptionRule();
+	public DescriptionRule desc = new DescriptionRule();
 
 	@Test
 	@TestDescription( title = "JENKINS-14702", text = "Use the current streams project, if the jenkins build project is not found", configurations = { "Jenkins project = not created" }	)

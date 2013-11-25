@@ -33,7 +33,7 @@ public abstract class JENKINS18278Base extends BaseTestClass {
     private static Logger logger = Logger.getLogger( JENKINS18278Base.class.getName() );
 
     @Rule
-    public static DescriptionRule desc = new DescriptionRule();
+    public DescriptionRule desc = new DescriptionRule();
 
     public void printChangeLog( AbstractBuild build ) {
         System.out.println( "LISTING THE CHANGESET FOR " + build );

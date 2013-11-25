@@ -21,10 +21,10 @@ import org.junit.Test;
 public class JENKINS16487 extends BaseTestClass {
 
     @Rule
-    public static ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-16487", "setup-JENKINS-16620.xml" );
+    public ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-16487", "setup-JENKINS-16620.xml" );
 
     @Rule
-    public static DescriptionRule desc = new DescriptionRule();
+    public DescriptionRule desc = new DescriptionRule();
 
     @Test
     @TestDescription( title = "JENKINS-16487", text = "Promotion Level being set to INITIAL" )
