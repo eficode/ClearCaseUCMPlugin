@@ -25,10 +25,10 @@ import static org.junit.Assert.assertTrue;
 public class JENKINS16636 extends BaseTestClass {
 
     @Rule
-    public static ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-16636", "setup-JENKINS-16620.xml" );
+    public ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-16636", "setup-JENKINS-16620.xml" );
 
     @Rule
-    public static DescriptionRule desc = new DescriptionRule();
+    public DescriptionRule desc = new DescriptionRule();
 
     @Test
     @TestDescription( title = "JENKINS-16636", text = "No new baseline found, but can be build anyway" )

@@ -33,10 +33,10 @@ import static org.junit.Assert.*;
 public class JENKINS14436 extends BaseTestClass {
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-14436", "setup-JENKINS-14436.xml" );
+	public ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-14436", "setup-JENKINS-14436.xml" );
 	
 	@Rule
-	public static DescriptionRule desc = new DescriptionRule();
+	public DescriptionRule desc = new DescriptionRule();
 
 	@Test
 	@TestDescription( title = "JENKINS-14436", text = "Not all versions, only the latest are shown" )

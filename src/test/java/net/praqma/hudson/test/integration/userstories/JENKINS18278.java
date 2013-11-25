@@ -38,10 +38,10 @@ public class JENKINS18278 extends BaseTestClass {
     private static Logger logger = Logger.getLogger( JENKINS18278.class.getName() );
 
     @Rule
-    public static ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-18278", "setup-basic.xml" );
+    public ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-18278", "setup-basic.xml" );
 
     @Rule
-    public static DescriptionRule desc = new DescriptionRule();
+    public DescriptionRule desc = new DescriptionRule();
 
     @Test
     @ClearCaseUniqueVobName( name = "regular" )

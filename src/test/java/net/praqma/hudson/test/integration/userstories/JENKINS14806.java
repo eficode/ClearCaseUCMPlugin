@@ -30,10 +30,10 @@ import static org.hamcrest.CoreMatchers.*;
 public class JENKINS14806 extends BaseTestClass {
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-14806", "setup-JENKINS-14806.xml" );
+	public ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-14806", "setup-JENKINS-14806.xml" );
 	
 	@Rule
-	public static DescriptionRule desc = new DescriptionRule();
+	public DescriptionRule desc = new DescriptionRule();
 
 	@Test
 	@TestDescription( title = "JENKINS-14806", text = "Multisite polling finds the same baseline times", configurations = { "ClearCase multisite = true" }	)

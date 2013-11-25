@@ -27,7 +27,7 @@ import static org.junit.Assert.*;
 public class Story02 extends BaseTestClass {
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story02" );
+	public ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story02" );
 
 	private static Logger logger = Logger.getLogger();
 

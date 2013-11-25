@@ -30,7 +30,7 @@ import static org.junit.Assert.*;
 public class Story04 extends BaseTestClass {
 	
 	@Rule
-	public static ClearCaseRule ccenv = new ClearCaseRule( "basic" );
+	public ClearCaseRule ccenv = new ClearCaseRule( "basic" );
 
 	private static Logger logger = Logger.getLogger();
 

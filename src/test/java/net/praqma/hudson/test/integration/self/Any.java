@@ -35,10 +35,10 @@ import org.junit.runners.MethodSorters;
 public class Any extends BaseTestClass {
 
     @Rule
-    public static ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );
+    public ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );
 
     @Rule
-    public static DescriptionRule desc = new DescriptionRule();
+    public DescriptionRule desc = new DescriptionRule();
 
     private static Logger logger = Logger.getLogger();
 
