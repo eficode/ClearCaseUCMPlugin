@@ -4,8 +4,11 @@ import hudson.FilePath;
 import hudson.model.BuildListener;
 
 import java.io.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.praqma.clearcase.Cool;
@@ -23,6 +26,8 @@ import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.ucm.view.SnapshotView.Components;
 import net.praqma.hudson.exception.ScmException;
+import net.praqma.hudson.remoting.RemoteDeliver;
+import org.apache.commons.lang.SystemUtils;
 
 public abstract class Util {
 
@@ -238,12 +243,43 @@ public abstract class Util {
         out.close();
     }
 
-    public static String sanitize( String str ) {
-        /* Replace evil characters with less evil characters */
+    private static String sanitize( String str ) {
         return str.replaceAll( "\\s", "_" );
     }
-
-    public static String createViewTag( String str, Stream stream ) {
-        return  "CCUCM_" + sanitize( str ) + "_" + System.getenv( "COMPUTERNAME" ) + "_" + stream.getShortname();
+    
+    /**
+     * This method generalizes some functionality. The logic to create the viewtag is now also used used in
+     * the {@link CheckoutTask} class and the {@link RemoteDeliver} class. This is an attempt to fix JENKINS-20748
+     * @param str
+     * @return 
+     */
+    public static String createAndSanitizeCCUCMViewTag(String str) {
+        String viewtag = null;        
+        if(SystemUtils.IS_OS_WINDOWS) {
+            viewtag = "CCUCM_" + sanitize( str ) + "_" + System.getenv( "COMPUTERNAME" );
+        } else {
+            try {
+                String inetAdr = InetAddress.getLocalHost().getHostName();
+                viewtag = "CCUCM_" + sanitize( str ) + "_" + inetAdr;
+            } catch (UnknownHostException ex) {
+                logger.log(Level.WARNING, "Failed to get hostname of localhost", ex);
+        }
+             
+        }        
+        return viewtag;
     }
+
+    public static String createViewTag( String str, Stream stream ) throws ScmException {
+        
+        String viewtag = createAndSanitizeCCUCMViewTag(str);
+        
+        if(viewtag == null) {
+            throw new ScmException("Failed to create view tag", new Exception());
+        }
+        
+        viewtag += "_"+stream.getShortname();
+        
+        return viewtag;
+    }
+    
 }

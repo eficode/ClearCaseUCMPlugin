@@ -19,6 +19,7 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.hudson.CCUCMBuildAction;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
+import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.scm.ChangeLogSetImpl;
 
 import static org.junit.Assert.*;
@@ -64,7 +65,11 @@ public class SystemValidator {
         /* Build view */
         if( validateView ) {
             System.out.println( "[Validating build view]" );
-            doValidateBuildView();
+            try {
+                doValidateBuildView();
+            } catch (ScmException ex) {
+                throw new ClearCaseException("Failed to create and validate viewtag", ex);
+            }
         }
 		
 		/* Check tagged baseline */
@@ -113,7 +118,7 @@ public class SystemValidator {
         return this;
     }
 
-    private void doValidateBuildView() {
+    private void doValidateBuildView() throws ScmException {
         CCUCMBuildAction action = getBuildAction();
         Stream stream = action.getStream();
         String viewTag = Util.createViewTag( build.getParent().getDisplayName(), stream );

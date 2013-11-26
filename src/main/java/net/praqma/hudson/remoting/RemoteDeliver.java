@@ -31,34 +31,31 @@ import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.scm.ClearCaseChangeset;
 
 /**
- * 
+ *
  * @author wolfgang
  *
  * @deprecated since 1.4.0
  */
 public class RemoteDeliver implements FileCallable<EstablishResult> {
 
-	private static final long serialVersionUID = 1L;
-	
-	private Logger logger;
-	
-	private String jobName;
-	private String baseline;
-	private String destinationstream;
-	private BuildListener listener;
-	private SnapshotView snapview;
+    private static final long serialVersionUID = 1L;
+    private Logger logger;
+    private String jobName;
+    private String baseline;
+    private String destinationstream;
+    private BuildListener listener;
+    private SnapshotView snapview;
 
-	/*
-	 * private boolean apply4level; private String alternateTarget; private
-	 * String baselineName;
-	 */
-	private String loadModule;
-	private PrintStream out = null;
-	private String viewtag = "";
-	private boolean forceDeliver;
-	private PrintStream pstream;
-	private File workspace;
-
+    /*
+     * private boolean apply4level; private String alternateTarget; private
+     * String baselineName;
+     */
+    private String loadModule;
+    private PrintStream out = null;
+    private String viewtag = "";
+    private boolean forceDeliver;
+    private PrintStream pstream;
+    private File workspace;
     /**
      * Determines whether to swipe the view or not.
      *
@@ -66,156 +63,151 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
      */
     private boolean swipe = true;
 
-	public RemoteDeliver( String destinationstream, BuildListener listener, String loadModule, String baseline, String jobName, boolean forceDeliver, boolean swipe ) {
-		this.jobName = jobName;
+    public RemoteDeliver(String destinationstream, BuildListener listener, String loadModule, String baseline, String jobName, boolean forceDeliver, boolean swipe) {
+        this.jobName = jobName;
 
-		this.baseline = baseline;
-		this.destinationstream = destinationstream;
+        this.baseline = baseline;
+        this.destinationstream = destinationstream;
 
-		this.listener = listener;
-		this.loadModule = loadModule;
-		
-		this.forceDeliver = forceDeliver;
+        this.listener = listener;
+        this.loadModule = loadModule;
+
+        this.forceDeliver = forceDeliver;
         this.swipe = swipe;
-	}
+    }
 
-	public EstablishResult invoke( File workspace, VirtualChannel channel ) throws IOException {
+    public EstablishResult invoke(File workspace, VirtualChannel channel) throws IOException {
 
-		out = listener.getLogger();
-		
-		logger = Logger.getLogger( RemoteDeliver.class.getName() );
+        out = listener.getLogger();
 
-		logger.fine( "Starting remote deliver" );
+        logger = Logger.getLogger(RemoteDeliver.class.getName());
 
-		this.workspace = workspace;
+        logger.fine("Starting remote deliver");
 
-		/* Create the baseline object */
-		Baseline baseline = null;
-		try {
-			baseline = Baseline.get( this.baseline ).load();
-		} catch( Exception e ) {
-			throw new IOException( "Could not create Baseline object: " + e.getMessage(), e );
-		}
-		
-		logger.fine( baseline + " created" );
+        this.workspace = workspace;
 
-		/* Create the development stream object */
-		/* Append vob to dev stream */
+        /* Create the baseline object */
+        Baseline baseline = null;
+        try {
+            baseline = Baseline.get(this.baseline).load();
+        } catch (Exception e) {
+            throw new IOException("Could not create Baseline object: " + e.getMessage(), e);
+        }
 
-		Stream destinationStream = null;
-		try {
-			destinationStream = Stream.get( this.destinationstream ).load();
-		} catch( Exception e ) {
-			throw new IOException( "Could not create destination Stream object: " + e.getMessage(), e );
-		}
-		
-		logger.fine( destinationStream + " created" );
+        logger.fine(baseline + " created");
 
-		/* Make deliver view */
-		try {
-			snapview = makeDeliverView( destinationStream, workspace );
-		} catch( Exception e ) {
-			throw new IOException( "Could not create deliver view: " + e.getMessage(), e );
-		}
-		
-		logger.fine( "View: " + workspace );
+        /* Create the development stream object */
+        /* Append vob to dev stream */
 
-		//String diff = "";
+        Stream destinationStream = null;
+        try {
+            destinationStream = Stream.get(this.destinationstream).load();
+        } catch (Exception e) {
+            throw new IOException("Could not create destination Stream object: " + e.getMessage(), e);
+        }
 
-        List<Activity> bldiff = new ArrayList<Activity>(  );
-		try {
-			bldiff = Version.getBaselineDiff( destinationStream, baseline, true, snapview.getViewRoot() );
-			//out.print( "[" + Config.nameShort + "] Found " + bldiff.size() + " activit" + ( bldiff.size() == 1 ? "y" : "ies" ) + ". " );
-			//diff = Util.createChangelog( bldiff, baseline );
-		} catch( Exception e1 ) {
-			out.println( "[" + Config.nameShort + "] Unable to create change log: " + e1.getMessage() );
-		}
-		
-		//logger.fine( "Changeset created" );
+        logger.fine(destinationStream + " created");
 
-		EstablishResult er = new EstablishResult( viewtag );
-		er.setView( snapview );
-        er.setActivities( bldiff );
-		//er.setMessage( diff );
+        /* Make deliver view */
+        try {
+            snapview = makeDeliverView(destinationStream, workspace);
+        } catch (Exception e) {
+            throw new IOException("Could not create deliver view: " + e.getMessage(), e);
+        }
 
-		/* Make the deliver. Inline manipulation of er */
-		try {
-			deliver( baseline, destinationStream, forceDeliver, 2 );
-		} catch( Exception e ) {
-			throw new IOException( e );
-		}
+        logger.fine("View: " + workspace);
 
-		/* End of deliver */
-		return er;
-	}
+        //String diff = "";
 
-	private void deliver( Baseline baseline, Stream dstream, boolean forceDeliver, int triesLeft ) throws IOException, DeliverNotCancelledException, ClearCaseException {
-		logger.config( "Delivering " + baseline.getShortname() + " to " + dstream.getShortname() + ". Tries left: " + triesLeft );
-		if( triesLeft < 1 ) {
-			out.println( "[" + Config.nameShort + "] Unable to deliver, giving up." );
-			throw new DeliverNotCancelledException( "Unable to force cancel deliver" );
-		}
+        List<Activity> bldiff = new ArrayList<Activity>();
+        try {
+            bldiff = Version.getBaselineDiff(destinationStream, baseline, true, snapview.getViewRoot());
+            //out.print( "[" + Config.nameShort + "] Found " + bldiff.size() + " activit" + ( bldiff.size() == 1 ? "y" : "ies" ) + ". " );
+            //diff = Util.createChangelog( bldiff, baseline );
+        } catch (Exception e1) {
+            out.println("[" + Config.nameShort + "] Unable to create change log: " + e1.getMessage());
+        }
 
-		Deliver deliver = null;
-		try {
-			out.println( "[" + Config.nameShort + "] Starting deliver(tries left: " + triesLeft + ")" );
-			deliver = new Deliver( baseline, baseline.getStream(), dstream, snapview.getViewRoot(), snapview.getViewtag() );
-			deliver.deliver( true, false, true, false );
+        //logger.fine( "Changeset created" );
 
-		} catch( DeliverException e ) {
-			logger.log( Level.FINE, "Failed to deliver", e );
-			
-			if( e.getType().equals( DeliverException.Type.DELIVER_IN_PROGRESS ) ) {
-				out.println( "[" + Config.nameShort + "] Deliver already in progress" );
+        EstablishResult er = new EstablishResult(viewtag);
+        er.setView(snapview);
+        er.setActivities(bldiff);
+        //er.setMessage( diff );
 
-				if( forceDeliver ) {
+        /* Make the deliver. Inline manipulation of er */
+        try {
+            deliver(baseline, destinationStream, forceDeliver, 2);
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
 
-    				out.println( e.getMessage() );
-                    out.println( "[" + Config.nameShort + "] Forcing this deliver." );
+        /* End of deliver */
+        return er;
+    }
 
-					try {
-	                    Deliver.cancel( dstream );
-                        snapview.Update( swipe, true, true, false, new SnapshotView.LoadRules( snapview, SnapshotView.Components.valueOf( loadModule.toUpperCase() ) ) );
+    private void deliver(Baseline baseline, Stream dstream, boolean forceDeliver, int triesLeft) throws IOException, DeliverNotCancelledException, ClearCaseException {
+        logger.config("Delivering " + baseline.getShortname() + " to " + dstream.getShortname() + ". Tries left: " + triesLeft);
+        if (triesLeft < 1) {
+            out.println("[" + Config.nameShort + "] Unable to deliver, giving up.");
+            throw new DeliverNotCancelledException("Unable to force cancel deliver");
+        }
 
-					} catch( ClearCaseException ex ) {
-						throw ex;
-					}
-	
-					// Recursive method call of INVOKE(...);
-					logger.config( "Trying to deliver again..." );
-					deliver( baseline, dstream, forceDeliver, triesLeft - 1 );
-					
-				/* Not forcing this deliver */
-				} else {
-					throw e;
-				}
-				
-			/* Another deliver is not in progress */
-			} else {
-				throw e;
-			}
-		} catch( CleartoolException e ) {
-			logger.warning( "Unable to get status from stream: " + e.getMessage() );
-			throw new IOException( e );
-		} catch( Exception e ) {
-			logger.warning( "Unable deliver: " + e.getMessage() );
-			
-			throw new IOException( e );
-		} 
-	}
+        Deliver deliver = null;
+        try {
+            out.println("[" + Config.nameShort + "] Starting deliver(tries left: " + triesLeft + ")");
+            deliver = new Deliver(baseline, baseline.getStream(), dstream, snapview.getViewRoot(), snapview.getViewtag());
+            deliver.deliver(true, false, true, false);
 
-	private SnapshotView makeDeliverView( Stream stream, File workspace ) throws ScmException {
-		/* Replace evil characters with less evil characters */
-		String newJobName = jobName.replaceAll( "\\s", "_" );
+        } catch (DeliverException e) {
+            logger.log(Level.FINE, "Failed to deliver", e);
 
-		viewtag = "CCUCM_" + newJobName + "_" + System.getenv( "COMPUTERNAME" ) + "_" + stream.getShortname();
+            if (e.getType().equals(DeliverException.Type.DELIVER_IN_PROGRESS)) {
+                out.println("[" + Config.nameShort + "] Deliver already in progress");
 
-		File viewroot = new File( workspace, "view" );
+                if (forceDeliver) {
 
-		return Util.makeView( stream, workspace, listener, loadModule, viewroot, viewtag );
-	}
+                    out.println(e.getMessage());
+                    out.println("[" + Config.nameShort + "] Forcing this deliver.");
 
-	public SnapshotView getSnapShotView() {
-		return this.snapview;
-	}
+                    try {
+                        Deliver.cancel(dstream);
+                        snapview.Update(swipe, true, true, false, new SnapshotView.LoadRules(snapview, SnapshotView.Components.valueOf(loadModule.toUpperCase())));
+
+                    } catch (ClearCaseException ex) {
+                        throw ex;
+                    }
+
+                    // Recursive method call of INVOKE(...);
+                    logger.config("Trying to deliver again...");
+                    deliver(baseline, dstream, forceDeliver, triesLeft - 1);
+
+                    /* Not forcing this deliver */
+                } else {
+                    throw e;
+                }
+
+                /* Another deliver is not in progress */
+            } else {
+                throw e;
+            }
+        } catch (CleartoolException e) {
+            logger.warning("Unable to get status from stream: " + e.getMessage());
+            throw new IOException(e);
+        } catch (Exception e) {
+            logger.warning("Unable deliver: " + e.getMessage());
+
+            throw new IOException(e);
+        }
+    }
+
+    private SnapshotView makeDeliverView(Stream stream, File workspace) throws ScmException {
+        viewtag = Util.createViewTag(jobName, stream);
+        File viewroot = new File(workspace, "view");
+        return Util.makeView(stream, workspace, listener, loadModule, viewroot, viewtag);
+    }
+
+    public SnapshotView getSnapShotView() {
+        return this.snapview;
+    }
 }
