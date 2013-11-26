@@ -5,7 +5,6 @@ import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Project;
 import hudson.model.Result;
-import net.praqma.clearcase.Deliver;
 import net.praqma.clearcase.Rebase;
 import net.praqma.clearcase.exceptions.CleartoolException;
 import net.praqma.clearcase.exceptions.UCMEntityNotFoundException;

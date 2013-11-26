@@ -3,38 +3,22 @@ package net.praqma.hudson.test.integration.child;
 import static org.junit.Assert.*;
 
 import java.io.File;
-import java.util.logging.Level;
 
 import net.praqma.hudson.test.BaseTestClass;
-import net.praqma.util.test.junit.LoggingRule;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.jvnet.hudson.test.JenkinsRule;
-import org.mockito.Mockito;
-
-import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
-import hudson.model.Result;
-import hudson.model.TaskListener;
 import hudson.scm.PollingResult;
-import net.praqma.clearcase.Environment;
 import net.praqma.clearcase.exceptions.ClearCaseException;
-import net.praqma.clearcase.exceptions.UCMEntityNotFoundException;
-import net.praqma.clearcase.exceptions.UnableToCreateEntityException;
-import net.praqma.clearcase.exceptions.UnableToGetEntityException;
-import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Baseline.LabelBehaviour;
-import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.util.ExceptionUtils;
-import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.util.test.junit.TestDescription;
 import net.praqma.util.debug.Logger;
 

@@ -1,28 +1,20 @@
 package net.praqma.hudson.test.integration.userstories;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.logging.Level;
 
 import net.praqma.hudson.test.BaseTestClass;
 import net.praqma.util.test.junit.DescriptionRule;
-import net.praqma.util.test.junit.LoggingRule;
 import net.praqma.util.test.junit.TestDescription;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
 import hudson.model.AbstractBuild;
 import hudson.model.Result;
-import hudson.model.User;
 import hudson.scm.ChangeLogSet;
-import hudson.scm.ChangeLogSet.AffectedFile;
 import hudson.scm.ChangeLogSet.Entry;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.hudson.scm.ChangeLogEntryImpl;
-import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.hudson.test.SystemValidator;
 
 import net.praqma.clearcase.test.junit.ClearCaseRule;

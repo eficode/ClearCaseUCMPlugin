@@ -20,112 +20,113 @@ import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.hudson.test.SystemValidator;
 import net.praqma.util.test.junit.DescriptionRule;
 import org.junit.Rule;
-import org.junit.Test;
-
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static net.praqma.hudson.test.BaseTestClass.jenkins;
 
 import static net.praqma.hudson.test.CCUCMRule.ProjectCreator.Type;
 
 public abstract class Story06Base extends BaseTestClass {
-	
-	@Rule
-	public ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story06", "setup-story5.xml" );
-	
-	@Rule
-	public DescriptionRule desc = new DescriptionRule();
 
-	private static Logger logger = Logger.getLogger( Story06Base.class.getName() );
+    @Rule
+    public ClearCaseRule ccenv = new ClearCaseRule("ccucm-story06", "setup-story5.xml");
+    @Rule
+    public DescriptionRule desc = new DescriptionRule();
+    private static Logger logger = Logger.getLogger(Story06Base.class.getName());
 
     /**
      *
-     * @param stream1 If set a new baseline will be delivered from this stream in a view
-     * @param streamToMakeAnotherBaseline The stream used to make the baseline found for the second build
+     * @param stream1 If set a new baseline will be delivered from this stream
+     * in a view
+     * @param streamToMakeAnotherBaseline The stream used to make the baseline
+     * found for the second build
      * @param viewTag1 .... Using this view tag to create the first baseline
-     * @param viewTagToMakeAnotherBaseline .... Using this view tag to create the second baseline
+     * @param viewTagToMakeAnotherBaseline .... Using this view tag to create
+     * the second baseline
      * @param slave The slave executing the build, null if on master
-     * @param jenkinsWorkspace If true, the first build will not run the post build and therefore not complete the deliver
+     * @param jenkinsWorkspace If true, the first build will not run the post
+     * build and therefore not complete the deliver
      * @throws Exception
      */
-    public void run( Stream stream1, Stream streamToMakeAnotherBaseline, String viewTag1, String viewTagToMakeAnotherBaseline, Slave slave, boolean jenkinsWorkspace ) throws Exception {
-		
-		/* First build to create a view */
-        Project project = new CCUCMRule.ProjectCreator( ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() )
-                .setType( Type.child )
-                .setForceDeliver( true )
-                .setCreateBaseline( true )
+    public void run(Stream stream1, Stream streamToMakeAnotherBaseline, String viewTag1, String viewTagToMakeAnotherBaseline, Slave slave, boolean jenkinsWorkspace) throws Exception {
+
+        /* First build to create a view */
+        Project project = new CCUCMRule.ProjectCreator(ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob())
+                .setType(Type.child)
+                .setForceDeliver(true)
+                .setCreateBaseline(true)
                 .getProject();
 
-        if( jenkinsWorkspace ) {
+        if (jenkinsWorkspace) {
             //project.getBuildersList().add( builder );
-            project.getPublishersList().remove( CCUCMNotifier.class );
-            ( (CCUCMScm)project.getScm() ).setAddPostBuild( false );
+            project.getPublishersList().remove(CCUCMNotifier.class);
+            ((CCUCMScm) project.getScm()).setAddPostBuild(false);
         }
 
-        AbstractBuild<?, ?> firstbuild = jenkins.buildProject( project, false, slave );
+        AbstractBuild<?, ?> firstbuild = jenkins.buildProject(project, false, slave);
 
         Stream target = null;
-        if( firstbuild != null ) {
-            CCUCMBuildAction preaction = jenkins.getBuildAction( firstbuild );
+        if (firstbuild != null) {
+            CCUCMBuildAction preaction = jenkins.getBuildAction(firstbuild);
             target = preaction.getStream();
         } else {
-            target = Stream.get( ( (CCUCMScm)project.getScm() ).getStream() );
+            target = Stream.get(((CCUCMScm) project.getScm()).getStream());
         }
 
-        logger.fine( "Target stream is " + target );
+        logger.fine("Target stream is " + target);
 
-        if( !jenkinsWorkspace ) {
+        if (!jenkinsWorkspace) {
             /* Set deliver one up and make sure the baseline is not found by polling */
-            Baseline bl1 = createNewContent( stream1, viewTag1, 1, PromotionLevel.BUILT );
+            Baseline bl1 = createNewContent(stream1, viewTag1, 1, PromotionLevel.BUILT);
 
             /* Do not complete deliver */
-            Deliver deliver1 = new Deliver( stream1, target );
-            deliver1.deliver( true, false, true, false );
+            Deliver deliver1 = new Deliver(stream1, target);
+            deliver1.deliver(true, false, true, false);
         }
-		
-		/* Setup dev 2 with new baseline */
-		Baseline bl2 = createNewContent( streamToMakeAnotherBaseline, viewTagToMakeAnotherBaseline, 2, null );
 
-        if( jenkinsWorkspace ) {
+        /* Setup dev 2 with new baseline */
+        Baseline bl2 = createNewContent(streamToMakeAnotherBaseline, viewTagToMakeAnotherBaseline, 2, null);
+
+        if (jenkinsWorkspace) {
             //project.getBuildersList().remove( builder.getClass() );
-            project.getPublishersList().add( new CCUCMNotifier() );
+            project.getPublishersList().add(new CCUCMNotifier());
 
-            CCUCMBuildAction preaction = jenkins.getBuildAction( firstbuild );
-            preaction.getBaseline().setPromotionLevel( PromotionLevel.BUILT );
+            CCUCMBuildAction preaction = jenkins.getBuildAction(firstbuild);
+            preaction.getBaseline().setPromotionLevel(PromotionLevel.BUILT);
         }
-		
-		AbstractBuild<?, ?> build = jenkins.buildProject( firstbuild.getProject(), false, slave );
-		
-        /* Validate */
-        SystemValidator validator = new SystemValidator( build );
-        validator.validateBuild( Result.SUCCESS ).validateBuiltBaseline( PromotionLevel.BUILT, bl2, false ).validateCreatedBaseline( true ).validate();
-	}
 
-    protected Baseline createNewContent( Stream stream, String viewtag, int num, PromotionLevel level ) throws ClearCaseException {
+        AbstractBuild<?, ?> build = jenkins.buildProject(firstbuild.getProject(), false, slave);
+
+        /* Validate */
+        SystemValidator validator = new SystemValidator(build);
+        validator.validateBuild(Result.SUCCESS).validateBuiltBaseline(PromotionLevel.BUILT, bl2, false).validateCreatedBaseline(true).validate();
+    }
+
+    protected Baseline createNewContent(Stream stream, String viewtag, int num, PromotionLevel level) throws ClearCaseException {
         File path = null;
         try {
-            path = ccenv.setDynamicActivity( stream, viewtag, "dip-" + stream.getShortname() );
-        } catch ( Exception e ) {
-            logger.log( Level.WARNING, "failed", e );
-            path = ccenv.getDynamicPath( viewtag );
+            path = ccenv.setDynamicActivity(stream, viewtag, "dip-" + stream.getShortname());
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "failed", e);
+            path = ccenv.getDynamicPath(viewtag);
         }
 
-        Baseline baseline = getNewBaseline( path, "dip" + num + ".txt", "dip" + num + "_" + stream.getShortname() );
-        if( level != null ) {
-            baseline.setPromotionLevel( level );
+        Baseline baseline = getNewBaseline(path, "dip" + num + ".txt", "dip" + num + "_" + stream.getShortname());
+        if (level != null) {
+            baseline.setPromotionLevel(level);
         }
 
         return baseline;
     }
-	
-	protected Baseline getNewBaseline( File path, String filename, String bname ) throws ClearCaseException {
-		
-		try {
-			ccenv.addNewElement( ccenv.context.components.get( "Model" ), path, filename );
-		} catch( Exception e ) {
-			ExceptionUtils.print( e, System.out, true );
-		}
-		return Baseline.create( bname, ccenv.context.components.get( "_System" ), path, LabelBehaviour.FULL, false );
-	}
+
+    protected Baseline getNewBaseline(File path, String filename, String bname) throws ClearCaseException {
+
+        try {
+            ccenv.addNewElement(ccenv.context.components.get("Model"), path, filename);
+        } catch (Exception e) {
+            ExceptionUtils.print(e, System.out, true);
+        }
+        return Baseline.create(bname, ccenv.context.components.get("_System"), path, LabelBehaviour.FULL, false);
+    }
 }

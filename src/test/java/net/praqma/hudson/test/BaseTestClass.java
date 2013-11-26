@@ -10,7 +10,6 @@ import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.util.test.junit.LoggingRule;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 
 import java.io.File;
@@ -18,9 +17,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
 
-/**
- * User: cwolfgang
- */
 public class BaseTestClass {
 
     private static Logger logger = Logger.getLogger( BaseTestClass.class.getName() );

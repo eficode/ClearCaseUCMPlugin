@@ -16,7 +16,6 @@ import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.hudson.test.SystemValidator;
 import net.praqma.util.test.junit.TestDescription;
 import org.junit.Rule;
-import org.junit.Test;
 
 import java.util.List;
 import java.util.logging.Logger;

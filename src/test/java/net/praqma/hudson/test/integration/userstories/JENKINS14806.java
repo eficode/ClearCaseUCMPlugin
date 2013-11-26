@@ -2,11 +2,9 @@ package net.praqma.hudson.test.integration.userstories;
 
 import java.io.IOException;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
 
 import net.praqma.hudson.test.BaseTestClass;
 import net.praqma.util.test.junit.DescriptionRule;
-import net.praqma.util.test.junit.LoggingRule;
 import net.praqma.util.test.junit.TestDescription;
 import org.junit.Rule;
 import org.junit.Test;
@@ -19,7 +17,6 @@ import hudson.model.BuildListener;
 import hudson.model.FreeStyleBuild;
 import hudson.scm.PollingResult;
 import net.praqma.hudson.scm.CCUCMScm;
-import net.praqma.hudson.test.CCUCMRule;
 
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 

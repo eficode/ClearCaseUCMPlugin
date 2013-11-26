@@ -8,12 +8,7 @@ import net.praqma.hudson.test.integration.userstories.Story06Base;
 import net.praqma.util.test.junit.TestDescription;
 import org.junit.Test;
 
-import java.util.logging.Logger;
-
-
 public class Story06WithSlaves extends Story06Base {
-
-	private static Logger logger = Logger.getLogger( Story06WithSlaves.class.getName() );
 
     @Test
     @ClearCaseUniqueVobName( name = "dip4" )

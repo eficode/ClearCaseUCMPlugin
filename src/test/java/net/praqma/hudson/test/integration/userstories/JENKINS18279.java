@@ -5,7 +5,6 @@ import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Project;
 import hudson.model.Result;
-import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.hudson.test.BaseTestClass;
 import net.praqma.hudson.test.CCUCMRule;
@@ -15,8 +14,6 @@ import net.praqma.util.test.junit.TestDescription;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 
 /**

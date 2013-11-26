@@ -1,35 +1,23 @@
 package net.praqma.hudson.test.integration.userstories;
 
 import java.io.File;
-import java.util.logging.Level;
 
 import net.praqma.hudson.test.BaseTestClass;
-import net.praqma.util.test.junit.LoggingRule;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
 import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.FreeStyleProject;
 import hudson.model.Result;
-import hudson.model.TaskListener;
-import hudson.scm.PollingResult;
-import net.praqma.clearcase.Deliver;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Baseline.LabelBehaviour;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.util.ExceptionUtils;
-import net.praqma.hudson.CCUCMBuildAction;
-import net.praqma.hudson.scm.CCUCMScm;
-import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.util.test.junit.DescriptionRule;
 import net.praqma.util.test.junit.TestDescription;
 import net.praqma.util.debug.Logger;
 
 import net.praqma.clearcase.exceptions.ClearCaseException;
-import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 
 import static org.junit.Assert.*;
@@ -42,8 +30,6 @@ public class Story05_2 extends BaseTestClass {
 	@Rule
 	public DescriptionRule desc = new DescriptionRule();
 
-	private static Logger logger = Logger.getLogger();
-	
 	@Test
 	public void placeholder() throws Exception {
 		/* We need at least one test, or else the whole test will fail */

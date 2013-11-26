@@ -1,8 +1,6 @@
 package net.praqma.hudson.test.integration.userstories;
 
 import net.praqma.hudson.test.BaseTestClass;
-import net.praqma.util.test.junit.LoggingRule;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -11,15 +9,12 @@ import hudson.model.Result;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.clearcase.ucm.entities.Stream;
-import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.hudson.test.SystemValidator;
 import net.praqma.util.test.junit.TestDescription;
-import net.praqma.util.debug.Logger;
 
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 
-import java.util.logging.Level;
 
 import static org.junit.Assert.*;
 
@@ -27,9 +22,7 @@ public class Story07 extends BaseTestClass {
 	
 	@Rule
 	public ClearCaseRule ccenv = new ClearCaseRule( "ccucm-story07", "setup-story7.xml" );
-
-	private static Logger logger = Logger.getLogger();
-
+        
 	@Test
 	@ClearCaseUniqueVobName( name = "story07" )
 	@TestDescription( title = "Story 07", text = "New baseline, bl1, on int stream, poll on siblings, no interproject delivers" )

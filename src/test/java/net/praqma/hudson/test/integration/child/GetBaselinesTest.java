@@ -1,23 +1,15 @@
 package net.praqma.hudson.test.integration.child;
 
 import java.io.File;
-import java.util.logging.Level;
 
 import net.praqma.hudson.test.BaseTestClass;
-import net.praqma.util.test.junit.LoggingRule;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.jvnet.hudson.test.JenkinsRule;
 
 import hudson.model.AbstractBuild;
 import hudson.model.Result;
-import net.praqma.clearcase.Environment;
 import net.praqma.clearcase.exceptions.ClearCaseException;
-import net.praqma.clearcase.exceptions.UCMEntityNotFoundException;
-import net.praqma.clearcase.exceptions.UnableToCreateEntityException;
-import net.praqma.clearcase.exceptions.UnableToGetEntityException;
-import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
 import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
@@ -25,7 +17,6 @@ import net.praqma.clearcase.ucm.entities.Baseline.LabelBehaviour;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.util.ExceptionUtils;
-import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.hudson.test.LoggerRule;
 import net.praqma.hudson.test.SystemValidator;
 import net.praqma.util.test.junit.TestDescription;
@@ -34,7 +25,6 @@ import net.praqma.util.debug.Logger;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 
-import static org.junit.Assert.*;
 
 public class GetBaselinesTest extends BaseTestClass {
 	
@@ -43,8 +33,6 @@ public class GetBaselinesTest extends BaseTestClass {
 	
 	@Rule
 	public ClearCaseRule ccenv = new ClearCaseRule( "ccucm-child-getbaselines" );
-
-	private static Logger logger = Logger.getLogger();
 		
 	public AbstractBuild<?, ?> initiateBuild( String projectName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
 		return jenkins.initiateBuild( projectName, "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), recommend, tag, description, fail, true );

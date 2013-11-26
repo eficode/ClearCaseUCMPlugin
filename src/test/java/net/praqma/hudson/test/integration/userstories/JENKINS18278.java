@@ -5,17 +5,10 @@ import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Project;
 import hudson.model.Result;
-import net.praqma.clearcase.Deliver;
 import net.praqma.clearcase.Rebase;
-import net.praqma.clearcase.exceptions.CleartoolException;
-import net.praqma.clearcase.exceptions.UCMEntityNotFoundException;
-import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
-import net.praqma.clearcase.exceptions.UnableToLoadEntityException;
-import net.praqma.clearcase.interfaces.Diffable;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.clearcase.ucm.entities.*;
-import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.scm.ChangeLogEntryImpl;
 import net.praqma.hudson.scm.ChangeLogSetImpl;
 import net.praqma.hudson.test.BaseTestClass;
@@ -26,7 +19,6 @@ import net.praqma.util.test.junit.TestDescription;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.List;
 import java.util.logging.Logger;
 

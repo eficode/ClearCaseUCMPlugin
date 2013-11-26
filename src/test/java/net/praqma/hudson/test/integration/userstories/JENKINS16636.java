@@ -13,9 +13,6 @@ import net.praqma.util.test.junit.TestDescription;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static net.praqma.hudson.test.CCUCMRule.ProjectCreator.Type.child;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author cwolfgang
