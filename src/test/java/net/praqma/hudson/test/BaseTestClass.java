@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 
 public class BaseTestClass {
 
-    private static Logger logger = Logger.getLogger( BaseTestClass.class.getName() );
+    private static final Logger logger = Logger.getLogger( BaseTestClass.class.getName() );
 
     @ClassRule
     public static CCUCMRule jenkins = new CCUCMRule();
@@ -38,10 +38,13 @@ public class BaseTestClass {
     }
 
 
-    protected void listPath( FilePath path ) throws IOException, InterruptedException {
-        logger.info( "Listing " + path + "(" + path.exists() + ")" );
-        for( FilePath f : path.list() ) {
-            logger.info( " * " + f );
+    protected void listPath( FilePath path ) throws IOException, InterruptedException {        
+        boolean pathExists = path.exists();        
+        logger.info( "Listing " + path + "(" + pathExists + ")" );
+        if(pathExists) {
+            for( FilePath f : path.list() ) {
+                logger.info( " * " + f );
+            }
         }
     }
 
