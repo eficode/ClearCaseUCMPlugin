@@ -7,7 +7,7 @@
   <vob storetag="vobname" tag="${vobname}" linuxtag="/vobs/${vobname}" stgloc="-auto" mounted="true"/>
 
   <view tag="${vobname}_setupview" stgloc="-auto"/>
-  <context mvfs="m:\" linux="/view" view="${vobname}_setupview" vob="${vobname}"/>
+  <context mvfs="m:\" linux="/views" view="${vobname}_setupview" vob="${vobname}"/>
   
   <component root="" comment="" name="_System" pvob="${pvobname}" />
   <component root="" comment="" name="_Server" pvob="${pvobname}" />

@@ -6,7 +6,7 @@
 	<ccenv name="Six baselines on integration">
 
 	  
-	  <context mvfs="m:\" linux="/view" view="${name}_one_int" vob="${vobname}"/>
+	  <context mvfs="m:\" linux="/views" view="${name}_one_int" vob="${vobname}"/>
 	  
 	  <activity comment="" headline="Adding initial files into components" in="one_int" name="initial_files" pvob="${pvobname}" />
 	  

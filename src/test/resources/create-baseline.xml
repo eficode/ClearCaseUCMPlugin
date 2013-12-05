@@ -8,7 +8,7 @@
     <stream name="${vobname}_one_dev" pvob="${pvobname}" />
   </view>
   
-  <context mvfs="m:\" view="${vobname}_one_dispenser" vob="${vobname}"/>
+  <context mvfs="m:\" view="${vobname}_one_dispenser" vob="${vobname}" linux="/views"/>
   
   <activity comment="" headline="Adding initial files into components" in="${vobname}_one_dev" name="initial_files" pvob="${pvobname}" />
   

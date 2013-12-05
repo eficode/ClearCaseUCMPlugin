@@ -44,7 +44,7 @@
     <stream name="bootstrap_int" pvob="${pvobname}" />
   </view>
 
-  <context mvfs="m:\" linux="/view" view="${name}_bootstrap_int" vob="${vobname}"/>
+  <context mvfs="m:\" linux="/views" view="${name}_bootstrap_int" vob="${vobname}"/>
   
   <baseline name="_Server_1.0" label="none" comment="" component="_Server" pvob="${pvobname}">
     <dependencies>
