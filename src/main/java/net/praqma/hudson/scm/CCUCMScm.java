@@ -40,6 +40,7 @@ import net.praqma.hudson.remoting.*;
 import net.praqma.hudson.remoting.deliver.GetChanges;
 import net.praqma.hudson.remoting.deliver.MakeDeliverView;
 import net.praqma.hudson.remoting.deliver.StartDeliver;
+import static net.praqma.hudson.scm.CCUCMScm.getLastAction;
 import net.praqma.hudson.scm.Polling.PollingType;
 import net.praqma.util.execute.AbnormalProcessTerminationException;
 import net.sf.json.JSONException;
@@ -54,183 +55,176 @@ import org.kohsuke.stapler.export.Exported;
 /**
  * is responsible for everything regarding Hudsons connection to ClearCase
  * pre-build. This class defines all the files required by the user. The
- * information can be entered on the config page. 
+ * information can be entered on the config page.
  */
 public class CCUCMScm extends SCM {
 
-    private static Logger logger = Logger.getLogger( CCUCMScm.class.getName() );
-	
-	/* Currently only for testing */
-	private Boolean multisitePolling;
-
-	private Project.PromotionLevel plevel;
-	private String loadModule;
-	private String component;
-	private String stream;
-	private String bl;
-	private StringBuffer pollMsgs = new StringBuffer();
-	private Stream integrationstream;
-	private String buildProject;
-	private String jobName = "";
-	private Integer jobNumber;
-
-	private boolean forceDeliver;
-
+    private static Logger logger = Logger.getLogger(CCUCMScm.class.getName());
+    /* Currently only for testing */
+    private Boolean multisitePolling;
+    private Project.PromotionLevel plevel;
+    private String loadModule;
+    private String component;
+    private String stream;
+    private String bl;
+    private StringBuffer pollMsgs = new StringBuffer();
+    private Stream integrationstream;
+    private String buildProject;
+    private String jobName = "";
+    private Integer jobNumber;
+    private boolean forceDeliver;
     /**
      * Determines whether to remove the view private files or not
      */
     private boolean removeViewPrivateFiles;
     private boolean trimmedChangeSet;
 
-	/* Old notifier fields */
-	private boolean recommend;
-	private boolean makeTag;
-	private boolean setDescription;
-	private Unstable treatUnstable;
-	private boolean createBaseline;
-	private String nameTemplate;
-
-	private Polling polling;
-	private String viewtag = "";
-	private Baseline lastBaseline;
-
+    /* Old notifier fields */
+    private boolean recommend;
+    private boolean makeTag;
+    private boolean setDescription;
+    private Unstable treatUnstable;
+    private boolean createBaseline;
+    private String nameTemplate;
+    private Polling polling;
+    private String viewtag = "";
+    private Baseline lastBaseline;
     private String levelToPoll;
-
     private boolean addPostBuild = true;
+    private static DateFormat dateFormatter = new SimpleDateFormat("yyyyMMdd");
 
-	private static DateFormat dateFormatter = new SimpleDateFormat( "yyyyMMdd" );
-
-	/**
-	 * Default constructor, mainly used for unit tests.
-	 */
-	public CCUCMScm() {
-	}
+    /**
+     * Default constructor, mainly used for unit tests.
+     */
+    public CCUCMScm() {
+    }
 
     /**
      * To support backwards compatibility.
+     *
      * @since 1.4.0
      */
-    public CCUCMScm( String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable,
-                     boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject ) {
+    public CCUCMScm(String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable,
+            boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject) {
 
-        this( component, levelToPoll, loadModule, newest, polling, stream, treatUnstable, createBaseline, nameTemplate, forceDeliver, recommend, makeTag, setDescription, buildProject, true, false );
+        this(component, levelToPoll, loadModule, newest, polling, stream, treatUnstable, createBaseline, nameTemplate, forceDeliver, recommend, makeTag, setDescription, buildProject, true, false);
     }
 
-	@DataBoundConstructor
-	public CCUCMScm( String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable, 
-			         boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject, boolean removeViewPrivateFiles, boolean trimmedChangeSet ) {
+    @DataBoundConstructor
+    public CCUCMScm(String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable,
+            boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject, boolean removeViewPrivateFiles, boolean trimmedChangeSet) {
 
-		this.component = component;
-		this.loadModule = loadModule;
-		this.stream = stream;
-		this.buildProject = buildProject;
+        this.component = component;
+        this.loadModule = loadModule;
+        this.stream = stream;
+        this.buildProject = buildProject;
 
-		this.polling = new Polling( polling );
-		this.treatUnstable = new Unstable( treatUnstable );
+        this.polling = new Polling(polling);
+        this.treatUnstable = new Unstable(treatUnstable);
 
-		this.createBaseline = createBaseline;
-		this.nameTemplate = nameTemplate;
+        this.createBaseline = createBaseline;
+        this.nameTemplate = nameTemplate;
 
-		this.forceDeliver = forceDeliver;
+        this.forceDeliver = forceDeliver;
         this.removeViewPrivateFiles = removeViewPrivateFiles;
         this.trimmedChangeSet = trimmedChangeSet;
 
-		this.recommend = recommend;
-		this.makeTag = makeTag;
-		this.setDescription = setDescription;
-		this.plevel = Util.getLevel( levelToPoll );
+        this.recommend = recommend;
+        this.makeTag = makeTag;
+        this.setDescription = setDescription;
+        this.plevel = Util.getLevel(levelToPoll);
         this.levelToPoll = levelToPoll;
-	}
+    }
 
-	@Override
-	public boolean checkout( AbstractBuild<?, ?> build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile ) throws IOException, InterruptedException {
-		/* Prepare job variables */
+    @Override
+    public boolean checkout(AbstractBuild<?, ?> build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile) throws IOException, InterruptedException {
+        /* Prepare job variables */
 
-		jobName = build.getParent().getDisplayName().replace( ' ', '_' );
-		jobNumber = build.getNumber();
+        jobName = build.getParent().getDisplayName().replace(' ', '_');
+        jobNumber = build.getNumber();
 
-		PrintStream out = listener.getLogger();
+        PrintStream out = listener.getLogger();
 
         /* Printing short description of build */
-		String version = Hudson.getInstance().getPlugin( "clearcase-ucm-plugin" ).getWrapper().getVersion();
-		out.println( "[" + Config.nameShort + "] ClearCase UCM Plugin version " + version );
-		out.println( "[" + Config.nameShort + "] Allow for slave polling: " + this.getSlavePolling() );
-		out.println( "[" + Config.nameShort + "] Poll for posted deliveries: " + this.getMultisitePolling() );
+        String version = Hudson.getInstance().getPlugin("clearcase-ucm-plugin").getWrapper().getVersion();
+        out.println("[" + Config.nameShort + "] ClearCase UCM Plugin version " + version);
+        out.println("[" + Config.nameShort + "] Allow for slave polling: " + this.getSlavePolling());
+        out.println("[" + Config.nameShort + "] Poll for posted deliveries: " + this.getMultisitePolling());
 
-		logger.info( "ClearCase UCM plugin v. " + version );
-		
-		/* Check for ClearCase on remote */
-		try {
-			workspace.act( new RemoteClearCaseCheck() );
-		} catch( AbnormalProcessTerminationException e ) {
-			build.setDescription( e.getMessage() );
-			throw e;
-		}
+        logger.info("ClearCase UCM plugin v. " + version);
+
+        /* Check for ClearCase on remote */
+        try {
+            workspace.act(new RemoteClearCaseCheck());
+        } catch (AbnormalProcessTerminationException e) {
+            build.setDescription(e.getMessage());
+            throw e;
+        }
 
         /* Make build action */
         /* Store the configuration */
         CCUCMBuildAction action = null;
         try {
             action = getBuildAction();
-        } catch( UnableToInitializeEntityException e ) {
-            Util.println( out, e );
-            throw new AbortException( e.getMessage() );
+        } catch (UnableToInitializeEntityException e) {
+            Util.println(out, e);
+            throw new AbortException(e.getMessage());
         }
 
-        action.setBuild( build );
-        build.addAction( action );
+        action.setBuild(build);
+        build.addAction(action);
 
         //out.println( "LISTENER IS " + listener );
-        action.setListener( listener );
+        action.setListener(listener);
 
-		/* Determining the user has parameterized a Baseline */
-		String baselineInput = getBaselineValue( build );
+        /* Determining the user has parameterized a Baseline */
+        String baselineInput = getBaselineValue(build);
 
-        logger.fine( "PUBLISHERS BEFORE: " + build.getProject().getPublishersList() );
-        if( addPostBuild ) {
-            ensurePublisher( build );
+        logger.fine("PUBLISHERS BEFORE: " + build.getProject().getPublishersList());
+        if (addPostBuild) {
+            ensurePublisher(build);
         }
-        out.println( "PUBLISHERS AFTER: " + build.getProject().getPublishersList() );
+        out.println("PUBLISHERS AFTER: " + build.getProject().getPublishersList());
 
-		/* The special Baseline parameter case */
-		if( build.getBuildVariables().get( baselineInput ) != null ) {
-			logger.fine( "Baseline parameter: " + baselineInput );
-			action.setPolling( new Polling( PollingType.none ) );
+        /* The special Baseline parameter case */
+        if (build.getBuildVariables().get(baselineInput) != null) {
+            logger.fine("Baseline parameter: " + baselineInput);
+            action.setPolling(new Polling(PollingType.none));
             polling = action.getPolling();
             try {
-                resolveBaselineInput( build, baselineInput, action, listener );
-            } catch( Exception e ) {
-                logger.log( Level.WARNING, "Resolving baseline input failed", e );
-                Util.println( out, "No Baselines found" );
+                resolveBaselineInput(build, baselineInput, action, listener);
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "Resolving baseline input failed", e);
+                Util.println(out, "No Baselines found");
             }
         } else {
-			out.println( "[" + Config.nameShort + "] Polling streams: " + polling.toString() );
+            out.println("[" + Config.nameShort + "] Polling streams: " + polling.toString());
             try {
-                resolveBaseline( workspace, build.getProject(), action, listener );                
-            } catch( CCUCMException e ) {
-                logger.warning( e.getMessage() );
+                resolveBaseline(workspace, build.getProject(), action, listener);
+            } catch (CCUCMException e) {
+                logger.warning(e.getMessage());
                 /* If the promotion level is not set, ANY, use the last found Baseline */
-                if( plevel == null ) {
-                    logger.fine( "Promotion level was null [=ANY], finding the last built baseline" );
-                    CCUCMBuildAction last = getLastAction( build.getProject() );
-                    if( action != null ) {
-                        action.setBaseline( last.getBaseline() );
+                if (plevel == null) {
+                    logger.fine("Promotion level was null [=ANY], finding the last built baseline");
+                    CCUCMBuildAction last = getLastAction(build.getProject());
+                    if (action != null) {
+                        action.setBaseline(last.getBaseline());
                     } else {
-                        build.setDescription( "No valid baselines found" );
-                        throw new AbortException( "No valid baselines found" );
+                        build.setDescription("No valid baselines found");
+                        throw new AbortException("No valid baselines found");
                     }
                 } else {
-                    build.setDescription( "No valid baselines found" );
-                    throw new AbortException( "No valid baselines found" );
+                    build.setDescription("No valid baselines found");
+                    throw new AbortException("No valid baselines found");
                 }
-            } catch( IOException e ) {
+            } catch (IOException e) {
                 Exception cause = (Exception) e.getCause();
-                if( cause != null ) {
-                    action.setResolveBaselineException( cause );
-                    build.setDescription( cause.getMessage() );
-                    throw new AbortException( cause.getMessage() );
+                if (cause != null) {
+                    action.setResolveBaselineException(cause);
+                    build.setDescription(cause.getMessage());
+                    throw new AbortException(cause.getMessage());
                 } else {
-                    throw new AbortException( "Unable to list baselines" );
+                    throw new AbortException("Unable to list baselines");
                 }
             }
         }
@@ -240,210 +234,212 @@ public class CCUCMScm extends SCM {
 
         boolean result = true;
 
-		/* If a baseline is found */
-		if( action.getBaseline() != null ) {
-			out.println( "[" + Config.nameShort + "] Using " + action.getBaseline().getNormalizedName() );
+        /* If a baseline is found */
+        if (action.getBaseline() != null) {
+            out.println("[" + Config.nameShort + "] Using " + action.getBaseline().getNormalizedName());
 
-			//baselineName = state.getBaseline().getFullyQualifiedName();
+            //baselineName = state.getBaseline().getFullyQualifiedName();
 
-			if( polling.isPollingSelf() || !polling.isPolling() ) {
-				logger.fine( "Initializing workspace" );
-				result = initializeWorkspace( build, workspace, changelogFile, listener, action );
-			} else {
-				/* Only start deliver when NOT polling self */
-				logger.fine( "Deliver" );
-                SnapshotView snapshotView = initializeDeliverView( build, action, listener );
-                generateChangeLog( build, action, listener, changelogFile, snapshotView );
+            if (polling.isPollingSelf() || !polling.isPolling()) {
+                logger.fine("Initializing workspace");
+                result = initializeWorkspace(build, workspace, changelogFile, listener, action);
+            } else {
+                /* Only start deliver when NOT polling self */
+                logger.fine("Deliver");
+                SnapshotView snapshotView = initializeDeliverView(build, action, listener);
+                generateChangeLog(build, action, listener, changelogFile, snapshotView);
             }
 
-			action.setViewTag( viewtag );
-		}
+            action.setViewTag(viewtag);
+        }
 
-		out.println( "[" + Config.nameShort + "] Pre build steps done" );
+        out.println("[" + Config.nameShort + "] Pre build steps done");
 
         /* We'll switch it back after using it, because it is only for testing purposes */
         addPostBuild = true;
 
 
         /* If there's a result let's find out whether a baseline is found or not */
-        if( action.getBaseline() == null ) {
-            out.println( "[" + Config.nameShort + "] Finished processing, no baseline found" );
+        if (action.getBaseline() == null) {
+            out.println("[" + Config.nameShort + "] Finished processing, no baseline found");
         } else {
-            out.println( "[" + Config.nameShort + "] Finished processing " + action.getBaseline() );
+            out.println("[" + Config.nameShort + "] Finished processing " + action.getBaseline());
         }
 
-        logger.fine( "ENDING CHECKOUT" );
+        logger.fine("ENDING CHECKOUT");
 
-		return result;
-	}
+        return result;
+    }
 
     @Override
-    public void postCheckout( AbstractBuild<?, ?> build, Launcher launcher, FilePath workspace, BuildListener listener ) throws IOException, InterruptedException {
+    public void postCheckout(AbstractBuild<?, ?> build, Launcher launcher, FilePath workspace, BuildListener listener) throws IOException, InterruptedException {
 
-        logger.fine( "BEGINNING POSTCHECKOUT" );
+        logger.fine("BEGINNING POSTCHECKOUT");
 
         /* This is really only interesting if child or sibling polling */
-        if( polling.isPollingOther() ) {
+        if (polling.isPollingOther()) {
 
-            CCUCMBuildAction state = build.getAction( CCUCMBuildAction.class );
+            CCUCMBuildAction state = build.getAction(CCUCMBuildAction.class);
 
             PrintStream consoleOutput = listener.getLogger();
 
             try {
-                logger.fine( "Starting deliver" );
-                StartDeliver sd = new StartDeliver( listener, state.getStream(), state.getBaseline(), state.getSnapshotView(), loadModule, state.doForceDeliver(), state.doRemoveViewPrivateFiles() );
-                workspace.act( sd );
+                logger.fine("Starting deliver");
+                StartDeliver sd = new StartDeliver(listener, state.getStream(), state.getBaseline(), state.getSnapshotView(), loadModule, state.doForceDeliver(), state.doRemoveViewPrivateFiles());
+                workspace.act(sd);
 
-                consoleOutput.println( "[" + Config.nameShort + "] Deliver successful" );
+                consoleOutput.println("[" + Config.nameShort + "] Deliver successful");
 
-            /* Deliver failed */
-            } catch( Exception e ) {
-                consoleOutput.println( "[" + Config.nameShort + "] Deliver failed" );
+                /* Deliver failed */
+            } catch (Exception e) {
+                consoleOutput.println("[" + Config.nameShort + "] Deliver failed");
 
                 /* Check for exception types */
-                Exception cause = (Exception) net.praqma.util.ExceptionUtils.unpackFrom( IOException.class, e );
+                Exception cause = (Exception) net.praqma.util.ExceptionUtils.unpackFrom(IOException.class, e);
 
-                consoleOutput.println( "[" + Config.nameShort + "] Cause: " + cause.getClass() );
+                consoleOutput.println("[" + Config.nameShort + "] Cause: " + cause.getClass());
 
                 /* Re-throw */
                 try {
-                    logger.log( Level.WARNING, "", cause );
+                    logger.log(Level.WARNING, "", cause);
                     throw cause;
-                } catch( DeliverException de ) {
+                } catch (DeliverException de) {
 
-                    consoleOutput.println( "[" + Config.nameShort + "] " + de.getType() );
+                    consoleOutput.println("[" + Config.nameShort + "] " + de.getType());
 
                     /* We need to store this information anyway */
-                    state.setViewPath( de.getDeliver().getViewContext() );
-                    state.setViewTag( de.getDeliver().getViewtag() );
+                    state.setViewPath(de.getDeliver().getViewContext());
+                    state.setViewTag(de.getDeliver().getViewtag());
 
                     /* The deliver is started, cancel it */
-                    if( de.isStarted() ) {
+                    if (de.isStarted()) {
                         try {
-                            consoleOutput.print( "[" + Config.nameShort + "] Cancelling deliver. " );
-                            RemoteUtil.completeRemoteDeliver( workspace, listener, state.getBaseline(), state.getStream(), de.getDeliver().getViewtag(), de.getDeliver().getViewContext(), false );
-                            consoleOutput.println( "Success" );
+                            consoleOutput.print("[" + Config.nameShort + "] Cancelling deliver. ");
+                            RemoteUtil.completeRemoteDeliver(workspace, listener, state.getBaseline(), state.getStream(), de.getDeliver().getViewtag(), de.getDeliver().getViewContext(), false);
+                            consoleOutput.println("Success");
 
                             /* Make sure, that the post step is not run */
-                            state.setNeedsToBeCompleted( false );
+                            state.setNeedsToBeCompleted(false);
 
-                        } catch( Exception ex ) {
-                            consoleOutput.println( "[" + Config.nameShort + "] Failed to cancel deliver" );
-                            consoleOutput.println( ExceptionUtils.getFullStackTrace( e ) );
-                            logger.warning( ExceptionUtils.getFullStackTrace( e ) );
+                        } catch (Exception ex) {
+                            consoleOutput.println("[" + Config.nameShort + "] Failed to cancel deliver");
+                            consoleOutput.println(ExceptionUtils.getFullStackTrace(e));
+                            logger.warning(ExceptionUtils.getFullStackTrace(e));
                         }
                     } else {
-                        logger.fine( "No need for completing deliver" );
-                        state.setNeedsToBeCompleted( false );
+                        logger.fine("No need for completing deliver");
+                        state.setNeedsToBeCompleted(false);
                     }
 
                     /* Write something useful to the output */
-                    if( de.getType().equals( Type.MERGE_ERROR ) ) {
-                        consoleOutput.println( "[" + Config.nameShort + "] Changes need to be manually merged, The stream " + state.getBaseline().getStream().getShortname() + " must be rebased to the most recent baseline on " + state.getStream().getShortname() + " - During the rebase the merge conflict should be solved manually. Hereafter create a new baseline on " + state.getBaseline().getStream().getShortname() + "." );
-                        state.setError( "merge error" );
+                    if (de.getType().equals(Type.MERGE_ERROR)) {
+                        consoleOutput.println("[" + Config.nameShort + "] Changes need to be manually merged, The stream " + state.getBaseline().getStream().getShortname() + " must be rebased to the most recent baseline on " + state.getStream().getShortname() + " - During the rebase the merge conflict should be solved manually. Hereafter create a new baseline on " + state.getBaseline().getStream().getShortname() + ".");
+                        state.setError("merge error");
                     }
 
-                /* Force deliver not cancelled */
-                } catch( DeliverNotCancelledException e1 ) {
-                    consoleOutput.println( "[" + Config.nameShort + "] Failed to force cancel existing deliver" );
-                    state.setNeedsToBeCompleted( false );
-                } catch( Exception e1 ) {
-                    logger.log( Level.WARNING, "", e );
-                    e.printStackTrace( consoleOutput );
+                    /* Force deliver not cancelled */
+                } catch (DeliverNotCancelledException e1) {
+                    consoleOutput.println("[" + Config.nameShort + "] Failed to force cancel existing deliver");
+                    state.setNeedsToBeCompleted(false);
+                } catch (Exception e1) {
+                    logger.log(Level.WARNING, "", e);
+                    e.printStackTrace(consoleOutput);
                 }
 
-                throw new AbortException( "Unable to start deliver" );
+                throw new AbortException("Unable to start deliver");
             }
         }
 
-        logger.fine( "ENDING POSTCHECKOUT" );
+        logger.fine("ENDING POSTCHECKOUT");
     }
 
-    public void ensurePublisher( AbstractBuild build ) throws IOException {
-        Describable describable = build.getProject().getPublishersList().get( CCUCMNotifier.class );
-        if( describable == null ) {
-            logger.info( "Adding notifier to project" );
-            build.getProject().getPublishersList().add( new CCUCMNotifier() );
+    public void ensurePublisher(AbstractBuild build) throws IOException {
+        Describable describable = build.getProject().getPublishersList().get(CCUCMNotifier.class);
+        if (describable == null) {
+            logger.info("Adding notifier to project");
+            build.getProject().getPublishersList().add(new CCUCMNotifier());
         }
     }
 
-    public void setAddPostBuild( boolean addPostBuild ) {
+    public void setAddPostBuild(boolean addPostBuild) {
         this.addPostBuild = addPostBuild;
     }
 
-	private boolean checkInput( TaskListener listener ) {
-		PrintStream out = listener.getLogger();
+    private boolean checkInput(TaskListener listener) {
+        PrintStream out = listener.getLogger();
 
-        out.println( "[" + Config.nameShort + "] Verifying input" );
+        out.println("[" + Config.nameShort + "] Verifying input");
 
-		/* Check baseline template */
-		if( createBaseline ) {
-			/* Sanity check */
-			if( polling.isPollingOther() ) {
-				if( nameTemplate != null && nameTemplate.length() > 0 ) {
+        /* Check baseline template */
+        if (createBaseline) {
+            /* Sanity check */
+            if (polling.isPollingOther()) {
+                if (nameTemplate != null && nameTemplate.length() > 0) {
 
-                    if( nameTemplate.matches( "^\".+\"$" ) ) {
-                        nameTemplate = nameTemplate.substring( 1, nameTemplate.length() - 1 );
+                    if (nameTemplate.matches("^\".+\"$")) {
+                        nameTemplate = nameTemplate.substring(1, nameTemplate.length() - 1);
                     }
 
-					try {
-						NameTemplate.testTemplate( nameTemplate );
-					} catch( TemplateException e ) {
-						out.println( "[" + Config.nameShort + "] The template could not be parsed correctly: " + e.getMessage() );
-						return false;
-					}
-				} else {
-					out.println( "[" + Config.nameShort + "] A valid template must be provided to create a Baseline" );
-					return false;
-				}
-			} else {
-				out.println( "[" + Config.nameShort + "] You cannot create a baseline in this mode" );
-			}
-		}
+                    try {
+                        NameTemplate.testTemplate(nameTemplate);
+                    } catch (TemplateException e) {
+                        out.println("[" + Config.nameShort + "] The template could not be parsed correctly: " + e.getMessage());
+                        return false;
+                    }
+                } else {
+                    out.println("[" + Config.nameShort + "] A valid template must be provided to create a Baseline");
+                    return false;
+                }
+            } else {
+                out.println("[" + Config.nameShort + "] You cannot create a baseline in this mode");
+            }
+        }
 
-		/* Check polling vs plevel */
-		if( plevel == null ) {
-			if( polling.isPollingSelf() ) {
-				return true;
-			} else {
-				out.println( "[" + Config.nameShort + "] You cannot poll any on other than self" );
-				return false;
-			}
-		}
+        /* Check polling vs plevel */
+        if (plevel == null) {
+            if (polling.isPollingSelf()) {
+                return true;
+            } else {
+                out.println("[" + Config.nameShort + "] You cannot poll any on other than self");
+                return false;
+            }
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	private boolean initializeWorkspace( AbstractBuild<?, ?> build, FilePath workspace, File changelogFile, BuildListener listener, CCUCMBuildAction action ) throws IOException, InterruptedException {
+    private boolean initializeWorkspace(AbstractBuild<?, ?> build, FilePath workspace, File changelogFile, BuildListener listener, CCUCMBuildAction action) throws IOException, InterruptedException {
 
-		PrintStream consoleOutput = listener.getLogger();
+        PrintStream consoleOutput = listener.getLogger();
 
-		EstablishResult er = null;
-        CheckoutTask ct = new CheckoutTask( listener, jobName, build.getNumber(), action.getStream(), loadModule, action.getBaseline(), buildProject, ( plevel == null ), action.doRemoveViewPrivateFiles() );
-        er = workspace.act( ct );
+        EstablishResult er = null;
+        CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), action.getStream(), loadModule, action.getBaseline(), buildProject, (plevel == null), action.doRemoveViewPrivateFiles());
+        er = workspace.act(ct);
         //String changelog = er.getMessage();
         String changelog = "";
-        changelog = Util.createChangelog( er.getActivities(), action.getBaseline(), trimmedChangeSet );
-        action.setActivities( er.getActivities() );
+        changelog = Util.createChangelog(er.getActivities(), action.getBaseline(), trimmedChangeSet);
+        action.setActivities(er.getActivities());
 
         this.viewtag = er.getViewtag();
 
         /* Write change log */
         try {
-            FileOutputStream fos = new FileOutputStream( changelogFile );
-            fos.write( changelog.getBytes() );
+            FileOutputStream fos = new FileOutputStream(changelogFile);
+            fos.write(changelog.getBytes());
             fos.close();
-        } catch( IOException e ) {
-            logger.fine( "Could not write change log file" );
-            consoleOutput.println( "[" + Config.nameShort + "] Could not write change log file" );
+        } catch (IOException e) {
+            logger.fine("Could not write change log file");
+            consoleOutput.println("[" + Config.nameShort + "] Could not write change log file");
         }
 
 
-		return true;
-	}
+        return true;
+    }
 
     /**
-     * Resolve the {@link Baseline} parameter and store the information in the Action
+     * Resolve the {@link Baseline} parameter and store the information in the
+     * Action
+     *
      * @param build
      * @param baselineInput
      * @param action
@@ -451,296 +447,304 @@ public class CCUCMScm extends SCM {
      * @throws UnableToInitializeEntityException
      * @throws CCUCMException
      */
-	public void resolveBaselineInput( AbstractBuild<?, ?> build, String baselineInput, CCUCMBuildAction action, BuildListener listener ) throws UnableToInitializeEntityException, IOException, InterruptedException {
+    public void resolveBaselineInput(AbstractBuild<?, ?> build, String baselineInput, CCUCMBuildAction action, BuildListener listener) throws UnableToInitializeEntityException, IOException, InterruptedException {
 
-		PrintStream consoleOutput = listener.getLogger();
+        PrintStream consoleOutput = listener.getLogger();
 
-		String baselinename = build.getBuildVariables().get( baselineInput );
-        action.setBaseline( Baseline.get( baselinename ) );
+        String baselinename = build.getBuildVariables().get(baselineInput);
+        action.setBaseline(Baseline.get(baselinename));
 
         /* Load the baseline */
-        action.setBaseline( (Baseline) RemoteUtil.loadEntity( build.getWorkspace(), action.getBaseline(), true ) );
+        action.setBaseline((Baseline) RemoteUtil.loadEntity(build.getWorkspace(), action.getBaseline(), true));
 
-        action.setStream( action.getBaseline().getStream() );
-        consoleOutput.println( "[" + Config.nameShort + "] Starting parameterized build with a Baseline." );
+        action.setStream(action.getBaseline().getStream());
+        consoleOutput.println("[" + Config.nameShort + "] Starting parameterized build with a Baseline.");
 
-        action.setComponent( action.getBaseline().getComponent() );
-        action.setStream( action.getBaseline().getStream() );
-	}
+        action.setComponent(action.getBaseline().getComponent());
+        action.setStream(action.getBaseline().getStream());
+    }
 
-	public String getBaselineValue( AbstractBuild<?, ?> build ) {
-		Collection<?> c = build.getBuildVariables().keySet();
-		Iterator<?> i = c.iterator();
+    public String getBaselineValue(AbstractBuild<?, ?> build) {
+        Collection<?> c = build.getBuildVariables().keySet();
+        Iterator<?> i = c.iterator();
 
-		while( i.hasNext() ) {
-			String next = i.next().toString();
-			if( next.equalsIgnoreCase( "baseline" ) ) {
-				return next;
-			}
-		}
+        while (i.hasNext()) {
+            String next = i.next().toString();
+            if (next.equalsIgnoreCase("baseline")) {
+                return next;
+            }
+        }
 
-		return null;
-	}
+        return null;
+    }
 
     /**
      * Resolve the {@link Baseline} to be build
+     *
      * @param workspace
      * @param project
      * @param action
      * @param listener
      * @throws CCUCMException is thrown if no valid baselines are found
      */
-	private void resolveBaseline( FilePath workspace, AbstractProject<?, ?> project, CCUCMBuildAction action, BuildListener listener ) throws IOException, InterruptedException, CCUCMException {
-        logger.fine( "Resolving Baseline from the Stream " + action.getStream().getNormalizedName() );
-		PrintStream out = listener.getLogger();
+    private void resolveBaseline(FilePath workspace, AbstractProject<?, ?> project, CCUCMBuildAction action, BuildListener listener) throws IOException, InterruptedException, CCUCMException {
+        logger.fine("Resolving Baseline from the Stream " + action.getStream().getNormalizedName());
+        PrintStream out = listener.getLogger();
 
-        printParameters( out );
+        printParameters(out);
 
         /* The Stream must be loaded */
-        action.setStream( (Stream) RemoteUtil.loadEntity( workspace, action.getStream(), getSlavePolling() ) );
+        action.setStream((Stream) RemoteUtil.loadEntity(workspace, action.getStream(), getSlavePolling()));
 
         List<Baseline> baselines = null;
 
         /* We need to discriminate on promotion level, JENKINS-16620 */
         Date date = null;
-        if( plevel == null ) {
-            CCUCMBuildAction lastAction = getLastAction( project );
-            if( lastAction != null ) {
+        if (plevel == null) {
+            CCUCMBuildAction lastAction = getLastAction(project);
+            if (lastAction != null) {
                 date = lastAction.getBaseline().getDate();
             }
         }
-        
+
         /* Find the Baselines and store them, none of the methods returns null! At least an empty list */
         /* Old skool self polling */
-        if( polling.isPollingSelf() ) {
-            baselines = getValidBaselinesFromStream( workspace, plevel, action.getStream(), action.getComponent(), date );
+        if (polling.isPollingSelf()) {
+            baselines = getValidBaselinesFromStream(workspace, plevel, action.getStream(), action.getComponent(), date);
         } else {
-            baselines = getBaselinesFromStreams( workspace, listener, out, action.getStream(), action.getComponent(), polling.isPollingChilds(), date );
+            baselines = getBaselinesFromStreams(workspace, listener, out, action.getStream(), action.getComponent(), polling.isPollingChilds(), date);
         }
 
         /* if we did not find any baselines we should return false */
-        if( baselines.size() < 1 ) {
-            throw new CCUCMException( "No valid Baselines found" );
+        if (baselines.size() < 1) {
+            throw new CCUCMException("No valid Baselines found");
         }
 
         /* Select and load baseline */
-        action.setBaseline( selectBaseline( baselines, plevel, workspace ) );
+        action.setBaseline(selectBaseline(baselines, plevel, workspace));
 
         /* Print the baselines to jenkins out */
-        printBaselines( baselines, out );
-        out.println( "" );
-	}
+        printBaselines(baselines, out);
+        out.println("");
+    }
 
     /**
      * Initialize the deliver view
      */
-	public SnapshotView initializeDeliverView( AbstractBuild<?, ?> build, CCUCMBuildAction state, BuildListener listener ) throws IOException, InterruptedException {
-		FilePath workspace = build.getWorkspace();
-		PrintStream consoleOutput = listener.getLogger();
+    public SnapshotView initializeDeliverView(AbstractBuild<?, ?> build, CCUCMBuildAction state, BuildListener listener) throws IOException, InterruptedException {
+        FilePath workspace = build.getWorkspace();
+        PrintStream consoleOutput = listener.getLogger();
 
-        logger.fine( "Initializing deliver view" );
-        MakeDeliverView mdv = new MakeDeliverView( listener, build.getParent().getDisplayName(), loadModule, state.getStream() );
-        SnapshotView view = workspace.act( mdv );
-        state.setViewPath( view.getViewRoot() );
-        state.setViewTag( view.getViewtag() );
-        state.setSnapshotView( view );
+        logger.fine("Initializing deliver view");
+        MakeDeliverView mdv = new MakeDeliverView(listener, build.getParent().getDisplayName(), loadModule, state.getStream());
+        SnapshotView view = workspace.act(mdv);
+        state.setViewPath(view.getViewRoot());
+        state.setViewTag(view.getViewtag());
+        state.setSnapshotView(view);
         this.viewtag = view.getViewtag();
 
         return view;
-	}
+    }
 
     /**
      * Generate the change log for poll/sibling mode
      */
-    public void generateChangeLog( AbstractBuild<?, ?> build, CCUCMBuildAction state, BuildListener listener, File changelogFile, SnapshotView snapshotView ) throws IOException, InterruptedException {
+    public void generateChangeLog(AbstractBuild<?, ?> build, CCUCMBuildAction state, BuildListener listener, File changelogFile, SnapshotView snapshotView) throws IOException, InterruptedException {
         FilePath workspace = build.getWorkspace();
         PrintStream consoleOutput = listener.getLogger();
 
-        logger.fine( "Generating change log" );
+        logger.fine("Generating change log");
 
-        GetChanges gc = new GetChanges( listener, state.getStream(), state.getBaseline(), snapshotView.getPath() );
-        List<Activity> activities = workspace.act( gc );
+        GetChanges gc = new GetChanges(listener, state.getStream(), state.getBaseline(), snapshotView.getPath());
+        List<Activity> activities = workspace.act(gc);
 
         String changelog = "";
-        changelog = Util.createChangelog( activities, state.getBaseline(), trimmedChangeSet );
-        state.setActivities( activities );
+        changelog = Util.createChangelog(activities, state.getBaseline(), trimmedChangeSet);
+        state.setActivities(activities);
 
         /* Write change log */
         try {
-            FileOutputStream fos = new FileOutputStream( changelogFile );
-            fos.write( changelog.getBytes() );
+            FileOutputStream fos = new FileOutputStream(changelogFile);
+            fos.write(changelog.getBytes());
             fos.close();
-        } catch( IOException e ) {
-            logger.fine( "Could not write change log file" );
-            consoleOutput.println( "[" + Config.nameShort + "] Could not write change log file" );
+        } catch (IOException e) {
+            logger.fine("Could not write change log file");
+            consoleOutput.println("[" + Config.nameShort + "] Could not write change log file");
         }
     }
 
     @Override
-	public ChangeLogParser createChangeLogParser() {
-		return new ChangeLogParserImpl();
-	}
+    public ChangeLogParser createChangeLogParser() {
+        return new ChangeLogParserImpl();
+    }
 
-	@Override
-	public void buildEnvVars( AbstractBuild<?, ?> build, Map<String, String> env ) {
-		super.buildEnvVars( build, env );
-		
-		String CC_BASELINE = "";
-		String CC_VIEWPATH = "";
-		String CC_VIEWTAG  = "";
+    @Override
+    public void buildEnvVars(AbstractBuild<?, ?> build, Map<String, String> env) {
+        super.buildEnvVars(build, env);
 
-		try {
-			
-			CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
-			CC_BASELINE = action.getBaseline().getFullyQualifiedName();
-		} catch( Exception e1 ) {
-			System.out.println( "Failed to get baseline: " + e1.getMessage() );
-		}
-		
-		/* View tag */
-		CC_VIEWTAG = viewtag;
-		
-		/* View path */
-		String workspace = env.get( "WORKSPACE" );
-		if( workspace != null ) {
-			CC_VIEWPATH = workspace + File.separator + "view";
-		} else {
-			CC_VIEWPATH = "";
-		}
+        String CC_BASELINE = "";
+        String CC_VIEWPATH = "";
+        String CC_VIEWTAG = "";
 
-		env.put( "CC_BASELINE", CC_BASELINE );
-		env.put( "CC_VIEWTAG", CC_VIEWTAG );
-		env.put( "CC_VIEWPATH", CC_VIEWPATH );
-	}
+        try {
 
-	/**
-	 * This method polls the version control system to see if there are any
-	 * changes in the source code.
-	 * 
-	 */
-	@Override
-	public PollingResult compareRemoteRevisionWith( AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState rstate ) throws IOException, InterruptedException {
+            CCUCMBuildAction action = build.getAction(CCUCMBuildAction.class);
+            CC_BASELINE = action.getBaseline().getFullyQualifiedName();
+        } catch (Exception e1) {
+            if (build != null) {
+                System.out.println( String.format ( "Failure in build environment variables (buildEnvVars) for job %s %nFull trace written to log", build.getProject().getName()) ); 
+            } else {
+                System.out.println( String.format ( "Build is null in buildEnvVars.%nTrace written to log as no other information can be gathered" ) ); 
+            }
+            logger.log(Level.WARNING, "Exception caught in buildEnvVars method", e1);
+        }
 
-    	workspace.act( new RemoteClearCaseCheck() );
+        /* View tag */
+        CC_VIEWTAG = viewtag;
 
-		jobName = project.getDisplayName().replace( ' ', '_' );
-		jobNumber = project.getNextBuildNumber();
+        /* View path */
+        String workspace = env.get("WORKSPACE");
+        if (workspace != null) {
+            CC_VIEWPATH = workspace + File.separator + "view";
+        } else {
+            CC_VIEWPATH = "";
+        }
 
-		PollingResult p = PollingResult.NO_CHANGES;
+        env.put("CC_BASELINE", CC_BASELINE);
+        env.put("CC_VIEWTAG", CC_VIEWTAG);
+        env.put("CC_VIEWPATH", CC_VIEWPATH);
+    }
 
-		/* Interrupt polling if: */
-		if( this.getMultisitePolling() ) {
-			/* multisite polling and a build is in progress */
-			if( project.isBuilding() ) {
-				logger.info( "A build already building - cancelling poll" );
-	            return PollingResult.NO_CHANGES;
-			}
-		} else {
-			/* not multisite polling and a the project is already in queue */
-			if( project.isInQueue() ) {
-				logger.fine( "A build already in queue - cancelling poll" );
-	            return PollingResult.NO_CHANGES;
-			}
-		}
+    /**
+     * This method polls the version control system to see if there are any
+     * changes in the source code.
+     *
+     */
+    @Override
+    public PollingResult compareRemoteRevisionWith(AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState rstate) throws IOException, InterruptedException {
 
-		logger.fine( "Need for polling" );
+        workspace.act(new RemoteClearCaseCheck());
 
-		PrintStream out = listener.getLogger();
+        jobName = project.getDisplayName().replace(' ', '_');
+        jobNumber = project.getNextBuildNumber();
+
+        PollingResult p = PollingResult.NO_CHANGES;
+
+        /* Interrupt polling if: */
+        if (this.getMultisitePolling()) {
+            /* multisite polling and a build is in progress */
+            if (project.isBuilding()) {
+                logger.info("A build already building - cancelling poll");
+                return PollingResult.NO_CHANGES;
+            }
+        } else {
+            /* not multisite polling and a the project is already in queue */
+            if (project.isInQueue()) {
+                logger.fine("A build already in queue - cancelling poll");
+                return PollingResult.NO_CHANGES;
+            }
+        }
+
+        logger.fine("Need for polling");
+
+        PrintStream out = listener.getLogger();
 
         Stream stream = null;
         Component component = null;
         try {
-            stream = Stream.get( this.stream );
-            component = Component.get( this.component );
-        } catch( UnableToInitializeEntityException e ) {
-            Util.println( out, e );
-            throw new AbortException( "Unable initialize ClearCase entities" );
+            stream = Stream.get(this.stream);
+            component = Component.get(this.component);
+        } catch (UnableToInitializeEntityException e) {
+            Util.println(out, e);
+            throw new AbortException("Unable initialize ClearCase entities");
         }
 
-        logger.fine( "Let's go!" );
+        logger.fine("Let's go!");
 
-		/* Check input */
-		if( checkInput( listener ) ) {
+        /* Check input */
+        if (checkInput(listener)) {
 
-            printParameters( out );
+            printParameters(out);
 
             List<Baseline> baselines = null;
 
             /* We need to discriminate on promotion level, JENKINS-16620.
              *
              * This is ONLY for ANY!
-              * */
+             * */
             Date date = null;
-            if( plevel == null ) {
-                CCUCMBuildAction lastAction = getLastAction( project );
-                if( lastAction != null ) {
+            if (plevel == null) {
+                CCUCMBuildAction lastAction = getLastAction(project);
+                if (lastAction != null) {
                     date = lastAction.getBaseline().getDate();
                 }
             }
 
             /* Old skool self polling */
-            if( polling.isPollingSelf() ) {
-                baselines = getValidBaselinesFromStream( workspace, plevel, stream, component, date );
+            if (polling.isPollingSelf()) {
+                baselines = getValidBaselinesFromStream(workspace, plevel, stream, component, date);
             } else {
                 /* Find the Baselines and store them */
-                baselines = getBaselinesFromStreams( workspace, listener, out, stream, component, polling.isPollingChilds(), date );
+                baselines = getBaselinesFromStreams(workspace, listener, out, stream, component, polling.isPollingChilds(), date);
             }
 
-            if( baselines.size() > 0 ) {
+            if (baselines.size() > 0) {
                 p = PollingResult.BUILD_NOW;
             }
 
         }
 
-		return p;
-	}
+        return p;
+    }
 
     /**
      * Get the {@link Baseline}s from a {@link Stream}s related Streams.
      *
      * @return A list of {@link Baseline}'s
      */
-	private List<Baseline> getBaselinesFromStreams( FilePath workspace, TaskListener listener, PrintStream consoleOutput, Stream stream, Component component, boolean pollingChildStreams, Date date ) {
+    private List<Baseline> getBaselinesFromStreams(FilePath workspace, TaskListener listener, PrintStream consoleOutput, Stream stream, Component component, boolean pollingChildStreams, Date date) {
 
-		List<Stream> streams = null;
-		List<Baseline> baselines = new ArrayList<Baseline>();
+        List<Stream> streams = null;
+        List<Baseline> baselines = new ArrayList<Baseline>();
 
-		try {
-			streams = RemoteUtil.getRelatedStreams( workspace, listener, stream, pollingChildStreams, this.getSlavePolling(), this.getMultisitePolling() );
-		} catch( Exception e1 ) {
-            Throwable root = ExceptionUtils.getRootCause( e1 );
-            logger.log( Level.WARNING, "Could not get related streams from " + stream, root );
-			consoleOutput.println( "[" + Config.nameShort + "] No streams found" );
-			return baselines;
-		}
+        try {
+            streams = RemoteUtil.getRelatedStreams(workspace, listener, stream, pollingChildStreams, this.getSlavePolling(), this.getMultisitePolling());
+        } catch (Exception e1) {
+            Throwable root = ExceptionUtils.getRootCause(e1);
+            logger.log(Level.WARNING, "Could not get related streams from " + stream, root);
+            consoleOutput.println("[" + Config.nameShort + "] No streams found");
+            return baselines;
+        }
 
-		consoleOutput.println( "[" + Config.nameShort + "] Scanning " + streams.size() + " stream" + ( streams.size() == 1 ? "" : "s" ) + " for baselines." );
+        consoleOutput.println("[" + Config.nameShort + "] Scanning " + streams.size() + " stream" + (streams.size() == 1 ? "" : "s") + " for baselines.");
 
-		int c = 1;
-		for( Stream s : streams ) {
-			try {
-				consoleOutput.printf( "[" + Config.nameShort + "] [%02d] %s ", c, s.getShortname() );
-				c++;
-				List<Baseline> found = RemoteUtil.getRemoteBaselinesFromStream( workspace, component, s, plevel, this.getSlavePolling(), this.getMultisitePolling(), date );
-				for( Baseline b : found ) {
-					baselines.add( b );
-				}
-				consoleOutput.println( found.size() + " baseline" + ( found.size() == 1 ? "" : "s" ) + " found" );
-			} catch( Exception e ) {
-                Throwable root = ExceptionUtils.getRootCause( e );
-                logger.log( Level.WARNING, "Could not get baselines from " + s, root );
-				consoleOutput.println( "No baselines: " + root.getMessage() );
-			}
-		}
+        int c = 1;
+        for (Stream s : streams) {
+            try {
+                consoleOutput.printf("[" + Config.nameShort + "] [%02d] %s ", c, s.getShortname());
+                c++;
+                List<Baseline> found = RemoteUtil.getRemoteBaselinesFromStream(workspace, component, s, plevel, this.getSlavePolling(), this.getMultisitePolling(), date);
+                for (Baseline b : found) {
+                    baselines.add(b);
+                }
+                consoleOutput.println(found.size() + " baseline" + (found.size() == 1 ? "" : "s") + " found");
+            } catch (Exception e) {
+                Throwable root = ExceptionUtils.getRootCause(e);
+                logger.log(Level.WARNING, "Could not get baselines from " + s, root);
+                consoleOutput.println("No baselines: " + root.getMessage());
+            }
+        }
 
-		consoleOutput.println( "" );
+        consoleOutput.println("");
 
-		return baselines;
-	}
+        return baselines;
+    }
 
     /**
-     * Given the {@link Stream}, {@link Component} and {@link net.praqma.clearcase.ucm.entities.Project.PromotionLevel} a list of
-     * valid {@link Baseline}s is returned.
+     * Given the {@link Stream}, {@link Component} and
+     * {@link net.praqma.clearcase.ucm.entities.Project.PromotionLevel} a list
+     * of valid {@link Baseline}s is returned.
+     *
      * @param workspace
      * @param plevel
      * @param stream
@@ -748,20 +752,22 @@ public class CCUCMScm extends SCM {
      * @return A list of {@link Baseline}'s
      * @throws CCUCMException
      */
-	private List<Baseline> getValidBaselinesFromStream( FilePath workspace, Project.PromotionLevel plevel, Stream stream, Component component, Date date ) throws IOException, InterruptedException {
-		logger.fine( "Retrieving valid baselines." );
-		return RemoteUtil.getRemoteBaselinesFromStream( workspace, component, stream, plevel, this.getSlavePolling(), this.getMultisitePolling(), date );
-	}
+    private List<Baseline> getValidBaselinesFromStream(FilePath workspace, Project.PromotionLevel plevel, Stream stream, Component component, Date date) throws IOException, InterruptedException {
+        logger.fine("Retrieving valid baselines.");
+        return RemoteUtil.getRemoteBaselinesFromStream(workspace, component, stream, plevel, this.getSlavePolling(), this.getMultisitePolling(), date);
+    }
 
     /**
-     * Returns the last {@link CCUCMBuildAction}, that has a valid {@link Baseline}
+     * Returns the last {@link CCUCMBuildAction}, that has a valid
+     * {@link Baseline}
+     *
      * @param project
      * @return An Action
      */
-    public static CCUCMBuildAction getLastAction( AbstractProject<?, ?> project ) {
-        for( AbstractBuild<?, ?> b = project.getLastBuild() ; b != null ; b = b.getPreviousBuild() ) {
-            CCUCMBuildAction action = b.getAction( CCUCMBuildAction.class );
-            if( action != null && action.getBaseline() != null ) {
+    public static CCUCMBuildAction getLastAction(AbstractProject<?, ?> project) {
+        for (AbstractBuild<?, ?> b = project.getLastBuild(); b != null; b = b.getPreviousBuild()) {
+            CCUCMBuildAction action = b.getAction(CCUCMBuildAction.class);
+            if (action != null && action.getBaseline() != null) {
                 return action;
             }
         }
@@ -769,160 +775,158 @@ public class CCUCMScm extends SCM {
         return null;
     }
 
-
     private CCUCMBuildAction getBuildAction() throws UnableToInitializeEntityException {
-        CCUCMBuildAction action = new CCUCMBuildAction( Stream.get( stream ), Component.get( component ) );
+        CCUCMBuildAction action = new CCUCMBuildAction(Stream.get(stream), Component.get(component));
 
-        action.setDescription( setDescription );
-        action.setMakeTag( makeTag );
-        action.setRecommend( recommend );
-        action.setForceDeliver( forceDeliver );
-        action.setPromotionLevel( plevel );
-        action.setUnstable( treatUnstable );
-        action.setLoadModule( loadModule );
-        action.setRemoveViewPrivateFiles( removeViewPrivateFiles );
-        action.setTrimmedChangeSet( trimmedChangeSet );
+        action.setDescription(setDescription);
+        action.setMakeTag(makeTag);
+        action.setRecommend(recommend);
+        action.setForceDeliver(forceDeliver);
+        action.setPromotionLevel(plevel);
+        action.setUnstable(treatUnstable);
+        action.setLoadModule(loadModule);
+        action.setRemoveViewPrivateFiles(removeViewPrivateFiles);
+        action.setTrimmedChangeSet(trimmedChangeSet);
 
         /* Deliver and template */
-        action.setCreateBaseline( createBaseline );
+        action.setCreateBaseline(createBaseline);
 
         /* Trim template, strip out quotes */
-        if( nameTemplate.matches( "^\".+\"$" ) ) {
-            nameTemplate = nameTemplate.substring( 1, nameTemplate.length() - 1 );
+        if (nameTemplate.matches("^\".+\"$")) {
+            nameTemplate = nameTemplate.substring(1, nameTemplate.length() - 1);
         }
-        action.setNameTemplate( nameTemplate );
+        action.setNameTemplate(nameTemplate);
 
-        action.setPolling( polling );
+        action.setPolling(polling);
 
         return action;
     }
 
+    @Override
+    public SCMRevisionState calcRevisionsFromBuild(AbstractBuild<?, ?> build, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
+        SCMRevisionState scmRS = null;
 
-	@Override
-	public SCMRevisionState calcRevisionsFromBuild( AbstractBuild<?, ?> build, Launcher launcher, TaskListener listener ) throws IOException, InterruptedException {
-		SCMRevisionState scmRS = null;
-
-		if( bl != null ) {
-			scmRS = new SCMRevisionStateImpl();
-		}
-		return scmRS;
-	}
-
-	private Baseline selectBaseline( List<Baseline> baselines, Project.PromotionLevel plevel, FilePath workspace ) throws IOException, InterruptedException {
-        Baseline selected = null;
-		if( baselines.size() > 0 ) {
-			if( plevel != null ) {
-				selected = baselines.get( 0 );
-			} else {
-                selected = baselines.get( baselines.size() - 1 );
-			}
-
-            return (Baseline) RemoteUtil.loadEntity( workspace, selected, true );
-		} else {
-			return null;
-		}
-	}
-
-	private void printParameters( PrintStream ps ) {
-		ps.println( "[" + Config.nameShort + "] Getting baselines for :" );
-		ps.println( "[" + Config.nameShort + "] * Stream:          " + stream );
-		ps.println( "[" + Config.nameShort + "] * Component:       " + component );
-        
-        if(plevel == null) {
-            ps.println( "[" + Config.nameShort + "] * Promotion level: " + "ANY" );
-        } else {
-            ps.println( "[" + Config.nameShort + "] * Promotion level: " + plevel );
+        if (bl != null) {
+            scmRS = new SCMRevisionStateImpl();
         }
-        
-		
-		ps.println( "" );
-	}
+        return scmRS;
+    }
 
-	public void printBaselines( List<Baseline> baselines, PrintStream ps ) {
-		if( baselines != null ) {
-			ps.println( "[" + Config.nameShort + "] Retrieved " + baselines.size() + " baseline" + ( baselines.size() == 1 ? "" : "s" ) + ":" );
-			if( !( baselines.size() > 8 ) ) {
-				for( Baseline b : baselines ) {
-					ps.println( "[" + Config.nameShort + "] + " + b.getShortname() + "(" + b.getDate() + ")" );
-				}
-			} else {
-				int i = baselines.size();
-				ps.println( "[" + Config.nameShort + "] + " + baselines.get( 0 ).getShortname() + "(" + baselines.get( 0 ).getDate() + ")" );
-				ps.println( "[" + Config.nameShort + "] + " + baselines.get( 1 ).getShortname() + "(" + baselines.get( 1 ).getDate() + ")" );
-				ps.println( "[" + Config.nameShort + "] + " + baselines.get( 2 ).getShortname() + "(" + baselines.get( 2 ).getDate() + ")" );
-				ps.println( "[" + Config.nameShort + "]   ..." );
-				ps.println( "[" + Config.nameShort + "] + " + baselines.get( i - 3 ).getShortname() + "(" + baselines.get( i - 3 ).getDate() + ")" );
-				ps.println( "[" + Config.nameShort + "] + " + baselines.get( i - 2 ).getShortname() + "(" + baselines.get( i - 2 ).getDate() + ")" );
-				ps.println( "[" + Config.nameShort + "] + " + baselines.get( i - 1 ).getShortname() + "(" + baselines.get( i - 1 ).getDate() + ")" );
-			}
-		}
-	}
+    private Baseline selectBaseline(List<Baseline> baselines, Project.PromotionLevel plevel, FilePath workspace) throws IOException, InterruptedException {
+        Baseline selected = null;
+        if (baselines.size() > 0) {
+            if (plevel != null) {
+                selected = baselines.get(0);
+            } else {
+                selected = baselines.get(baselines.size() - 1);
+            }
 
-	/*
-	 * The following getters and booleans (six in all) are used to display saved
-	 * userdata in Hudsons gui
-	 */
-	public String getLevelToPoll() {
-		return levelToPoll;
-	}
+            return (Baseline) RemoteUtil.loadEntity(workspace, selected, true);
+        } else {
+            return null;
+        }
+    }
 
-	public String getComponent() {
-		return component;
-	}
+    private void printParameters(PrintStream ps) {
+        ps.println("[" + Config.nameShort + "] Getting baselines for :");
+        ps.println("[" + Config.nameShort + "] * Stream:          " + stream);
+        ps.println("[" + Config.nameShort + "] * Component:       " + component);
 
-	public String getStream() {
-		return stream;
-	}
+        if (plevel == null) {
+            ps.println("[" + Config.nameShort + "] * Promotion level: " + "ANY");
+        } else {
+            ps.println("[" + Config.nameShort + "] * Promotion level: " + plevel);
+        }
 
-	public String getLoadModule() {
-		return loadModule;
-	}
 
-	/*
-	 * getStreamObject() and getBaseline() are used by CCUCMNotifier to get the
-	 * Baseline and Stream in use, but does not work with concurrent builds!!!
-	 */
-	public Stream getStreamObject() {
-		return integrationstream;
-	}
+        ps.println("");
+    }
 
-	@Exported
-	public String getBaseline() {
-		return bl;
-	}
+    public void printBaselines(List<Baseline> baselines, PrintStream ps) {
+        if (baselines != null) {
+            ps.println("[" + Config.nameShort + "] Retrieved " + baselines.size() + " baseline" + (baselines.size() == 1 ? "" : "s") + ":");
+            if (!(baselines.size() > 8)) {
+                for (Baseline b : baselines) {
+                    ps.println("[" + Config.nameShort + "] + " + b.getShortname() + "(" + b.getDate() + ")");
+                }
+            } else {
+                int i = baselines.size();
+                ps.println("[" + Config.nameShort + "] + " + baselines.get(0).getShortname() + "(" + baselines.get(0).getDate() + ")");
+                ps.println("[" + Config.nameShort + "] + " + baselines.get(1).getShortname() + "(" + baselines.get(1).getDate() + ")");
+                ps.println("[" + Config.nameShort + "] + " + baselines.get(2).getShortname() + "(" + baselines.get(2).getDate() + ")");
+                ps.println("[" + Config.nameShort + "]   ...");
+                ps.println("[" + Config.nameShort + "] + " + baselines.get(i - 3).getShortname() + "(" + baselines.get(i - 3).getDate() + ")");
+                ps.println("[" + Config.nameShort + "] + " + baselines.get(i - 2).getShortname() + "(" + baselines.get(i - 2).getDate() + ")");
+                ps.println("[" + Config.nameShort + "] + " + baselines.get(i - 1).getShortname() + "(" + baselines.get(i - 1).getDate() + ")");
+            }
+        }
+    }
 
-	public boolean getSlavePolling() {
-		CCUCMScmDescriptor desc = (CCUCMScmDescriptor) this.getDescriptor();
-		return desc.getSlavePolling();
+    /*
+     * The following getters and booleans (six in all) are used to display saved
+     * userdata in Hudsons gui
+     */
+    public String getLevelToPoll() {
+        return levelToPoll;
+    }
 
-	}
+    public String getComponent() {
+        return component;
+    }
 
-	public boolean getMultisitePolling() {
-		if( this.multisitePolling != null ) {
-			return this.multisitePolling;
-		} else {
-			CCUCMScmDescriptor desc = (CCUCMScmDescriptor) this.getDescriptor();
-			return desc.getMultisitePolling();
-		}
-	}
+    public String getStream() {
+        return stream;
+    }
 
-	@Exported
-	public String getPolling() {
-		return polling.toString();
-	}
+    public String getLoadModule() {
+        return loadModule;
+    }
 
-	@Exported
-	public String getTreatUnstable() {
-		return treatUnstable.toString();
-	}
+    /*
+     * getStreamObject() and getBaseline() are used by CCUCMNotifier to get the
+     * Baseline and Stream in use, but does not work with concurrent builds!!!
+     */
+    public Stream getStreamObject() {
+        return integrationstream;
+    }
 
-	public String getBuildProject() {
-		return buildProject;
-	}
+    @Exported
+    public String getBaseline() {
+        return bl;
+    }
 
-	public boolean getForceDeliver() {
-		return forceDeliver;
-	}
+    public boolean getSlavePolling() {
+        CCUCMScm.CCUCMScmDescriptor desc = (CCUCMScm.CCUCMScmDescriptor) this.getDescriptor();
+        return desc.getSlavePolling();
+
+    }
+
+    public boolean getMultisitePolling() {
+        if (this.multisitePolling != null) {
+            return this.multisitePolling;
+        } else {
+            CCUCMScm.CCUCMScmDescriptor desc = (CCUCMScm.CCUCMScmDescriptor) this.getDescriptor();
+            return desc.getMultisitePolling();
+        }
+    }
+
+    @Exported
+    public String getPolling() {
+        return polling.toString();
+    }
+
+    @Exported
+    public String getTreatUnstable() {
+        return treatUnstable.toString();
+    }
+
+    public String getBuildProject() {
+        return buildProject;
+    }
+
+    public boolean getForceDeliver() {
+        return forceDeliver;
+    }
 
     public boolean isTrimmedChangeSet() {
         return trimmedChangeSet;
@@ -933,163 +937,164 @@ public class CCUCMScm extends SCM {
     }
 
     public boolean isCreateBaseline() {
-		return this.createBaseline;
-	}
+        return this.createBaseline;
+    }
 
-	public String getNameTemplate() {
-		return this.nameTemplate;
-	}
+    public String getNameTemplate() {
+        return this.nameTemplate;
+    }
 
-	public boolean isMakeTag() {
-		return this.makeTag;
-	}
+    public boolean isMakeTag() {
+        return this.makeTag;
+    }
 
-	public boolean isSetDescription() {
-		return this.setDescription;
-	}
+    public boolean isSetDescription() {
+        return this.setDescription;
+    }
 
-	public boolean isRecommend() {
-		return this.recommend;
-	}
-	
-	public void setMultisitePolling( boolean mp ) {
-		this.multisitePolling = mp;
-	}
+    public boolean isRecommend() {
+        return this.recommend;
+    }
 
-	/**
-	 * This class is used to describe the plugin to Hudson
-	 * 
-	 * @author Troels Selch
-	 * @author Margit Bennetzen
-	 * 
-	 */
-	@Extension
-	public static class CCUCMScmDescriptor extends SCMDescriptor<CCUCMScm> implements hudson.model.ModelObject {
+    public void setMultisitePolling(boolean mp) {
+        this.multisitePolling = mp;
+    }
 
-		private boolean slavePolling;
-		private boolean multisitePolling;
-		private List<String> loadModules;
+    /**
+     * This class is used to describe the plugin to Hudson
+     *
+     * @author Troels Selch
+     * @author Margit Bennetzen
+     *
+     */
+    @Extension
+    public static class CCUCMScmDescriptor extends SCMDescriptor<CCUCMScm> implements hudson.model.ModelObject {
 
-		public CCUCMScmDescriptor() {
-			super( CCUCMScm.class, null );
-			loadModules = getLoadModules();
-			load();
-		}
+        private boolean slavePolling;
+        private boolean multisitePolling;
+        private List<String> loadModules;
 
-		/**
-		 * This method is called, when the user saves the global Hudson
-		 * configuration.
-		 */
-		@Override
-		public boolean configure( org.kohsuke.stapler.StaplerRequest req, JSONObject json ) throws FormException {
-			try {
-				String s = json.getString( "slavePolling" );
-				if( s != null ) {
-					slavePolling = Boolean.parseBoolean( s );
-				}
-				s = json.getString( "multisitePolling" );
-				if( s != null ) {
-					multisitePolling = Boolean.parseBoolean( s );
-				}
-			} catch( Exception e ) {
-				e.getMessage();
-			}
+        public CCUCMScmDescriptor() {
+            super(CCUCMScm.class, null);
+            loadModules = getLoadModules();
+            load();
+        }
 
-			save();
+        /**
+         * This method is called, when the user saves the global Hudson
+         * configuration.
+         */
+        @Override
+        public boolean configure(org.kohsuke.stapler.StaplerRequest req, JSONObject json) throws Descriptor.FormException {
+            try {
+                String s = json.getString("slavePolling");
+                if (s != null) {
+                    slavePolling = Boolean.parseBoolean(s);
+                }
+                s = json.getString("multisitePolling");
+                if (s != null) {
+                    multisitePolling = Boolean.parseBoolean(s);
+                }
+            } catch (Exception e) {
+                e.getMessage();
+            }
 
-			return true;
-		}
+            save();
 
-		public boolean getSlavePolling() {
-			return slavePolling;
-		}
+            return true;
+        }
 
-		public boolean getMultisitePolling() {
-			return multisitePolling;
-		}
-		/**
-		 * This is called by Hudson to discover the plugin name
-		 */
-		@Override
-		public String getDisplayName() {
-			return "ClearCase UCM";
-		}
+        public boolean getSlavePolling() {
+            return slavePolling;
+        }
 
-		/**
-		 * This method is called by the scm/CCUCM/global.jelly to validate the
-		 * input without reloading the global configuration page
-		 * 
-		 * @param value
-		 * @return
-		 */
-		public FormValidation doExecutableCheck( @QueryParameter String value ) {
-			return FormValidation.validateExecutable( value );
-		}
+        public boolean getMultisitePolling() {
+            return multisitePolling;
+        }
 
-		public FormValidation doCheckTemplate( @QueryParameter String value ) throws FormValidation {
-			try {
-				NameTemplate.testTemplate( NameTemplate.trim( value ) );
-				return FormValidation.ok( "The template seems ok" );
-			} catch( TemplateException e ) {
-				throw FormValidation.error( "Does not appear to be a valid template: " + e.getMessage() );
-			}
-		}
+        /**
+         * This is called by Hudson to discover the plugin name
+         */
+        @Override
+        public String getDisplayName() {
+            return "ClearCase UCM";
+        }
 
-		public void doLevelCheck( @QueryParameter String polling, @QueryParameter String level ) throws FormValidation {
-			System.out.println( "LEVEL CHECK: " + polling + " + " + level );
-			if( level.equalsIgnoreCase( "any" ) && !polling.equals( "self" ) ) {
-				throw FormValidation.error( "You can only combine self and any" );
-			}
-		}
+        /**
+         * This method is called by the scm/CCUCM/global.jelly to validate the
+         * input without reloading the global configuration page
+         *
+         * @param value
+         * @return
+         */
+        public FormValidation doExecutableCheck(@QueryParameter String value) {
+            return FormValidation.validateExecutable(value);
+        }
 
-		@Override
-		public CCUCMScm newInstance( StaplerRequest req, JSONObject formData ) throws FormException {
-			try {
-				String polling = formData.getString( "polling" );
-				String level = formData.getString( "levelToPoll" );
+        public FormValidation doCheckTemplate(@QueryParameter String value) throws FormValidation {
+            try {
+                NameTemplate.testTemplate(NameTemplate.trim(value));
+                return FormValidation.ok("The template seems ok");
+            } catch (TemplateException e) {
+                throw FormValidation.error("Does not appear to be a valid template: " + e.getMessage());
+            }
+        }
 
-				if( level.equalsIgnoreCase( "any" ) ) {
-					if( !polling.equalsIgnoreCase( "self" ) ) {
-						throw new FormException( "You can only use any with self polling", "polling" );
-					}
-				}
-			} catch( JSONException e ) {
-				throw new FormException( "You missed some fields: " + e.getMessage(), "CCUCM.polling" );
-			}
-			CCUCMScm instance = req.bindJSON( CCUCMScm.class, formData );
-			/* TODO This is actually where the Notifier check should be!!! */
-			return instance;
-		}
+        public void doLevelCheck(@QueryParameter String polling, @QueryParameter String level) throws FormValidation {
+            System.out.println("LEVEL CHECK: " + polling + " + " + level);
+            if (level.equalsIgnoreCase("any") && !polling.equals("self")) {
+                throw FormValidation.error("You can only combine self and any");
+            }
+        }
 
-		/**
-		 * Used by Hudson to display a list of valid promotion levels to build
-		 * from. The list of promotion levels is hard coded in
-		 * net.praqma.hudson.Config.java
-		 * 
-		 * @return
-		 */
-		public List<String> getLevels() {
-			return Config.getLevels();
-		}
+        @Override
+        public CCUCMScm newInstance(StaplerRequest req, JSONObject formData) throws Descriptor.FormException {
+            try {
+                String polling = formData.getString("polling");
+                String level = formData.getString("levelToPoll");
 
-		/**
-		 * Used by Hudson to display a list of loadModules (whether to poll all
-		 * or only modifiable elements
-		 * 
-		 * @return
-		 */
-		public List<String> getLoadModules() {
-			loadModules = new ArrayList<String>();
-			loadModules.add( "All" );
-			loadModules.add( "Modifiable" );
-			return loadModules;
-		}
+                if (level.equalsIgnoreCase("any")) {
+                    if (!polling.equalsIgnoreCase("self")) {
+                        throw new Descriptor.FormException("You can only use any with self polling", "polling");
+                    }
+                }
+            } catch (JSONException e) {
+                throw new Descriptor.FormException("You missed some fields: " + e.getMessage(), "CCUCM.polling");
+            }
+            CCUCMScm instance = req.bindJSON(CCUCMScm.class, formData);
+            /* TODO This is actually where the Notifier check should be!!! */
+            return instance;
+        }
 
-        public FormValidation doCheckMode( @QueryParameter String mode, @QueryParameter String checked ) throws IOException {
-            boolean isChecked = checked.equalsIgnoreCase( "true" );
-            if( isChecked ) {
-                if( mode.equals( "self" ) ) {
-                    return FormValidation.warning( "You cannot create a baseline in self mode!" );
+        /**
+         * Used by Hudson to display a list of valid promotion levels to build
+         * from. The list of promotion levels is hard coded in
+         * net.praqma.hudson.Config.java
+         *
+         * @return
+         */
+        public List<String> getLevels() {
+            return Config.getLevels();
+        }
+
+        /**
+         * Used by Hudson to display a list of loadModules (whether to poll all
+         * or only modifiable elements
+         *
+         * @return
+         */
+        public List<String> getLoadModules() {
+            loadModules = new ArrayList<String>();
+            loadModules.add("All");
+            loadModules.add("Modifiable");
+            return loadModules;
+        }
+
+        public FormValidation doCheckMode(@QueryParameter String mode, @QueryParameter String checked) throws IOException {
+            boolean isChecked = checked.equalsIgnoreCase("true");
+            if (isChecked) {
+                if (mode.equals("self")) {
+                    return FormValidation.warning("You cannot create a baseline in self mode!");
                 } else {
                     return FormValidation.ok();
                 }
@@ -1097,5 +1102,5 @@ public class CCUCMScm extends SCM {
                 return FormValidation.ok();
             }
         }
-	}
+    }
 }
