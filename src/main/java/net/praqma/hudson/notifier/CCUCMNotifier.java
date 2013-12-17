@@ -42,7 +42,7 @@ public class CCUCMNotifier extends Notifier {
 	private PrintStream out;
 
 	private Status status;
-	private static Logger logger = Logger.getLogger( CCUCMNotifier.class.getName() );
+	private static final Logger logger = Logger.getLogger( CCUCMNotifier.class.getName() );
 	private String jobName = "";
 	private Integer jobNumber = 0;
     public static String logShortPrefix = String.format("[%s]", Config.nameShort);
@@ -128,7 +128,6 @@ public class CCUCMNotifier extends Notifier {
 				out.println( "NotifierException: " + ne.getMessage() );
 			} catch( IOException e ) {
                 out.println( String.format( "%s Couldn't set build description", logShortPrefix ) );
-				//out.println( "[" + Config.nameShort + "] Couldn't set build description." );
 			}
 		} else {
 			if( action.getResolveBaselineException() != null ) {
@@ -235,19 +234,17 @@ public class CCUCMNotifier extends Notifier {
 
 					try {
                         out.println( String.format( "%s Creating baseline on Integration stream.", logShortPrefix ) );
-						//out.println( "[" + Config.nameShort + "] Creating baseline on Integration stream. " );
                         out.println( String.format( "%s Absolute path of remoteWorkspace: %s", logShortPrefix, workspace ) );
                         
 						pstate.setWorkspace( workspace );
+                                                
 						NameTemplate.validateTemplates( pstate );
 						String name = NameTemplate.parseTemplate( pstate.getNameTemplate(), pstate );
 
 						targetbaseline = RemoteUtil.createRemoteBaseline( currentWorkspace, listener, name, pstate.getBaseline().getComponent(), action.getViewPath(), pstate.getBaseline().getUser() );
-
-
-						if( action != null ) {
-							action.setCreatedBaseline( targetbaseline );
-						}
+                                                //At this point action can only be non-null.
+                                                action.setCreatedBaseline( targetbaseline );
+						
 					} catch( Exception e ) {
 						ExceptionUtils.print( e, out, false );
 						logger.warning( "Failed to create baseline on stream" );

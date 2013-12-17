@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 
 public class EnvTemplate extends Template {
 
-	private Logger logger = Logger.getLogger( EnvTemplate.class.getName() );
+	private static final Logger logger = Logger.getLogger( EnvTemplate.class.getName() );
 	
 	@Override
 	public String parse( CCUCMBuildAction action, String args ) throws TemplateException {
@@ -21,18 +21,11 @@ public class EnvTemplate extends Template {
 			logger.warning( "I could not get env vars: " + e.getMessage() );
 			return "?";
 		}
-		
-		logger.finest( "ENV VARS: " + vars );
-		logger.finest( "ENV VARS: " + System.getenv() );
-		
-		if( vars.containsKey( args ) ) {
-			logger.finest( "EnvVars: " + args + "=" + vars.get( args ) );
+		if( vars.containsKey( args ) ) {			
 			return vars.get( args );
-		} else if( action.getBuild().getBuildVariables().containsKey( args ) ) {
-			logger.finest( "BuildVars: " + args + "=" + action.getBuild().getBuildVariables().get( args ) );
+		} else if( action.getBuild().getBuildVariables().containsKey( args ) ) {			
 			return action.getBuild().getBuildVariables().get( args );
 		} else if( System.getenv().containsKey( args ) ) {
-			logger.finest( "Vars: " + args + "=" + System.getenv( args ) );
 			return vars.get( args );
 		} else {
 			return "?";

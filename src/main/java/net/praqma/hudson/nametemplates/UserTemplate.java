@@ -10,7 +10,7 @@ public class UserTemplate extends Template {
 		try {
 			return action.getBaseline().getUser();
 		} catch ( Exception e ) {
-			return "unknownstream";
+			return "unknownuser";
 		}
 	}
 }
