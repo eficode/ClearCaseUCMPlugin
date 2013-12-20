@@ -10,7 +10,7 @@ import net.praqma.hudson.remoting.RemoteUtil;
 
 public class ClearCaseVersionNumberTemplate extends Template {
 
-	private static Logger logger = Logger.getLogger( ClearCaseVersionNumberTemplate.class.getName() );
+	private static final Logger logger = Logger.getLogger( ClearCaseVersionNumberTemplate.class.getName() );
 	
 	@Override
 	public String parse( CCUCMBuildAction action, String args ) throws TemplateException {

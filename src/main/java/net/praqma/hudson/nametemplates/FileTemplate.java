@@ -47,7 +47,7 @@ public class FileTemplate extends Template {
                 logger.fine(String.format("[FileTemplate] Using this file on remote: %s",path.absolutize().getRemote()));
                 logger.fine(String.format("[FileTemplate] Invoke caught exception with message %s", ex.getMessage()));
                 throw ex;
-            }
+            } 
         }
         
     }

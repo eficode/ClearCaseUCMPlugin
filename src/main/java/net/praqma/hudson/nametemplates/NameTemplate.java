@@ -1,6 +1,7 @@
 package net.praqma.hudson.nametemplates;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -12,10 +13,10 @@ import net.praqma.hudson.exception.TemplateException;
 
 public class NameTemplate {
 
-	private static Map<String, Template> templates = new HashMap<String, Template>();
-	private static Logger logger = Logger.getLogger( NameTemplate.class.getName() );
+	private static final Map<String, Template> templates = new HashMap<String, Template>();
+	private static final Logger logger = Logger.getLogger( NameTemplate.class.getName() );
 
-	static {
+	static  {
 		templates.put( "date", new DateTemplate() );
 		templates.put( "time", new TimeTemplate() );
 		templates.put( "stream", new StreamTemplate() );
@@ -32,14 +33,18 @@ public class NameTemplate {
 	private static Pattern rx_ = Pattern.compile( "(\\[.*?\\])" );
 	private static Pattern rx_checkFinal = Pattern.compile( "^[\\w\\._-]*$" );
 
-	public static void validateTemplates( CCUCMBuildAction action ) {
+        /**
+         * This is the method we use to validate templates.
+         * @param action 
+         */
+	public static void validateTemplates( CCUCMBuildAction action) {
 		logger.finer( "Validating templates for " + action );
-		Set<String> keys = templates.keySet();
-		for( String key : keys ) {
-			String r;
+                //Only evaluate those that are actually chosen
+		Set<String> keys = getChosenTemplates(action.getNameTemplate());
+		for( String key : keys ) {			
 			try {
 				logger.finer( "Validating " + key );
-				r = templates.get( key ).parse( action, "" );
+				templates.get( key ).parse( action, "" );
 			} catch (TemplateException e) {
 				logger.warning( "Could not validate " + key );
 			}
@@ -54,6 +59,34 @@ public class NameTemplate {
         return template;
 	}
 
+        /**
+         * Method that extracts the names of the chose templates.
+         * @param templatestring
+         * @return a Set containing the name of the templates chosen.
+         */
+        public static Set<String> getChosenTemplates(String templatestring) {
+            Set<String> chosenTemplates = new HashSet<String>();
+            Matcher m = rx_.matcher( templatestring );
+
+            while( m.find() ) {
+                    String replace = m.group(1);
+                    String templateName = replace.toLowerCase().substring( 1, replace.length()-1 );
+                    if( templateName.contains( "=" ) ) {
+                            String[] s = templateName.split( "=" );
+                            templateName = s[0];
+                            
+                    }
+                    chosenTemplates.add(templateName);
+            }
+            return chosenTemplates;
+        }
+        
+        /**
+         * Checks to see if the templates are valid, and that the template names are available.
+         * @param template
+         * @return
+         * @throws TemplateException 
+         */
 	public static boolean testTemplate( String template ) throws TemplateException {
 		Matcher m = rx_.matcher( template );
 		String result = template;
@@ -83,8 +116,14 @@ public class NameTemplate {
 		return true;
 	}
 
+        /**
+         * At this point. We do not need to filter chosen templates. 
+         * @param template
+         * @param action
+         * @return
+         * @throws TemplateException 
+         */
 	public static String parseTemplate( String template, CCUCMBuildAction action ) throws TemplateException {
-		logger.finer( "Parsing template for " + action );
 		Matcher m = rx_.matcher( template );
 		String result = template;
 		
@@ -103,9 +142,7 @@ public class NameTemplate {
 				templateName = s[0];
 				args = s[1];
 			}
-			
-			logger.finer( "--->" + templateName + ": " + args );
-
+                        
 			if( !templates.containsKey( templateName ) ) {
 				throw new TemplateException( "The template " + templateName + " does not exist" );
 			} else {
