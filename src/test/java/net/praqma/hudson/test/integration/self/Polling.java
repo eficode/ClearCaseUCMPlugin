@@ -6,6 +6,7 @@ import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.hudson.test.BaseTestClass;
 import net.praqma.util.debug.Logger;
+import net.praqma.util.test.junit.TestDescription;
 import static org.junit.Assert.*;
 import org.junit.Rule;
 import org.junit.Test;
@@ -18,11 +19,23 @@ public class Polling extends BaseTestClass {
 	private static Logger logger = Logger.getLogger();
     
     @Test
+    @TestDescription(title = "Self polling, create baseline", text="This is a test that should return no-changes, if a baseline is specified")
     @ClearCaseUniqueVobName( name = "self-create-baseline")
     public void testPollingNoChangesWithCreateBaselines() throws Exception {
         FreeStyleProject project = jenkins.setupProjectWithASlave( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, true );
+        
+        
+        /** Initial build **/
+		try {
+			project.scheduleBuild2( 0 ).get();
+		} catch( Exception e ) {
+			logger.info( "Build failed: " + e.getMessage() );
+		}
+        
         PollingResult result = project.poll(jenkins.createTaskListener());
-        assertFalse(result.hasChanges());
+        
+        System.out.println("Changes: "+result.hasChanges());
+        assertFalse("We expect no changes. According to the fix i made for JENKINS-18107", result.hasChanges());
     }
 
 	@Test
@@ -50,8 +63,7 @@ public class Polling extends BaseTestClass {
 			project.scheduleBuild2( 0 ).get();
 		} catch( Exception e ) {
 			logger.info( "Build failed: " + e.getMessage() );
-		}
-		
+		}		
 		/* BUILD 2 */
 		try {
 			project.scheduleBuild2( 0 ).get();

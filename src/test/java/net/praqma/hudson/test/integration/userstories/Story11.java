@@ -25,10 +25,10 @@ public class Story11 extends BaseTestClass {
                 .setType( CCUCMRule.ProjectCreator.Type.self )
                 .getProject();
 
-        AbstractBuild<?, ?> firstbuild = jenkins.buildProject( project, false, null );
+        AbstractBuild<?, ?> firstbuild = jenkins.buildProject( project, false );
 
         project.renameTo( project.getName() + "_renamed" );
 
-        AbstractBuild<?, ?> secondbuild = jenkins.buildProject( project, false, null );
+        AbstractBuild<?, ?> secondbuild = jenkins.buildProject( project, false );
     }
 }

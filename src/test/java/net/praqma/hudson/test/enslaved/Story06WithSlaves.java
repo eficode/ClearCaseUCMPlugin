@@ -16,8 +16,7 @@ public class Story06WithSlaves extends Story06Base {
     public void story06_4() throws Exception {
         Stream dev1 = ccenv.context.streams.get( "one_dev" );
         Stream dev2 = ccenv.context.streams.get( "two_dev" );
-        Slave slave = jenkins.createSlave( new LabelAtom( "ClearCaseSlave" ) );
-        run( dev1, dev2, ccenv.getUniqueName() + "_one_dev", ccenv.getUniqueName() + "_two_dev", slave, false );
+        runWithSlave( dev1, dev2, ccenv.getUniqueName() + "_one_dev", ccenv.getUniqueName() + "_two_dev", false );
     }
 
     @Test
@@ -25,8 +24,7 @@ public class Story06WithSlaves extends Story06Base {
     @TestDescription( title = "Story 6", text = "New baseline on dev stream. Deliver in progress from same stream, different view", configurations = { "Force deliver = true", "Poll childs", "On slave" }	)
     public void story06_5() throws Exception {
         Stream dev1 = ccenv.context.streams.get( "one_dev" );
-        Slave slave = jenkins.createSlave( new LabelAtom( "ClearCaseSlave" ) );
-        run( dev1, dev1, ccenv.getUniqueName() + "_one_dev", ccenv.getUniqueName() + "_one_dev", slave, false );
+        runWithSlave( dev1, dev1, ccenv.getUniqueName() + "_one_dev", ccenv.getUniqueName() + "_one_dev", false );
     }
 
     @Test
@@ -34,8 +32,7 @@ public class Story06WithSlaves extends Story06Base {
     @TestDescription( title = "Story 6", text = "New baseline on dev stream. Deliver in progress from previous build, different view", configurations = { "Force deliver = true", "Poll childs", "On slave" }	)
     public void story06_6() throws Exception {
         Stream dev1 = ccenv.context.streams.get( "one_dev" );
-        Slave slave = jenkins.createSlave( new LabelAtom( "ClearCaseSlave" ) );
-        run( null, dev1, null, ccenv.getUniqueName() + "_one_dev", slave, true );
+        runWithSlave( null, dev1, null, ccenv.getUniqueName() + "_one_dev", true );
     }
 
 }

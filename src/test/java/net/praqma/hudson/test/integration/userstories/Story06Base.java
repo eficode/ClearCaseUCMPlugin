@@ -22,6 +22,7 @@ import net.praqma.hudson.test.SystemValidator;
 import net.praqma.util.test.junit.DescriptionRule;
 import org.junit.Rule;
 import java.io.File;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static net.praqma.hudson.test.BaseTestClass.jenkins;
@@ -34,7 +35,7 @@ public abstract class Story06Base extends BaseTestClass {
     public ClearCaseRule ccenv = new ClearCaseRule("ccucm-story06", "setup-story5.xml");
     @Rule
     public DescriptionRule desc = new DescriptionRule();
-    private static Logger logger = Logger.getLogger(Story06Base.class.getName());
+    private static final Logger logger = Logger.getLogger(Story06Base.class.getName());
 
     /**
      *
@@ -50,14 +51,17 @@ public abstract class Story06Base extends BaseTestClass {
      * build and therefore not complete the deliver
      * @throws Exception
      */
-    public void run(Stream stream1, Stream streamToMakeAnotherBaseline, String viewTag1, String viewTagToMakeAnotherBaseline, Slave slave, boolean jenkinsWorkspace) throws Exception {
-
-        /* First build to create a view */
+    
+    public void runWithSlave(Stream stream1, Stream streamToMakeAnotherBaseline, String viewTag1, String viewTagToMakeAnotherBaseline, boolean jenkinsWorkspace) throws IOException, Exception {
+                /* First build to create a view */
         Project project = new CCUCMRule.ProjectCreator(ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob())
                 .setType(Type.child)
                 .setForceDeliver(true)
-                .setCreateBaseline(true)
-                .getProject();
+                .setCreateBaseline(true) 
+               .getProject();
+        
+        Slave slave = jenkins.createSlave();
+        project.setAssignedLabel(slave.getSelfLabel());
 
         if (jenkinsWorkspace) {
             //project.getBuildersList().add( builder );
@@ -65,7 +69,7 @@ public abstract class Story06Base extends BaseTestClass {
             ((CCUCMScm) project.getScm()).setAddPostBuild(false);
         }
 
-        AbstractBuild<?, ?> firstbuild = jenkins.buildProject(project, false, slave);
+        AbstractBuild<?, ?> firstbuild = jenkins.buildProject(project, false);
 
         Stream target = null;
         if (firstbuild != null) {
@@ -97,7 +101,63 @@ public abstract class Story06Base extends BaseTestClass {
             preaction.getBaseline().setPromotionLevel(PromotionLevel.BUILT);
         }
 
-        AbstractBuild<?, ?> build = jenkins.buildProject(firstbuild.getProject(), false, slave);
+        AbstractBuild<?, ?> build = jenkins.buildProject(firstbuild.getProject(), false);
+
+        /* Validate */
+        SystemValidator validator = new SystemValidator(build);
+        validator.validateBuild(Result.SUCCESS).validateBuiltBaseline(PromotionLevel.BUILT, bl2, false).validateCreatedBaseline(true).validate();
+    }
+    
+    public void run(Stream stream1, Stream streamToMakeAnotherBaseline, String viewTag1, String viewTagToMakeAnotherBaseline, boolean jenkinsWorkspace) throws Exception {
+
+        /* First build to create a view */
+        Project project = new CCUCMRule.ProjectCreator(ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob())
+                .setType(Type.child)
+                .setForceDeliver(true)
+                .setCreateBaseline(true) 
+               .getProject();
+        
+
+
+        if (jenkinsWorkspace) {
+            //project.getBuildersList().add( builder );
+            project.getPublishersList().remove(CCUCMNotifier.class);
+            ((CCUCMScm) project.getScm()).setAddPostBuild(false);
+        }
+
+        AbstractBuild<?, ?> firstbuild = jenkins.buildProject(project, false);
+
+        Stream target = null;
+        if (firstbuild != null) {
+            CCUCMBuildAction preaction = jenkins.getBuildAction(firstbuild);
+            target = preaction.getStream();
+        } else {
+            target = Stream.get(((CCUCMScm) project.getScm()).getStream());
+        }
+
+        logger.fine("Target stream is " + target);
+
+        if (!jenkinsWorkspace) {
+            /* Set deliver one up and make sure the baseline is not found by polling */
+            Baseline bl1 = createNewContent(stream1, viewTag1, 1, PromotionLevel.BUILT);
+
+            /* Do not complete deliver */
+            Deliver deliver1 = new Deliver(stream1, target);
+            deliver1.deliver(true, false, true, false);
+        }
+
+        /* Setup dev 2 with new baseline */
+        Baseline bl2 = createNewContent(streamToMakeAnotherBaseline, viewTagToMakeAnotherBaseline, 2, null);
+
+        if (jenkinsWorkspace) {
+            //project.getBuildersList().remove( builder.getClass() );
+            project.getPublishersList().add(new CCUCMNotifier());
+
+            CCUCMBuildAction preaction = jenkins.getBuildAction(firstbuild);
+            preaction.getBaseline().setPromotionLevel(PromotionLevel.BUILT);
+        }
+
+        AbstractBuild<?, ?> build = jenkins.buildProject(firstbuild.getProject(), false);
 
         /* Validate */
         SystemValidator validator = new SystemValidator(build);

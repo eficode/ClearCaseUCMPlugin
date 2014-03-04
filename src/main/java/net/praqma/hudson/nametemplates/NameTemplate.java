@@ -39,12 +39,12 @@ public class NameTemplate {
          */
 	public static void validateTemplates( CCUCMBuildAction action) {
 		logger.finer( "Validating templates for " + action );
-                //Only evaluate those that are actually chosen
-		Set<String> keys = getChosenTemplates(action.getNameTemplate());
-		for( String key : keys ) {			
+        //Only evaluate those that are actually chosen
+		HashMap<String,String> keys = getChosenTemplates(action.getNameTemplate());
+		for( String key : keys.keySet() ) {			
 			try {
 				logger.finer( "Validating " + key );
-				templates.get( key ).parse( action, "" );
+				templates.get( key ).parse( action, keys.get(key) );
 			} catch (TemplateException e) {
 				logger.warning( "Could not validate " + key );
 			}
@@ -55,7 +55,6 @@ public class NameTemplate {
         if( template.matches( "^\".+\"$" ) ) {
         	template = template.substring( 1, template.length()-1 );
         }
-
         return template;
 	}
 
@@ -64,19 +63,24 @@ public class NameTemplate {
          * @param templatestring
          * @return a Set containing the name of the templates chosen.
          */
-        public static Set<String> getChosenTemplates(String templatestring) {
-            Set<String> chosenTemplates = new HashSet<String>();
+        public static HashMap<String,String> getChosenTemplates(String templatestring) {
+            HashMap<String,String> chosenTemplates = new HashMap<String,String>();
             Matcher m = rx_.matcher( templatestring );
 
             while( m.find() ) {
                     String replace = m.group(1);
                     String templateName = replace.toLowerCase().substring( 1, replace.length()-1 );
+                    String templateValue = ""; 
                     if( templateName.contains( "=" ) ) {
                             String[] s = templateName.split( "=" );
-                            templateName = s[0];
+                            templateName = s[0];                            
+                            templateValue = s[1];
                             
                     }
-                    chosenTemplates.add(templateName);
+                    
+                    if(!chosenTemplates.containsKey(templateName)) {
+                        chosenTemplates.put(templateName, templateValue);
+                    }
             }
             return chosenTemplates;
         }
