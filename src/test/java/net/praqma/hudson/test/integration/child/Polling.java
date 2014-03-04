@@ -33,7 +33,7 @@ public class Polling extends BaseTestClass {
 	@ClearCaseUniqueVobName( name = "changes-child" )
 	@TestDescription( title = "Child polling, polling", text = "baseline available" )
 	public void testPollingChildsWithChanges() throws Exception {
-		FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
+		FreeStyleProject project = jenkins.setupProjectWithASlave( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
 		
 		File path = setActivity();
 		Baseline b1 = getNewBaseline( path, "file1.txt" );
@@ -57,7 +57,7 @@ public class Polling extends BaseTestClass {
 	@ClearCaseUniqueVobName( name = "nochanges-child" )
 	@TestDescription( title = "Child polling, polling", text = "baseline available" )
 	public void testPollingChildsWithNoChanges() throws Exception {
-		FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
+		FreeStyleProject project = jenkins.setupProjectWithASlave( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
 		
 		File path = setActivity();
 		Baseline b1 = getNewBaseline( path, "file1.txt" );
