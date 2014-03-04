@@ -367,7 +367,6 @@ public class CCUCMScm extends SCM {
 
     private boolean checkInput(TaskListener listener) {
         PrintStream out = listener.getLogger();
-
         out.println("[" + Config.nameShort + "] Verifying input");
 
         /* Check baseline template */
@@ -392,6 +391,7 @@ public class CCUCMScm extends SCM {
                 }
             } else {
                 out.println("[" + Config.nameShort + "] You cannot create a baseline in this mode");
+                return false;
             }
         }
 
@@ -661,7 +661,7 @@ public class CCUCMScm extends SCM {
 
         logger.fine("Let's go!");
 
-        /* Check input */
+        /* Check input */        
         if (checkInput(listener)) {
 
             printParameters(out);

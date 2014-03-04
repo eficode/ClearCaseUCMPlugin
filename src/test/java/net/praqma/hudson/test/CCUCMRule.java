@@ -5,6 +5,7 @@ import hudson.model.*;
 import hudson.model.Project;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.ChangeLogSet.Entry;
+import hudson.slaves.DumbSlave;
 
 import java.io.File;
 import java.io.IOException;
@@ -336,15 +337,16 @@ public class CCUCMRule extends JenkinsRule {
         }
     }
 
-    public AbstractBuild<?, ?> buildProject( AbstractProject<?, ?> project, boolean fail ) throws IOException {
-        return buildProject( project, fail, null );
+    public AbstractBuild<?, ?> buildProject( AbstractProject<?, ?> project, boolean fail ) throws IOException, Exception {
+        return buildProject( project, fail, createSlave() );
     }
 	
 	public AbstractBuild<?, ?> buildProject( AbstractProject<?, ?> project, boolean fail, Slave slave ) throws IOException {
 
         if( slave != null ) {
-            logger.fine( "Running on " + slave );
-            project.setAssignedNode( slave );
+            System.out.println( String.format( "[SLAVE-CONFIG] Running on %s", slave.getSelfLabel().getName() ) );
+            logger.fine( String.format( "Running on %s", slave.getSelfLabel().getName() ) );
+            project.setAssignedLabel(slave.getSelfLabel());
         }
 
         EnableLoggerAction action = null;
@@ -355,7 +357,7 @@ public class CCUCMRule extends JenkinsRule {
 
 		AbstractBuild<?, ?> build = null;
 		try {
-			build = project.scheduleBuild2( 0, new Cause.UserCause(), action ).get();
+			build = project.scheduleBuild2(0, new Cause.UserCause(), action ).get();
 		} catch( Exception e ) {
 			logger.info( "Build failed(" + (fail?"on purpose":"it should not?") + "): " + e.getMessage() );
 		}
