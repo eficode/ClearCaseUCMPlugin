@@ -16,10 +16,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
-import hudson.tasks.Builder;
-import jenkins.model.Jenkins;
 import net.praqma.clearcase.ucm.entities.*;
-import net.praqma.clearcase.ucm.view.UCMView;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestBuilder;
 
@@ -36,7 +33,7 @@ import static org.junit.Assert.*;
 
 public class CCUCMRule extends JenkinsRule {
 	
-	private static Logger logger = Logger.getLogger( CCUCMRule.class.getName() );
+	private static final Logger logger = Logger.getLogger( CCUCMRule.class.getName() );
 
 	private CCUCMScm scm;
 
@@ -240,6 +237,7 @@ public class CCUCMRule extends JenkinsRule {
     
     public FreeStyleProject setupProjectWithASlave( String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean createBaseline, boolean forceDeliver, String template, String promotionLevel ) throws Exception {
         logger.info( "Setting up build for self polling, recommend:" + recommend + ", tag:" + tag + ", description:" + description );
+        System.out.println( "==== [Setting up ClearCase UCM project] ====" );
 		printInfo(projectName, type, component, stream, recommend, tag, description, createBaseline, forceDeliver, template, promotionLevel);
 		FreeStyleProject project = createFreeStyleProject( "ccucm-project-" + projectName );
         DumbSlave slave = createSlave();

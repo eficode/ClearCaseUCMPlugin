@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 
 public class BaseTestClass {
 
-    private static Logger logger = Logger.getLogger( BaseTestClass.class.getName() );
+    private static final Logger logger = Logger.getLogger( BaseTestClass.class.getName() );
 
     @ClassRule
     public static CCUCMRule jenkins = new CCUCMRule();
