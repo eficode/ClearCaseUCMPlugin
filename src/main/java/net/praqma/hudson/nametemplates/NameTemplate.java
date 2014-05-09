@@ -3,6 +3,7 @@ package net.praqma.hudson.nametemplates;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -40,13 +41,13 @@ public class NameTemplate {
 	public static void validateTemplates( CCUCMBuildAction action) {
 		logger.finer( "Validating templates for " + action );
                 //Only evaluate those that are actually chosen
-		Set<String> keys = getChosenTemplates(action.getNameTemplate());
-		for( String key : keys ) {			
+		HashMap<String, String> chosentemplates = getChosenTemplates(action.getNameTemplate());
+		for( Entry<String,String> val : chosentemplates.entrySet() ) {			
 			try {
-				logger.finer( "Validating " + key );
-				templates.get( key ).parse( action, "" );
+				logger.finer( "Validating " + val.getKey() );
+				templates.get( val.getKey() ).parse( action, val.getValue() );
 			} catch (TemplateException e) {
-				logger.warning( "Could not validate " + key );
+				logger.warning( "Could not validate " + val.getKey() );
 			}
 		}
 	}
@@ -64,19 +65,21 @@ public class NameTemplate {
          * @param templatestring
          * @return a Set containing the name of the templates chosen.
          */
-        public static Set<String> getChosenTemplates(String templatestring) {
-            Set<String> chosenTemplates = new HashSet<String>();
+        public static HashMap<String,String> getChosenTemplates(String templatestring) {
+            HashMap<String,String> chosenTemplates = new HashMap<String, String>();
             Matcher m = rx_.matcher( templatestring );
 
             while( m.find() ) {
                     String replace = m.group(1);
                     String templateName = replace.toLowerCase().substring( 1, replace.length()-1 );
+                    String templateValue = null;
                     if( templateName.contains( "=" ) ) {
                             String[] s = templateName.split( "=" );
                             templateName = s[0];
+                            templateValue = s[1];
                             
                     }
-                    chosenTemplates.add(templateName);
+                    chosenTemplates.put(templateName, templateValue);
             }
             return chosenTemplates;
         }
