@@ -40,9 +40,10 @@ public class NameTemplate {
          */
 	public static void validateTemplates( CCUCMBuildAction action) {
 		logger.finer( "Validating templates for " + action );
-                //Only evaluate those that are actually chosen
+         //Only evaluate those that are actually chosen
+        
 		HashMap<String, String> chosentemplates = getChosenTemplates(action.getNameTemplate());
-		for( Entry<String,String> val : chosentemplates.entrySet() ) {			
+		for( Entry<String, String> val : chosentemplates.entrySet() ) {			
 			try {
 				logger.finer( "Validating " + val.getKey() );
 				templates.get( val.getKey() ).parse( action, val.getValue() );
@@ -56,33 +57,33 @@ public class NameTemplate {
         if( template.matches( "^\".+\"$" ) ) {
         	template = template.substring( 1, template.length()-1 );
         }
-
         return template;
 	}
 
-        /**
-         * Method that extracts the names of the chose templates.
-         * @param templatestring
-         * @return a Set containing the name of the templates chosen.
-         */
-        public static HashMap<String,String> getChosenTemplates(String templatestring) {
-            HashMap<String,String> chosenTemplates = new HashMap<String, String>();
-            Matcher m = rx_.matcher( templatestring );
+    /**
+     * Method that extracts the names of the chose templates.
+     * @param templatestring
+     * @return a Set containing the name of the templates chosen.
+     */
+    public static HashMap<String,String> getChosenTemplates(String templatestring) {
+        HashMap<String,String> chosenTemplates = new HashMap<String,String>();
+        Matcher m = rx_.matcher( templatestring );
 
-            while( m.find() ) {
-                    String replace = m.group(1);
-                    String templateName = replace.toLowerCase().substring( 1, replace.length()-1 );
-                    String templateValue = null;
-                    if( templateName.contains( "=" ) ) {
-                            String[] s = templateName.split( "=" );
-                            templateName = s[0];
-                            templateValue = s[1];
-                            
-                    }
-                    chosenTemplates.put(templateName, templateValue);
-            }
-            return chosenTemplates;
+        while( m.find() ) {
+                String replace = m.group(1);
+                String templateName = replace.toLowerCase().substring( 1, replace.length()-1 );
+
+                String templateValue = null;
+                if( templateName.contains( "=" ) ) {
+                        String[] s = templateName.split( "=" );
+                        templateName = s[0];
+                        templateValue = s[1];
+
+                }
+                chosenTemplates.put(templateName, templateValue);
         }
+        return chosenTemplates;
+    }
         
         /**
          * Checks to see if the templates are valid, and that the template names are available.

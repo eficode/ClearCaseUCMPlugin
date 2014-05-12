@@ -3,6 +3,7 @@ package net.praqma.hudson.test.integration.self;
 import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
+import hudson.model.Slave;
 import hudson.scm.PollingResult;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
@@ -75,9 +76,9 @@ public class Any extends BaseTestClass {
     @Test
     @ClearCaseUniqueVobName( name = "self-any-poll" )
     @TestDescription( title = "Self polling", text = "baselines available, find the newest, poll" )
-    public void testPoll() throws Exception {
-        FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false, "", "ANY" );
-
+    public void testPoll() throws Exception {        
+        FreeStyleProject project = jenkins.setupProjectWithASlave( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false, "", "ANY" );
+                
         /* BUILD 1 */
         AbstractBuild<?, ?> build = null;
         try {
@@ -100,7 +101,7 @@ public class Any extends BaseTestClass {
     @ClearCaseUniqueVobName( name = "self-any-poll2" )
     @TestDescription( title = "Self polling", text = "baselines available, find the newest, add baselines, poll" )
     public void testPollThree() throws Exception {
-        FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false, "", "ANY" );
+        FreeStyleProject project = jenkins.setupProjectWithASlave( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false, "", "ANY" );
 
         /* BUILD 1 */
         AbstractBuild<?, ?> build = null;

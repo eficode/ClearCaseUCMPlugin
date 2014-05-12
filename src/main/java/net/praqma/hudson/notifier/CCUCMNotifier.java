@@ -78,9 +78,6 @@ public class CCUCMNotifier extends Notifier {
 
 		boolean result = true;
 		out = listener.getLogger();
-
-        logger.fine( "BEGINNING NOTIFIER: " + build.getProject().getPublishersList() );
-
 		status = new Status();
 
 		/* Prepare job variables */
@@ -242,8 +239,7 @@ public class CCUCMNotifier extends Notifier {
 						String name = NameTemplate.parseTemplate( pstate.getNameTemplate(), pstate );
 
 						targetbaseline = RemoteUtil.createRemoteBaseline( currentWorkspace, listener, name, pstate.getBaseline().getComponent(), action.getViewPath(), pstate.getBaseline().getUser() );
-                                                //At this point action can only be non-null.
-                                                action.setCreatedBaseline( targetbaseline );
+                        action.setCreatedBaseline( targetbaseline );
 						
 					} catch( Exception e ) {
 						ExceptionUtils.print( e, out, false );
@@ -251,10 +247,15 @@ public class CCUCMNotifier extends Notifier {
 						logger.log( Level.WARNING, "", e );
 						/* We cannot recommend a baseline that is not created */
 						if( pstate.doRecommend() ) {
-                            out.println( String.format( "%s Cannot recommend Baseline when not created", logShortPrefix ) );
-							//out.println( "[" + Config.nameShort + "] Cannot recommend Baseline when not created" );
-						}
-
+                            out.println( String.format( "%s Cannot recommend Baseline when not created", logShortPrefix ) );							
+						} 
+                        
+                        //JENKINS-18107
+                        if( pstate.getPolling().isPollingSelf() && pstate.doCreateBaseline() ) {
+                            out.println("You cannot create a baseline in poll self mode.");
+                            logger.warning("You cannot create a baseline in poll self mode.");
+                        }
+                        
 						/* Set unstable? */
 						logger.warning( "Failing build because baseline could not be created" );
 						build.setResult( Result.FAILURE );

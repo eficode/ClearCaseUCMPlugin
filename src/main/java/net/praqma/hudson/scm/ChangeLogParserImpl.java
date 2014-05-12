@@ -24,14 +24,11 @@ import hudson.util.Digester2;
  */
 public class ChangeLogParserImpl extends ChangeLogParser {
 
-	protected static Logger logger = Logger.getLogger( ChangeLogParserImpl.class.getName() );
+	protected static final Logger logger = Logger.getLogger( ChangeLogParserImpl.class.getName() );
 
 	@Override
 	public ChangeLogSet<? extends Entry> parse( AbstractBuild build, File changelogFile ) throws IOException, SAXException {
 		List<ChangeLogEntryImpl> entries = new ArrayList<ChangeLogEntryImpl>();
-
-		// Source: http://wiki.hudson-ci.org/display/HUDSON/Change+log
-
 		Digester digester = new Digester2();
 		digester.push( entries );
 		digester.addObjectCreate( "*/entry/activity", ChangeLogEntryImpl.class );
@@ -42,6 +39,7 @@ public class ChangeLogParserImpl extends ChangeLogParser {
 		digester.addBeanPropertySetter( "*/entry/activity/author", "myAuthor" );
 		digester.addSetNext( "*/entry/activity", "add" );
 		FileReader reader = new FileReader( changelogFile );
+        
 		try {
 			digester.parse( reader );
 		} catch( Exception e ) {
