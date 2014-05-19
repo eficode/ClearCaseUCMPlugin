@@ -8,13 +8,11 @@ import java.util.logging.Logger;
 import hudson.AbortException;
 import org.kohsuke.stapler.StaplerRequest;
 
-import net.praqma.clearcase.exceptions.UnableToPromoteBaselineException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.Config;
-import net.praqma.hudson.exception.CCUCMException;
 import net.praqma.hudson.exception.NotifierException;
 import net.praqma.hudson.nametemplates.NameTemplate;
 import net.praqma.hudson.remoting.RemoteUtil;
@@ -36,7 +34,6 @@ import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import org.apache.commons.lang.StringUtils;
 
-
 public class CCUCMNotifier extends Notifier {
 
 	private PrintStream out;
@@ -47,15 +44,12 @@ public class CCUCMNotifier extends Notifier {
 	private Integer jobNumber = 0;
     public static String logShortPrefix = String.format("[%s]", Config.nameShort);
 
-	public CCUCMNotifier() {
-	}
+	public CCUCMNotifier() { }
 
 	/**
 	 * This constructor is used in the inner class <code>DescriptorImpl</code>.
 	 */
-	public CCUCMNotifier( boolean recommended, boolean makeTag, boolean setDescription ) {
-
-	}
+	public CCUCMNotifier( boolean recommended, boolean makeTag, boolean setDescription ) { }
 
 	/**
 	 * This indicates whether to let CCUCM run after(true) the job is done or
@@ -142,7 +136,7 @@ public class CCUCMNotifier extends Notifier {
             }
 		}
 
-		if( action != null && action.getViewTag() != null ) {
+		if( action.getViewTag() != null ) {
 			/* End the view */
             logger.fine( "Ending view " + action.getViewTag() );
             RemoteUtil.endView( build.getWorkspace(), action.getViewTag() );

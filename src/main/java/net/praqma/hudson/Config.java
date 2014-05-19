@@ -13,10 +13,9 @@ public class Config {
 	public static String nameShort = "CCUCM";
 	public static String nameLong = "ClearCase UCM";    
 
-	protected static Logger logger = Logger.getLogger( Config.class.getName() );
+	protected static final Logger logger = Logger.getLogger( Config.class.getName() );
 
-	private Config() {
-	}
+	private Config() { }
 
 	public static List<String> getLevels() {
 		List<String> levels = Project.getPromotionLevels();

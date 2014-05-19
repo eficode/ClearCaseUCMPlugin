@@ -31,7 +31,7 @@ import org.apache.commons.lang.SystemUtils;
 
 public abstract class Util {
 
-	private static Logger logger = Logger.getLogger( Util.class.getName() );
+	private static final Logger logger = Logger.getLogger( Util.class.getName() );
 
 	public static Project.PromotionLevel getLevel( String level ) {
 		if( level.equalsIgnoreCase( "any" ) ) {

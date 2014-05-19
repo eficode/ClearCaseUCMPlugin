@@ -8,14 +8,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
-import java.util.logging.Logger;
 
 import net.praqma.clearcase.ucm.entities.Stream;
 
 public class GetRelatedStreams implements FileCallable<List<Stream>> {
 
 	private static final long serialVersionUID = -8984877325832486334L;
-
 	private Stream stream;
 	private boolean pollingChildStreams;
 	private TaskListener listener;
@@ -30,10 +28,8 @@ public class GetRelatedStreams implements FileCallable<List<Stream>> {
 
 	@Override
 	public List<Stream> invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
-
 		PrintStream out = listener.getLogger();
-		Logger logger = Logger.getLogger( GetRelatedStreams.class.getName() );
-
+		
 		List<Stream> streams = null;
 
 		try {

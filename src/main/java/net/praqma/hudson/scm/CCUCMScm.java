@@ -619,6 +619,14 @@ public class CCUCMScm extends SCM {
      * This method polls the version control system to see if there are any
      * changes in the source code.
      *
+     * @param project
+     * @param launcher
+     * @param workspace
+     * @param listener
+     * @param rstate
+     * @return 
+     * @throws java.io.IOException
+     * @throws java.lang.InterruptedException
      */
     @Override
     public PollingResult compareRemoteRevisionWith(AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState rstate) throws IOException, InterruptedException {
@@ -630,7 +638,11 @@ public class CCUCMScm extends SCM {
 
         PollingResult p = PollingResult.NO_CHANGES;
 
-        /* Interrupt polling if: */
+        /*
+        See [FB11107]. Discovered during investigation of performance issues. We need to talk
+        to Leif and possibly Lars to figure out why we distinguish between multisite and non multisite polling
+        with this method.         
+        */
         if (this.getMultisitePolling()) {
             /* multisite polling and a build is in progress */
             if (project.isBuilding()) {
@@ -688,7 +700,7 @@ public class CCUCMScm extends SCM {
                 baselines = getBaselinesFromStreams(workspace, listener, out, stream, component, polling.isPollingChilds(), date);
             }
 
-            if (baselines.size() > 0) {
+            if (baselines.size() > 0) {                
                 p = PollingResult.BUILD_NOW;
             }
 

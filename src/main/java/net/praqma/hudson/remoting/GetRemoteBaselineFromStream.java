@@ -57,7 +57,7 @@ public class GetRemoteBaselineFromStream implements FileCallable<BaselineList> {
         }
 
         try {
-            logger.fine("Applying baselines");
+            logger.fine("Applying baselines");            
             baselines.apply();
             logger.fine("Loaded BaselineList");
             logger.fine(String.format("Loaded BaselineList contains %s elements", baselines.size()));            

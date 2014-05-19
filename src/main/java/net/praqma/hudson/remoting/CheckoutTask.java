@@ -34,14 +34,14 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 
     private static final long serialVersionUID = -7029877626574728221L;
     private PrintStream hudsonOut;
-    private String jobname;
+    private final String jobname;
     private SnapshotView sv;
-    private String loadModule;
-    private Baseline bl;
+    private final String loadModule;
+    private final Baseline bl;
     private String buildProject;
-    private Stream targetStream;
-    private BuildListener listener;
-    private Integer jobNumber;
+    private final Stream targetStream;
+    private final BuildListener listener;
+    private final Integer jobNumber;
     /**
      * Determines whether to swipe the view or not.
      *
@@ -49,7 +49,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
      */
     private boolean swipe = true;
     private boolean any = false;
-    private Logger logger;
+    private static final Logger logger = Logger.getLogger(CheckoutTask.class.getName());
 
     public CheckoutTask(BuildListener listener, String jobname, Integer jobNumber, Stream targetStream, String loadModule, Baseline baseline, String buildProject, boolean any, boolean swipe) {
         this.jobname = jobname;
@@ -59,16 +59,12 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
         this.bl = baseline;
         this.buildProject = buildProject;
         this.listener = listener;
-
         this.any = any;
-
         this.swipe = swipe;
     }
 
     @Override
     public EstablishResult invoke(File workspace, VirtualChannel channel) throws IOException {
-
-        logger = Logger.getLogger(CheckoutTask.class.getName());
 
         hudsonOut = listener.getLogger();
 
@@ -184,8 +180,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 
         try {
             hudsonOut.println("[" + Config.nameShort + "] Updating view using " + loadModule.toLowerCase() + " modules");
-            logger.fine("Updating stream");
-            //sv.Update(true, true, true, false, Components.valueOf(loadModule.toUpperCase()), null);
+            logger.fine("Updating stream");            
             sv.Update(swipe, true, true, false, new LoadRules(sv, Components.valueOf(loadModule.toUpperCase())));
             logger.fine("Updating done");
         } catch (ClearCaseException e) {
