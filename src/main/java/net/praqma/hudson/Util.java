@@ -25,6 +25,7 @@ import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.ucm.view.SnapshotView.Components;
+import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules2;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.remoting.RemoteDeliver;
 import org.apache.commons.lang.SystemUtils;
@@ -217,7 +218,7 @@ public abstract class Util {
 		if( update ) {
 			try {
 				hudsonOut.println( "[" + Config.nameShort + "] Updating view using " + loadModule.toLowerCase() + " modules." );
-				snapview.Update( true, true, true, false, new LoadRules( snapview, Components.valueOf( loadModule.toUpperCase() ) ) );
+				snapview.Update( true, true, true, false, new LoadRules2( snapview, Components.valueOf( loadModule.toUpperCase() ) ) );
 			} catch( ClearCaseException e ) {
 				e.print( hudsonOut );
 				if( e instanceof ViewException ) {

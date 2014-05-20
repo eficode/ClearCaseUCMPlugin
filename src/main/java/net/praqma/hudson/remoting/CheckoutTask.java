@@ -29,6 +29,7 @@ import net.praqma.hudson.scm.ClearCaseChangeset;
 import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
 import hudson.remoting.VirtualChannel;
+import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules2;
 
 public class CheckoutTask implements FileCallable<EstablishResult> {
 
@@ -181,7 +182,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
         try {
             hudsonOut.println("[" + Config.nameShort + "] Updating view using " + loadModule.toLowerCase() + " modules");
             logger.fine("Updating stream");            
-            sv.Update(swipe, true, true, false, new LoadRules(sv, Components.valueOf(loadModule.toUpperCase())));
+            sv.Update(swipe, true, true, false, new LoadRules2(sv, Components.valueOf(loadModule.toUpperCase())));
             logger.fine("Updating done");
         } catch (ClearCaseException e) {
             e.print(hudsonOut);

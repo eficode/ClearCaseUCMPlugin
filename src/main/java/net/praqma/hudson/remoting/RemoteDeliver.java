@@ -172,7 +172,7 @@ public class RemoteDeliver implements FileCallable<EstablishResult> {
 
                     try {
                         Deliver.cancel(dstream);
-                        snapview.Update(swipe, true, true, false, new SnapshotView.LoadRules(snapview, SnapshotView.Components.valueOf(loadModule.toUpperCase())));
+                        snapview.Update(swipe, true, true, false, new SnapshotView.LoadRules2(snapview, SnapshotView.Components.valueOf(loadModule.toUpperCase())));
 
                     } catch (ClearCaseException ex) {
                         throw ex;
