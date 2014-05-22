@@ -59,7 +59,7 @@ import org.kohsuke.stapler.export.Exported;
  */
 public class CCUCMScm extends SCM {
 
-    private static Logger logger = Logger.getLogger(CCUCMScm.class.getName());
+    private static final Logger logger = Logger.getLogger(CCUCMScm.class.getName());
     /* Currently only for testing */
     private Boolean multisitePolling;
     private Project.PromotionLevel plevel;
@@ -91,7 +91,6 @@ public class CCUCMScm extends SCM {
     private Baseline lastBaseline;
     private String levelToPoll;
     private boolean addPostBuild = true;
-    private static DateFormat dateFormatter = new SimpleDateFormat("yyyyMMdd");
 
     /**
      * Default constructor, mainly used for unit tests.

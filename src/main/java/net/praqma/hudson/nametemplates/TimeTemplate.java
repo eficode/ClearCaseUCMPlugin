@@ -7,7 +7,7 @@ import net.praqma.hudson.CCUCMBuildAction;
 
 public class TimeTemplate extends Template {
 	
-	private SimpleDateFormat timeFormat  = new SimpleDateFormat( "HHmmss" );
+	private final SimpleDateFormat timeFormat  = new SimpleDateFormat( "HHmmss" );
 
 	@Override
 	public String parse( CCUCMBuildAction action, String args ) {

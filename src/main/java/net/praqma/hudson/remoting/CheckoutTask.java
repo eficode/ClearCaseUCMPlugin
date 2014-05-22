@@ -19,7 +19,6 @@ import net.praqma.clearcase.ucm.utils.BaselineList;
 import net.praqma.clearcase.ucm.utils.filters.BeforeBaseline;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.SnapshotView.Components;
-import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules;
 import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.*;
 import net.praqma.hudson.exception.ScmException;

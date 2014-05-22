@@ -7,8 +7,8 @@ import java.util.List;
 public class ClearCaseChangeset implements Serializable {
 
 	public class Element implements Serializable {
-		private String version;
-		private String user;
+		private final String version;
+		private final String user;
 		
 		public Element( String version, String user ) {
 			this.version = version;

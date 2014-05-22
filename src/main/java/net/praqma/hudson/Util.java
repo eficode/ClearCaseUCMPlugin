@@ -22,12 +22,10 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.utils.VersionList;
 import net.praqma.clearcase.ucm.view.SnapshotView;
-import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.ucm.view.SnapshotView.Components;
 import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules2;
 import net.praqma.hudson.exception.ScmException;
-import net.praqma.hudson.remoting.RemoteDeliver;
 import org.apache.commons.lang.SystemUtils;
 
 public abstract class Util {

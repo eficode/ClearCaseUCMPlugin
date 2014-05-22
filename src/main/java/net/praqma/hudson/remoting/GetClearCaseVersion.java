@@ -12,9 +12,9 @@ import hudson.remoting.VirtualChannel;
 
 public class GetClearCaseVersion implements FileCallable<String> {
 
-	private static Logger logger = Logger.getLogger();
+	private static final Logger logger = Logger.getLogger();
 
-	private Project project;
+	private final Project project;
 
 	public GetClearCaseVersion( Project project ) {
 		this.project = project;

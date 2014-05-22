@@ -45,12 +45,6 @@ public class CCUCMNotifier extends Notifier {
     public static String logShortPrefix = String.format("[%s]", Config.nameShort);
 
 	public CCUCMNotifier() { }
-
-	/**
-	 * This constructor is used in the inner class <code>DescriptorImpl</code>.
-	 */
-	public CCUCMNotifier( boolean recommended, boolean makeTag, boolean setDescription ) { }
-
 	/**
 	 * This indicates whether to let CCUCM run after(true) the job is done or
 	 * before(false)
@@ -67,9 +61,7 @@ public class CCUCMNotifier extends Notifier {
 
 	@Override
 	public boolean perform( AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener ) throws InterruptedException, IOException {
-
-        logger.fine( "ClearCase UCM plugin notifier" );
-
+        
 		boolean result = true;
 		out = listener.getLogger();
 		status = new Status();
@@ -92,7 +84,6 @@ public class CCUCMNotifier extends Notifier {
             logger.fine( action.stringify() );
 			baseline = action.getBaseline();
 		} else {
-			logger.warning( "WHOA, what happened!?" );
             throw new AbortException( "No ClearCase Action object found" );
 		}
 
@@ -137,14 +128,8 @@ public class CCUCMNotifier extends Notifier {
 		}
 
 		if( action.getViewTag() != null ) {
-			/* End the view */
-            logger.fine( "Ending view " + action.getViewTag() );
             RemoteUtil.endView( build.getWorkspace(), action.getViewTag() );
         }
-
-		out.println( "[" + Config.nameShort + "] Post build steps done" );
-
-        logger.fine( "ENDING NOTIFIER" );
 
 		return result;
 	}

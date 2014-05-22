@@ -30,7 +30,7 @@ public class ChangeLogEntryImpl extends Entry {
     private String author;
     private String date;
 
-	protected static Logger logger = Logger.getLogger( ChangeLogEntryImpl.class.getName()  );
+	protected static final Logger logger = Logger.getLogger( ChangeLogEntryImpl.class.getName()  );
 	private volatile List<String> affectedPaths = new ArrayList<String>();
 
 	public ChangeLogEntryImpl() {

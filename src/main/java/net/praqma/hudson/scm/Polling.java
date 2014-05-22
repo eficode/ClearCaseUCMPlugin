@@ -9,7 +9,7 @@ public class Polling {
 		siblings
 	}
 	
-	private PollingType type;
+	private final PollingType type;
 	
 	public Polling() {
 		type = PollingType.none;

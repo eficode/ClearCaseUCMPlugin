@@ -17,19 +17,18 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 
 	private static final long serialVersionUID = 2506984544940354996L;
 
-	private boolean complete;
-	private BuildListener listener;
+	private final boolean complete;
+	private final BuildListener listener;
 
-	private Baseline baseline;
-	private Stream stream;
-	//private SnapshotView view;
-	private String viewtag;
-	private File viewPath;
+	private final Baseline baseline;
+	private final Stream stream;
+	
+	private final String viewtag;
+	private final File viewPath;
 
 	public RemoteDeliverComplete( Baseline baseline, Stream stream, String viewtag, File viewPath, boolean complete, BuildListener listener ) {
 		this.complete = complete;
 		this.listener = listener;
-
 		this.baseline = baseline;
 		this.stream = stream;
 		this.viewtag = viewtag;
@@ -52,9 +51,7 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 				deliver.complete();
 				//baseline.deliver( baseline.getStream(), stream, view.getViewRoot(), view.getViewtag(), true, true, true );
 			} catch( Exception ex ) {
-
 				try {
-					//baseline.cancel( view.getViewRoot() );
 					deliver.cancel();
 				} catch( Exception ex1 ) {
 					throw new IOException( "Completing the deliver failed. Could not cancel.", ex1 );

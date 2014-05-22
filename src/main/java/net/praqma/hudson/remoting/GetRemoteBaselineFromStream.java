@@ -5,30 +5,24 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.logging.Logger;
 
-import net.praqma.clearcase.exceptions.ClearCaseException;
-import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
-import net.praqma.clearcase.exceptions.UnableToLoadEntityException;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.utils.BaselineList;
 import hudson.FilePath.FileCallable;
 import hudson.remoting.VirtualChannel;
-import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.utils.filters.AfterDate;
 import net.praqma.clearcase.ucm.utils.filters.NoDeliver;
-import net.praqma.hudson.notifier.CCUCMNotifier;
 
 public class GetRemoteBaselineFromStream implements FileCallable<BaselineList> {
 
 	private static final long serialVersionUID = -8984877325832486334L;
     private static final Logger logger = Logger.getLogger(GetRemoteBaselineFromStream.class.getName());
-
-	private Component component;
-	private Stream stream;
-	private Project.PromotionLevel plevel;
-	private boolean multisitePolling;
-    private Date date;
+	private final Component component;
+	private final Stream stream;
+	private final Project.PromotionLevel plevel;
+	private final boolean multisitePolling;
+    private final Date date;
 
 	public GetRemoteBaselineFromStream( Component component, Stream stream, Project.PromotionLevel plevel, boolean multisitePolling, Date date ) {
 		this.component = component;

@@ -19,13 +19,13 @@ import java.util.logging.Logger;
  */
 public class MakeDeliverView implements FilePath.FileCallable<SnapshotView> {
 
-    private static Logger logger;
+    private static final Logger logger = Logger.getLogger( MakeDeliverView.class.getName() );;
 
-    private BuildListener listener;
+    private final BuildListener listener;
     private String viewtag;
-    private String jobName;
-    private String loadModule;
-    private Stream destinationStream;
+    private final String jobName;
+    private final String loadModule;
+    private final Stream destinationStream;
 
     public MakeDeliverView( BuildListener listener, String jobName, String loadModule, Stream destinationStream ) {
         this.listener = listener;
@@ -35,11 +35,8 @@ public class MakeDeliverView implements FilePath.FileCallable<SnapshotView> {
     }
 
     @Override
-    public SnapshotView invoke( File workspace, VirtualChannel channel ) throws IOException, InterruptedException {
-
-        logger = Logger.getLogger( MakeDeliverView.class.getName() );
+    public SnapshotView invoke( File workspace, VirtualChannel channel ) throws IOException, InterruptedException {        
         logger.fine( "Make deliver view in " + workspace );
-
         try {
             return makeDeliverView( destinationStream, workspace );
         } catch( Exception e ) {

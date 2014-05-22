@@ -19,7 +19,7 @@ import hudson.scm.ChangeLogSet;
 
 public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl> {
 
-	protected static Logger logger = Logger.getLogger( ChangeLogSetImpl.class.getName()  );
+	protected static final Logger logger = Logger.getLogger( ChangeLogSetImpl.class.getName()  );
 	private List<ChangeLogEntryImpl> entries = null;
 	private String baselineName;
 
@@ -32,6 +32,7 @@ public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl> {
 		}
 	}
 
+    @Override
 	public Iterator<ChangeLogEntryImpl> iterator() {
 		return entries.iterator();
 	}

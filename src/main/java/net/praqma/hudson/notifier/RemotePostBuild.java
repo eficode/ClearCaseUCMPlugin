@@ -28,22 +28,22 @@ import net.praqma.hudson.scm.Unstable;
 class RemotePostBuild implements FileCallable<Status> {
 
 	private static final long serialVersionUID = 1L;
-	private String displayName;
-	private String buildNumber;
-	private Result result;
-	private Baseline sourcebaseline;
-	private Baseline targetbaseline;
-	private Stream sourcestream;
-	private Stream targetstream;
+	private final String displayName;
+	private final String buildNumber;
+	private final Result result;
+	private final Baseline sourcebaseline;
+	private final Baseline targetbaseline;
+	private final Stream sourcestream;
+	private final Stream targetstream;
 	private boolean makeTag = false;
 	private boolean recommend = false;
-	private Status status;
-	private BuildListener listener;
+	private final Status status;
+	private final BuildListener listener;
 	private PrintStream hudsonOut = null;
-	private Unstable unstable;
+	private final Unstable unstable;
 
 
-    private boolean any;
+    private final boolean any;
 
 	public RemotePostBuild( Result result, Status status, BuildListener listener,
 	/* Values for */
@@ -53,22 +53,16 @@ class RemotePostBuild implements FileCallable<Status> {
 
 		this.displayName = displayName;
 		this.buildNumber = buildNumber;
-
 		this.sourcebaseline = sourcebaseline;
 		this.targetbaseline = targetbaseline;
 		this.sourcestream = sourcestream;
 		this.targetstream = targetstream;
-
 		this.unstable = unstable;
-
 		this.result = result;
-
 		this.makeTag = makeTag;
 		this.recommend = recommended;
-
 		this.status = status;
 		this.listener = listener;
-
         this.any = any;
 	}
     

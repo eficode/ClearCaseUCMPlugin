@@ -12,7 +12,7 @@ public class LoadEntity implements FileCallable<UCMEntity> {
 
 	private static final long serialVersionUID = -8984877325832486334L;
 
-	private UCMEntity entity;
+	private final UCMEntity entity;
 
 	public LoadEntity( UCMEntity entity ) {
 		this.entity = entity;

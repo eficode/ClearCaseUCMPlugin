@@ -7,10 +7,8 @@ import net.praqma.clearcase.Deliver;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.exceptions.CleartoolException;
 import net.praqma.clearcase.exceptions.DeliverException;
-import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
-import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.exception.DeliverNotCancelledException;
@@ -18,7 +16,6 @@ import net.praqma.hudson.exception.DeliverNotCancelledException;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,15 +26,15 @@ import java.util.logging.Logger;
  */
 public class StartDeliver implements FilePath.FileCallable<Boolean> {
 
-    private static Logger logger;
+    private static final Logger logger = Logger.getLogger( StartDeliver.class.getName() );;
 
-    private BuildListener listener;
-    private Stream destinationStream;
-    private Baseline baseline;
-    private SnapshotView snapview;
-    private String loadModule;
-    private boolean forceDeliver;
-    private boolean swipe;
+    private final BuildListener listener;
+    private final Stream destinationStream;
+    private final Baseline baseline;
+    private final SnapshotView snapview;
+    private final String loadModule;
+    private final boolean forceDeliver;
+    private final boolean swipe;
 
     public StartDeliver( BuildListener listener, Stream destinationStream, Baseline baseline, SnapshotView snapview, String loadModule, boolean forceDeliver, boolean swipe ) {
         this.listener = listener;
@@ -52,8 +49,6 @@ public class StartDeliver implements FilePath.FileCallable<Boolean> {
 
     @Override
     public Boolean invoke( File workspace, VirtualChannel channel ) throws IOException, InterruptedException {
-
-        logger = Logger.getLogger( StartDeliver.class.getName() );
         logger.fine( "Start deliver" );
 
         try {

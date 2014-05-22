@@ -14,10 +14,10 @@ import net.praqma.clearcase.ucm.entities.Stream;
 public class GetRelatedStreams implements FileCallable<List<Stream>> {
 
 	private static final long serialVersionUID = -8984877325832486334L;
-	private Stream stream;
-	private boolean pollingChildStreams;
-	private TaskListener listener;
-	private boolean multisitePolling;
+	private final Stream stream;
+	private final boolean pollingChildStreams;
+	private final TaskListener listener;
+	private final boolean multisitePolling;
 
 	public GetRelatedStreams( TaskListener listener, Stream stream, boolean pollingChildStreams, boolean multisitePolling ) {
 		this.stream = stream;
