@@ -33,18 +33,18 @@ public class JENKINS14806 extends BaseTestClass {
 	public DescriptionRule desc = new DescriptionRule();
 
 	@Test
-	@TestDescription( title = "JENKINS-14806", text = "Multisite polling finds the same baseline times", configurations = { "ClearCase multisite = true" }	)
+	@TestDescription( title = "JENKINS-14806", text = "Multisite polling finds the same baseline multiple times", configurations = { "ClearCase multisite = true" }	)
 	public void jenkins14806() throws Exception {
 	
 		CCUCMScm ccucm = jenkins.getCCUCM( "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), "INITIAL", false, false, false, false, true, "[project]_[date]_[time]" );
 		ccucm.setMultisitePolling( true );
 		System.out.println( "MP: " + ccucm.getMultisitePolling() );
 		FreeStyleProject project = jenkins.createProject( ccenv.getUniqueName(), ccucm );
-		
+       		
 		/* First build to create a view */
 		System.out.println( "First build" );
 		jenkins.buildProject( project, false );
-		
+        
 		/* Add builder to sleep */
 		System.out.println( "Adding waiter" );
 		project.getBuildersList().add( new WaitBuilder() );
@@ -57,7 +57,8 @@ public class JENKINS14806 extends BaseTestClass {
 		project.getBuildersList().clear();
 		
 		/* And then poll */
-		System.out.println( "Poll" );
+        System.out.println("Executors on master = "+ jenkins.jenkins.getNumExecutors());
+		System.out.println( "Poll ~ is building = " + project.isBuilding() + " is queued = " + project.isInQueue() );
 		PollingResult result = project.poll( jenkins.createTaskListener() );
 
         doWait = false;
@@ -73,7 +74,6 @@ public class JENKINS14806 extends BaseTestClass {
 
 	public class WaitBuilder extends TestBuilder {
 
-
 		@Override
 		public boolean perform( AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener ) throws InterruptedException, IOException {
 			System.out.println( "Sleeping...." );
@@ -83,6 +83,5 @@ public class JENKINS14806 extends BaseTestClass {
 		}
 		
 	}
-
-	
+    
 }

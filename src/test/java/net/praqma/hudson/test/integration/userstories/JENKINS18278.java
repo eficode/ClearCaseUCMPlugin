@@ -21,6 +21,7 @@ import org.junit.Test;
 
 import java.util.List;
 import java.util.logging.Logger;
+import org.apache.commons.lang.SystemUtils;
 
 /**
  * @author cwolfgang
@@ -74,8 +75,13 @@ public class JENKINS18278 extends BaseTestClass {
 
         printChangeLog( build2 );
 
-        FilePath path = new FilePath( project.getLastBuiltOn().getWorkspaceFor( (FreeStyleProject)project ), "view/" + ccenv.getUniqueName() + "/Model" );
-        listPath( path );
+        FilePath path = null;
+        
+        if(SystemUtils.IS_OS_WINDOWS) {
+            path = new FilePath( project.getLastBuiltOn().getWorkspaceFor( (FreeStyleProject)project ), "view/" + ccenv.getUniqueName() + "/Model" );
+        } else {
+            path = new FilePath( project.getLastBuiltOn().getWorkspaceFor( (FreeStyleProject)project ), "view/vobs/" + ccenv.getUniqueName() + "/Model" );
+        }
 
         List<Activity> activities = Version.getBaselineDiff( cc1.getBaseline(), cc2.getBaseline(), true, cc2.getPath() );
         new SystemValidator( build2 ).validateBuild( Result.SUCCESS ).addActivitiesToCheck( activities ).validate();
@@ -119,8 +125,14 @@ public class JENKINS18278 extends BaseTestClass {
         AbstractBuild build2 = jenkins.getProjectBuilder( project ).build();
 
         printChangeLog( build2 );
-
-        FilePath path = new FilePath( project.getLastBuiltOn().getWorkspaceFor( (FreeStyleProject)project ), "view/" + ccenv.getUniqueName() + "/Model" );
+        FilePath path = null;
+        
+        if(SystemUtils.IS_OS_WINDOWS) {
+            path = new FilePath( project.getLastBuiltOn().getWorkspaceFor( (FreeStyleProject)project ), "view/" + ccenv.getUniqueName() + "/Model" );
+        } else {
+            path = new FilePath( project.getLastBuiltOn().getWorkspaceFor( (FreeStyleProject)project ), "view/vobs/" + ccenv.getUniqueName() + "/Model" );
+        }
+        
         listPath( path );
 
         List<Activity> activities = Version.getBaselineDiff( cc1.getBaseline(), cc2.getBaseline(), true, cc2.getPath() );

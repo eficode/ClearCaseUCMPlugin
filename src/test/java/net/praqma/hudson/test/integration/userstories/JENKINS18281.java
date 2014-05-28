@@ -26,6 +26,7 @@ import org.junit.Test;
 import java.io.File;
 import java.util.List;
 import java.util.logging.Logger;
+import org.apache.commons.lang.SystemUtils;
 
 /**
  * @author cwolfgang
@@ -91,20 +92,17 @@ public class JENKINS18281 extends BaseTestClass {
         /* I need a first build */
         jenkins.getProjectBuilder( project ).build();
 
-        /* Deliver bl1 */
-        //Deliver deliver = new Deliver( bl1, bl1.getStream(), target, cc1.getPath(), cc1.getViewTag() );
-        //deliver.deliver( true, true, false, false );
-        //new Rebase( target ).addBaseline( bl1 ).rebase( true );
-
-        /*
-        printDiffs( bl_int_2, bl_dev_2, cc1_1.getPath() );
-        printDiffs( bl_dev_1, bl_dev_2, cc1_1.getPath() );
-        */
-
         AbstractBuild build2 = jenkins.getProjectBuilder( project ).build();
         printChangeLog( build2 );
 
-        FilePath path = new FilePath( project.getLastBuiltOn().getWorkspaceFor( (FreeStyleProject)project ), "view/" + ccenv.getUniqueName() + "/Model" );
+        FilePath path = null;
+        
+        if(SystemUtils.IS_OS_WINDOWS) {
+             path = new FilePath( project.getLastBuiltOn().getWorkspaceFor( (FreeStyleProject)project ), "view/" + ccenv.getUniqueName() + "/Model" );
+        } else {
+            path = new FilePath( project.getLastBuiltOn().getWorkspaceFor( (FreeStyleProject)project ), "view/vobs/" + ccenv.getUniqueName() + "/Model" );
+        }
+        
         listPath( path );
 
         new SystemValidator( build2 ).validateBuild( Result.SUCCESS ).validate();

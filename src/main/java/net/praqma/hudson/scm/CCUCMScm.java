@@ -638,7 +638,7 @@ public class CCUCMScm extends SCM {
         PollingResult p = PollingResult.NO_CHANGES;
 
         /*
-        See [FB11107]. Discovered during investigation of performance issues. We need to talk
+        See [FB11107]. This is also related to JENKINS-14806. Discovered during investigation of performance issues. We need to talk
         to Leif and possibly Lars to figure out why we distinguish between multisite and non multisite polling
         with this method.         
         */

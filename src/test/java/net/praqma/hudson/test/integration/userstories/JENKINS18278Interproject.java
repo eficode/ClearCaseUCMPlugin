@@ -19,6 +19,7 @@ import org.junit.Rule;
 
 import java.util.List;
 import java.util.logging.Logger;
+import org.apache.commons.lang.SystemUtils;
 
 /**
  * @author cwolfgang
@@ -68,8 +69,12 @@ public class JENKINS18278Interproject extends JENKINS18278Base {
         AbstractBuild build2 = jenkins.getProjectBuilder( project ).build();
 
         printChangeLog( build2 );
-
-        FilePath path = new FilePath( project.getLastBuiltOn().getWorkspaceFor( (FreeStyleProject)project ), "view/" + ccenv.getUniqueName() + "/Model" );
+        FilePath path = null;
+        if(SystemUtils.IS_OS_WINDOWS) {
+             path = new FilePath( project.getLastBuiltOn().getWorkspaceFor( (FreeStyleProject)project ), "view/" + ccenv.getUniqueName() + "/Model" );
+        } else {
+            path = new FilePath( project.getLastBuiltOn().getWorkspaceFor( (FreeStyleProject)project ), "view/vobs/" + ccenv.getUniqueName() + "/Model" );
+        }
         listPath( path );
 
         List<Activity> activities = Version.getBaselineDiff( cc_source1.getBaseline(), cc_source2.getBaseline(), true, cc_source2.getPath() );
