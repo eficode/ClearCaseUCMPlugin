@@ -81,6 +81,12 @@
             <f:entry title="Trimmed change set" help="/plugin/clearcase-ucm-plugin/scm/help-trimmedChangeSet.html">
                 <f:checkbox name="CCUCM.trimmedChangeSet" checked="${scm.trimmedChangeSet}" default="false" />
             </f:entry>
+
+            <f:entry title="Discard read-only, rebase and deliver activities" field="discard">
+                <f:checkbox checked="${scm.discard}" default="false" />
+            </f:entry>
+
+
 		
 		    <f:entry title="Build project" help="/plugin/clearcase-ucm-plugin/scm/help-buildProject.html">
 	      		<f:textbox name="buildProject" value="${scm.buildProject}"/>

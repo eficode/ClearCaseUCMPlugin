@@ -128,7 +128,8 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
         } catch (Exception e) {
             throw new IOException("", new UnableToInitializeWorkspaceException("Unable to initialize workspace", e));
         }
-
+        
+        er.setView(sv);
         er.setMessage(diff);
         er.setViewtag(viewtag);
 
