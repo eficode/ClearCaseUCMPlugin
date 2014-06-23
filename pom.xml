@@ -40,21 +40,8 @@
 
     <developers>
         <developer>
-            <id>jes-struck</id>
-            <name>Jes Struck</name>
-        </developer>
-        <developer>
-            <id>wolfgarnet</id>
-            <name>Christian Wolfgang</name>
-        </developer>
-        <developer>
-            <id>les-praqma</id>
-            <name>Leif Soerensen</name>
-        </developer>
-        <developer>
-            <id>lak-praqma</id>
-            <name>Lars Kruse</name>
-            <email>support@praqma.net</email>
+            <id>praqma_josra</id>
+            <name>Praqma Josra</name>
         </developer>
     </developers>
     <!-- This profile executes ALL static analysis -->
