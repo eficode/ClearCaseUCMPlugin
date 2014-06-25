@@ -240,17 +240,15 @@ public class CCUCMRule extends JenkinsRule {
         System.out.println( "==== [Setting up ClearCase UCM project] ====" );
 		printInfo(projectName, type, component, stream, recommend, tag, description, createBaseline, forceDeliver, template, promotionLevel);
 		FreeStyleProject project = createFreeStyleProject( "ccucm-project-" + projectName );
-        DumbSlave slave = createSlave();
+        DumbSlave slave = createOnlineSlave();
         project.setAssignedLabel(slave.getSelfLabel());
         
         System.out.println( " * Slave          : " + slave.getSelfLabel().getName() );
 		System.out.println( "============================================" );
-		// boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription
-		//CCUCMScm scm = new CCUCMScm( component, "INITIAL", "ALL", false, type, stream, "successful", createBaseline, "[project]_build_[number]", forceDeliver, recommend, tag, description, "jenkins" );
-		CCUCMScm scm = new CCUCMScm( component, promotionLevel, "ALL", false, type, stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "", true, false );
-		this.scm = scm;
+
+		this.scm = scm = new CCUCMScm( component, promotionLevel, "ALL", false, type, stream, "successful", createBaseline, template, forceDeliver, recommend, tag, description, "", true, false );
         
-		project.setScm( scm );
+		project.setScm( this.scm );
 		
 		return project;
     }
