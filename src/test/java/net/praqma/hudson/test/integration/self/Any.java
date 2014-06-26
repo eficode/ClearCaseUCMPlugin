@@ -41,7 +41,7 @@ public class Any extends BaseTestClass {
     @Rule
     public DescriptionRule desc = new DescriptionRule();
 
-    private static Logger logger = Logger.getLogger();
+    private static final Logger logger = Logger.getLogger();
 
     public AbstractBuild<?, ?> initiateBuild( String projectName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
         return jenkins.initiateBuild( projectName, "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), recommend, tag, description, fail, false, false, "", "ANY" );

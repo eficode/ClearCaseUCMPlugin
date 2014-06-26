@@ -16,8 +16,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,8 +57,9 @@ import org.kohsuke.stapler.export.Exported;
  */
 public class CCUCMScm extends SCM {
 
+    
     private static final Logger logger = Logger.getLogger(CCUCMScm.class.getName());
-    /* Currently only for testing */
+    
     private Boolean multisitePolling;
     private Project.PromotionLevel plevel;
     private String loadModule;
@@ -73,11 +72,13 @@ public class CCUCMScm extends SCM {
     private String jobName = "";
     private Integer jobNumber;
     private boolean forceDeliver;
+    
     /**
      * Determines whether to remove the view private files or not
      */
     private boolean removeViewPrivateFiles;
     private boolean trimmedChangeSet;
+    private boolean discard;
 
     /* Old notifier fields */
     private boolean recommend;
@@ -96,6 +97,7 @@ public class CCUCMScm extends SCM {
      * Default constructor, mainly used for unit tests.
      */
     public CCUCMScm() {
+        discard = false;
     }
 
     /**
@@ -106,12 +108,12 @@ public class CCUCMScm extends SCM {
     public CCUCMScm(String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable,
             boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject) {
 
-        this(component, levelToPoll, loadModule, newest, polling, stream, treatUnstable, createBaseline, nameTemplate, forceDeliver, recommend, makeTag, setDescription, buildProject, true, false);
+        this(component, levelToPoll, loadModule, newest, polling, stream, treatUnstable, createBaseline, nameTemplate, forceDeliver, recommend, makeTag, setDescription, buildProject, true, false, false);
     }
 
     @DataBoundConstructor
     public CCUCMScm(String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable,
-            boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject, boolean removeViewPrivateFiles, boolean trimmedChangeSet) {
+            boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject, boolean removeViewPrivateFiles, boolean trimmedChangeSet, boolean discard) {
 
         this.component = component;
         this.loadModule = loadModule;
@@ -133,6 +135,7 @@ public class CCUCMScm extends SCM {
         this.setDescription = setDescription;
         this.plevel = Util.getLevel(levelToPoll);
         this.levelToPoll = levelToPoll;
+        this.discard = discard;
     }
 
     @Override
@@ -172,8 +175,6 @@ public class CCUCMScm extends SCM {
 
         action.setBuild(build);
         build.addAction(action);
-
-        //out.println( "LISTENER IS " + listener );
         action.setListener(listener);
 
         /* Determining the user has parameterized a Baseline */
@@ -236,9 +237,7 @@ public class CCUCMScm extends SCM {
         /* If a baseline is found */
         if (action.getBaseline() != null) {
             out.println("[" + Config.nameShort + "] Using " + action.getBaseline().getNormalizedName());
-
-            //baselineName = state.getBaseline().getFullyQualifiedName();
-
+            
             if (polling.isPollingSelf() || !polling.isPolling()) {
                 logger.fine("Initializing workspace");
                 result = initializeWorkspace(build, workspace, changelogFile, listener, action);
@@ -416,7 +415,7 @@ public class CCUCMScm extends SCM {
         er = workspace.act(ct);
         //String changelog = er.getMessage();
         String changelog = "";
-        changelog = Util.createChangelog(er.getActivities(), action.getBaseline(), trimmedChangeSet);
+        changelog = Util.createChangelog(er.getActivities(), action.getBaseline(), trimmedChangeSet, discard, er.getView().getViewRoot(), er.getView().getReadOnlyLoadLines());
         action.setActivities(er.getActivities());
 
         this.viewtag = er.getViewtag();
@@ -547,18 +546,21 @@ public class CCUCMScm extends SCM {
 
     /**
      * Generate the change log for poll/sibling mode
+     * @param build
+     * @throws java.lang.InterruptedException
      */
     public void generateChangeLog(AbstractBuild<?, ?> build, CCUCMBuildAction state, BuildListener listener, File changelogFile, SnapshotView snapshotView) throws IOException, InterruptedException {
         FilePath workspace = build.getWorkspace();
         PrintStream consoleOutput = listener.getLogger();
 
         logger.fine("Generating change log");
+        logger.fine(String.format( "Trim changeset = %s, Discard changes under read-only = %s", trimmedChangeSet, discard ) );
 
         GetChanges gc = new GetChanges(listener, state.getStream(), state.getBaseline(), snapshotView.getPath());
         List<Activity> activities = workspace.act(gc);
 
         String changelog = "";
-        changelog = Util.createChangelog(activities, state.getBaseline(), trimmedChangeSet);
+        changelog = Util.createChangelog(activities, state.getBaseline(), trimmedChangeSet, discard, new File(snapshotView.getPath()), snapshotView.getReadOnlyLoadLines());
         state.setActivities(activities);
 
         /* Write change log */
@@ -969,6 +971,15 @@ public class CCUCMScm extends SCM {
 
     public void setMultisitePolling(boolean mp) {
         this.multisitePolling = mp;
+    }
+    
+    public boolean isDiscard() {
+        return discard;
+    }
+    
+    
+    public void setDiscard(boolean discard) {
+        this.discard = discard;
     }
 
     /**

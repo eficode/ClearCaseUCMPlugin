@@ -1,6 +1,7 @@
 package net.praqma.hudson.remoting;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import net.praqma.clearcase.ucm.entities.Activity;
@@ -10,7 +11,7 @@ public class EstablishResult implements Serializable {
 	
 	private String viewtag = "";
 	private String log = "";	
-	private List<Activity> activities;
+	private List<Activity> activities = new ArrayList<Activity>();
 	private SnapshotView view;
 	private String message;
 	

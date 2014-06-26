@@ -20,6 +20,7 @@ import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Version;
+import net.praqma.clearcase.ucm.utils.ReadOnlyVersionFilter;
 import net.praqma.clearcase.ucm.utils.VersionList;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.UCMView;
@@ -58,12 +59,17 @@ public abstract class Util {
 		return devstream;
 	}
 
-    public static String createChangelog( List<Activity> activities, Baseline bl, boolean trimmed ) {
+    public static String createChangelog( List<Activity> activities, Baseline bl, boolean trimmed, boolean discard, File viewRoot, List<String> readonly ) {
         logger.fine( "Generating change set, " + trimmed );
         ChangeSetGenerator csg = new ChangeSetGenerator().createHeader( bl.getShortname() );
 
         if( trimmed ) {
             VersionList vl = new VersionList().addActivities( activities ).setBranchName( "^.*" + Cool.qfs + bl.getStream().getShortname() + ".*$" );
+            if(discard) {
+                logger.fine("Discard enabled...enabling read-only filter");
+                vl = vl.addFilter(new ReadOnlyVersionFilter(viewRoot, readonly)).apply();
+            }
+            
             Map<Activity, List<Version>> changeSet = vl.getLatestForActivities();
             for( Activity activity : changeSet.keySet() ) {
                 csg.addAcitivity( activity.getShortname(), activity.getHeadline(), activity.getUser(), changeSet.get( activity ) );
@@ -71,6 +77,9 @@ public abstract class Util {
         } else {
             for( Activity activity : activities ) {
                 VersionList versions = new VersionList( activity.changeset.versions ).getLatest();
+                if(discard) {
+                    versions = versions.addFilter(new ReadOnlyVersionFilter(viewRoot, readonly)).apply();
+                }
                 csg.addAcitivity( activity.getShortname(), activity.getHeadline(), activity.getUser(), versions );
             }
         }
@@ -92,21 +101,22 @@ public abstract class Util {
         }
 
         public ChangeSetGenerator addAcitivity( String name, String header, String username, List<Version> versions ) {
-            buffer.append( "<activity>" );
-            buffer.append( "<actName>" + name + "</actName>" );
-            buffer.append( "<actHeadline>" + header + "</actHeadline>" );
-            buffer.append( "<author>" + username + "</author>" );
-            String temp = null;
-            for( Version v : versions ) {
-                try {
-                    temp = "<file>" + v.getSFile() + " (" + v.getVersion() + ") user: " + v.blame() + "</file>";
-                } catch( ClearCaseException e ) {
-                    logger.warning( "Could not generate log" );
+            if(versions.size() > 0) {
+                buffer.append( "<activity>" );
+                buffer.append( "<actName>" + name + "</actName>" );
+                buffer.append( "<actHeadline>" + header + "</actHeadline>" );
+                buffer.append( "<author>" + username + "</author>" );
+                String temp = null;
+                for( Version v : versions ) {
+                    try {
+                        temp = "<file>" + v.getSFile() + " (" + v.getVersion() + ") user: " + v.blame() + "</file>";
+                    } catch( ClearCaseException e ) {
+                        logger.warning( "Could not generate log" );
+                    }
+                    buffer.append( temp );
                 }
-                buffer.append( temp );
+                buffer.append( "</activity>" );
             }
-            buffer.append( "</activity>" );
-
             return this;
         }
 
