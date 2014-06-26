@@ -14,6 +14,7 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.test.BaseTestClass;
+import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.util.debug.Logger;
 import net.praqma.util.test.junit.TestDescription;
 import static org.junit.Assert.*;
@@ -25,13 +26,21 @@ public class Polling extends BaseTestClass {
 	@Rule
 	public ClearCaseRule ccenv = new ClearCaseRule( "ccucm-child-polling" );
 
-	private static Logger logger = Logger.getLogger();
+	private static final Logger logger = Logger.getLogger();
 
 	@Test
 	@ClearCaseUniqueVobName( name = "changes-child" )
 	@TestDescription( title = "Child polling, polling", text = "baseline available" )
 	public void testPollingChildsWithChanges() throws Exception {
-		FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
+        CCUCMRule.ProjectCreator creator = new CCUCMRule.ProjectCreator( "polling-test-with-baselines-" + ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob())
+        .setRecommend(false)
+        .setTagged(false)
+        .setRecommend(false)
+        .setType(CCUCMRule.ProjectCreator.Type.self)
+        .setCreateBaseline(false)
+        .withSlave(jenkins.createOnlineSlave());
+        
+		FreeStyleProject project = creator.getProject();
 		
 		File path = setActivity();
 		Baseline b1 = getNewBaseline( path, "file1.txt" );
@@ -56,8 +65,14 @@ public class Polling extends BaseTestClass {
 	@ClearCaseUniqueVobName( name = "nochanges-child" )
 	@TestDescription( title = "Child polling, polling", text = "baseline available" )
 	public void testPollingChildsWithNoChanges() throws Exception {
-        //Fixme: This test should run on a slave. Currently the setActivity() method exphibits sporadic behaviour
-		FreeStyleProject project = jenkins.setupProject( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false );
+        CCUCMRule.ProjectCreator creator = new CCUCMRule.ProjectCreator( "polling-test-with-baselines-" + ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob())
+                .setRecommend(false)
+                .setTagged(false)
+                .setRecommend(false)
+                .setType(CCUCMRule.ProjectCreator.Type.child)
+                .setCreateBaseline(false).withSlave(jenkins.createOnlineSlave());
+      
+        FreeStyleProject project = creator.getProject();
         
 		File path = setActivity();
         System.out.println("Activity set...");
@@ -78,7 +93,7 @@ public class Polling extends BaseTestClass {
         System.out.println("Build DONE, Begin poll");
 		PollingResult result = project.poll( jenkins.createTaskListener() );
 		System.out.println( String.format( "Poll result was: "+result.hasChanges() ) );
-		assertTrue( result.hasChanges() );
+		assertFalse( result.hasChanges() );
 	}
 	
 	protected File setActivity() throws ClearCaseException {
