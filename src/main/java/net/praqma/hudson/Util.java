@@ -59,26 +59,40 @@ public abstract class Util {
 		return devstream;
 	}
 
-    public static String createChangelog( List<Activity> activities, Baseline bl, boolean trimmed, boolean discard, File viewRoot, List<String> readonly ) {
-        logger.fine( "Generating change set, " + trimmed );
+    public static String createChangelog( List<Activity> activities, Baseline bl, boolean trimmed, boolean discard, File viewRoot, List<String> readonly ) {        
+        logger.fine( String.format("Trim changeset: %s", trimmed));
+        logger.fine( String.format("Filter read-only: %s", discard) );
         ChangeSetGenerator csg = new ChangeSetGenerator().createHeader( bl.getShortname() );
 
         if( trimmed ) {
+            
             VersionList vl = new VersionList().addActivities( activities ).setBranchName( "^.*" + Cool.qfs + bl.getStream().getShortname() + ".*$" );
+            logger.fine("Versions before filter: " + vl.size());
+            
             if(discard) {
-                logger.fine("Discard enabled...enabling read-only filter");
                 vl = vl.addFilter(new ReadOnlyVersionFilter(viewRoot, readonly)).apply();
+                logger.fine("Versions after read-only filter applied: "+vl.size());
             }
             
             Map<Activity, List<Version>> changeSet = vl.getLatestForActivities();
+            int now = 0;
+            
+            for(List<Version> vlist : changeSet.values()) {
+                now+=vlist.size();
+            }
+            
+            logger.fine("Versions after filter: " + now);
+            
             for( Activity activity : changeSet.keySet() ) {
                 csg.addAcitivity( activity.getShortname(), activity.getHeadline(), activity.getUser(), changeSet.get( activity ) );
             }
         } else {
             for( Activity activity : activities ) {
                 VersionList versions = new VersionList( activity.changeset.versions ).getLatest();
+                logger.fine("Versions before filter: " + versions.size());
                 if(discard) {
                     versions = versions.addFilter(new ReadOnlyVersionFilter(viewRoot, readonly)).apply();
+                    logger.fine("Versions after read-only filter applied: "+versions.size());
                 }
                 csg.addAcitivity( activity.getShortname(), activity.getHeadline(), activity.getUser(), versions );
             }
