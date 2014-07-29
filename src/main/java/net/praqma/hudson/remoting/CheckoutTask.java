@@ -29,6 +29,7 @@ import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
 import hudson.remoting.VirtualChannel;
 import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules2;
+import net.praqma.clearcase.ucm.view.UpdateView;
 
 public class CheckoutTask implements FileCallable<EstablishResult> {
 
@@ -181,13 +182,24 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 
         try {
             hudsonOut.println("[" + Config.nameShort + "] Updating view using " + loadModule.toLowerCase() + " modules");
-            logger.fine("Updating stream");            
-            sv.Update(swipe, true, true, false, new LoadRules2(sv, Components.valueOf(loadModule.toUpperCase())));
+            logger.fine("Updating stream");
+            UpdateView upview = new UpdateView(sv);
+            if(swipe) {
+                upview = upview.swipe().generate().overwrite();
+            } else {
+                upview = upview.generate().overwrite();
+            }
+            
+            upview.setLoadRules(new LoadRules2(sv, Components.valueOf(loadModule.toUpperCase())));
+            //sv.Update(swipe, true, true, false, new LoadRules2(sv, Components.valueOf(loadModule.toUpperCase())));
+            upview.update();
             logger.fine("Updating done");
         } catch (ClearCaseException e) {
             e.print(hudsonOut);
             throw new ScmException("Could not update snapshot view", e);
-        }
+        } catch (IOException ioex) {
+            throw new ScmException("Could not update snapshot view", ioex);
+        } 
     }
 
     private Stream getDeveloperStream(String streamname, PVob pvob) throws ScmException {

@@ -26,6 +26,7 @@ import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.ucm.view.SnapshotView.Components;
 import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules2;
+import net.praqma.clearcase.ucm.view.UpdateView;
 import net.praqma.hudson.exception.ScmException;
 import org.apache.commons.lang.SystemUtils;
 
@@ -240,7 +241,9 @@ public abstract class Util {
 		if( update ) {
 			try {
 				hudsonOut.println( "[" + Config.nameShort + "] Updating view using " + loadModule.toLowerCase() + " modules." );
-				snapview.Update( true, true, true, false, new LoadRules2( snapview, Components.valueOf( loadModule.toUpperCase() ) ) );
+                UpdateView uw = new UpdateView(snapview).swipe().generate().overwrite().setLoadRules(new LoadRules2( snapview, Components.valueOf( loadModule.toUpperCase() ) ));
+                uw.update();
+				//snapview.Update( true, true, true, false, new LoadRules2( snapview, Components.valueOf( loadModule.toUpperCase() ) ) );
 			} catch( ClearCaseException e ) {
 				e.print( hudsonOut );
 				if( e instanceof ViewException ) {
@@ -249,7 +252,9 @@ public abstract class Util {
 					}
 				}
 				throw new ScmException( "Could not update snapshot view", e );
-			}
+			} catch (IOException ioex) {
+                throw new ScmException("Could not update snapshot view, failed with IOException", ioex);
+            }
 		}
 
 		return snapview;

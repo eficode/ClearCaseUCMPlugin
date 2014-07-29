@@ -153,7 +153,7 @@ public class CCUCMScm extends SCM {
         out.println("[" + Config.nameShort + "] Allow for slave polling: " + this.getSlavePolling());
         out.println("[" + Config.nameShort + "] Poll for posted deliveries: " + this.getMultisitePolling());
         out.println( String.format( "%s Trim changeset: %s", "[" + Config.nameShort + "]", trimmedChangeSet) );
-        out.println( String.format( "%s Filter read-only: %s", "[" + Config.nameShort + "]", discard) );
+        out.println( String.format( "%s Filter read-only:  %s", "[" + Config.nameShort + "]", discard) );
 
         logger.info("ClearCase UCM plugin v. " + version);
 

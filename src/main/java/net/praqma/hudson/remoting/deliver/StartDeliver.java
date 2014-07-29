@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.praqma.clearcase.ucm.view.UpdateView;
 
 /**
  * @author cwolfgang
@@ -88,10 +89,22 @@ public class StartDeliver implements FilePath.FileCallable<Boolean> {
 
                     try {
                         Deliver.cancel( dstream );
-                        snapview.Update( swipe, true, true, false, new SnapshotView.LoadRules2( snapview, SnapshotView.Components.valueOf( loadModule.toUpperCase() ) ) );
+                        UpdateView upview = new UpdateView(snapview);
+                        if(swipe) {
+                            upview = upview.swipe().generate().overwrite();
+                        } else {
+                            upview = upview.generate().overwrite();
+                        }
+            
+                        upview.setLoadRules(new SnapshotView.LoadRules2(snapview, SnapshotView.Components.valueOf(loadModule.toUpperCase())));
+                        upview.update();
+                        //snapview.Update( swipe, true, true, false, new SnapshotView.LoadRules2( snapview, SnapshotView.Components.valueOf( loadModule.toUpperCase() ) ) );
 
                     } catch( ClearCaseException ex ) {
                         throw ex;
+                    } catch (IOException ioex) {
+                        throw new ClearCaseException(ioex);
+                        
                     }
 
                     // Recursive method call of INVOKE(...);
