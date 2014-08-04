@@ -406,9 +406,7 @@ public class CCUCMScm extends SCM {
     }
 
     private boolean initializeWorkspace(AbstractBuild<?, ?> build, FilePath workspace, File changelogFile, BuildListener listener, CCUCMBuildAction action) throws IOException, InterruptedException {
-
         PrintStream consoleOutput = listener.getLogger();
-
         EstablishResult er = null;
         CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), action.getStream(), loadModule, action.getBaseline(), buildProject, (plevel == null), action.doRemoveViewPrivateFiles());
         er = workspace.act(ct);

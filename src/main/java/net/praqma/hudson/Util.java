@@ -66,7 +66,7 @@ public abstract class Util {
         ChangeSetGenerator csg = new ChangeSetGenerator().createHeader( bl.getShortname() );
 
         if( trimmed ) {
-            
+            logger.fine("Creating trimmed change set");
             VersionList vl = new VersionList().addActivities( activities ).setBranchName( "^.*" + Cool.qfs + bl.getStream().getShortname() + ".*$" );
             logger.fine("Versions before filter: " + vl.size());
             
@@ -88,6 +88,7 @@ public abstract class Util {
                 csg.addAcitivity( activity.getShortname(), activity.getHeadline(), activity.getUser(), changeSet.get( activity ) );
             }
         } else {
+            logger.fine("Creating non-trimmed changeset");
             for( Activity activity : activities ) {
                 VersionList versions = new VersionList( activity.changeset.versions ).getLatest();
                 logger.fine("Versions before filter: " + versions.size());
