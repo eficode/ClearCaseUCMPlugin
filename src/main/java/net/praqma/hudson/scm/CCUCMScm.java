@@ -152,6 +152,8 @@ public class CCUCMScm extends SCM {
         out.println("[" + Config.nameShort + "] ClearCase UCM Plugin version " + version);
         out.println("[" + Config.nameShort + "] Allow for slave polling: " + this.getSlavePolling());
         out.println("[" + Config.nameShort + "] Poll for posted deliveries: " + this.getMultisitePolling());
+        out.println( String.format( "%s Trim changeset: %s", "[" + Config.nameShort + "]", trimmedChangeSet) );
+        out.println( String.format( "%s Filter read-only:  %s", "[" + Config.nameShort + "]", discard) );
 
         logger.info("ClearCase UCM plugin v. " + version);
 
@@ -179,12 +181,10 @@ public class CCUCMScm extends SCM {
 
         /* Determining the user has parameterized a Baseline */
         String baselineInput = getBaselineValue(build);
-
-        logger.fine("PUBLISHERS BEFORE: " + build.getProject().getPublishersList());
+        
         if (addPostBuild) {
             ensurePublisher(build);
         }
-        out.println("PUBLISHERS AFTER: " + build.getProject().getPublishersList());
 
         /* The special Baseline parameter case */
         if (build.getBuildVariables().get(baselineInput) != null) {
@@ -237,7 +237,6 @@ public class CCUCMScm extends SCM {
         /* If a baseline is found */
         if (action.getBaseline() != null) {
             out.println("[" + Config.nameShort + "] Using " + action.getBaseline().getNormalizedName());
-            
             if (polling.isPollingSelf() || !polling.isPolling()) {
                 logger.fine("Initializing workspace");
                 result = initializeWorkspace(build, workspace, changelogFile, listener, action);
@@ -407,9 +406,7 @@ public class CCUCMScm extends SCM {
     }
 
     private boolean initializeWorkspace(AbstractBuild<?, ?> build, FilePath workspace, File changelogFile, BuildListener listener, CCUCMBuildAction action) throws IOException, InterruptedException {
-
         PrintStream consoleOutput = listener.getLogger();
-
         EstablishResult er = null;
         CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), action.getStream(), loadModule, action.getBaseline(), buildProject, (plevel == null), action.doRemoveViewPrivateFiles());
         er = workspace.act(ct);

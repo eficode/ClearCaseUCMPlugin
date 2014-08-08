@@ -26,6 +26,7 @@ import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.ucm.view.SnapshotView.Components;
 import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules2;
+import net.praqma.clearcase.ucm.view.UpdateView;
 import net.praqma.hudson.exception.ScmException;
 import org.apache.commons.lang.SystemUtils;
 
@@ -59,26 +60,41 @@ public abstract class Util {
 		return devstream;
 	}
 
-    public static String createChangelog( List<Activity> activities, Baseline bl, boolean trimmed, boolean discard, File viewRoot, List<String> readonly ) {
-        logger.fine( "Generating change set, " + trimmed );
+    public static String createChangelog( List<Activity> activities, Baseline bl, boolean trimmed, boolean discard, File viewRoot, List<String> readonly ) {        
+        logger.fine( String.format("Trim changeset: %s", trimmed));
+        logger.fine( String.format("Filter read-only: %s", discard) );
         ChangeSetGenerator csg = new ChangeSetGenerator().createHeader( bl.getShortname() );
 
         if( trimmed ) {
+            logger.fine("Creating trimmed change set");
             VersionList vl = new VersionList().addActivities( activities ).setBranchName( "^.*" + Cool.qfs + bl.getStream().getShortname() + ".*$" );
+            logger.fine("Versions before filter: " + vl.size());
+            
             if(discard) {
-                logger.fine("Discard enabled...enabling read-only filter");
                 vl = vl.addFilter(new ReadOnlyVersionFilter(viewRoot, readonly)).apply();
+                logger.fine("Versions after read-only filter applied: "+vl.size());
             }
             
             Map<Activity, List<Version>> changeSet = vl.getLatestForActivities();
+            int now = 0;
+            
+            for(List<Version> vlist : changeSet.values()) {
+                now+=vlist.size();
+            }
+            
+            logger.fine("Versions after filter: " + now);
+            
             for( Activity activity : changeSet.keySet() ) {
                 csg.addAcitivity( activity.getShortname(), activity.getHeadline(), activity.getUser(), changeSet.get( activity ) );
             }
         } else {
+            logger.fine("Creating non-trimmed changeset");
             for( Activity activity : activities ) {
                 VersionList versions = new VersionList( activity.changeset.versions ).getLatest();
+                logger.fine("Versions before filter: " + versions.size());
                 if(discard) {
                     versions = versions.addFilter(new ReadOnlyVersionFilter(viewRoot, readonly)).apply();
+                    logger.fine("Versions after read-only filter applied: "+versions.size());
                 }
                 csg.addAcitivity( activity.getShortname(), activity.getHeadline(), activity.getUser(), versions );
             }
@@ -226,7 +242,9 @@ public abstract class Util {
 		if( update ) {
 			try {
 				hudsonOut.println( "[" + Config.nameShort + "] Updating view using " + loadModule.toLowerCase() + " modules." );
-				snapview.Update( true, true, true, false, new LoadRules2( snapview, Components.valueOf( loadModule.toUpperCase() ) ) );
+                UpdateView uw = new UpdateView(snapview).swipe().generate().overwrite().setLoadRules(new LoadRules2( snapview, Components.valueOf( loadModule.toUpperCase() ) ));
+                uw.update();
+				//snapview.Update( true, true, true, false, new LoadRules2( snapview, Components.valueOf( loadModule.toUpperCase() ) ) );
 			} catch( ClearCaseException e ) {
 				e.print( hudsonOut );
 				if( e instanceof ViewException ) {
@@ -235,7 +253,9 @@ public abstract class Util {
 					}
 				}
 				throw new ScmException( "Could not update snapshot view", e );
-			}
+			} catch (IOException ioex) {
+                throw new ScmException("Could not update snapshot view, failed with IOException", ioex);
+            }
 		}
 
 		return snapview;
