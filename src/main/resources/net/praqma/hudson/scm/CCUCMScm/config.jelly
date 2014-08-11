@@ -82,7 +82,7 @@
                 <f:checkbox name="CCUCM.trimmedChangeSet" checked="${scm.trimmedChangeSet}" default="false" />
             </f:entry>
 
-            <f:entry title="Discard read-only, rebase and deliver activities" field="discard">
+            <f:entry title="Ignore changes under non-modifiable components when calculating change-set" field="discard">
                 <f:checkbox checked="${scm.discard}" default="false" />
             </f:entry>
 
