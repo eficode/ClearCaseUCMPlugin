@@ -550,7 +550,7 @@ public class CCUCMScm extends SCM {
         PrintStream consoleOutput = listener.getLogger();
 
         logger.fine("Generating change log");
-        logger.fine(String.format( "Trim changeset = %s, Discard changes under read-only = %s", trimmedChangeSet, discard ) );
+        logger.fine(String.format( "Trim changeset = %s", trimmedChangeSet ) );
 
         GetChanges gc = new GetChanges(listener, state.getStream(), state.getBaseline(), snapshotView.getPath());
         List<Activity> activities = workspace.act(gc);
