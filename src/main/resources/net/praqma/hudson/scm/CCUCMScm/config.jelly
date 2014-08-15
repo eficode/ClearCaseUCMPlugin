@@ -59,40 +59,33 @@
     <f:entry title="Set description" help="/plugin/clearcase-ucm-plugin/scm/help-setDescription.html">
         <f:checkbox name="CCUCM.setDescription" checked="${h.defaultToTrue(scm.setDescription)}" default="checked" />
     </f:entry>
-	<f:section title="Advanced ClearCase UCM Options">
-	
-		<f:advanced>
+	<f:section title="Advanced ClearCase UCM Options">	
+            <f:advanced>
 		
-		    <f:entry title="Unstable" help="/plugin/clearcase-ucm-plugin/scm/help-unstable.html">
-		        <select class="setting-input" name="CCUCM.treatUnstable">
-		            <f:option selected="${instance.treatUnstable == 'successful'}" value="successful">Unstable jobs are treated as successful</f:option>
-		            <f:option selected="${instance.treatUnstable == 'failed'}" value="failed">Unstable jobs are treated as failed</f:option>
-		        </select>
-		    </f:entry>
+                <f:entry title="Unstable" help="/plugin/clearcase-ucm-plugin/scm/help-unstable.html">
+                    <select class="setting-input" name="CCUCM.treatUnstable">
+                        <f:option selected="${instance.treatUnstable == 'successful'}" value="successful">Unstable jobs are treated as successful</f:option>
+                        <f:option selected="${instance.treatUnstable == 'failed'}" value="failed">Unstable jobs are treated as failed</f:option>
+                    </select>
+                </f:entry>
 		    
-		    <f:entry title="Force deliver" help="/plugin/clearcase-ucm-plugin/scm/help-forceDeliver.html">
-		        <f:checkbox name="CCUCM.forceDeliver" checked="${scm.forceDeliver}" />
-		    </f:entry>
+                <f:entry title="Force deliver" help="/plugin/clearcase-ucm-plugin/scm/help-forceDeliver.html">
+                    <f:checkbox name="CCUCM.forceDeliver" checked="${scm.forceDeliver}" />
+                </f:entry>
 
-            <f:entry title="Remove view private files" help="/plugin/clearcase-ucm-plugin/scm/help-removeViewPrivateFiles.html">
-                <f:checkbox name="CCUCM.removeViewPrivateFiles" checked="${scm.removeViewPrivateFiles}" default="true"/>
-            </f:entry>
+                <f:entry title="Remove view private files" help="/plugin/clearcase-ucm-plugin/scm/help-removeViewPrivateFiles.html">
+                    <f:checkbox name="CCUCM.removeViewPrivateFiles" checked="${scm.removeViewPrivateFiles}" default="true"/>
+                </f:entry>
 
-            <f:entry title="Trimmed change set" help="/plugin/clearcase-ucm-plugin/scm/help-trimmedChangeSet.html">
-                <f:checkbox name="CCUCM.trimmedChangeSet" checked="${scm.trimmedChangeSet}" default="false" />
-            </f:entry>
+                <f:entry title="Trimmed change set" help="/plugin/clearcase-ucm-plugin/scm/help-trimmedChangeSet.html">
+                    <f:checkbox name="CCUCM.trimmedChangeSet" checked="${scm.trimmedChangeSet}" default="false" />
+                </f:entry>
 
-            <f:entry title="Ignore changes under non-modifiable components when calculating change-set" field="discard">
-                <f:checkbox checked="${scm.discard}" default="false" />
-            </f:entry>
+                <f:entry title="Build project" help="/plugin/clearcase-ucm-plugin/scm/help-buildProject.html">
+                    <f:textbox name="buildProject" value="${scm.buildProject}"/>
+                </f:entry>
 
-
-		
-		    <f:entry title="Build project" help="/plugin/clearcase-ucm-plugin/scm/help-buildProject.html">
-	      		<f:textbox name="buildProject" value="${scm.buildProject}"/>
-	    	</f:entry>
-
-		</f:advanced>
+            </f:advanced>
 
 	</f:section>
 

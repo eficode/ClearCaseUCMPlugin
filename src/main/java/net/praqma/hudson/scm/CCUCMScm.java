@@ -135,7 +135,7 @@ public class CCUCMScm extends SCM {
         this.setDescription = setDescription;
         this.plevel = Util.getLevel(levelToPoll);
         this.levelToPoll = levelToPoll;
-        this.discard = discard;
+        this.discard = false;
     }
 
     @Override
@@ -153,7 +153,6 @@ public class CCUCMScm extends SCM {
         out.println("[" + Config.nameShort + "] Allow for slave polling: " + this.getSlavePolling());
         out.println("[" + Config.nameShort + "] Poll for posted deliveries: " + this.getMultisitePolling());
         out.println( String.format( "%s Trim changeset: %s", "[" + Config.nameShort + "]", trimmedChangeSet) );
-        out.println( String.format( "%s Filter read-only:  %s", "[" + Config.nameShort + "]", discard) );
 
         logger.info("ClearCase UCM plugin v. " + version);
 
@@ -412,7 +411,7 @@ public class CCUCMScm extends SCM {
         er = workspace.act(ct);
         //String changelog = er.getMessage();
         String changelog = "";
-        changelog = Util.createChangelog(er.getActivities(), action.getBaseline(), trimmedChangeSet, discard, er.getView().getViewRoot(), er.getView().getReadOnlyLoadLines());
+        changelog = Util.createChangelog(er.getActivities(), action.getBaseline(), trimmedChangeSet, er.getView().getViewRoot(), er.getView().getReadOnlyLoadLines());
         action.setActivities(er.getActivities());
 
         this.viewtag = er.getViewtag();
@@ -557,7 +556,7 @@ public class CCUCMScm extends SCM {
         List<Activity> activities = workspace.act(gc);
 
         String changelog = "";
-        changelog = Util.createChangelog(activities, state.getBaseline(), trimmedChangeSet, discard, new File(snapshotView.getPath()), snapshotView.getReadOnlyLoadLines());
+        changelog = Util.createChangelog(activities, state.getBaseline(), trimmedChangeSet, new File(snapshotView.getPath()), snapshotView.getReadOnlyLoadLines());
         state.setActivities(activities);
 
         /* Write change log */

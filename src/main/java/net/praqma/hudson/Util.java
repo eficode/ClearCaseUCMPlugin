@@ -60,20 +60,14 @@ public abstract class Util {
 		return devstream;
 	}
 
-    public static String createChangelog( List<Activity> activities, Baseline bl, boolean trimmed, boolean discard, File viewRoot, List<String> readonly ) {        
+    public static String createChangelog( List<Activity> activities, Baseline bl, boolean trimmed, File viewRoot, List<String> readonly ) {        
         logger.fine( String.format("Trim changeset: %s", trimmed));
-        logger.fine( String.format("Filter read-only: %s", discard) );
         ChangeSetGenerator csg = new ChangeSetGenerator().createHeader( bl.getShortname() );
 
         if( trimmed ) {
             logger.fine("Creating trimmed change set");
             VersionList vl = new VersionList().addActivities( activities ).setBranchName( "^.*" + Cool.qfs + bl.getStream().getShortname() + ".*$" );
             logger.fine("Versions before filter: " + vl.size());
-            
-            if(discard) {
-                vl = vl.addFilter(new ReadOnlyVersionFilter(viewRoot, readonly)).apply();
-                logger.fine("Versions after read-only filter applied: "+vl.size());
-            }
             
             Map<Activity, List<Version>> changeSet = vl.getLatestForActivities();
             int now = 0;
@@ -91,11 +85,6 @@ public abstract class Util {
             logger.fine("Creating non-trimmed changeset");
             for( Activity activity : activities ) {
                 VersionList versions = new VersionList( activity.changeset.versions ).getLatest();
-                logger.fine("Versions before filter: " + versions.size());
-                if(discard) {
-                    versions = versions.addFilter(new ReadOnlyVersionFilter(viewRoot, readonly)).apply();
-                    logger.fine("Versions after read-only filter applied: "+versions.size());
-                }
                 csg.addAcitivity( activity.getShortname(), activity.getHeadline(), activity.getUser(), versions );
             }
         }
