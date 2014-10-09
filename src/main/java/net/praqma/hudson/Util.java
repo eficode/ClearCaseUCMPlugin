@@ -1,6 +1,7 @@
 package net.praqma.hudson;
 
 import hudson.FilePath;
+import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 
 import java.io.*;
@@ -28,6 +29,7 @@ import net.praqma.clearcase.ucm.view.SnapshotView.Components;
 import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules2;
 import net.praqma.clearcase.ucm.view.UpdateView;
 import net.praqma.hudson.exception.ScmException;
+import net.praqma.hudson.remoting.GetLatestForActivities;
 import org.apache.commons.lang.SystemUtils;
 
 public abstract class Util {
@@ -60,7 +62,7 @@ public abstract class Util {
 		return devstream;
 	}
 
-    public static String createChangelog( List<Activity> activities, Baseline bl, boolean trimmed, File viewRoot, List<String> readonly ) {        
+    public static String createChangelog(AbstractBuild<?, ?> build, List<Activity> activities, Baseline bl, boolean trimmed, File viewRoot, List<String> readonly ) throws IOException, InterruptedException {        
         logger.fine( String.format("Trim changeset: %s", trimmed));
         ChangeSetGenerator csg = new ChangeSetGenerator().createHeader( bl.getShortname() );
 
@@ -69,7 +71,7 @@ public abstract class Util {
             VersionList vl = new VersionList().addActivities( activities ).setBranchName( "^.*" + Cool.qfs + bl.getStream().getShortname() + ".*$" );
             logger.fine("Versions before filter: " + vl.size());
             
-            Map<Activity, List<Version>> changeSet = vl.getLatestForActivities();
+            Map<Activity, List<Version>> changeSet = build.getWorkspace().act(new GetLatestForActivities(vl));
             int now = 0;
             
             for(List<Version> vlist : changeSet.values()) {

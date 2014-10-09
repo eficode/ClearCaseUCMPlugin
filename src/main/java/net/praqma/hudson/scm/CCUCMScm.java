@@ -411,7 +411,7 @@ public class CCUCMScm extends SCM {
         er = workspace.act(ct);
         //String changelog = er.getMessage();
         String changelog = "";
-        changelog = Util.createChangelog(er.getActivities(), action.getBaseline(), trimmedChangeSet, er.getView().getViewRoot(), er.getView().getReadOnlyLoadLines());
+        changelog = Util.createChangelog(build, er.getActivities(), action.getBaseline(), trimmedChangeSet, er.getView().getViewRoot(), er.getView().getReadOnlyLoadLines());
         action.setActivities(er.getActivities());
 
         this.viewtag = er.getViewtag();
@@ -543,6 +543,11 @@ public class CCUCMScm extends SCM {
     /**
      * Generate the change log for poll/sibling mode
      * @param build
+     * @param state
+     * @param listener
+     * @param changelogFile
+     * @param snapshotView
+     * @throws java.io.IOException
      * @throws java.lang.InterruptedException
      */
     public void generateChangeLog(AbstractBuild<?, ?> build, CCUCMBuildAction state, BuildListener listener, File changelogFile, SnapshotView snapshotView) throws IOException, InterruptedException {
@@ -556,7 +561,8 @@ public class CCUCMScm extends SCM {
         List<Activity> activities = workspace.act(gc);
 
         String changelog = "";
-        changelog = Util.createChangelog(activities, state.getBaseline(), trimmedChangeSet, new File(snapshotView.getPath()), snapshotView.getReadOnlyLoadLines());
+        
+        changelog = Util.createChangelog(build, activities, state.getBaseline(), trimmedChangeSet, new File(snapshotView.getPath()), snapshotView.getReadOnlyLoadLines());
         state.setActivities(activities);
 
         /* Write change log */
