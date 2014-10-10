@@ -46,10 +46,8 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 		
 		Deliver deliver = new Deliver( baseline, baseline.getStream(), stream, viewPath, viewtag );
 		if( complete ) {
-
 			try {
 				deliver.complete();
-				//baseline.deliver( baseline.getStream(), stream, view.getViewRoot(), view.getViewtag(), true, true, true );
 			} catch( Exception ex ) {
 				try {
 					deliver.cancel();
@@ -61,8 +59,7 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 
 		} else {
 			out.println( "Cancelling" );
-			try {
-				//baseline.cancel( view.getViewRoot() );
+			try {				
 				deliver.cancel();
 			} catch( Exception ex ) {
 				throw new IOException( "Could not cancel the deliver.", ex );

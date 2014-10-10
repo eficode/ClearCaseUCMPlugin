@@ -46,9 +46,8 @@ public class MakeDeliverView implements FilePath.FileCallable<SnapshotView> {
 
     private SnapshotView makeDeliverView( Stream stream, File workspace ) throws ScmException {
         viewtag = Util.createViewTag( jobName, stream );
-
         File viewroot = new File( workspace, "view" );
-
-        return Util.makeView( stream, workspace, listener, loadModule, viewroot, viewtag );
+        SnapshotView view = Util.makeView( stream, workspace, listener, loadModule, viewroot, viewtag, true );
+        return view;
     }
 }

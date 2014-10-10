@@ -62,23 +62,24 @@ public abstract class Util {
 		return devstream;
 	}
 
-    public static String createChangelog(AbstractBuild<?, ?> build, List<Activity> activities, Baseline bl, boolean trimmed, File viewRoot, List<String> readonly ) throws IOException, InterruptedException {        
+    public static String createChangelog(AbstractBuild<?, ?> build, List<Activity> activities, Baseline bl, boolean trimmed, File viewRoot, List<String> readonly, boolean ignoreReadOnly ) throws IOException, InterruptedException {        
         logger.fine( String.format("Trim changeset: %s", trimmed));
         ChangeSetGenerator csg = new ChangeSetGenerator().createHeader( bl.getShortname() );
 
         if( trimmed ) {
             logger.fine("Creating trimmed change set");
             VersionList vl = new VersionList().addActivities( activities ).setBranchName( "^.*" + Cool.qfs + bl.getStream().getShortname() + ".*$" );
-            logger.fine("Versions before filter: " + vl.size());
+            
+            if(ignoreReadOnly) {
+                vl = vl.addFilter(new ReadOnlyVersionFilter(viewRoot, readonly)).apply();                
+            }
             
             Map<Activity, List<Version>> changeSet = build.getWorkspace().act(new GetLatestForActivities(vl));
             int now = 0;
-            
+                        
             for(List<Version> vlist : changeSet.values()) {
                 now+=vlist.size();
             }
-            
-            logger.fine("Versions after filter: " + now);
             
             for( Activity activity : changeSet.keySet() ) {
                 csg.addAcitivity( activity.getShortname(), activity.getHeadline(), activity.getUser(), changeSet.get( activity ) );
@@ -87,6 +88,10 @@ public abstract class Util {
             logger.fine("Creating non-trimmed changeset");
             for( Activity activity : activities ) {
                 VersionList versions = new VersionList( activity.changeset.versions ).getLatest();
+                if(ignoreReadOnly) {
+                    versions = versions.addFilter(new ReadOnlyVersionFilter(viewRoot, readonly)).apply();                
+                }
+                
                 csg.addAcitivity( activity.getShortname(), activity.getHeadline(), activity.getUser(), versions );
             }
         }
@@ -139,11 +144,11 @@ public abstract class Util {
             return buffer.toString();
         }
     }
-
+/*
 	public static SnapshotView makeView( Stream stream, File workspace, BuildListener listener, String loadModule, File viewroot, String viewtag ) throws ScmException {
 		return makeView( stream, workspace, listener, loadModule, viewroot, viewtag, true );
 	}
-
+*/
 	public static SnapshotView makeView( Stream stream, File workspace, BuildListener listener, String loadModule, File viewroot, String viewtag, boolean update ) throws ScmException {
 
 		PrintStream hudsonOut = listener.getLogger();
@@ -189,7 +194,7 @@ public abstract class Util {
 					} catch( Exception e ) {
 						throw new ScmException( "Unable to recursively prepare view root", e );
 					}
-					makeView( stream, workspace, listener, loadModule, viewroot, viewtag );
+					makeView( stream, workspace, listener, loadModule, viewroot, viewtag, true );
 				}
 			} catch( ClearCaseException ucmE ) {
 				try {
@@ -234,8 +239,7 @@ public abstract class Util {
 			try {
 				hudsonOut.println( "[" + Config.nameShort + "] Updating view using " + loadModule.toLowerCase() + " modules." );
                 UpdateView uw = new UpdateView(snapview).swipe().generate().overwrite().setLoadRules(new LoadRules2( snapview, Components.valueOf( loadModule.toUpperCase() ) ));
-                uw.update();
-				//snapview.Update( true, true, true, false, new LoadRules2( snapview, Components.valueOf( loadModule.toUpperCase() ) ) );
+                uw.update();				
 			} catch( ClearCaseException e ) {
 				e.print( hudsonOut );
 				if( e instanceof ViewException ) {

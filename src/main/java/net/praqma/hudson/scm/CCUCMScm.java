@@ -135,7 +135,7 @@ public class CCUCMScm extends SCM {
         this.setDescription = setDescription;
         this.plevel = Util.getLevel(levelToPoll);
         this.levelToPoll = levelToPoll;
-        this.discard = false;
+        this.discard = discard;
     }
 
     @Override
@@ -407,11 +407,12 @@ public class CCUCMScm extends SCM {
     private boolean initializeWorkspace(AbstractBuild<?, ?> build, FilePath workspace, File changelogFile, BuildListener listener, CCUCMBuildAction action) throws IOException, InterruptedException {
         PrintStream consoleOutput = listener.getLogger();
         EstablishResult er = null;
+        
         CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), action.getStream(), loadModule, action.getBaseline(), buildProject, (plevel == null), action.doRemoveViewPrivateFiles());
         er = workspace.act(ct);
-        //String changelog = er.getMessage();
+
         String changelog = "";
-        changelog = Util.createChangelog(build, er.getActivities(), action.getBaseline(), trimmedChangeSet, er.getView().getViewRoot(), er.getView().getReadOnlyLoadLines());
+        changelog = Util.createChangelog(build, er.getActivities(), action.getBaseline(), trimmedChangeSet, er.getView().getViewRoot(), er.getView().getReadOnlyLoadLines(), discard);
         action.setActivities(er.getActivities());
 
         this.viewtag = er.getViewtag();
@@ -535,6 +536,7 @@ public class CCUCMScm extends SCM {
         state.setViewPath(view.getViewRoot());
         state.setViewTag(view.getViewtag());
         state.setSnapshotView(view);
+        
         this.viewtag = view.getViewtag();
 
         return view;
@@ -562,7 +564,7 @@ public class CCUCMScm extends SCM {
 
         String changelog = "";
         
-        changelog = Util.createChangelog(build, activities, state.getBaseline(), trimmedChangeSet, new File(snapshotView.getPath()), snapshotView.getReadOnlyLoadLines());
+        changelog = Util.createChangelog(build, activities, state.getBaseline(), trimmedChangeSet, new File(snapshotView.getPath()), snapshotView.getReadOnlyLoadLines(), discard);
         state.setActivities(activities);
 
         /* Write change log */

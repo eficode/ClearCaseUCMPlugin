@@ -192,7 +192,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
             
             upview.setLoadRules(new LoadRules2(sv, Components.valueOf(loadModule.toUpperCase())));
             //sv.Update(swipe, true, true, false, new LoadRules2(sv, Components.valueOf(loadModule.toUpperCase())));
-            upview.update();
+            upview.update();            
             logger.fine("Updating done");
         } catch (ClearCaseException e) {
             e.print(hudsonOut);
