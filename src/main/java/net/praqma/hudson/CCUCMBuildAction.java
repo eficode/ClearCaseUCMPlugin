@@ -353,7 +353,7 @@ public class CCUCMBuildAction implements Action {
 
 
     public String stringify() {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder();        
         sb.append( "Stream          : " + stream + "\n" );
         sb.append( "Component       : " + component + "\n" );
         sb.append( "Promotion Level : " + promotionLevel + "\n" );
