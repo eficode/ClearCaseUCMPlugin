@@ -13,15 +13,11 @@ public class ClearCaseVersionNumberTemplate extends Template {
 	private static final Logger logger = Logger.getLogger( ClearCaseVersionNumberTemplate.class.getName() );
 	
 	@Override
-	public String parse( CCUCMBuildAction action, String args ) throws TemplateException {
-
+	public String parse( CCUCMBuildAction action, String args, FilePath ws) throws TemplateException {
 		try {
-			logger.fine( "STREAM: " + action.getStream() );
-			logger.fine( "PROJECT: " + action.getStream().getProject() );
 			Project project = action.getStream().getProject();
 			return RemoteUtil.getClearCaseVersion( new FilePath(new File(action.getWorkspace())), project );
 		} catch( Exception e ) {
-			logger.warning( "Getting cc version error: " + e.getMessage() );
 			return "unknownccversion";
 		}
 	}

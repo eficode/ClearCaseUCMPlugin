@@ -1,6 +1,7 @@
 package net.praqma.hudson.nametemplates;
 
 import hudson.EnvVars;
+import hudson.FilePath;
 
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.exception.TemplateException;
@@ -12,7 +13,7 @@ public class EnvTemplate extends Template {
 	private static final Logger logger = Logger.getLogger( EnvTemplate.class.getName() );
 	
 	@Override
-	public String parse( CCUCMBuildAction action, String args ) throws TemplateException {
+	public String parse( CCUCMBuildAction action, String args, FilePath ws ) throws TemplateException {
 		logger.finest( "ENV PARSING" );
 		EnvVars vars = null;
 		try {

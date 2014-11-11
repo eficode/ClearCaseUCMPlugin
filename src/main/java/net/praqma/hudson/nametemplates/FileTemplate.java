@@ -13,7 +13,7 @@ public class FileTemplate extends Template {
 	private static final Logger logger = Logger.getLogger( FileTemplate.class.getName() );
 
 	@Override
-	public String parse( CCUCMBuildAction action, String filename ) {
+	public String parse( CCUCMBuildAction action, String filename, FilePath ws ) {
 		try {
             logger.fine(String.format("[FileTemplate] Parsing FileTemplate"));
             String res = action.getBuild().getExecutor().getCurrentWorkspace().act(new FileFoundable(filename));

@@ -1,11 +1,12 @@
 package net.praqma.hudson.nametemplates;
 
+import hudson.FilePath;
 import net.praqma.hudson.CCUCMBuildAction;
 
 public class VersionNumberTemplate extends Template {
 	
 	@Override
-	public String parse( CCUCMBuildAction action, String args ) {
+	public String parse( CCUCMBuildAction action, String args, FilePath ws  ) {
 		
 		if( args != null && args.length() > 0 ) {
 			String result = "";

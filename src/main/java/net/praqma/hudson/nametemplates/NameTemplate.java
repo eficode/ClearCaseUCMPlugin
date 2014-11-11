@@ -1,5 +1,6 @@
 package net.praqma.hudson.nametemplates;
 
+import hudson.FilePath;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -32,10 +33,10 @@ public class NameTemplate {
 	private static Pattern rx_ = Pattern.compile( "(\\[.*?\\])" );
 	private static Pattern rx_checkFinal = Pattern.compile( "^[\\w\\._-]*$" );
 
-        /**
-         * This is the method we use to validate templates.
-         * @param action 
-         */
+    /**
+     * This is the method we use to validate templates.
+     * @param action 
+     */
 	public static void validateTemplates( CCUCMBuildAction action) {
 		logger.finer( "Validating templates for " + action );
          //Only evaluate those that are actually chosen
@@ -44,7 +45,22 @@ public class NameTemplate {
 		for( Entry<String, String> val : chosentemplates.entrySet() ) {			
 			try {
 				logger.finer( "Validating " + val.getKey() );
-				templates.get( val.getKey() ).parse( action, val.getValue() );
+				templates.get( val.getKey() ).parse( action, val.getValue(), null );
+			} catch (TemplateException e) {
+				logger.warning( "Could not validate " + val.getKey() );
+			}
+		}
+	}
+    
+    public static void validateTemplates( CCUCMBuildAction action, FilePath ws) {
+		logger.finer( "Validating templates for " + action );
+         //Only evaluate those that are actually chosen
+        
+		HashMap<String, String> chosentemplates = getChosenTemplates(action.getNameTemplate());
+		for( Entry<String, String> val : chosentemplates.entrySet() ) {			
+			try {
+				logger.finer( "Validating " + val.getKey() );
+				templates.get( val.getKey() ).parse( action, val.getValue(), ws );
 			} catch (TemplateException e) {
 				logger.warning( "Could not validate " + val.getKey() );
 			}
@@ -83,12 +99,12 @@ public class NameTemplate {
         return chosenTemplates;
     }
         
-        /**
-         * Checks to see if the templates are valid, and that the template names are available.
-         * @param template
-         * @return
-         * @throws TemplateException 
-         */
+    /**
+     * Checks to see if the templates are valid, and that the template names are available.
+     * @param template
+     * @return
+     * @throws TemplateException 
+     */
 	public static boolean testTemplate( String template ) throws TemplateException {
 		Matcher m = rx_.matcher( template );
 		String result = template;
@@ -117,15 +133,16 @@ public class NameTemplate {
 
 		return true;
 	}
-
-        /**
-         * At this point. We do not need to filter chosen templates. 
-         * @param template
-         * @param action
-         * @return
-         * @throws TemplateException 
-         */
-	public static String parseTemplate( String template, CCUCMBuildAction action ) throws TemplateException {
+    
+    /**
+     * At this point. We do not need to filter chosen templates. 
+     * @param template
+     * @param action
+     * @param ws
+     * @return
+     * @throws TemplateException 
+     */
+	public static String parseTemplate( String template, CCUCMBuildAction action, FilePath ws) throws TemplateException {
 		Matcher m = rx_.matcher( template );
 		String result = template;
 		
@@ -148,7 +165,7 @@ public class NameTemplate {
 			if( !templates.containsKey( templateName ) ) {
 				throw new TemplateException( "The template " + templateName + " does not exist" );
 			} else {
-				String r = templates.get( templateName ).parse( action, args );
+				String r = templates.get( templateName ).parse( action, args, ws );
 				result = result.replace( replace, r );
 			}
 		}
@@ -161,5 +178,6 @@ public class NameTemplate {
 		}
 
 		return result;
-	}
+	}    
+    
 }
