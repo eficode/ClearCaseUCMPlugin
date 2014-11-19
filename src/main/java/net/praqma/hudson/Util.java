@@ -238,7 +238,7 @@ public abstract class Util {
 		if( update ) {
 			try {
 				hudsonOut.println( "[" + Config.nameShort + "] Updating view using " + loadModule.toLowerCase() + " modules." );
-                UpdateView uw = new UpdateView(snapview).swipe().generate().overwrite().setLoadRules(new LoadRules2( snapview, Components.valueOf( loadModule.toUpperCase() ) ));
+                UpdateView uw = new UpdateView(snapview).swipe().generate().overwrite().setLoadRules(new LoadRules2(Components.valueOf( loadModule.toUpperCase() ) ));
                 uw.update();				
 			} catch( ClearCaseException e ) {
 				e.print( hudsonOut );

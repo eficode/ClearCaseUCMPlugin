@@ -190,7 +190,7 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
                 upview = upview.generate().overwrite();
             }
             
-            upview.setLoadRules(new LoadRules2(sv, Components.valueOf(loadModule.toUpperCase())));
+            upview.setLoadRules(new LoadRules2(Components.valueOf(loadModule.toUpperCase())));
             //sv.Update(swipe, true, true, false, new LoadRules2(sv, Components.valueOf(loadModule.toUpperCase())));
             upview.update();            
             logger.fine("Updating done");

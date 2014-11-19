@@ -47,7 +47,6 @@ public class StartDeliver implements FilePath.FileCallable<Boolean> {
         this.swipe = swipe;
     }
 
-
     @Override
     public Boolean invoke( File workspace, VirtualChannel channel ) throws IOException, InterruptedException {
         logger.fine( "Start deliver" );
@@ -96,10 +95,8 @@ public class StartDeliver implements FilePath.FileCallable<Boolean> {
                             upview = upview.generate().overwrite();
                         }
             
-                        upview.setLoadRules(new SnapshotView.LoadRules2(snapview, SnapshotView.Components.valueOf(loadModule.toUpperCase())));
+                        upview.setLoadRules(new SnapshotView.LoadRules2(SnapshotView.Components.valueOf(loadModule.toUpperCase())));
                         upview.update();
-                        //snapview.Update( swipe, true, true, false, new SnapshotView.LoadRules2( snapview, SnapshotView.Components.valueOf( loadModule.toUpperCase() ) ) );
-
                     } catch( ClearCaseException ex ) {
                         throw ex;
                     } catch (IOException ioex) {
