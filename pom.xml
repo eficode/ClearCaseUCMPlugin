@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.jenkins-ci.plugins</groupId>
 		<artifactId>plugin</artifactId>
-		<version>1.534</version>
+		<version>1.554.3</version>
 	</parent>
 
     <properties>
@@ -430,14 +430,14 @@
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>cool</artifactId>
-            <version>0.6.36</version>
+            <version>0.6.37-SNAPSHOT</version>
             <type>jar</type>
         </dependency>
 
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>cool</artifactId>
-            <version>0.6.36</version>
+            <version>0.6.37-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>

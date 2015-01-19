@@ -15,6 +15,7 @@ import hudson.FilePath;
 import hudson.model.BuildListener;
 import hudson.model.TaskListener;
 import java.util.logging.Logger;
+import net.praqma.hudson.scm.Polling;
 
 public abstract class RemoteUtil {
     
@@ -54,11 +55,11 @@ public abstract class RemoteUtil {
 
 	}
 
-    public static List<Stream> getRelatedStreams( FilePath workspace, TaskListener listener, Stream stream, boolean pollingChildStreams, boolean slavePolling, boolean multisitePolling ) throws IOException, InterruptedException {
+    public static List<Stream> getRelatedStreams( FilePath workspace, TaskListener listener, Stream stream, Polling polling, boolean slavePolling, boolean multisitePolling, String hLinkFeedFrom ) throws IOException, InterruptedException {
         if( slavePolling ) {
-            return workspace.act( new GetRelatedStreams( listener, stream, pollingChildStreams, multisitePolling ) );
+            return workspace.act( new GetRelatedStreams( listener, stream, polling, multisitePolling, hLinkFeedFrom) );
         } else {
-            GetRelatedStreams t = new GetRelatedStreams( listener, stream, pollingChildStreams, multisitePolling );
+            GetRelatedStreams t = new GetRelatedStreams( listener, stream, polling, multisitePolling, hLinkFeedFrom );
             return t.invoke( null, null );
         }
     }

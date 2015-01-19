@@ -7,5 +7,8 @@
     <f:entry title="Poll for Posted Deliveries" help="/plugin/clearcase-ucm-plugin/help-multisitepolling.html">
         <f:checkbox name="CCUCM.multisitePolling" checked="${descriptor.multisitePolling}" />
     </f:entry>
+    <f:entry title="Deliver target HyperLink specification" field="hLinkFeedFrom">
+        <f:textbox default="FeedFrom"/>
+    </f:entry>
   </f:section>
 </j:jelly>

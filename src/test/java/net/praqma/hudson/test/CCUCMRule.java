@@ -17,9 +17,6 @@ import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
 import net.praqma.clearcase.ucm.entities.*;
-import org.jvnet.hudson.test.JenkinsRule;
-import org.jvnet.hudson.test.TestBuilder;
-
 import net.praqma.clearcase.PVob;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.exceptions.CleartoolException;
@@ -30,6 +27,8 @@ import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.scm.ChangeLogEntryImpl;
 
 import static org.junit.Assert.*;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.TestBuilder;
 
 public class CCUCMRule extends JenkinsRule {
 	

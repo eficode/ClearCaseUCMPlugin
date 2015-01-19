@@ -10,20 +10,39 @@ import java.io.PrintStream;
 import java.util.List;
 
 import net.praqma.clearcase.ucm.entities.Stream;
+import net.praqma.hudson.scm.Polling;
+import net.praqma.hudson.scm.Polling.PollingType;
 
 public class GetRelatedStreams implements FileCallable<List<Stream>> {
 
 	private static final long serialVersionUID = -8984877325832486334L;
 	private final Stream stream;
+    
+    @Deprecated
 	private final boolean pollingChildStreams;
+    
 	private final TaskListener listener;
 	private final boolean multisitePolling;
+    private final Polling polling;
+    private final String hyperLinkName;
 
+    @Deprecated
 	public GetRelatedStreams( TaskListener listener, Stream stream, boolean pollingChildStreams, boolean multisitePolling ) {
 		this.stream = stream;
 		this.pollingChildStreams = pollingChildStreams;
 		this.listener = listener;
 		this.multisitePolling = multisitePolling;
+        this.polling = null;
+        this.hyperLinkName = "FeedFrom";
+	}
+    
+    public GetRelatedStreams( TaskListener listener, Stream stream, Polling polling, boolean multisitePolling, String hyperLinkName ) {
+		this.stream = stream;
+		this.pollingChildStreams = polling.isPollingChilds();
+		this.listener = listener;
+		this.multisitePolling = multisitePolling;
+        this.polling = polling;
+        this.hyperLinkName = hyperLinkName;
 	}
 
 	@Override
@@ -35,6 +54,8 @@ public class GetRelatedStreams implements FileCallable<List<Stream>> {
 		try {
 			if( pollingChildStreams ) {
 				streams = stream.getChildStreams( multisitePolling );
+            } else if(polling.getType().equals(PollingType.siblingshlink)) {
+                streams = stream.getDeliveringStreamsUsingHlink(hyperLinkName);
 			} else {
 				streams = stream.getSiblingStreams();
 			}
