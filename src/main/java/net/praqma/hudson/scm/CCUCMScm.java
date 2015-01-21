@@ -642,7 +642,8 @@ public class CCUCMScm extends SCM {
 
         String changelog = "";
         
-        changelog = Util.createChangelog(build, activities, state.getBaseline(), trimmedChangeSet, new File(snapshotView.getPath()), snapshotView.getReadOnlyLoadLines(), discard);
+        
+        changelog = Util.createChangelog(build, activities, state.getBaseline(), trimmedChangeSet, new File(snapshotView.getPath()), snapshotView.getReadOnlyLoadLines(), discard, getSlavePolling());
         state.setActivities(activities);
 
         /* Write change log */
@@ -806,9 +807,7 @@ public class CCUCMScm extends SCM {
             streams = RemoteUtil.getRelatedStreams(workspace, listener, stream, polling, this.getSlavePolling(), this.getMultisitePolling(), this.getHLinkFeedFrom());
         } catch (Exception e1) {
             Throwable root = ExceptionUtils.getRootCause(e1);
-            logger.log(Level.WARNING, "Could not get related streams from " + stream, root);
-            //TODO:Remove this before 1.5.6
-            e1.printStackTrace(consoleOutput);
+            logger.log(Level.WARNING, "Could not get related streams from " + stream, root);           
             consoleOutput.println("[" + Config.nameShort + "] No streams found");
             return baselines;
         }
