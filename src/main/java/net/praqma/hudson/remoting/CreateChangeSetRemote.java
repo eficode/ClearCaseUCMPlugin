@@ -59,21 +59,14 @@ public class CreateChangeSetRemote implements FilePath.FileCallable<String>{
             }
                        
             Map<Activity, List<Version>> acts = vl.getLatestForActivities();
-            for(Activity a : acts.keySet()) {
-                try {
-                    a.load();
-                } catch (UnableToLoadEntityException ex) {
-                    logger.severe("Could not autoload actitity "+a);
-                }
-            }
-            
+ 
             for( Activity activity : acts.keySet() ) {
                 csg.addAcitivity( activity.getShortname(), activity.getHeadline(), activity.getUser(), acts.get( activity ) );
             }
         } else {
             logger.fine("Creating non-trimmed changeset");
             for( Activity activity : activities ) {
-                VersionList versions = new VersionList( activity.changeset.versions ).getLatest();
+                VersionList versions = new VersionList( activity.changeset.versions, activities ).getLatest();
                 if(ignoreReadOnly) {
                     versions = versions.addFilter(new ReadOnlyVersionFilter(viewRoot, readOnly)).apply();                
                 }
