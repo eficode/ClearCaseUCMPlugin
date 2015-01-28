@@ -14,6 +14,7 @@ import net.praqma.util.test.junit.TestDescription;
 
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
+import net.praqma.hudson.scm.pollingmode.PollSiblingMode;
 
 
 import static org.junit.Assert.*;
@@ -31,8 +32,10 @@ public class Story07 extends BaseTestClass {
 		Stream one = ccenv.context.streams.get( "one_int" );
 		Stream two = ccenv.context.streams.get( "two_int" );
 		one.setDefaultTarget( two );
-				
-		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "sibling", "_System@" + ccenv.getPVob(), "two_int@" + ccenv.getPVob(), false, false, false, false, true );
+        PollSiblingMode mode = new PollSiblingMode("INITIAL");
+        mode.setCreateBaseline(false);
+        mode.setUseHyperLinkForPolling(false);
+		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), mode, "_System@" + ccenv.getPVob(), "two_int@" + ccenv.getPVob(), false, false, false, false, true );
 
 		/* Build validation */
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.FAILURE ) );

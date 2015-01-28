@@ -6,6 +6,8 @@
 package net.praqma.hudson.scm.pollingmode;
 
 import hudson.Extension;
+import hudson.util.ListBoxModel;
+import net.praqma.hudson.Config;
 import net.praqma.hudson.scm.Polling;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -16,7 +18,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
 public class PollSelfMode extends PollingMode {
     
     @DataBoundConstructor
-    public PollSelfMode() {
+    public PollSelfMode(String levelToPoll) {
+        super(levelToPoll);
         polling = new Polling(Polling.PollingType.self);
     }
     
@@ -28,6 +31,16 @@ public class PollSelfMode extends PollingMode {
         @Override
         public String getDisplayName() {
             return "Poll self";
+        }
+        
+        public ListBoxModel doFillLevelToPollItems() {
+            ListBoxModel model = new ListBoxModel();
+            model.add("ANY");
+            for(String s : Config.getLevels()) {
+                model.add(s);
+            }
+            
+            return model;
         }
     
     }

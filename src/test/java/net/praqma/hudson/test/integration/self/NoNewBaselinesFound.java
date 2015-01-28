@@ -13,6 +13,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.logging.Logger;
+import net.praqma.hudson.scm.pollingmode.PollSelfMode;
 
 public class NoNewBaselinesFound extends BaseTestClass {
 	
@@ -22,7 +23,7 @@ public class NoNewBaselinesFound extends BaseTestClass {
 	private static Logger logger = Logger.getLogger( NoNewBaselinesFound.class.getName() );
 	
 	public AbstractBuild<?, ?> initiateBuild( String projectName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
-		return jenkins.initiateBuild( projectName, "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), recommend, tag, description, fail, false );
+		return jenkins.initiateBuild( projectName, new PollSelfMode("INITIAL"), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), recommend, tag, description, fail );
 	}
 
 	@Test

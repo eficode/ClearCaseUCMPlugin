@@ -21,6 +21,7 @@ import net.praqma.util.test.junit.TestDescription;
 
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
+import net.praqma.hudson.scm.pollingmode.PollChildMode;
 import static net.praqma.hudson.test.BaseTestClass.jenkins;
 
 import org.junit.FixMethodOrder;
@@ -33,7 +34,9 @@ public class BaselinesFoundFailed extends BaseTestClass {
     public ClearCaseRule ccenv = new ClearCaseRule("ccucm");
 
     public AbstractBuild<?, ?> initiateBuild(String projectName, boolean recommend, boolean tag, boolean description, boolean fail) throws Exception {
-        return jenkins.initiateBuild(projectName, "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), recommend, tag, description, fail, true);
+        PollChildMode mode = new PollChildMode("INITIAL");
+        mode.setCreateBaseline(false);
+        return jenkins.initiateBuild(projectName, mode, "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), recommend, tag, description, fail, true);
     }
 
     @Test

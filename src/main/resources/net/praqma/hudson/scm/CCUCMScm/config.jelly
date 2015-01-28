@@ -9,15 +9,6 @@
       <f:textbox name="CCUCM.component" value="${scm.component}"/>
     </f:entry>
 
-    <j:set var="levels" value="${descriptor.getLevels()}"/>
-      <f:entry  title="Promotion level" help="/plugin/clearcase-ucm-plugin/scm/help-pLevel.html">
-      <select class="setting-input" name="CCUCM.levelToPoll">
-       <j:forEach var="l" items="${levels}">
-        <f:option selected="${scm.levelToPoll==l}" value="${l}">${l}</f:option>
-          </j:forEach>
-      </select>
-       </f:entry>
-
     <f:entry title="Load modules" help="/plugin/clearcase-ucm-plugin/scm/help-loadModules.html">
         <select class="setting-input" name="CCUCM.loadModule">
             <j:set var="modules" value="${descriptor.getLoadModules()}"/>

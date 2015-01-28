@@ -6,8 +6,11 @@
 package net.praqma.hudson.scm.pollingmode;
 
 import hudson.Extension;
+import hudson.util.ListBoxModel;
+import net.praqma.hudson.Config;
 import net.praqma.hudson.scm.Polling;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 /**
  *
@@ -15,18 +18,17 @@ import org.kohsuke.stapler.DataBoundConstructor;
  */
 public class PollSiblingMode extends PollingMode implements BaselineCreationEnabled {
     
-    private boolean useHyperLinkForPolling;
-    private boolean createBaseline;
+    private boolean useHyperLinkForPolling = false;
+    private boolean createBaseline = false;
     
     @DataBoundConstructor
-    public PollSiblingMode(boolean useHyperLinkForPolling, boolean createBaseline) {
+    public PollSiblingMode(String levelToPoll) {
+        super(levelToPoll);
         if(useHyperLinkForPolling) {
             polling = new Polling(Polling.PollingType.siblingshlink);
         } else {
             polling = new Polling(Polling.PollingType.siblings);
         }
-        this.useHyperLinkForPolling = useHyperLinkForPolling;
-        this.createBaseline = createBaseline;
     }
 
     /**
@@ -39,6 +41,7 @@ public class PollSiblingMode extends PollingMode implements BaselineCreationEnab
     /**
      * @param useHyperLinkForPolling the useHyperLinkForPolling to set
      */
+    @DataBoundSetter
     public void setUseHyperLinkForPolling(boolean useHyperLinkForPolling) {
         this.useHyperLinkForPolling = useHyperLinkForPolling;
     }
@@ -54,6 +57,7 @@ public class PollSiblingMode extends PollingMode implements BaselineCreationEnab
     /**
      * @param createBaseline the createBaseline to set
      */
+    @DataBoundSetter
     public void setCreateBaseline(boolean createBaseline) {
         this.createBaseline = createBaseline;
     }
@@ -66,6 +70,14 @@ public class PollSiblingMode extends PollingMode implements BaselineCreationEnab
         @Override
         public String getDisplayName() {
             return "Poll sibling";
+        }
+        
+        public ListBoxModel doFillLevelToPollItems() {
+            ListBoxModel model = new ListBoxModel();
+            for(String s : Config.getLevels()) {
+                model.add(s);
+            }
+            return model;
         }
         
     }

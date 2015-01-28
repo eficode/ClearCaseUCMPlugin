@@ -15,6 +15,7 @@ import net.praqma.util.debug.Logger;
 
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
+import net.praqma.hudson.scm.pollingmode.PollChildMode;
 
 
 public class Story09 extends BaseTestClass {
@@ -29,8 +30,9 @@ public class Story09 extends BaseTestClass {
 	@ClearCaseUniqueVobName( name = "story09" )
 	@TestDescription( title = "Story 9", text = "New baseline, bl1, on dev stream, dev1, poll on child, don't create baselines" )
 	public void story09() throws Exception {
-		
-		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
+		PollChildMode childMode = new PollChildMode("INITIAL");
+  
+		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), childMode, "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
 
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
 		

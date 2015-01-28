@@ -20,6 +20,7 @@ import net.praqma.util.debug.Logger;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
+import net.praqma.hudson.scm.pollingmode.PollChildMode;
 
 
 public class Story04 extends BaseTestClass {
@@ -50,7 +51,7 @@ public class Story04 extends BaseTestClass {
 		Baseline b = getNewBaseline( path, "merge.txt", "two" );
 		
 		
-		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true );
+		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), new PollChildMode("INITIAL"), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true );
 
 		Baseline buildBaseline = jenkins.getBuildBaseline( build );
 		

@@ -18,6 +18,7 @@ import net.praqma.hudson.scm.ChangeLogEntryImpl;
 import net.praqma.hudson.test.SystemValidator;
 
 import net.praqma.clearcase.test.junit.ClearCaseRule;
+import net.praqma.hudson.scm.pollingmode.PollSelfMode;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -35,7 +36,7 @@ public class JENKINS14436 extends BaseTestClass {
 	public void jenkins14436() throws Exception {
 		
 		/* First build to create a view */
-		AbstractBuild<?, ?> firstbuild = jenkins.initiateBuild( ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false, false );
+		AbstractBuild<?, ?> firstbuild = jenkins.initiateBuild( ccenv.getUniqueName(), new PollSelfMode("INTIAL"), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false);
 
 		/* Validate first build */
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );

@@ -26,6 +26,7 @@ import net.praqma.clearcase.exceptions.DeliverException.Type;
 import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
 import net.praqma.clearcase.ucm.entities.*;
 import net.praqma.clearcase.ucm.entities.Project;
+import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.Config;
@@ -67,16 +68,14 @@ public class CCUCMScm extends SCM {
     private static final Logger logger = Logger.getLogger(CCUCMScm.class.getName());
     
     private Boolean multisitePolling;
-    private Project.PromotionLevel plevel;
     private String loadModule;
     private String component;
     private String stream;
     private String bl;
-    private StringBuffer pollMsgs = new StringBuffer();
+    
     private Stream integrationstream;
     private String buildProject;
-    private String jobName = "";
-    private Integer jobNumber;
+    private String jobName = "";    
     private boolean forceDeliver;
     
     /**
@@ -94,67 +93,35 @@ public class CCUCMScm extends SCM {
 
     private String nameTemplate;
     
-    @Deprecated
-    private Polling polling = null;
-    
-    @Deprecated
-    private boolean createBaseline;
-    
-    private String viewtag = "";
-    private Baseline lastBaseline;
-    private String levelToPoll;
-    private boolean addPostBuild = true;
-    
+    private String viewtag = "";    
+    private boolean addPostBuild = true;    
     private PollingMode mode;
 
+    @Deprecated
+    private Project.PromotionLevel plevel;
+    @Deprecated
+    private Polling polling = null;    
+    @Deprecated
+    private boolean createBaseline;    
+    @Deprecated
+    private String levelToPoll;
+    @Deprecated
+    private transient StringBuffer pollMsgs = null;
+    @Deprecated
+    private transient Integer jobNumber = null;    
+    @Deprecated
+    private Baseline lastBaseline = null;
+    
+    
     /**
      * Default constructor, mainly used for unit tests.
      */
     public CCUCMScm() {
         discard = false;
-    }
-
-    /**
-     * To support backwards compatibility.
-     *
-     * @since 1.4.0
-     */
-    @Deprecated
-    public CCUCMScm(String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable,
-            boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject) {
-
-        this(component, levelToPoll, loadModule, newest, polling, stream, treatUnstable, createBaseline, nameTemplate, forceDeliver, recommend, makeTag, setDescription, buildProject, true, false, false);
-    }
-
-    @Deprecated
-    public CCUCMScm(String component, String levelToPoll, String loadModule, boolean newest, String polling, String stream, String treatUnstable,
-            boolean createBaseline, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject, boolean removeViewPrivateFiles, boolean trimmedChangeSet, boolean discard) {
-
-        this.component = component;
-        this.loadModule = loadModule;
-        this.stream = stream;
-        this.buildProject = buildProject;
-
-        this.polling = new Polling(polling);
-        this.treatUnstable = new Unstable(treatUnstable);
-
-        this.createBaseline = createBaseline;
-        this.nameTemplate = nameTemplate;
-
-        this.forceDeliver = forceDeliver;
-        this.removeViewPrivateFiles = removeViewPrivateFiles;
-        this.trimmedChangeSet = trimmedChangeSet;
-
-        this.recommend = recommend;
-        this.makeTag = makeTag;
-        this.setDescription = setDescription;
-        this.plevel = Util.getLevel(levelToPoll);
-        this.levelToPoll = levelToPoll;
-        this.discard = discard;
-    }
-
+    }    
+    
     @DataBoundConstructor
-    public CCUCMScm(String component, String levelToPoll, String loadModule, boolean newest, PollingMode mode, String stream, String treatUnstable, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject, boolean removeViewPrivateFiles, boolean trimmedChangeSet, boolean discard) {
+    public CCUCMScm(String component, String loadModule, boolean newest, PollingMode mode, String stream, String treatUnstable, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject, boolean removeViewPrivateFiles, boolean trimmedChangeSet, boolean discard) {
         this.mode = mode;
         this.component = component;
         this.loadModule = loadModule;
@@ -167,9 +134,7 @@ public class CCUCMScm extends SCM {
         this.trimmedChangeSet = trimmedChangeSet;
         this.recommend = recommend;
         this.makeTag = makeTag;
-        this.setDescription = setDescription;
-        this.plevel = Util.getLevel(levelToPoll);
-        this.levelToPoll = levelToPoll;
+        this.setDescription = setDescription;        
         this.discard = discard;
     }
     
@@ -177,15 +142,32 @@ public class CCUCMScm extends SCM {
     public Object readResolve() {
         if(polling != null) {
             if(polling.isPollingChilds()) {
-                mode = new PollChildMode(createBaseline);
+                mode = new PollChildMode(levelToPoll);
+                ((PollChildMode)mode).setCreateBaseline(createBaseline);                
             } else if(polling.isPollingSelf()) {
-                mode = new PollSelfMode();
+                mode = new PollSelfMode(levelToPoll);
             } else {
-                mode = new PollSiblingMode(false, createBaseline);
+                mode = new PollSiblingMode(levelToPoll);
+                ((PollSiblingMode)mode).setCreateBaseline(createBaseline);
+                ((PollSiblingMode)mode).setUseHyperLinkForPolling(false);
+            }
+        }
+        
+        if(levelToPoll != null) {
+            if(mode != null ) {
+                mode.setLevelToPoll(levelToPoll);
             }
         }
         
         return this;
+    }
+    
+    private Project.PromotionLevel _getPlevel() {
+        if(mode == null && plevel != null) {
+            //Get old value
+            return plevel;
+        }
+        return mode.getPromotionLevel();
     }
     
     @Override
@@ -193,7 +175,6 @@ public class CCUCMScm extends SCM {
         /* Prepare job variables */
 
         jobName = build.getParent().getDisplayName().replace(' ', '_');
-        jobNumber = build.getNumber();
 
         PrintStream out = listener.getLogger();
 
@@ -252,7 +233,7 @@ public class CCUCMScm extends SCM {
             } catch (CCUCMException e) {
                 logger.warning(e.getMessage());
                 /* If the promotion level is not set, ANY, use the last found Baseline */
-                if (plevel == null) {
+                if (_getPlevel() == null) {
                     logger.fine("Promotion level was null [=ANY], finding the last built baseline");
                     CCUCMBuildAction last = getLastAction(build.getProject());
                     if (action != null) {
@@ -443,34 +424,28 @@ public class CCUCMScm extends SCM {
         
         /* Check baseline template */
         if (_getCreateBaseline()) {
-            /* Sanity check */
-            if (_getPolling().isPollingOther()) {
                 
-                
-                if (nameTemplate != null && nameTemplate.length() > 0) {
+            if (nameTemplate != null && nameTemplate.length() > 0) {
 
-                    if (nameTemplate.matches("^\".+\"$")) {
-                        nameTemplate = nameTemplate.substring(1, nameTemplate.length() - 1);
-                    }
+                if (nameTemplate.matches("^\".+\"$")) {
+                    nameTemplate = nameTemplate.substring(1, nameTemplate.length() - 1);
+                }
 
-                    try {
-                        NameTemplate.testTemplate(nameTemplate);
-                    } catch (TemplateException e) {
-                        out.println("[" + Config.nameShort + "] The template could not be parsed correctly: " + e.getMessage());
-                        return false;
-                    }
-                } else {
-                    out.println("[" + Config.nameShort + "] A valid template must be provided to create a Baseline");
+                try {
+                    NameTemplate.testTemplate(nameTemplate);
+                } catch (TemplateException e) {
+                    out.println("[" + Config.nameShort + "] The template could not be parsed correctly: " + e.getMessage());
                     return false;
                 }
             } else {
-                out.println("[" + Config.nameShort + "] You cannot create a baseline in this mode");
+                out.println("[" + Config.nameShort + "] A valid template must be provided to create a Baseline");
                 return false;
             }
+            
         }
 
         /* Check polling vs plevel */
-        if (plevel == null) {
+        if (_getPlevel() == null) {
             if (_getPolling().isPollingSelf()) {
                 return true;
             } else {
@@ -486,7 +461,7 @@ public class CCUCMScm extends SCM {
         PrintStream consoleOutput = listener.getLogger();
         EstablishResult er = null;
         
-        CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), action.getStream(), loadModule, action.getBaseline(), buildProject, (plevel == null), action.doRemoveViewPrivateFiles());
+        CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), action.getStream(), loadModule, action.getBaseline(), buildProject, (_getPlevel() == null), action.doRemoveViewPrivateFiles());
         er = workspace.act(ct);
 
         String changelog = "";
@@ -573,7 +548,7 @@ public class CCUCMScm extends SCM {
 
         /* We need to discriminate on promotion level, JENKINS-16620 */
         Date date = null;
-        if (plevel == null) {
+        if (_getPlevel() == null) {
             CCUCMBuildAction lastAction = getLastAction(project);
             if (lastAction != null) {
                 date = lastAction.getBaseline().getDate();
@@ -583,7 +558,7 @@ public class CCUCMScm extends SCM {
         /* Find the Baselines and store them, none of the methods returns null! At least an empty list */
         /* Old skool self polling */
         if (_getPolling().isPollingSelf()) {
-            baselines = getValidBaselinesFromStream(workspace, plevel, action.getStream(), action.getComponent(), date);
+            baselines = getValidBaselinesFromStream(workspace, _getPlevel(), action.getStream(), action.getComponent(), date);
         } else {
             baselines = getBaselinesFromStreams(workspace, listener, out, action.getStream(), action.getComponent(), _getPolling(), date);
         }
@@ -594,7 +569,7 @@ public class CCUCMScm extends SCM {
         }
 
         /* Select and load baseline */
-        action.setBaseline(selectBaseline(baselines, plevel, workspace));
+        action.setBaseline(selectBaseline(baselines, _getPlevel(), workspace));
 
         /* Print the baselines to jenkins out */
         printBaselines(baselines, out);
@@ -769,7 +744,7 @@ public class CCUCMScm extends SCM {
              * This is ONLY for ANY!
              * */
             Date date = null;
-            if (plevel == null) {
+            if (_getPlevel() == null) {
                 CCUCMBuildAction lastAction = getLastAction(project);
                 if (lastAction != null) {
                     date = lastAction.getBaseline().getDate();
@@ -778,7 +753,7 @@ public class CCUCMScm extends SCM {
 
             /* Old skool self polling */
             if (_getPolling().isPollingSelf()) {
-                baselines = getValidBaselinesFromStream(workspace, plevel, stream, component, date);
+                baselines = getValidBaselinesFromStream(workspace, _getPlevel(), stream, component, date);
             } else {
                 /* Find the Baselines and store them */
                 baselines = getBaselinesFromStreams(workspace, listener, out, stream, component, _getPolling(), date);
@@ -819,7 +794,7 @@ public class CCUCMScm extends SCM {
             try {
                 consoleOutput.printf("[" + Config.nameShort + "] [%02d] %s ", c, s.getShortname());
                 c++;
-                List<Baseline> found = RemoteUtil.getRemoteBaselinesFromStream(workspace, component, s, plevel, this.getSlavePolling(), this.getMultisitePolling(), date);
+                List<Baseline> found = RemoteUtil.getRemoteBaselinesFromStream(workspace, component, s, _getPlevel(), this.getSlavePolling(), this.getMultisitePolling(), date);
                 for (Baseline b : found) {
                     baselines.add(b);
                 }
@@ -878,7 +853,7 @@ public class CCUCMScm extends SCM {
         action.setMakeTag(makeTag);
         action.setRecommend(recommend);
         action.setForceDeliver(forceDeliver);
-        action.setPromotionLevel(plevel);
+        action.setPromotionLevel(_getPlevel());
         action.setUnstable(treatUnstable);
         action.setLoadModule(loadModule);
         action.setRemoveViewPrivateFiles(removeViewPrivateFiles);
@@ -928,10 +903,10 @@ public class CCUCMScm extends SCM {
         ps.println("[" + Config.nameShort + "] * Stream:          " + stream);
         ps.println("[" + Config.nameShort + "] * Component:       " + component);
 
-        if (plevel == null) {
+        if (_getPlevel() == null) {
             ps.println("[" + Config.nameShort + "] * Promotion level: " + "ANY");
         } else {
-            ps.println("[" + Config.nameShort + "] * Promotion level: " + plevel);
+            ps.println("[" + Config.nameShort + "] * Promotion level: " + _getPlevel());
         }
 
 
@@ -1163,13 +1138,7 @@ public class CCUCMScm extends SCM {
                 throw FormValidation.error("Does not appear to be a valid template: " + e.getMessage());
             }
         }
-
-        public void doLevelCheck(@QueryParameter String polling, @QueryParameter String level) throws FormValidation {
-            System.out.println("LEVEL CHECK: " + polling + " + " + level);
-            if (level.equalsIgnoreCase("any") && !polling.equals("self")) {
-                throw FormValidation.error("You can only combine self and any");
-            }
-        }
+        
 
         @Override
         public CCUCMScm newInstance(StaplerRequest req, JSONObject formData) throws Descriptor.FormException {
@@ -1177,11 +1146,6 @@ public class CCUCMScm extends SCM {
             CCUCMScm instance;
             try {
                 temp = req.bindJSON(CCUCMScm.class, formData);
-                if (temp.getLevelToPoll().equalsIgnoreCase("any")) {
-                    if (!temp.getMode().getPolling().getType().equals(Polling.PollingType.self)) {
-                        throw new Descriptor.FormException("You can only use any with self polling", "polling");
-                    }
-                }
             } catch (JSONException e) {
                 throw new Descriptor.FormException("You missed some fields: " + e.getMessage(), "CCUCM.polling");
             }

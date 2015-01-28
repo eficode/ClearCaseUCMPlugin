@@ -6,8 +6,11 @@
 package net.praqma.hudson.scm.pollingmode;
 
 import hudson.Extension;
+import hudson.util.ListBoxModel;
+import net.praqma.hudson.Config;
 import net.praqma.hudson.scm.Polling;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 /**
  *
@@ -15,12 +18,12 @@ import org.kohsuke.stapler.DataBoundConstructor;
  */
 public class PollChildMode extends PollingMode implements BaselineCreationEnabled{
     
-    private boolean createBaseline;
+    private boolean createBaseline = false;
     
     @DataBoundConstructor
-    public PollChildMode(boolean createBaseline) {
-        polling = new Polling(Polling.PollingType.childs);
-        this.createBaseline = createBaseline;
+    public PollChildMode(String levelToPoll) {
+        super(levelToPoll);
+        polling = new Polling(Polling.PollingType.childs);        
     }
 
     /**
@@ -34,6 +37,7 @@ public class PollChildMode extends PollingMode implements BaselineCreationEnable
     /**
      * @param createBaseline the createBaseline to set
      */
+    @DataBoundSetter
     public void setCreateBaseline(boolean createBaseline) {
         this.createBaseline = createBaseline;
     }
@@ -46,6 +50,14 @@ public class PollChildMode extends PollingMode implements BaselineCreationEnable
         @Override
         public String getDisplayName() {
             return "Poll child";
+        }
+        
+        public ListBoxModel doFillLevelToPollItems() {
+            ListBoxModel model = new ListBoxModel();
+            for(String s : Config.getLevels()) {
+                model.add(s);
+            }
+            return model;
         }
         
     }
