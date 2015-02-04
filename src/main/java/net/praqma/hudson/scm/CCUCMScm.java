@@ -50,6 +50,7 @@ import net.praqma.hudson.scm.pollingmode.PollingMode;
 import net.praqma.util.execute.AbnormalProcessTerminationException;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -64,7 +65,7 @@ import org.kohsuke.stapler.export.Exported;
  */
 public class CCUCMScm extends SCM {
 
-    public static final String HLINK_DEFAULT = "FeedFrom";
+    public static final String HLINK_DEFAULT = "AlternateDeliverTarget";
     private static final Logger logger = Logger.getLogger(CCUCMScm.class.getName());
     
     private Boolean multisitePolling;
@@ -1068,7 +1069,7 @@ public class CCUCMScm extends SCM {
     @Extension
     public static class CCUCMScmDescriptor extends SCMDescriptor<CCUCMScm> implements hudson.model.ModelObject {
 
-        private String hLinkFeedFrom = CCUCMScm.HLINK_DEFAULT;
+        private String hLinkFeedFrom;
         private boolean slavePolling;
         private boolean multisitePolling;
         private List<String> loadModules;
@@ -1082,18 +1083,30 @@ public class CCUCMScm extends SCM {
         /**
          * This method is called, when the user saves the global Hudson
          * configuration.
+         * @param req
+         * @param json
+         * @return 
+         * @throws hudson.model.Descriptor.FormException
          */
         @Override
-        public boolean configure(org.kohsuke.stapler.StaplerRequest req, JSONObject json) throws Descriptor.FormException {
+        public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
             try {
                 String s = json.getString("slavePolling");
                 if (s != null) {
-                    slavePolling = Boolean.parseBoolean(s);
+                    slavePolling = Boolean.parseBoolean(s);                    
                 }
                 s = json.getString("multisitePolling");
                 if (s != null) {
                     multisitePolling = Boolean.parseBoolean(s);
                 }
+                String hlink = json.getString("hLinkFeedFrom");
+                if(!StringUtils.isBlank(hlink)) {
+                    hLinkFeedFrom = hlink;
+                } else {
+                    hLinkFeedFrom = HLINK_DEFAULT;
+                }
+                
+                
             } catch (Exception e) {
                 e.getMessage();
             }

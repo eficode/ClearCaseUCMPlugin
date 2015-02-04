@@ -33,7 +33,7 @@ public class GetRelatedStreams implements FileCallable<List<Stream>> {
 		this.listener = listener;
 		this.multisitePolling = multisitePolling;
         this.polling = null;
-        this.hyperLinkName = "FeedFrom";
+        this.hyperLinkName = "AlternateDeliverTarget";
 	}
     
     public GetRelatedStreams( TaskListener listener, Stream stream, Polling polling, boolean multisitePolling, String hyperLinkName ) {

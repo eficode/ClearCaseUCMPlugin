@@ -21,14 +21,10 @@ public class PollSiblingMode extends PollingMode implements BaselineCreationEnab
     private boolean useHyperLinkForPolling = false;
     private boolean createBaseline = false;
     
+    
     @DataBoundConstructor
     public PollSiblingMode(String levelToPoll) {
         super(levelToPoll);
-        if(useHyperLinkForPolling) {
-            polling = new Polling(Polling.PollingType.siblingshlink);
-        } else {
-            polling = new Polling(Polling.PollingType.siblings);
-        }
     }
 
     /**
@@ -44,6 +40,11 @@ public class PollSiblingMode extends PollingMode implements BaselineCreationEnab
     @DataBoundSetter
     public void setUseHyperLinkForPolling(boolean useHyperLinkForPolling) {
         this.useHyperLinkForPolling = useHyperLinkForPolling;
+        if(this.useHyperLinkForPolling) {
+            polling = new Polling(Polling.PollingType.siblingshlink);
+        } else {
+            polling = new Polling(Polling.PollingType.siblings);
+        }
     }
 
     /**
