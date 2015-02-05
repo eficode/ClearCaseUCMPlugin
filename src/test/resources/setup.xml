@@ -2,7 +2,6 @@
 
 	<xi:include href="src/test/resources/setup-basic.xml"/>
 	<xi:include href="src/test/resources/setup-jenkins-project.xml"/>
-        <xi:include href="src/test/resources/setup-hyperlink.xml"/>
 
 	<ccenv name="Six baselines on integration">
 
