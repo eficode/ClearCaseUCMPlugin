@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import jenkins.model.Jenkins;
 
@@ -26,7 +27,6 @@ import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.scm.ChangeLogEntryImpl;
-import net.praqma.hudson.scm.pollingmode.BaselineCreationEnabled;
 import net.praqma.hudson.scm.pollingmode.PollChildMode;
 import net.praqma.hudson.scm.pollingmode.PollSelfMode;
 import net.praqma.hudson.scm.pollingmode.PollSiblingMode;
@@ -235,7 +235,7 @@ public class CCUCMRule extends JenkinsRule {
         logger.info( "Setting up build for self polling, recommend:" + recommend + ", tag:" + tag + ", description:" + description );
         System.out.println( "==== [Setting up ClearCase UCM project] ====" );
 		printInfo(projectName, mode.getPolling().getType().name(), component, stream, recommend, tag, description, mode.createBaselineEnabled(), forceDeliver, template, mode.getPromotionLevel() == null ? "ANY" : mode.getPromotionLevel().name());
-		FreeStyleProject project = createFreeStyleProject( "ccucm-project-" + projectName );
+		FreeStyleProject project = createFreeStyleProject( "ccucm-" + projectName );
         DumbSlave slave = createOnlineSlave();
         project.setAssignedLabel(slave.getSelfLabel());
         
@@ -320,7 +320,7 @@ public class CCUCMRule extends JenkinsRule {
                 action = new EnableLoggerAction( outputDir );
             }
 
-            Future<? extends Build<?, ?>> futureBuild = project.scheduleBuild2( 0, new Cause.UserCause(), action );
+            Future<? extends Build<?, ?>> futureBuild = project.scheduleBuild2( 0, new Cause.UserIdCause(), action );
 
             AbstractBuild build = futureBuild.get();
 
@@ -351,7 +351,7 @@ public class CCUCMRule extends JenkinsRule {
         }
     }
     
-	public AbstractBuild<?, ?> buildProject( AbstractProject<?, ?> project, boolean fail ) throws IOException {
+	public AbstractBuild<?, ?> buildProject( AbstractProject<?, ?> project, boolean fail ) throws IOException, Exception {
         
         EnableLoggerAction action = null;
         if( outputDir != null ) {
@@ -363,9 +363,15 @@ public class CCUCMRule extends JenkinsRule {
 		try {
 			 build = project.scheduleBuild2(0, new Cause.UserIdCause(), action ).get();
 		} catch( Exception e ) {
-			logger.info( "Build failed(" + (fail?"on purpose":"it should not?") + "): " + e.getMessage() );
+            if(!fail) {
+                logger.log(Level.SEVERE, "Build failed...it should not!", e);
+                throw e;
+            }
+			logger.info( "Build failed, and it should!");
 		}
-
+        
+        waitUntilNoActivityUpTo(120000);
+   
         PrintStream out = new PrintStream( new File( outputDir, "jenkins." + getSafeName( project.getDisplayName() ) + "." + build.getNumber() + ".log" ) );
 
         out.println( "Build      : " + build );
@@ -381,7 +387,7 @@ public class CCUCMRule extends JenkinsRule {
         out.println( "-------------------------------------------------" );
         out.println();
 		
-		return project.getLastBuild();
+		return build;
 	}
 	
 	public void printList( List<String> list ) {

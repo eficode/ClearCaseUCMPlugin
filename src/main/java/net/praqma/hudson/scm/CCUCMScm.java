@@ -1197,6 +1197,9 @@ public class CCUCMScm extends SCM {
          * @return the hLinkFeedFrom
          */
         public String gethLinkFeedFrom() {
+            if(StringUtils.isBlank(hLinkFeedFrom)) {
+                return HLINK_DEFAULT;
+            }
             return hLinkFeedFrom;
         }
 

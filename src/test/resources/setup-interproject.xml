@@ -22,7 +22,7 @@
 	    </baselines>
 	  </stream>
           
-          <hlink name="AlternateDeliverTarget" pvob="${pvobname}" from="one_int" to="two_int" comment="No comment"/>
+          <hlink type="AlternateDeliverTarget" pvob="${pvobname}" from="one_int" to="two_int" comment="No comment"/>
 
 	  <view tag="${name}_two_int" stgloc="-auto">
 	    <stream name="two_int" pvob="${pvobname}" />

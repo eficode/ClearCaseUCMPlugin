@@ -8,7 +8,6 @@ import net.praqma.hudson.test.CCUCMRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.IOException;
 
 /**
  * @author cwolfgang
@@ -19,7 +18,7 @@ public class Story11 extends BaseTestClass {
     public ClearCaseRule ccenv = new ClearCaseRule( "Story11" );
 
     @Test
-    public void test() throws IOException {
+    public void test() throws Exception {
         /* First build to create a view */
         Project project = new CCUCMRule.ProjectCreator( ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() )
                 .setType( CCUCMRule.ProjectCreator.Type.self )

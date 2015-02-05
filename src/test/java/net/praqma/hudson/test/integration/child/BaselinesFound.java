@@ -56,13 +56,13 @@ public class BaselinesFound extends BaseTestClass {
     }
 
     @Test
-    @ClearCaseUniqueVobName(name = "recommended-child")
+    @ClearCaseUniqueVobName(name = "rec-child")
     @TestDescription(title = "Child polling", text = "baseline available", configurations = {"Recommended = true"})
     public void testRecommended() throws Exception {
         System.out.println("2");
         Baseline baseline = getNewBaseline();
 
-        AbstractBuild<?, ?> build = initiateBuild("recommended-" + ccenv.getUniqueName(), true, false, false, false);
+        AbstractBuild<?, ?> build = initiateBuild("rec-" + ccenv.getUniqueName(), true, false, false, false);
         
         //Question: Why do we not validate that the BUILT baseline in promoted?? 
         SystemValidator validator = new SystemValidator(build)
@@ -81,7 +81,8 @@ public class BaselinesFound extends BaseTestClass {
         Baseline baseline = getNewBaseline();
 
         AbstractBuild<?, ?> build = initiateBuild("description-" + ccenv.getUniqueName(), false, false, true, false);
-
+ 
+        
         SystemValidator validator = new SystemValidator(build)
                 .validateBuild(Result.SUCCESS)
                 .validateBuildView()
