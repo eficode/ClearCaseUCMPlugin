@@ -46,5 +46,24 @@ public class BaselinesFound extends BaseTestClass {
                 validateCreatedBaseline( true );
 		validator.validate();
 	}
+    
+    @Test
+	public void basicSiblingUsingHlink() throws Exception {
+		
+		Stream one = ccenv.context.streams.get( "one_int" );
+		Stream two = ccenv.context.streams.get( "two_int" );
+		
+		/* The baseline that should be built */
+		Baseline baseline = ccenv.context.baselines.get( "model-1" );
+		
+		AbstractBuild<?, ?> build = initiateBuild( "no-options-hlink" + ccenv.getUniqueName(), false, false, false, false );
+
+		/* Validate */
+		SystemValidator validator = new SystemValidator( build ).
+                validateBuild( build.getResult() ).
+                validateBuiltBaseline( PromotionLevel.BUILT, baseline, false ).
+                validateCreatedBaseline( true );
+		validator.validate();
+	}
 
 }
