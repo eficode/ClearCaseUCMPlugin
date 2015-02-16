@@ -7,6 +7,8 @@ import hudson.remoting.VirtualChannel;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.praqma.clearcase.exceptions.ClearCaseException;
@@ -19,6 +21,7 @@ import net.praqma.clearcase.ucm.entities.Tag;
 import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.scm.Unstable;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * 
@@ -41,15 +44,16 @@ class RemotePostBuild implements FileCallable<Status> {
 	private final BuildListener listener;
 	private PrintStream hudsonOut = null;
 	private final Unstable unstable;
+    private final List<Baseline> rebaseTargets;
 
-
+    //Any in this case...means that we do not promote the source baseline (The one that triggered polling)
     private final boolean any;
 
 	public RemotePostBuild( Result result, Status status, BuildListener listener,
 	/* Values for */
 	boolean makeTag, boolean recommended, Unstable unstable, boolean any,
 	/* Common values */
-	Baseline sourcebaseline, Baseline targetbaseline, Stream sourcestream, Stream targetstream, String displayName, String buildNumber ) {
+	Baseline sourcebaseline, Baseline targetbaseline, Stream sourcestream, Stream targetstream, String displayName, String buildNumber, List<Baseline> rebaseTargets ) {
 
 		this.displayName = displayName;
 		this.buildNumber = buildNumber;
@@ -64,6 +68,7 @@ class RemotePostBuild implements FileCallable<Status> {
 		this.status = status;
 		this.listener = listener;
         this.any = any;
+        this.rebaseTargets = rebaseTargets;
 	}
     
     @Override
@@ -137,6 +142,7 @@ class RemotePostBuild implements FileCallable<Status> {
 				/* Recommend the Baseline */
 				if( recommend ) {
 					try {
+                        
 						targetstream.recommendBaseline( targetbaseline );
 						hudsonOut.println( CCUCMNotifier.logShortPrefix+" Baseline " + targetbaseline.getShortname() + " is now recommended." );
 					} catch( ClearCaseException e ) {
@@ -228,9 +234,14 @@ class RemotePostBuild implements FileCallable<Status> {
 		}
 		newPLevel = sourcebaseline.getPromotionLevel( true ).toString();
 
-		if( this.sourcestream.equals( this.targetstream ) ) {
+        if ( rebaseTargets != null && !rebaseTargets.isEmpty() ) {
+            logger.info("Writing build description for poll rebase");
+            status.setBuildDescr( setDisplayRebase(rebaseTargets, targetbaseline.getShortname()));
+        } else if( this.sourcestream.equals( this.targetstream ) ) {
+            logger.info("Writing build description for poll self");
 			status.setBuildDescr( setDisplaystatusSelf( newPLevel + noticeString, targetbaseline.getShortname() ) );
 		} else {
+            logger.info("Writing build description for poll others");
 			status.setBuildDescr( setDisplaystatus( sourcebaseline.getShortname(), newPLevel + noticeString, targetbaseline.getShortname(), status.getErrorMessage() ) );
 		}
 		
@@ -290,4 +301,27 @@ class RemotePostBuild implements FileCallable<Status> {
 
 		return s;
 	}
+    
+    
+    private String setDisplayRebase(List<Baseline> rebases, String target) {
+        String s = "";
+        if( status.isRecommended() && recommend ) {
+			s += "<small>" + target + " <strong>recommended</strong></small><br/>";
+		}
+        List<String> shortnames = new ArrayList<String>();
+        for(Baseline bl : rebases) {
+            shortnames.add("<small>"+bl.getShortname()+"</small>");
+        }
+        
+        s += StringUtils.join(shortnames, "<br/>");
+        
+        return s;
+    }
+
+    /**
+     * @return the rebaseTargets
+     */
+    public List<Baseline> getRebaseTargets() {
+        return rebaseTargets;
+    }
 }

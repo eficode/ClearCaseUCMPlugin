@@ -14,6 +14,7 @@ import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.hudson.Util;
 import net.praqma.hudson.scm.Polling;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 /**
  *
@@ -22,7 +23,9 @@ import org.kohsuke.stapler.DataBoundConstructor;
 public class PollingMode implements Describable<PollingMode>, ExtensionPoint  {
 
     protected Polling polling;
+    private String component;
     private String levelToPoll = "INITIAL";
+    
     
     @DataBoundConstructor
     public PollingMode(String levelToPoll) { 
@@ -77,5 +80,20 @@ public class PollingMode implements Describable<PollingMode>, ExtensionPoint  {
      */
     public Project.PromotionLevel getPromotionLevel() {
         return Util.getLevel(levelToPoll);
+    }
+
+    /**
+     * @return the component
+     */
+    public String getComponent() {
+        return component;
+    }
+
+    /**
+     * @param component the component to set
+     */
+    @DataBoundSetter
+    public void setComponent(String component) {
+        this.component = component;
     }
 }

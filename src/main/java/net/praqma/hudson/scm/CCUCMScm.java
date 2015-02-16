@@ -19,6 +19,8 @@ import java.io.PrintStream;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import jenkins.model.Jenkins;
 
 import net.praqma.clearcase.exceptions.DeliverException;
@@ -26,7 +28,6 @@ import net.praqma.clearcase.exceptions.DeliverException.Type;
 import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
 import net.praqma.clearcase.ucm.entities.*;
 import net.praqma.clearcase.ucm.entities.Project;
-import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.Config;
@@ -34,6 +35,7 @@ import net.praqma.hudson.Util;
 import net.praqma.hudson.exception.CCUCMException;
 import net.praqma.hudson.exception.DeliverNotCancelledException;
 import net.praqma.hudson.exception.TemplateException;
+import net.praqma.hudson.nametemplates.FileFoundable;
 import net.praqma.hudson.nametemplates.NameTemplate;
 import net.praqma.hudson.notifier.CCUCMNotifier;
 import net.praqma.hudson.remoting.*;
@@ -44,10 +46,12 @@ import static net.praqma.hudson.scm.CCUCMScm.getLastAction;
 import net.praqma.hudson.scm.Polling.PollingType;
 import net.praqma.hudson.scm.pollingmode.BaselineCreationEnabled;
 import net.praqma.hudson.scm.pollingmode.PollChildMode;
+import net.praqma.hudson.scm.pollingmode.PollRebaseMode;
 import net.praqma.hudson.scm.pollingmode.PollSelfMode;
 import net.praqma.hudson.scm.pollingmode.PollSiblingMode;
 import net.praqma.hudson.scm.pollingmode.PollingMode;
 import net.praqma.util.execute.AbnormalProcessTerminationException;
+import net.praqma.util.structure.Tuple;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
@@ -70,6 +74,8 @@ public class CCUCMScm extends SCM {
     
     private Boolean multisitePolling;
     private String loadModule;
+    
+    @Deprecated
     private String component;
     private String stream;
     private String bl;
@@ -122,6 +128,23 @@ public class CCUCMScm extends SCM {
     }    
     
     @DataBoundConstructor
+    public CCUCMScm(String loadModule, boolean newest, PollingMode mode, String stream, String treatUnstable, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject, boolean removeViewPrivateFiles, boolean trimmedChangeSet, boolean discard) {
+        this.mode = mode;
+        this.loadModule = loadModule;
+        this.stream = stream;
+        this.buildProject = buildProject;
+        this.treatUnstable = new Unstable(treatUnstable);
+        this.nameTemplate = nameTemplate;
+        this.forceDeliver = forceDeliver;
+        this.removeViewPrivateFiles = removeViewPrivateFiles;
+        this.trimmedChangeSet = trimmedChangeSet;
+        this.recommend = recommend;
+        this.makeTag = makeTag;
+        this.setDescription = setDescription;        
+        this.discard = discard;
+    }
+    
+    @Deprecated
     public CCUCMScm(String component, String loadModule, boolean newest, PollingMode mode, String stream, String treatUnstable, String nameTemplate, boolean forceDeliver, boolean recommend, boolean makeTag, boolean setDescription, String buildProject, boolean removeViewPrivateFiles, boolean trimmedChangeSet, boolean discard) {
         this.mode = mode;
         this.component = component;
@@ -137,7 +160,7 @@ public class CCUCMScm extends SCM {
         this.makeTag = makeTag;
         this.setDescription = setDescription;        
         this.discard = discard;
-    }
+    }    
     
     
     public Object readResolve() {
@@ -160,6 +183,10 @@ public class CCUCMScm extends SCM {
             }
         }
         
+        if(component != null) {
+            mode.setComponent(component);
+        }
+        
         return this;
     }
     
@@ -171,14 +198,20 @@ public class CCUCMScm extends SCM {
         return mode.getPromotionLevel();
     }
     
+    private String _getComponent() {
+        if(mode != null && mode.getComponent() != null) {
+            return mode.getComponent();
+        }
+        return component;
+    } 
+    
     @Override
     public boolean checkout(AbstractBuild<?, ?> build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile) throws IOException, InterruptedException {
         /* Prepare job variables */
-
         jobName = build.getParent().getDisplayName().replace(' ', '_');
 
         PrintStream out = listener.getLogger();
-
+        
         /* Printing short description of build */
         String version = Jenkins.getInstance().getPlugin("clearcase-ucm-plugin").getWrapper().getVersion();
         out.println("[" + Config.nameShort + "] ClearCase UCM Plugin version " + version);
@@ -325,17 +358,14 @@ public class CCUCMScm extends SCM {
     }
 
     @Override
-    public void postCheckout(AbstractBuild<?, ?> build, Launcher launcher, FilePath workspace, BuildListener listener) throws IOException, InterruptedException {
-
+    public void postCheckout(AbstractBuild<?, ?> build, Launcher launcher, FilePath workspace, BuildListener listener) throws IOException, InterruptedException {        
         logger.fine("BEGINNING POSTCHECKOUT");
+        
+        CCUCMBuildAction state = build.getAction(CCUCMBuildAction.class);
+        PrintStream consoleOutput = listener.getLogger();
 
         /* This is really only interesting if child or sibling polling */
         if (_getPolling().isPollingOther()) {
-
-            CCUCMBuildAction state = build.getAction(CCUCMBuildAction.class);
-
-            PrintStream consoleOutput = listener.getLogger();
-
             try {
                 logger.fine("Starting deliver");
                 StartDeliver sd = new StartDeliver(listener, state.getStream(), state.getBaseline(), state.getSnapshotView(), loadModule, state.doForceDeliver(), state.doRemoveViewPrivateFiles());
@@ -401,6 +431,29 @@ public class CCUCMScm extends SCM {
 
                 throw new AbortException("Unable to start deliver");
             }
+        } else if(_getPolling().isPollingRebase()) {
+            try {
+                logger.fine(String.format( "Starting rebase operation in view %s", state.getViewTag() ));
+                consoleOutput.println(String.format("%s Starting rebase operation in view %s", "[" + Config.nameShort + "]", state.getViewTag()));
+                if(!state.getRebaseTargets().isEmpty()) {
+                    logger.fine(String.format("%s Rebasing to the following baselines:","[" + Config.nameShort + "]"));
+                    consoleOutput.println(String.format("%s Rebasing to the following baselines:","[" + Config.nameShort + "]"));
+                    for(Baseline bline : state.getRebaseTargets()) {
+                        logger.fine(String.format("%s + %s","[" + Config.nameShort + "]", bline));
+                        consoleOutput.println(String.format("%s + %s","[" + Config.nameShort + "]", bline));
+                    }
+                }
+                
+                consoleOutput.println( String.format( "%s The new struture encompases the following baselines:","[" + Config.nameShort + "]") );
+                for(Baseline blstruct : state.getNewFoundationStructure()) {
+                    consoleOutput.println(String.format("%s * %s","[" + Config.nameShort + "]", blstruct.getNormalizedName()));
+                }
+                
+                build.getWorkspace().act(new RebaseTask(state.getStream(), state.getRebaseTargets(), listener, state.getViewTag(), false));
+            } catch (Exception ex) {
+                logger.log(Level.SEVERE, "Unable to begin rebase on stream"+state.getStream(), ex);
+                throw new AbortException("Unable to begin rebase on stream "+state.getStream());
+            } 
         }
 
         logger.fine("ENDING POSTCHECKOUT");
@@ -480,8 +533,7 @@ public class CCUCMScm extends SCM {
             logger.fine("Could not write change log file");
             consoleOutput.println("[" + Config.nameShort + "] Could not write change log file");
         }
-
-
+        
         return true;
     }
 
@@ -494,7 +546,6 @@ public class CCUCMScm extends SCM {
      * @param action
      * @param listener
      * @throws UnableToInitializeEntityException
-     * @throws CCUCMException
      */
     public void resolveBaselineInput(AbstractBuild<?, ?> build, String baselineInput, CCUCMBuildAction action, BuildListener listener) throws UnableToInitializeEntityException, IOException, InterruptedException {
 
@@ -525,6 +576,30 @@ public class CCUCMScm extends SCM {
         }
 
         return null;
+    }
+    
+    private List<String> parseExclusionList(FilePath workspace, String exclude) throws IOException, InterruptedException {
+        
+        List<String> excludes = new ArrayList<String>();
+        Pattern p_file = Pattern.compile("\\[file=(.*)\\]");
+        
+        for(String s : exclude.split("[\\r\\n]+")) {
+            logger.finest(String.format("Excluding %s", s));
+            Matcher m = p_file.matcher(s);            
+            if(m.matches()) {
+                logger.finest("Found match on file template, getting file contents");
+                String fileName = m.group(1);
+                String contentsOfFile = workspace.act(new FileFoundable(fileName));
+                logger.finest(String.format("Found the follwing content in ignore file:%n%s", contentsOfFile));                    
+                excludes.addAll(Arrays.asList(contentsOfFile.split(System.lineSeparator())));                
+            } else {
+                excludes.add(s);
+            }             
+        }
+        
+        logger.finest("Done excluding");
+        
+        return excludes;
     }
 
     /**
@@ -557,11 +632,26 @@ public class CCUCMScm extends SCM {
         }
 
         /* Find the Baselines and store them, none of the methods returns null! At least an empty list */
-        /* Old skool self polling */
+        /* Old skool self polling */        
+
         if (_getPolling().isPollingSelf()) {
             baselines = getValidBaselinesFromStream(workspace, _getPlevel(), action.getStream(), action.getComponent(), date);
-        } else {
+        } else if(_getPolling().isPollingOther()) {
             baselines = getBaselinesFromStreams(workspace, listener, out, action.getStream(), action.getComponent(), _getPolling(), date);
+        } else {            
+            PollRebaseMode md = (PollRebaseMode)mode;            
+            List<String> parsedList = parseExclusionList(workspace, md.getExcludeList());
+            out.println("[" + Config.nameShort + "] Excluding the following components: ");
+            
+            for(String exclude : parsedList) {
+                if(!StringUtils.isBlank(exclude)) {
+                    out.println(String.format("%s * %s", "[" + Config.nameShort + "]", exclude));
+                }
+            }
+            Tuple<List<Baseline>,List<Baseline>> results = getBaselinesForPollRebase(workspace, listener, action.getStream(), parsedList);
+            baselines = results.t1;
+            action.setRebaseTargets(baselines);
+            action.setNewFoundationStructure(results.t2);
         }
 
         /* if we did not find any baselines we should return false */
@@ -571,7 +661,7 @@ public class CCUCMScm extends SCM {
 
         /* Select and load baseline */
         action.setBaseline(selectBaseline(baselines, _getPlevel(), workspace));
-
+        
         /* Print the baselines to jenkins out */
         printBaselines(baselines, out);
         out.println("");
@@ -579,20 +669,22 @@ public class CCUCMScm extends SCM {
 
     /**
      * Initialize the deliver view
+     * @param build
+     * @param state
+     * @param listener
+     * @return 
+     * @throws java.io.IOException
+     * @throws java.lang.InterruptedException
      */
     public SnapshotView initializeDeliverView(AbstractBuild<?, ?> build, CCUCMBuildAction state, BuildListener listener) throws IOException, InterruptedException {
-        FilePath workspace = build.getWorkspace();
-        PrintStream consoleOutput = listener.getLogger();
-
         logger.fine("Initializing deliver view");
+        FilePath workspace = build.getWorkspace();
         MakeDeliverView mdv = new MakeDeliverView(listener, build.getParent().getDisplayName(), loadModule, state.getStream());
         SnapshotView view = workspace.act(mdv);
         state.setViewPath(view.getViewRoot());
         state.setViewTag(view.getViewtag());
-        state.setSnapshotView(view);
-        
+        state.setSnapshotView(view);        
         this.viewtag = view.getViewtag();
-
         return view;
     }
 
@@ -644,8 +736,7 @@ public class CCUCMScm extends SCM {
 
         String CC_BASELINE = "";
         String CC_VIEWPATH = "";
-        String CC_VIEWTAG = "";
-
+        
         try {
 
             CCUCMBuildAction action = build.getAction(CCUCMBuildAction.class);
@@ -659,9 +750,6 @@ public class CCUCMScm extends SCM {
             logger.log(Level.WARNING, "Exception caught in buildEnvVars method", e1);
         }
 
-        /* View tag */
-        CC_VIEWTAG = viewtag;
-
         /* View path */
         String workspace = env.get("WORKSPACE");
         if (workspace != null) {
@@ -671,7 +759,7 @@ public class CCUCMScm extends SCM {
         }
 
         env.put("CC_BASELINE", CC_BASELINE);
-        env.put("CC_VIEWTAG", CC_VIEWTAG);
+        env.put("CC_VIEWTAG", viewtag);
         env.put("CC_VIEWPATH", CC_VIEWPATH);
     }
 
@@ -722,10 +810,12 @@ public class CCUCMScm extends SCM {
         PrintStream out = listener.getLogger();
 
         Stream stream = null;
-        Component component = null;
+        Component loadedComponent = null;
         try {
             stream = Stream.get(this.stream);
-            component = Component.get(this.component);
+            if(!StringUtils.isBlank(_getComponent())) {
+                loadedComponent = Component.get(_getComponent());
+            } 
         } catch (UnableToInitializeEntityException e) {
             Util.println(out, e);
             throw new AbortException("Unable initialize ClearCase entities");
@@ -754,10 +844,14 @@ public class CCUCMScm extends SCM {
 
             /* Old skool self polling */
             if (_getPolling().isPollingSelf()) {
-                baselines = getValidBaselinesFromStream(workspace, _getPlevel(), stream, component, date);
-            } else {
+                baselines = getValidBaselinesFromStream(workspace, _getPlevel(), stream, loadedComponent, date);
+            } else if(_getPolling().isPollingOther()) {
                 /* Find the Baselines and store them */
-                baselines = getBaselinesFromStreams(workspace, listener, out, stream, component, _getPolling(), date);
+                baselines = getBaselinesFromStreams(workspace, listener, out, stream, loadedComponent, _getPolling(), date);
+            } else {
+                PollRebaseMode md = (PollRebaseMode)mode;
+                baselines = getBaselinesForPollRebase(workspace, listener, stream, parseExclusionList(workspace, md.getExcludeList())).t1;
+                logger.fine("Baseline list retrieved...");
             }
 
             if (baselines.size() > 0) {                
@@ -765,10 +859,14 @@ public class CCUCMScm extends SCM {
             }
 
         }
-
         return p;
     }
-
+    
+    private Tuple<List<Baseline>,List<Baseline>> getBaselinesForPollRebase(FilePath workspace, final TaskListener listener, final Stream stream, final List<String> excludeComponents) throws IOException, InterruptedException {
+        return RemoteUtil.getRemoteRebaseCandidatesFromStream(workspace, stream, excludeComponents, _getPlevel());
+    }
+    
+ 
     /**
      * Get the {@link Baseline}s from a {@link Stream}s related Streams.
      *
@@ -796,7 +894,7 @@ public class CCUCMScm extends SCM {
                 consoleOutput.printf("[" + Config.nameShort + "] [%02d] %s ", c, s.getShortname());
                 c++;
                 List<Baseline> found = RemoteUtil.getRemoteBaselinesFromStream(workspace, component, s, _getPlevel(), this.getSlavePolling(), this.getMultisitePolling(), date);
-                for (Baseline b : found) {
+                for (Baseline b : found) {                   
                     baselines.add(b);
                 }
                 consoleOutput.println(found.size() + " baseline" + (found.size() == 1 ? "" : "s") + " found");
@@ -848,7 +946,8 @@ public class CCUCMScm extends SCM {
     }
 
     private CCUCMBuildAction getBuildAction() throws UnableToInitializeEntityException {
-        CCUCMBuildAction action = new CCUCMBuildAction(Stream.get(stream), Component.get(component));
+        Component cmp =  StringUtils.isBlank(_getComponent()) ? null : Component.get(_getComponent());
+        CCUCMBuildAction action = new CCUCMBuildAction(Stream.get(stream), cmp);
 
         action.setDescription(setDescription);
         action.setMakeTag(makeTag);
@@ -902,8 +1001,9 @@ public class CCUCMScm extends SCM {
     private void printParameters(PrintStream ps) {
         ps.println("[" + Config.nameShort + "] Getting baselines for :");
         ps.println("[" + Config.nameShort + "] * Stream:          " + stream);
-        ps.println("[" + Config.nameShort + "] * Component:       " + component);
-
+        if(!StringUtils.isBlank(_getComponent())) { 
+            ps.println("[" + Config.nameShort + "] * Component:       " + _getComponent());
+        }
         if (_getPlevel() == null) {
             ps.println("[" + Config.nameShort + "] * Promotion level: " + "ANY");
         } else {

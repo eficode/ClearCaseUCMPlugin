@@ -9,7 +9,8 @@ public class Polling implements Serializable {
 		self,
 		childs,
 		siblings,
-        siblingshlink
+        siblingshlink,
+        rebase
 	}
 	
 	private final PollingType type;
@@ -29,17 +30,15 @@ public class Polling implements Serializable {
 			this.type = PollingType.self;			
         } else if( polling.equals("siblinghlink")) {
             this.type = PollingType.siblingshlink;
+        } else if (polling.equals("rebase")) {
+            this.type = PollingType.rebase;
 		} else {
 			this.type = PollingType.siblings;
 		}
 	}
 	
 	public boolean isPollingChilds() {
-		if( this.type.equals(PollingType.childs) ) {
-			return true;
-		} else {
-			return false;
-		}
+		return this.type.equals(PollingType.childs);
 	}
     
     public PollingType getType() {
@@ -47,42 +46,30 @@ public class Polling implements Serializable {
     }
 	
 	public boolean isPollingSiblings() {
-		if( this.type.equals(PollingType.siblings) || this.type.equals(PollingType.siblingshlink) ) {
-			return true;
-		} else {
-			return false;
-		}
+        return this.type.equals(PollingType.siblings) || this.type.equals(PollingType.siblingshlink);			
 	}
 	
 	public boolean isPollingSelf() {
-		if( this.type.equals(PollingType.self) ) {
-			return true;
-		} else {
-			return false;
-		}
+		return this.type.equals(PollingType.self);			
 	}
 
     /**
-     * Returns true if {@link Polling} other {@link net.praqma.clearcase.ucm.entities.Stream}'s
+     * @return true if {@link Polling} other {@link net.praqma.clearcase.ucm.entities.Stream}
      */
 	public boolean isPollingOther() {
-		if( this.type.equals(PollingType.childs) || isPollingSiblings()  ) {
-			return true;
-		} else {
-			return false;
-		}
+		return this.type.equals(PollingType.childs) || isPollingSiblings();			
 	}
+    
+    public boolean isPollingRebase() {
+        return this.type.equals(PollingType.rebase);
+    }
 	
 	/**
 	 * This is actually only important if the polling type is not set. This is typically only if the default constructor is used.
 	 * @return whether or not the type is polling
 	 */
 	public boolean isPolling() {
-		if( !this.type.equals( PollingType.none ) ) {
-			return true;
-		} else {
-			return false;
-		}
+		return !this.type.equals( PollingType.none );			
 	}
 	
     @Override

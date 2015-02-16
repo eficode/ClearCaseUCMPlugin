@@ -7,6 +7,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.TaskListener;
 import net.praqma.clearcase.ucm.entities.*;
 import hudson.model.Action;
+import java.util.ArrayList;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.scm.Polling;
 import net.praqma.hudson.scm.Unstable;
@@ -20,6 +21,8 @@ public class CCUCMBuildAction implements Action {
 	private Component component;
     private Project.PromotionLevel promotionLevel;
     private String loadModule;
+    private List<Baseline> rebaseTargets = new ArrayList<Baseline>();
+    private List<Baseline> newFoundationStructure = new ArrayList<Baseline>();
 
     /**
      * Create a {@link Baseline} when deliver
@@ -364,4 +367,26 @@ public class CCUCMBuildAction implements Action {
         return sb.toString();
     }
 
+    /**
+     * @return the rebaseTargets
+     */
+    public List<Baseline> getRebaseTargets() {
+        return rebaseTargets;
+    }
+
+    /**
+     * @param rebaseTargets the rebaseTargets to set
+     */
+    public void setRebaseTargets(List<Baseline> rebaseTargets) {
+        this.rebaseTargets = rebaseTargets;
+    }
+    
+    public List<Baseline> getNewFoundationStructure() {
+        return this.newFoundationStructure;
+    }
+
+    public void setNewFoundationStructure(List<Baseline> newFoundationStructure) {
+        this.newFoundationStructure = newFoundationStructure;
+    }
+    
 }
