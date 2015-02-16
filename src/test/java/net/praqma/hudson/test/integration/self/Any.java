@@ -21,6 +21,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
+import net.praqma.hudson.scm.pollingmode.PollChildMode;
+import net.praqma.hudson.scm.pollingmode.PollSelfMode;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -44,7 +46,8 @@ public class Any extends BaseTestClass {
     private static final Logger logger = Logger.getLogger();
 
     public AbstractBuild<?, ?> initiateBuild( String projectName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
-        return jenkins.initiateBuild( projectName, "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), recommend, tag, description, fail, false, false, "", "ANY" );
+        PollSelfMode mode = new PollSelfMode("ANY");
+        return jenkins.initiateBuild( projectName, mode, "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), recommend, tag, description, fail, false, "");
     }
 
     @Test
@@ -76,8 +79,9 @@ public class Any extends BaseTestClass {
     @Test
     @ClearCaseUniqueVobName( name = "self-any-poll" )
     @TestDescription( title = "Self polling", text = "baselines available, find the newest, poll" )
-    public void testPoll() throws Exception {        
-        FreeStyleProject project = jenkins.setupProjectWithASlave( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false, "", "ANY" );
+    public void testPoll() throws Exception {
+        PollSelfMode mode = new PollSelfMode("ANY");
+        FreeStyleProject project = jenkins.setupProjectWithASlave( "polling-test-with-baselines-" + ccenv.getUniqueName(), mode, "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, "");
                 
         /* BUILD 1 */
         AbstractBuild<?, ?> build = null;
@@ -101,7 +105,8 @@ public class Any extends BaseTestClass {
     @ClearCaseUniqueVobName( name = "self-any-poll2" )
     @TestDescription( title = "Self polling", text = "baselines available, find the newest, add baselines, poll" )
     public void testPollThree() throws Exception {
-        FreeStyleProject project = jenkins.setupProjectWithASlave( "polling-test-with-baselines-" + ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false, "", "ANY" );
+        PollSelfMode mode = new PollSelfMode("ANY");
+        FreeStyleProject project = jenkins.setupProjectWithASlave( "polling-test-with-baselines-" + ccenv.getUniqueName(), mode, "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, "");
 
         /* BUILD 1 */
         AbstractBuild<?, ?> build = null;

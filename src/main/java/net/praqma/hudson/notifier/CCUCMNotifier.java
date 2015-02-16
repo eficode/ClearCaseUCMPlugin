@@ -228,13 +228,7 @@ public class CCUCMNotifier extends Notifier {
 						if( pstate.doRecommend() ) {
                             out.println( String.format( "%s Cannot recommend Baseline when not created", logShortPrefix ) );							
 						} 
-                        
-                        //JENKINS-18107
-                        if( pstate.getPolling().isPollingSelf() && pstate.doCreateBaseline() ) {
-                            out.println("You cannot create a baseline in poll self mode.");
-                            logger.warning("You cannot create a baseline in poll self mode.");
-                        }
-                        
+                                                
 						/* Set unstable? */
 						logger.warning( "Failing build because baseline could not be created" );
 						build.setResult( Result.FAILURE );

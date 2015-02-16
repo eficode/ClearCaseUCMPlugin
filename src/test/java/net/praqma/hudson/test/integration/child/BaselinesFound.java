@@ -22,6 +22,7 @@ import net.praqma.util.test.junit.TestDescription;
 
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
+import net.praqma.hudson.scm.pollingmode.PollChildMode;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
@@ -35,7 +36,9 @@ public class BaselinesFound extends BaseTestClass {
     public DescriptionRule desc = new DescriptionRule();
 
     public AbstractBuild<?, ?> initiateBuild(String projectName, boolean recommend, boolean tag, boolean description, boolean fail) throws Exception {
-        return jenkins.initiateBuild(projectName, "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), recommend, tag, description, fail, true);
+        PollChildMode mode = new PollChildMode("INITIAL");
+        mode.setCreateBaseline(true);
+        return jenkins.initiateBuild(projectName, mode, "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), recommend, tag, description, fail, true);
     }
 
     @Test
@@ -53,14 +56,15 @@ public class BaselinesFound extends BaseTestClass {
     }
 
     @Test
-    @ClearCaseUniqueVobName(name = "recommended-child")
+    @ClearCaseUniqueVobName(name = "rec-child")
     @TestDescription(title = "Child polling", text = "baseline available", configurations = {"Recommended = true"})
     public void testRecommended() throws Exception {
         System.out.println("2");
         Baseline baseline = getNewBaseline();
 
-        AbstractBuild<?, ?> build = initiateBuild("recommended-" + ccenv.getUniqueName(), true, false, false, false);
-
+        AbstractBuild<?, ?> build = initiateBuild("rec-" + ccenv.getUniqueName(), true, false, false, false);
+        
+        //Question: Why do we not validate that the BUILT baseline in promoted?? 
         SystemValidator validator = new SystemValidator(build)
                 .validateBuild(Result.SUCCESS)
                 .validateBuildView()
@@ -77,7 +81,8 @@ public class BaselinesFound extends BaseTestClass {
         Baseline baseline = getNewBaseline();
 
         AbstractBuild<?, ?> build = initiateBuild("description-" + ccenv.getUniqueName(), false, false, true, false);
-
+ 
+        
         SystemValidator validator = new SystemValidator(build)
                 .validateBuild(Result.SUCCESS)
                 .validateBuildView()

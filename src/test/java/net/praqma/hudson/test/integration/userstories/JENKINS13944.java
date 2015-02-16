@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import hudson.model.AbstractBuild;
 import hudson.model.Result;
+import net.praqma.hudson.scm.pollingmode.PollSelfMode;
 import net.praqma.hudson.test.SystemValidator;
 
 public class JENKINS13944 extends BaseTestClass {
@@ -25,7 +26,7 @@ public class JENKINS13944 extends BaseTestClass {
 	public void jenkins13944() throws Exception {
 		
 		/* First build to create a view */
-		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, true, false, false, false, false );
+		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), new PollSelfMode("INTIAL"), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, true, false, false, false );
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
 		new SystemValidator( build ).validateBuild( Result.UNSTABLE ).validateBaselineTag( baseline, false ).validate();
 	}

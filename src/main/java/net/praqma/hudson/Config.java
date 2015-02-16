@@ -19,7 +19,6 @@ public class Config {
 
 	public static List<String> getLevels() {
 		List<String> levels = Project.getPromotionLevels();
-		levels.add( "ANY" );
 		return levels;
 	}
 

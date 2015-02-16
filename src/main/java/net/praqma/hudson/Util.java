@@ -8,11 +8,9 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.praqma.clearcase.Cool;
 import net.praqma.clearcase.PVob;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.exceptions.ViewException;
@@ -21,15 +19,13 @@ import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Version;
-import net.praqma.clearcase.ucm.utils.ReadOnlyVersionFilter;
-import net.praqma.clearcase.ucm.utils.VersionList;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.ucm.view.SnapshotView.Components;
 import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules2;
 import net.praqma.clearcase.ucm.view.UpdateView;
 import net.praqma.hudson.exception.ScmException;
-import net.praqma.hudson.remoting.GetLatestForActivities;
+import net.praqma.hudson.remoting.CreateChangeSetRemote;
 import org.apache.commons.lang.SystemUtils;
 
 public abstract class Util {
@@ -61,42 +57,18 @@ public abstract class Util {
 
 		return devstream;
 	}
+    
+    public static String createChangelog(AbstractBuild<?, ?> build, List<Activity> activities, Baseline bl, boolean trimmed, File viewRoot, List<String> readonly, boolean ignoreReadOnly) throws IOException, InterruptedException {
+        return Util.createChangelog(build, activities, bl, trimmed, viewRoot, readonly, ignoreReadOnly, true);
+    }
 
-    public static String createChangelog(AbstractBuild<?, ?> build, List<Activity> activities, Baseline bl, boolean trimmed, File viewRoot, List<String> readonly, boolean ignoreReadOnly ) throws IOException, InterruptedException {        
-        logger.fine( String.format("Trim changeset: %s", trimmed));
-        ChangeSetGenerator csg = new ChangeSetGenerator().createHeader( bl.getShortname() );
-
-        if( trimmed ) {
-            logger.fine("Creating trimmed change set");
-            VersionList vl = new VersionList().addActivities( activities ).setBranchName( "^.*" + Cool.qfs + bl.getStream().getShortname() + ".*$" );
-            
-            if(ignoreReadOnly) {
-                vl = vl.addFilter(new ReadOnlyVersionFilter(viewRoot, readonly)).apply();                
-            }
-            
-            Map<Activity, List<Version>> changeSet = build.getWorkspace().act(new GetLatestForActivities(vl));
-            int now = 0;
-                        
-            for(List<Version> vlist : changeSet.values()) {
-                now+=vlist.size();
-            }
-            
-            for( Activity activity : changeSet.keySet() ) {
-                csg.addAcitivity( activity.getShortname(), activity.getHeadline(), activity.getUser(), changeSet.get( activity ) );
-            }
+    public static String createChangelog(AbstractBuild<?, ?> build, List<Activity> activities, Baseline bl, boolean trimmed, File viewRoot, List<String> readonly, boolean ignoreReadOnly, boolean useSlaves ) throws IOException, InterruptedException {
+        if(useSlaves) {
+            return build.getWorkspace().act(new CreateChangeSetRemote(activities, bl, trimmed, viewRoot, readonly, ignoreReadOnly));
         } else {
-            logger.fine("Creating non-trimmed changeset");
-            for( Activity activity : activities ) {
-                VersionList versions = new VersionList( activity.changeset.versions ).getLatest();
-                if(ignoreReadOnly) {
-                    versions = versions.addFilter(new ReadOnlyVersionFilter(viewRoot, readonly)).apply();                
-                }
-                
-                csg.addAcitivity( activity.getShortname(), activity.getHeadline(), activity.getUser(), versions );
-            }
+          CreateChangeSetRemote set = new CreateChangeSetRemote(activities, bl, trimmed, viewRoot, readonly, ignoreReadOnly);
+          return set.invoke(null, null);            
         }
-
-        return csg.close().get();
     }
 
     public static class ChangeSetGenerator {

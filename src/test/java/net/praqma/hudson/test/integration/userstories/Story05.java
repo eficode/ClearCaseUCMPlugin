@@ -21,6 +21,7 @@ import net.praqma.util.debug.Logger;
 
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
+import net.praqma.hudson.scm.pollingmode.PollChildMode;
 
 import static org.junit.Assert.*;
 
@@ -39,7 +40,7 @@ public class Story05 extends BaseTestClass {
 	public void story05() throws Exception {
 		
 		/* First build to create a view */
-		AbstractBuild<?, ?> firstbuild = jenkins.initiateBuild(  ccenv.getUniqueName(), "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, true, false );
+		AbstractBuild<?, ?> firstbuild = jenkins.initiateBuild(  ccenv.getUniqueName(), new PollChildMode("INITIAL"), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, true, false );
 		//assertEquals( Result.NOT_BUILT, build.getResult() );
 		
 		/* Do the deliver */

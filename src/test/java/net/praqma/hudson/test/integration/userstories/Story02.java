@@ -15,6 +15,7 @@ import net.praqma.hudson.test.SystemValidator;
 
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
+import net.praqma.hudson.scm.pollingmode.PollSelfMode;
 
 
 import static org.junit.Assert.*;
@@ -29,7 +30,7 @@ public class Story02 extends BaseTestClass {
 	@TestDescription( title = "Story 02b", text = "New baseline, bl1, on integration stream, poll on self, wrong stream." )
 	public void story02b() throws Exception {
 		
-		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "three_int@" + ccenv.getPVob(), false, false, false, false, false );
+		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), new PollSelfMode("INITIAL"), "_System@" + ccenv.getPVob(), "three_int@" + ccenv.getPVob(), false, false, false, false, false );
 
 		SystemValidator validator = new SystemValidator( build )
 		.validateBuild( Result.FAILURE )
@@ -43,12 +44,12 @@ public class Story02 extends BaseTestClass {
 	public void story02d() throws Exception {
 		
 		/* First build must succeed to get a workspace */
-		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
+		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), new PollSelfMode("INITIAL"), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
 		AbstractProject<?, ?> project = build.getProject();
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );		
 		
 		/* New scm with wrong component */
-		CCUCMScm scm = new CCUCMScm( "_System@" + ccenv.getPVob(), "INITIAL", "ALL", false, "self", "three_int@" + ccenv.getPVob(), "successful", false, "", true, false, false, false, "jenkins" );
+		CCUCMScm scm = new CCUCMScm( "_System@" + ccenv.getPVob(), "ALL", false, new PollSelfMode("INITIAL"), "three_int@" + ccenv.getPVob(), "successful", "", true, false, false, false, "jenkins", true, false, false);
 		project.setScm( scm );
 		
 		TaskListener listener = jenkins.createTaskListener();

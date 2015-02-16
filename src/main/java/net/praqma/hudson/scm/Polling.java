@@ -1,12 +1,15 @@
 package net.praqma.hudson.scm;
 
-public class Polling {
+import java.io.Serializable;
+
+public class Polling implements Serializable {
 	
 	public enum PollingType {
 		none,
 		self,
 		childs,
-		siblings
+		siblings,
+        siblingshlink
 	}
 	
 	private final PollingType type;
@@ -24,6 +27,8 @@ public class Polling {
 			this.type = PollingType.childs;
 		} else if( polling.equals("self") ) {
 			this.type = PollingType.self;			
+        } else if( polling.equals("siblinghlink")) {
+            this.type = PollingType.siblingshlink;
 		} else {
 			this.type = PollingType.siblings;
 		}
@@ -42,7 +47,7 @@ public class Polling {
     }
 	
 	public boolean isPollingSiblings() {
-		if( this.type.equals(PollingType.siblings) ) {
+		if( this.type.equals(PollingType.siblings) || this.type.equals(PollingType.siblingshlink) ) {
 			return true;
 		} else {
 			return false;
@@ -61,7 +66,7 @@ public class Polling {
      * Returns true if {@link Polling} other {@link net.praqma.clearcase.ucm.entities.Stream}'s
      */
 	public boolean isPollingOther() {
-		if( this.type.equals(PollingType.childs) || this.type.equals( PollingType.siblings ) ) {
+		if( this.type.equals(PollingType.childs) || isPollingSiblings()  ) {
 			return true;
 		} else {
 			return false;

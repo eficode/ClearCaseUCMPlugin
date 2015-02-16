@@ -240,11 +240,16 @@ public class SystemValidator {
 	/* Validate created baseline */
 	private boolean checkCreatedBaseline = false;
 	private Boolean createdBaselineExists;
+    private Boolean createdBaselineIsRecommended;
 	
-	public SystemValidator validateCreatedBaseline( boolean exists ) {
+    public SystemValidator validateCreatedBaseline( boolean exists) {
+        return validateCreatedBaseline(exists, null);
+    }
+    
+	public SystemValidator validateCreatedBaseline( boolean exists, Boolean isRecommended ) {
 		this.checkCreatedBaseline = true;
 		this.createdBaselineExists = exists;
-		
+        this.createdBaselineIsRecommended = isRecommended;
 		return this;
 	}
 	
@@ -255,12 +260,25 @@ public class SystemValidator {
 		
 		/* Validate null check */
 		if( createdBaselineExists != null ) {
+            
 			System.out.println( "[assert] Created baseline must " + (createdBaselineExists?"not ": "") + "be null" );
 			if( createdBaselineExists ) {
 				assertNotNull( baseline );
 			} else {
 				assertNull( baseline );
 			}
+            
+            System.out.println( String.format( "[assert] Created baseline %s must be recommended", baseline ) );
+            if(createdBaselineIsRecommended != null) {
+                if( createdBaselineIsRecommended ) {
+                    List<Baseline> bls = getStream().load().getRecommendedBaselines();                    
+                    assertThat( baseline, is(bls.get(0)) );
+                } else {
+                    List<Baseline> bls = getStream().load().getRecommendedBaselines();
+                    assertThat( bls.size(), is(1));
+                    assertThat( baseline, not(bls.get(0)));
+                }
+            }
 		}
 		
 	}

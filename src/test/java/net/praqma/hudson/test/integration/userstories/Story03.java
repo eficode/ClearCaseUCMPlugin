@@ -17,6 +17,7 @@ import net.praqma.util.debug.Logger;
 
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
+import net.praqma.hudson.scm.pollingmode.PollSelfMode;
 
 
 import static org.junit.Assert.*;
@@ -36,7 +37,7 @@ public class Story03 extends BaseTestClass {
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
 		baseline.setPromotionLevel( PromotionLevel.REJECTED );
 		
-		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
+		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(),new PollSelfMode("INITIAL"), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
 
 		SystemValidator validator = new SystemValidator( build )
 		.validateBuild( Result.NOT_BUILT )
@@ -53,7 +54,7 @@ public class Story03 extends BaseTestClass {
 		baseline.setPromotionLevel( PromotionLevel.INITIAL );
 		
 		/* First build must succeed to get a workspace */
-		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), "self", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
+		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), new PollSelfMode("INITIAL"), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, false );
 		AbstractProject<?, ?> project = build.getProject();
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );		
 				

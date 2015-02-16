@@ -31,6 +31,7 @@ import net.praqma.util.debug.Logger;
 
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
+import net.praqma.hudson.scm.pollingmode.PollChildMode;
 
 import static org.junit.Assert.*;
 
@@ -42,7 +43,9 @@ public class ActivityTest extends BaseTestClass {
 	private static Logger logger = Logger.getLogger();
 		
 	public AbstractBuild<?, ?> initiateBuild( String projectName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
-		return jenkins.initiateBuild( projectName, "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), recommend, tag, description, fail, true );
+        PollChildMode mode = new PollChildMode("INITIAL");
+        mode.setCreateBaseline(false);
+		return jenkins.initiateBuild( projectName, mode, "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), recommend, tag, description, fail, true );
 	}
 
 	@Test

@@ -9,15 +9,6 @@
       <f:textbox name="CCUCM.component" value="${scm.component}"/>
     </f:entry>
 
-    <j:set var="levels" value="${descriptor.getLevels()}"/>
-      <f:entry  title="Promotion level" help="/plugin/clearcase-ucm-plugin/scm/help-pLevel.html">
-      <select class="setting-input" name="CCUCM.levelToPoll">
-       <j:forEach var="l" items="${levels}">
-        <f:option selected="${scm.levelToPoll==l}" value="${l}">${l}</f:option>
-          </j:forEach>
-      </select>
-       </f:entry>
-
     <f:entry title="Load modules" help="/plugin/clearcase-ucm-plugin/scm/help-loadModules.html">
         <select class="setting-input" name="CCUCM.loadModule">
             <j:set var="modules" value="${descriptor.getLoadModules()}"/>
@@ -27,17 +18,7 @@
         </select>
     </f:entry>
     
-    <f:entry title="Polling" help="/plugin/clearcase-ucm-plugin/scm/help-polling.html">
-        <select class="setting-input" name="CCUCM.polling" checkUrl="'${rootURL}/scm/CCUCMScm/levelCheck?polling='+encodeURIComponent(this.value)+'&amp;level='+encodeURIComponent(Form.findMatchingInput(this,'CCUCM.levelToPoll').value)">
-            <f:option selected="${instance.polling == 'self'}" value="self">Poll self</f:option>
-                <f:option selected="${instance.polling == 'childs'}" value="child">Poll child streams</f:option>
-                <f:option selected="${instance.polling == 'siblings'}" value="sibling">Poll sibling streams</f:option>
-        </select>
-    </f:entry>
-
-    <f:entry title="Create baseline" help="/plugin/clearcase-ucm-plugin/scm/help-createBaseline.html">
-        <f:checkbox name="CCUCM.createBaseline" checked="${scm.createBaseline}" checkUrl="'${rootURL}/scm/CCUCMScm/checkMode?checked='+(this.checked)+'&amp;mode='+encodeURIComponent(Form.findMatchingInput(this,'CCUCM.polling').value)" />
-    </f:entry>
+    <f:dropdownDescriptorSelector field="mode" title="Polling"/>
 
     <f:entry title="Name template" help="/plugin/clearcase-ucm-plugin/scm/help-template.html" field="template">
         <f:textbox name="CCUCM.nameTemplate" value="${scm.nameTemplate}" default="[project]_[date]_[time]" />
