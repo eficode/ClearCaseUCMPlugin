@@ -246,6 +246,7 @@ public class CCUCMNotifier extends Notifier {
 					try {
                         out.println( String.format("%s Trying to cancel the deliver.", logShortPrefix) );
 						//out.print( "[" + Config.nameShort + "] Trying to cancel the deliver. " );
+                        
 						RemoteUtil.completeRemoteDeliver( currentWorkspace, listener, pstate.getBaseline(), pstate.getStream(), action.getViewTag(), action.getViewPath(), false );
 						out.println( "Success." );
 					} catch( Exception e1 ) {
@@ -274,7 +275,6 @@ public class CCUCMNotifier extends Notifier {
                     out.println( String.format( "%s Absolute path of remoteWorkspace: %s", logShortPrefix, workspace ) );
                     pstate.setWorkspace( workspace );
                     NameTemplate.validateTemplates( pstate, build.getWorkspace() );
-                    //TODO: Fix this tomorrow!
                     String name = NameTemplate.parseTemplate( pstate.getNameTemplate(), pstate, build.getWorkspace() );
                     targetbaseline = RemoteUtil.createRemoteBaseline( currentWorkspace, name, pstate.getStream(), pstate.getViewPath() );           
                     action.setCreatedBaseline( targetbaseline );                
@@ -284,10 +284,18 @@ public class CCUCMNotifier extends Notifier {
                 out.println(String.format( "%s The build failed, cancelling rebase", logShortPrefix));
                 build.getWorkspace().act(new RebaseCancelTask(pstate.getStream()));
             }
+        } catch (TemplateException templex) {
+            out.println( String.format("%s %s", logShortPrefix, templex.getMessage() ) );
+            logger.warning( "Failing build because baseline could not be created in poll rebase" );
+            pstate.setRecommend(false);
+            build.setResult( Result.FAILURE );            
         } catch (Exception ex) {
             Throwable cause = net.praqma.util.ExceptionUtils.unpackFrom( IOException.class, ex );
-            out.println( String.format( "%s Rebase opration failed", logShortPrefix ) );
+            out.println( String.format( "%s Rebase operation failed", logShortPrefix ) );
 			ExceptionUtils.print( cause, out, true );
+            pstate.setRecommend(false);
+            logger.warning( "Failing build because baseline could not be created in poll rebase" );
+            build.setResult( Result.FAILURE );            
         }
 
 		/* Remote post build step, common to all types */

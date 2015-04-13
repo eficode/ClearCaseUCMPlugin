@@ -180,8 +180,8 @@ public class CCUCMScm extends SCM {
         if(levelToPoll != null) {
             if(mode != null ) {
                 mode.setLevelToPoll(levelToPoll);
-            }
-        }
+            } 
+       }
         
         if(component != null) {
             mode.setComponent(component);
@@ -280,6 +280,8 @@ public class CCUCMScm extends SCM {
                     build.setDescription("No valid baselines found");
                     throw new AbortException("No valid baselines found");
                 }
+            } catch (AbortException abex) {
+                throw abex;
             } catch (IOException e) {
                 Exception cause = (Exception) e.getCause();
                 if (cause != null) {
@@ -597,8 +599,7 @@ public class CCUCMScm extends SCM {
             }             
         }
         
-        logger.finest("Done excluding");
-        
+        logger.finest("Done excluding");        
         return excludes;
     }
 
@@ -639,7 +640,35 @@ public class CCUCMScm extends SCM {
         } else if(_getPolling().isPollingOther()) {
             baselines = getBaselinesFromStreams(workspace, listener, out, action.getStream(), action.getComponent(), _getPolling(), date);
         } else {            
-            PollRebaseMode md = (PollRebaseMode)mode;            
+            PollRebaseMode md = (PollRebaseMode)mode;
+            List<String> parsedList = parseExclusionList(workspace, md.getExcludeList());
+            Tuple<List<Baseline>,List<Baseline>> results = getBaselinesForPollRebase(workspace, listener, action.getStream(), parsedList);
+            baselines = results.t1;
+            action.setRebaseTargets(baselines);
+            action.setNewFoundationStructure(results.t2);            
+        }
+        
+        
+        
+
+        /* if we did not find any baselines we should return false */
+        if (baselines.size() < 1) {
+            throw new CCUCMException("No valid Baselines found");
+        }
+        
+                    
+            /* If the exlusion list contains invalid elements */
+        
+
+        /* Select and load baseline */
+        action.setBaseline(selectBaseline(baselines, _getPlevel(), workspace));
+        
+        /* Print the baselines to jenkins out */
+        printBaselines(baselines, out);
+        out.println("");
+        
+        if(_getPolling().isPollingRebase()) {
+            PollRebaseMode md = (PollRebaseMode)mode;
             List<String> parsedList = parseExclusionList(workspace, md.getExcludeList());
             out.println("[" + Config.nameShort + "] Excluding the following components: ");
             
@@ -648,23 +677,43 @@ public class CCUCMScm extends SCM {
                     out.println(String.format("%s * %s", "[" + Config.nameShort + "]", exclude));
                 }
             }
-            Tuple<List<Baseline>,List<Baseline>> results = getBaselinesForPollRebase(workspace, listener, action.getStream(), parsedList);
-            baselines = results.t1;
-            action.setRebaseTargets(baselines);
-            action.setNewFoundationStructure(results.t2);
+            checkExclusionList(listener, parsedList, workspace, action.getNewFoundationStructure());
         }
-
-        /* if we did not find any baselines we should return false */
-        if (baselines.size() < 1) {
-            throw new CCUCMException("No valid Baselines found");
-        }
-
-        /* Select and load baseline */
-        action.setBaseline(selectBaseline(baselines, _getPlevel(), workspace));
+    }
+    
+    private void checkExclusionList(BuildListener listener, List<String> exludeComponents, FilePath workspace, List<Baseline> baselines) throws AbortException {
         
-        /* Print the baselines to jenkins out */
-        printBaselines(baselines, out);
-        out.println("");
+        List<String> missing = new ArrayList<String>();
+        for(String excl : exludeComponents) {
+            boolean wasThere = false;
+            for(Baseline foundabl : baselines) {
+                if(foundabl.getComponent().getNormalizedName().equals(excl)) {
+                    wasThere = true;
+                }
+            }
+            
+            if(!wasThere) {
+                missing.add(excl);
+            }
+            
+        }
+        
+        if(!missing.isEmpty()) {
+            listener.getLogger().println(String.format("%s Warning: Excluded component(s) %s not found.", "[" + Config.nameShort + "]", missing));
+        }
+        
+        for(String s : exludeComponents) {
+            if(!StringUtils.isBlank(s)) {
+                if(!s.startsWith("component")) {
+                    try {
+                        RemoteUtil.loadEntity(workspace, Component.get(s), getSlavePolling());
+                    } catch (Exception ex) {
+                        throw new AbortException(String.format("Unable to load component %s", s));
+                    }
+                }
+            }
+        }
+        
     }
 
     /**

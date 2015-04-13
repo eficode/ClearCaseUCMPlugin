@@ -1,7 +1,7 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
     <st:include page="config.jelly" class="net.praqma.hudson.scm.pollingmode.PollingMode"></st:include>
-    <f:entry title="Exlude components">
+    <f:entry title="Exlude components" description="Newline delimited list of components to exclude when polling, expand the box by clicking the arrow on the right side of the text box.">
         <f:expandableTextbox field="excludeList">
         </f:expandableTextbox>
     </f:entry>
