@@ -46,7 +46,6 @@ public abstract class Story06Base extends BaseTestClass {
      * @param viewTag1 .... Using this view tag to create the first baseline
      * @param viewTagToMakeAnotherBaseline .... Using this view tag to create
      * the second baseline
-     * @param slave The slave executing the build, null if on master
      * @param jenkinsWorkspace If true, the first build will not run the post
      * build and therefore not complete the deliver
      * @throws Exception

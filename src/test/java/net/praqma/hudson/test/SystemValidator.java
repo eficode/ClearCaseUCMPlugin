@@ -103,6 +103,10 @@ public class SystemValidator {
             System.out.println( "[Validating changeset]" );
             doCheckActivities();
         }
+        
+        if(checkBuiltBaselineInFoundation) {
+            _validateBuiltBaselineIsInForundation(shouldItBePartOfFoundation);
+        }
 		
 		/**/
 		
@@ -160,6 +164,8 @@ public class SystemValidator {
 	
 	/* Validate build baseline */
 	private boolean checkBuiltBaseline = false;
+    private boolean shouldItBePartOfFoundation = false;
+    private boolean checkBuiltBaselineInFoundation = false;
 	private PromotionLevel builtBaselineLevel;
 	private Baseline expectedBuiltBaseline;
 	private Boolean builtBaselineIsRecommended;
@@ -172,10 +178,31 @@ public class SystemValidator {
 		this.checkBuiltBaseline = true;
 		this.expectedBuiltBaseline = expected;
 		this.builtBaselineLevel = level;
-		this.builtBaselineIsRecommended = isRecommended;
-		
+		this.builtBaselineIsRecommended = isRecommended;		
 		return this;
 	}
+    
+    private void _validateBuiltBaselineIsInForundation(boolean shouldItBeThere) throws ClearCaseException {
+        Baseline bl = getBuiltBaseline();
+        assertNotNull(bl);
+        bl.load();
+        /* Check that the built baseline is in the foundation of the stream */
+        if(shouldItBeThere) {
+            System.out.println( "[assert] " + bl.getNormalizedName() + " should be part of the stream's foundation");
+            assertTrue(getStream().getFoundationBaselines().contains(bl));
+        } else {
+            System.out.println( "[assert] " + bl.getNormalizedName() + " should NOT be part of the stream's foundation");
+            assertTrue(!getStream().getFoundationBaselines().contains(bl));            
+        }
+    }
+    
+    public SystemValidator validateBuiltBaselineIsInFoundation(boolean shouldItBeThere) {
+        this.checkBuiltBaselineInFoundation = true;
+        this.shouldItBePartOfFoundation = shouldItBeThere;
+        return this;
+    }
+    
+    
 	
 	private void checkBuiltBaseline() throws ClearCaseException {
 		Baseline baseline = getBuiltBaseline();

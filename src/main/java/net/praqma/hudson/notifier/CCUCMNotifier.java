@@ -26,12 +26,16 @@ import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.remoting.VirtualChannel;
 import hudson.scm.SCM;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
+import net.praqma.clearcase.Rebase;
+import net.praqma.clearcase.ucm.entities.Component;
+import net.praqma.hudson.exception.TemplateException;
+import net.praqma.hudson.remoting.RebaseCancelTask;
+import net.praqma.hudson.remoting.RebaseCompleteTask;
 import org.apache.commons.lang.StringUtils;
 
 public class CCUCMNotifier extends Notifier {
@@ -48,6 +52,7 @@ public class CCUCMNotifier extends Notifier {
 	/**
 	 * This indicates whether to let CCUCM run after(true) the job is done or
 	 * before(false)
+     * @return 
 	 */
 	@Override
 	public boolean needsToRunAfterFinalized() {
@@ -89,7 +94,7 @@ public class CCUCMNotifier extends Notifier {
 
 		/* There's a valid baseline, lets process it */
 		if( baseline != null ) {
-			out.println( "Processing baseline" );
+			out.println( String.format ( "%s Processing baseline", "["+Config.nameShort + "]"));
 			status.setErrorMessage( action.getError() );
 
 			try {
@@ -150,14 +155,8 @@ public class CCUCMNotifier extends Notifier {
 	 */
 	private void processBuild( AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, CCUCMBuildAction pstate ) throws NotifierException {
 		Result buildResult = build.getResult();
-
-		VirtualChannel ch = launcher.getChannel();
-
-		if( ch == null ) {
-			logger.fine( "The channel was null" );
-		}
-
-		String workspace = null;
+        
+        String workspace = null;
         FilePath currentWorkspace = build.getExecutor().getCurrentWorkspace();
         try {
             workspace = build.getExecutor().getCurrentWorkspace().absolutize().getRemote();
@@ -209,15 +208,7 @@ public class CCUCMNotifier extends Notifier {
 				if( treatSuccessful && pstate.doCreateBaseline() ) {
 
 					try {
-                        out.println( String.format( "%s Creating baseline on Integration stream.", logShortPrefix ) );
-                        out.println( String.format( "%s Absolute path of remoteWorkspace: %s", logShortPrefix, workspace ) );
-                        
-						pstate.setWorkspace( workspace );
-                                                
-						NameTemplate.validateTemplates( pstate, build.getWorkspace() );
-						String name = NameTemplate.parseTemplate( pstate.getNameTemplate(), pstate, build.getWorkspace() );
-
-						targetbaseline = RemoteUtil.createRemoteBaseline( currentWorkspace, listener, name, pstate.getBaseline().getComponent(), action.getViewPath(), pstate.getBaseline().getUser() );
+                        targetbaseline = createBaselineOnSuccess(workspace, pstate, build, currentWorkspace, pstate.getBaseline().getComponent());
                         action.setCreatedBaseline( targetbaseline );
 						
 					} catch( Exception e ) {
@@ -255,6 +246,7 @@ public class CCUCMNotifier extends Notifier {
 					try {
                         out.println( String.format("%s Trying to cancel the deliver.", logShortPrefix) );
 						//out.print( "[" + Config.nameShort + "] Trying to cancel the deliver. " );
+                        
 						RemoteUtil.completeRemoteDeliver( currentWorkspace, listener, pstate.getBaseline(), pstate.getStream(), action.getViewTag(), action.getViewPath(), false );
 						out.println( "Success." );
 					} catch( Exception e1 ) {
@@ -268,15 +260,52 @@ public class CCUCMNotifier extends Notifier {
 				}
 			}
 		}
-		if( pstate.getPolling().isPollingOther() ) {
+		if( pstate.getPolling().isPollingOther() || pstate.getPolling().isPollingRebase() ) {
 			targetstream = pstate.getStream();
 		}
+        
+        //Complete the rebase
+        try {
+            if( treatSuccessful && pstate.getPolling().isPollingRebase() ) {
+                out.println(String.format("%s The build was a succes, completing rebase", logShortPrefix));
+                build.getWorkspace().act(new RebaseCompleteTask(pstate.getStream()));
+                
+                if(pstate.doCreateBaseline()) {                   
+                    out.println( String.format( "%s Creating baseline on Integration stream.", logShortPrefix ) );
+                    out.println( String.format( "%s Absolute path of remoteWorkspace: %s", logShortPrefix, workspace ) );
+                    pstate.setWorkspace( workspace );
+                    NameTemplate.validateTemplates( pstate, build.getWorkspace() );
+                    String name = NameTemplate.parseTemplate( pstate.getNameTemplate(), pstate, build.getWorkspace() );
+                    targetbaseline = RemoteUtil.createRemoteBaseline( currentWorkspace, name, pstate.getStream(), pstate.getViewPath() );           
+                    action.setCreatedBaseline( targetbaseline );                
+                }
+                
+            } else if ( !treatSuccessful && pstate.getPolling().isPollingRebase()) {
+                out.println(String.format( "%s The build failed, cancelling rebase", logShortPrefix));
+                build.getWorkspace().act(new RebaseCancelTask(pstate.getStream()));
+            }
+        } catch (TemplateException templex) {
+            out.println( String.format("%s %s", logShortPrefix, templex.getMessage() ) );
+            logger.warning( "Failing build because baseline could not be created in poll rebase" );
+            pstate.setRecommend(false);
+            build.setResult( Result.FAILURE );            
+        } catch (Exception ex) {
+            Throwable cause = net.praqma.util.ExceptionUtils.unpackFrom( IOException.class, ex );
+            out.println( String.format( "%s Rebase operation failed", logShortPrefix ) );
+			ExceptionUtils.print( cause, out, true );
+            pstate.setRecommend(false);
+            logger.warning( "Failing build because baseline could not be created in poll rebase" );
+            build.setResult( Result.FAILURE );            
+        }
 
 		/* Remote post build step, common to all types */
 		try {
             logger.fine( String.format( "Remote post build step" ) );
             out.println( String.format( "%s Performing common post build steps",logShortPrefix ) );
-			status = currentWorkspace.act( new RemotePostBuild( buildResult, status, listener, pstate.doMakeTag(), pstate.doRecommend(), pstate.getUnstable(), ( pstate.getPromotionLevel() == null ? true : false ), sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString( build.getNumber() ) ) );
+            
+            //Do not promote source when polling rebase. 
+            boolean skipPromote = pstate.getPromotionLevel() == null || pstate.getPolling().isPollingRebase();
+			status = currentWorkspace.act( new RemotePostBuild( buildResult, status, listener, pstate.doMakeTag(), pstate.doRecommend(), pstate.getUnstable(), skipPromote, sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), pstate.getRebaseTargets() ) );
 		} catch( Exception e ) {
 			status.setStable( false );
             logger.log( Level.WARNING, "", e );
@@ -300,6 +329,17 @@ public class CCUCMNotifier extends Notifier {
 			build.setResult( Result.UNSTABLE );
 		}
 	}
+
+    private Baseline createBaselineOnSuccess(String workspace, CCUCMBuildAction pstate, AbstractBuild<?, ?> build, FilePath currentWorkspace, Component component) throws IOException, TemplateException, InterruptedException {
+        Baseline targetbaseline;
+        out.println( String.format( "%s Creating baseline on Integration stream.", logShortPrefix ) );
+        out.println( String.format( "%s Absolute path of remoteWorkspace: %s", logShortPrefix, workspace ) );
+        pstate.setWorkspace( workspace );
+        NameTemplate.validateTemplates( pstate, build.getWorkspace() );
+        String name = NameTemplate.parseTemplate( pstate.getNameTemplate(), pstate, build.getWorkspace() );
+        targetbaseline = RemoteUtil.createRemoteBaseline( currentWorkspace, name, component, pstate.getViewPath() );
+        return targetbaseline;
+    }
 
 	/**
 	 * This class is used by Hudson to define the plugin.

@@ -5,10 +5,6 @@
       <f:textbox name="CCUCM.stream" value="${scm.stream}"/>
     </f:entry>
 
-    <f:entry title="Component" help="/plugin/clearcase-ucm-plugin/scm/help-component.html">
-      <f:textbox name="CCUCM.component" value="${scm.component}"/>
-    </f:entry>
-
     <f:entry title="Load modules" help="/plugin/clearcase-ucm-plugin/scm/help-loadModules.html">
         <select class="setting-input" name="CCUCM.loadModule">
             <j:set var="modules" value="${descriptor.getLoadModules()}"/>

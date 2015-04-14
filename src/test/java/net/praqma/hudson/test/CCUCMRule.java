@@ -232,7 +232,8 @@ public class CCUCMRule extends JenkinsRule {
 	}
 	
     public FreeStyleProject setupProjectWithASlave( String projectName, PollingMode mode, String component, String stream, boolean recommend, boolean tag, boolean description, boolean forceDeliver, String template ) throws Exception {
-        logger.info( "Setting up build for self polling, recommend:" + recommend + ", tag:" + tag + ", description:" + description );
+        String msg = String.format("Setting up build for with polling mode: %s recommend: %s description: %s tag: %s", mode.getPolling().getType().name(), recommend, description, tag);
+        logger.info(msg);
         System.out.println( "==== [Setting up ClearCase UCM project] ====" );
 		printInfo(projectName, mode.getPolling().getType().name(), component, stream, recommend, tag, description, mode.createBaselineEnabled(), forceDeliver, template, mode.getPromotionLevel() == null ? "ANY" : mode.getPromotionLevel().name());
 		FreeStyleProject project = createFreeStyleProject( "ccucm-" + projectName );
@@ -361,7 +362,7 @@ public class CCUCMRule extends JenkinsRule {
 
         AbstractBuild<?,?> build = null;
 		try {
-			 build = project.scheduleBuild2(0, new Cause.UserIdCause(), action ).get();
+			 build = project.scheduleBuild2(1, new Cause.UserIdCause(), action ).get();
 		} catch( Exception e ) {
             if(!fail) {
                 logger.log(Level.SEVERE, "Build failed...it should not!", e);

@@ -16,6 +16,7 @@ import hudson.model.BuildListener;
 import hudson.model.TaskListener;
 import java.util.logging.Logger;
 import net.praqma.hudson.scm.Polling;
+import net.praqma.util.structure.Tuple;
 
 public abstract class RemoteUtil {
     
@@ -32,10 +33,13 @@ public abstract class RemoteUtil {
 		}
 	}
 
-	public static Baseline createRemoteBaseline( FilePath workspace, BuildListener listener, String baseName, Component component, File view, String username ) throws IOException, InterruptedException {
-        return workspace.act( new CreateRemoteBaseline( baseName, component, view, username, listener ) );
+	public static Baseline createRemoteBaseline( FilePath workspace, String baseName, Component component, File view ) throws IOException, InterruptedException {
+        return workspace.act( new CreateRemoteBaseline( baseName, component, view ) );
 	}
-
+    
+    public static Baseline createRemoteBaseline( FilePath workspace, String baseName, Stream stream, File view ) throws IOException, InterruptedException {
+        return workspace.act( new CreateRemoteBaseline( baseName, stream, view ) );
+	}
 
 	public static UCMEntity loadEntity( FilePath workspace, UCMEntity entity, boolean slavePolling ) throws IOException, InterruptedException {
 		if( slavePolling ) {
@@ -73,5 +77,9 @@ public abstract class RemoteUtil {
             GetRemoteBaselineFromStream t = new GetRemoteBaselineFromStream( component, stream, plevel, multisitePolling, date );
             return t.invoke( null, null );
         }
+    }
+    
+    public static Tuple<List<Baseline>,List<Baseline>> getRemoteRebaseCandidatesFromStream(FilePath workspace, Stream stream, List<String> excludeComponents, Project.PromotionLevel plevel) throws IOException, InterruptedException {
+        return workspace.act(new GetRebaseBaselines(stream, excludeComponents, plevel));
     }
 }

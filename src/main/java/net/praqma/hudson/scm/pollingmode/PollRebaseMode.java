@@ -16,40 +16,50 @@ import org.kohsuke.stapler.DataBoundSetter;
  *
  * @author Mads
  */
-public class PollChildMode extends PollingMode implements BaselineCreationEnabled {
+public class PollRebaseMode extends PollingMode implements BaselineCreationEnabled {
     
+    private String excludeList = "";
     private boolean createBaseline = false;
     
     @DataBoundConstructor
-    public PollChildMode(String levelToPoll) {
+    public PollRebaseMode(String levelToPoll) {
         super(levelToPoll);
-        polling = new Polling(Polling.PollingType.childs);        
+        polling = new Polling(Polling.PollingType.rebase);
     }
 
     /**
-     * @return the createBaseline
+     * @return the excludeList
      */
-    @Override
-    public boolean isCreateBaseline() {
-        return createBaseline;
+    public String getExcludeList() {
+        return excludeList;
     }
 
     /**
-     * @param createBaseline the createBaseline to set
+     * @param excludeList the excludeList to set
      */
+    @DataBoundSetter
+    public void setExcludeList(String excludeList) {
+        this.excludeList = excludeList;
+    }
+    
     @DataBoundSetter
     public void setCreateBaseline(boolean createBaseline) {
         this.createBaseline = createBaseline;
     }
+
+    @Override
+    public boolean isCreateBaseline() {
+        return createBaseline;
+    }
     
     @Extension
-    public static final class PollChildDescriptor extends PollingModeDescriptor<PollingMode> {
+    public static final class PollRebaseModeDescriptor extends PollingModeDescriptor<PollingMode> {
 
-        public PollChildDescriptor() { }
-                
+        public PollRebaseModeDescriptor() { }
+        
         @Override
         public String getDisplayName() {
-            return "Poll child";
+            return "Poll rebase";
         }
         
         public ListBoxModel doFillLevelToPollItems() {
@@ -57,8 +67,9 @@ public class PollChildMode extends PollingMode implements BaselineCreationEnable
             for(String s : Config.getLevels()) {
                 model.add(s);
             }
+            
             return model;
         }
-        
+    
     }
 }
