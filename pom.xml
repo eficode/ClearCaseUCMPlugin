@@ -418,6 +418,12 @@
             <artifactId>praqmajutils</artifactId>
             <version>0.1.33</version>
         </dependency>
+        
+        <dependency>            
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>compatibility-action-storage</artifactId>
+            <version>1.0</version>
+        </dependency>
 
         <dependency>
             <groupId>net.praqma</groupId>

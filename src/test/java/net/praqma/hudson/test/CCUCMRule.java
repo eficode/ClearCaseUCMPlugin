@@ -197,9 +197,9 @@ public class CCUCMRule extends JenkinsRule {
             return project;
         }
     }
-
     
     private void printInfo(String projectName, String type, String component, String stream, boolean recommend, boolean tag, boolean description, boolean createBaseline, boolean forceDeliver, String template, String promotionLevel) {
+        System.out.println( " * Project name   : " + projectName);
         System.out.println( " * Stream         : " + stream );
 		System.out.println( " * Component      : " + component );
 		System.out.println( " * Level          : " + promotionLevel );
@@ -243,7 +243,7 @@ public class CCUCMRule extends JenkinsRule {
         System.out.println( " * Slave          : " + slave.getSelfLabel().getName() );
 		System.out.println( "============================================" );
         
-		this.scm = new CCUCMScm( component, "ALL", false, mode, stream, "successful", template, forceDeliver, recommend, tag, description, "", true, false, false);
+		this.scm = new CCUCMScm(component, "ALL", false, mode, stream, "successful", template, forceDeliver, recommend, tag, description, "", true, false, false);
 		project.setScm( this.scm );
 		
 		return project;

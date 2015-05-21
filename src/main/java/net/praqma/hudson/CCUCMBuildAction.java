@@ -11,11 +11,13 @@ import java.util.ArrayList;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.scm.Polling;
 import net.praqma.hudson.scm.Unstable;
+import net.praqma.hudson.scm.pollingmode.PollingMode;
 
 public class CCUCMBuildAction implements Action {
 
     private AbstractBuild<?, ?> build;
     private transient TaskListener listener;
+    private PollingMode mode;
 	
 	private Stream stream;
 	private Component component;
@@ -354,7 +356,6 @@ public class CCUCMBuildAction implements Action {
         return stream + ", " + component + ", " + promotionLevel + " = " + baseline;
     }
 
-
     public String stringify() {
         StringBuilder sb = new StringBuilder();        
         sb.append( "Stream          : " + stream + "\n" );
@@ -387,6 +388,20 @@ public class CCUCMBuildAction implements Action {
 
     public void setNewFoundationStructure(List<Baseline> newFoundationStructure) {
         this.newFoundationStructure = newFoundationStructure;
+    }
+
+    /**
+     * @return the mode
+     */
+    public PollingMode getMode() {
+        return mode;
+    }
+
+    /**
+     * @param mode the mode to set
+     */
+    public void setMode(PollingMode mode) {
+        this.mode = mode;
     }
     
 }
