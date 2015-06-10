@@ -20,7 +20,6 @@ import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.test.LoggerRule;
 import net.praqma.hudson.test.SystemValidator;
 import net.praqma.util.test.junit.TestDescription;
-import net.praqma.util.debug.Logger;
 
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
@@ -28,10 +27,7 @@ import net.praqma.hudson.scm.pollingmode.PollChildMode;
 
 
 public class GetBaselinesTest extends BaseTestClass {
-	
-	@ClassRule
-	public static LoggerRule loggerRule = new LoggerRule();
-	
+    
 	@Rule
 	public ClearCaseRule ccenv = new ClearCaseRule( "ccucm-child-getbaselines" );
 		

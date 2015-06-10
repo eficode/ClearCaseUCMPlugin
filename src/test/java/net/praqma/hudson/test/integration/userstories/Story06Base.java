@@ -33,8 +33,10 @@ public abstract class Story06Base extends BaseTestClass {
 
     @Rule
     public ClearCaseRule ccenv = new ClearCaseRule("ccucm-story06", "setup-story5.xml");
+    
     @Rule
     public DescriptionRule desc = new DescriptionRule();
+    
     private static final Logger logger = Logger.getLogger(Story06Base.class.getName());
 
     /**
@@ -66,6 +68,7 @@ public abstract class Story06Base extends BaseTestClass {
             //project.getBuildersList().add( builder );
             project.getPublishersList().remove(CCUCMNotifier.class);
             ((CCUCMScm) project.getScm()).setAddPostBuild(false);
+            project.save();
         }
 
         AbstractBuild<?, ?> firstbuild = jenkins.buildProject(project, false);

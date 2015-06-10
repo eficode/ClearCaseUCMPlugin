@@ -26,9 +26,9 @@ public class CreateRemoteBaseline implements FileCallable<Baseline> {
         this.stream = null;
 	}
     
-    public CreateRemoteBaseline( String baseName, Stream stream, File view ) {
+    public CreateRemoteBaseline( String baseName, Stream stream, Component component, File view ) {
 		this.baseName = baseName;
-		this.component = null;
+		this.component = component;
 		this.view = view;
         this.stream = stream;
 	}
@@ -38,10 +38,10 @@ public class CreateRemoteBaseline implements FileCallable<Baseline> {
         
 		Baseline bl = null;        
 		try {
-            if(component != null) {
+            if(stream == null) {
                 bl = Baseline.create( baseName, component, view, LabelBehaviour.INCREMENTAL, false );
             } else {
-                bl = Baseline.create(stream, baseName, view, LabelBehaviour.INCREMENTAL, false);
+                bl = Baseline.create(stream, component, baseName, view, LabelBehaviour.INCREMENTAL, false);
             }
 		} catch( Exception e ) {
 			throw new IOException( "Unable to create Baseline:" + e.getMessage(), e );

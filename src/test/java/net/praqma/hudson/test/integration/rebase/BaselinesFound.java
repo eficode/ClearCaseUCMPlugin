@@ -8,7 +8,6 @@ import org.junit.Test;
 import hudson.model.AbstractBuild;
 import hudson.model.Result;
 import java.io.File;
-import java.util.List;
 import java.util.logging.Logger;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.ucm.entities.Baseline;
@@ -30,7 +29,6 @@ public class BaselinesFound extends BaseTestClass {
       
     private static final Logger logger = Logger.getLogger(BaselinesFound.class.getName());
     
-    
     @Rule
     public ClearCaseRule ccenv = new ClearCaseRule("ccucm", "setup-interproject.xml" );
     @Rule
@@ -38,6 +36,7 @@ public class BaselinesFound extends BaseTestClass {
 
     public AbstractBuild<?, ?> initiateBuild(String projectName, boolean recommend, boolean tag, boolean description, boolean fail, boolean mkbl) throws Exception {
         PollRebaseMode mode = new PollRebaseMode("INITIAL");
+        mode.setComponent("_System@" + ccenv.getPVob());
         mode.setCreateBaseline(mkbl);
         return jenkins.initiateBuild(projectName, mode, "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), recommend, tag, description, fail, true);
     }
@@ -82,6 +81,22 @@ public class BaselinesFound extends BaseTestClass {
             .validateBuild(Result.SUCCESS)
             .validateBuildView()
             .validateCreatedBaseline(true)
+            .validateBuiltBaselineIsInFoundation(true)
+            .validateBuiltBaseline(PromotionLevel.INITIAL, baseline, false)
+            .validate();
+    }
+    
+    @Test
+    @ClearCaseUniqueVobName(name = "rebase-mkbl-rec")
+    @TestDescription(title = "Rebase polling, succes, recommend", text = "rebase baseline available, create a baseline")
+    public void testBasicMkBlRecommend() throws Exception {
+        Baseline baseline = getNewBaseline();
+        
+        AbstractBuild<?, ?> build = initiateBuild("rebase-mkbl-rec" + ccenv.getUniqueName(), true, false, false, false, true);
+        SystemValidator validator = new SystemValidator(build)
+            .validateBuild(Result.SUCCESS)
+            .validateBuildView()
+            .validateCreatedBaseline(true, true)
             .validateBuiltBaselineIsInFoundation(true)
             .validateBuiltBaseline(PromotionLevel.INITIAL, baseline, false)
             .validate();
