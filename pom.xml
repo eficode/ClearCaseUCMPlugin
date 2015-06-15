@@ -416,13 +416,13 @@
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>praqmajutils</artifactId>
-            <version>0.1.33</version>
+            <version>0.1.35</version>
         </dependency>
 
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>praqmajutils</artifactId>
-            <version>0.1.33</version>
+            <version>0.1.35</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -430,18 +430,18 @@
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>cool</artifactId>
-            <version>0.6.39</version>
+            <version>0.6.40</version>
             <type>jar</type>
         </dependency>
 
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>cool</artifactId>
-            <version>0.6.39</version>
+            <version>0.6.40</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
-
+        
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

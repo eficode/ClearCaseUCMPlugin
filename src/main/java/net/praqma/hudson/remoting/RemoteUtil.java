@@ -37,8 +37,8 @@ public abstract class RemoteUtil {
         return workspace.act( new CreateRemoteBaseline( baseName, component, view ) );
 	}
     
-    public static Baseline createRemoteBaseline( FilePath workspace, String baseName, Stream stream, File view ) throws IOException, InterruptedException {
-        return workspace.act( new CreateRemoteBaseline( baseName, stream, view ) );
+    public static Baseline createRemoteBaseline( FilePath workspace, String baseName, Stream stream, Component component, File view ) throws IOException, InterruptedException {
+        return workspace.act( new CreateRemoteBaseline( baseName, stream, component, view ) );
 	}
 
 	public static UCMEntity loadEntity( FilePath workspace, UCMEntity entity, boolean slavePolling ) throws IOException, InterruptedException {

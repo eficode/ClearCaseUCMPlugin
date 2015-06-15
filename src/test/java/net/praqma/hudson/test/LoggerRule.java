@@ -13,7 +13,7 @@ public class LoggerRule extends ExternalResource {
 	
 	@Override
 	protected void before() {
-		System.out.println( " ==== Setting up logger" );
+		System.out.println( "[LoggerRule] Setting up logger" );
 		appender = new ConsoleAppender();
 		Logger.addAppender( appender );
 		Logger.setMinLogLevel( LogLevel.DEBUG );
@@ -21,7 +21,7 @@ public class LoggerRule extends ExternalResource {
 	
 	@Override
 	protected void after() {
-		System.out.println( " ==== Removing " + appender );
+		System.out.println( "[LoggerRule] Removing " + appender );
 		Logger.removeAppender( appender );
 	}
 }

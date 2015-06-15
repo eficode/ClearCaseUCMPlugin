@@ -6,7 +6,10 @@
 package net.praqma.hudson.scm.pollingmode;
 
 import hudson.model.Descriptor;
+import hudson.util.FormValidation;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
+import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 /**
@@ -21,4 +24,14 @@ public abstract class PollingModeDescriptor<T extends PollingMode> extends Descr
         return req.bindJSON(PollingMode.class, formData);
     }
     
+    public FormValidation doCheckComponent(@QueryParameter String component) {
+        if(StringUtils.isBlank(component)) {
+            return FormValidation.error("Component field cannot be empty");
+        } else {    
+            if(!component.contains("@\\")) {
+                return FormValidation.errorWithMarkup("Components must be entered with the correct syntax. <em>Syntax: [component]@[PVOB]</em>");
+            } 
+        }        
+        return FormValidation.ok();
+    }       
 }

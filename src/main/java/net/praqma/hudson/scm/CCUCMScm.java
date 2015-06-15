@@ -1209,6 +1209,13 @@ public class CCUCMScm extends SCM {
     }
 
     /**
+     * @param stream the stream to set
+     */
+    public void setStream(String stream) {
+        this.stream = stream;
+    }
+
+    /**
      * This class is used to describe the plugin to Hudson
      *
      * @author Troels Selch
@@ -1275,6 +1282,7 @@ public class CCUCMScm extends SCM {
 
         /**
          * This is called by Hudson to discover the plugin name
+         * @return The name to be displayed when the user selects the SCM
          */
         @Override
         public String getDisplayName() {
@@ -1299,9 +1307,20 @@ public class CCUCMScm extends SCM {
             } catch (TemplateException e) {
                 throw FormValidation.error("Does not appear to be a valid template: " + e.getMessage());
             }
+        
         }
         
-
+        public FormValidation doCheckStream(@QueryParameter String stream) {
+            if(StringUtils.isBlank(stream)) {
+                return FormValidation.error("Stream field cannot be empty");
+            } else {    
+                if(!stream.contains("@\\")) {
+                    return FormValidation.errorWithMarkup("Streams must be defined with the correct syntax. <em>Syntax: [stream]@[vob]</em>");
+                } 
+            }        
+            return FormValidation.ok();
+        }
+    
         @Override
         public CCUCMScm newInstance(StaplerRequest req, JSONObject formData) throws Descriptor.FormException {
             CCUCMScm temp;

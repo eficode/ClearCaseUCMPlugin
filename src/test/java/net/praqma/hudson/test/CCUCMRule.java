@@ -362,7 +362,7 @@ public class CCUCMRule extends JenkinsRule {
 
         AbstractBuild<?,?> build = null;
 		try {
-			 build = project.scheduleBuild2(1, new Cause.UserIdCause(), action ).get();
+            build = project.scheduleBuild2(0, new Cause.UserIdCause(), action ).get();
 		} catch( Exception e ) {
             if(!fail) {
                 logger.log(Level.SEVERE, "Build failed...it should not!", e);
@@ -371,7 +371,6 @@ public class CCUCMRule extends JenkinsRule {
 			logger.info( "Build failed, and it should!");
 		}
         
-        waitUntilNoActivityUpTo(120000);
    
         PrintStream out = new PrintStream( new File( outputDir, "jenkins." + getSafeName( project.getDisplayName() ) + "." + build.getNumber() + ".log" ) );
 
