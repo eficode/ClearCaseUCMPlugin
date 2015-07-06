@@ -64,7 +64,6 @@ public class BaselinesFound extends BaseTestClass {
 
         AbstractBuild<?, ?> build = initiateBuild("rec-" + ccenv.getUniqueName(), true, false, false, false);
         
-        //Question: Why do we not validate that the BUILT baseline in promoted?? 
         SystemValidator validator = new SystemValidator(build)
                 .validateBuild(Result.SUCCESS)
                 .validateBuildView()

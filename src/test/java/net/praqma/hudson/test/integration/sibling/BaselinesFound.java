@@ -6,6 +6,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import hudson.model.AbstractBuild;
+import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
@@ -14,6 +15,7 @@ import net.praqma.hudson.test.SystemValidator;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.scm.pollingmode.PollSiblingMode;
+import net.praqma.util.test.junit.DescriptionRule;
 import net.praqma.util.test.junit.TestDescription;
 
 
@@ -21,7 +23,10 @@ public class BaselinesFound extends BaseTestClass {
 	
 	@Rule
 	public ClearCaseRule ccenv = new ClearCaseRule( "ccucm", "setup-interproject.xml" );
-		
+    
+    @Rule
+    public DescriptionRule desc = new DescriptionRule();
+    	
 	public AbstractBuild<?, ?> initiateBuild( String projectName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
         PollSiblingMode mode = new PollSiblingMode("INTIAL");
         mode.setCreateBaseline(true);
@@ -37,6 +42,8 @@ public class BaselinesFound extends BaseTestClass {
 	}
 
 	@Test
+    @TestDescription(text = "Basic poll sibling, default options", title = "Poll sibling")
+    @ClearCaseUniqueVobName(name="sib-basic")
 	public void basicSibling() throws Exception {
 		
 		Stream one = ccenv.context.streams.get( "one_int" );
@@ -57,6 +64,8 @@ public class BaselinesFound extends BaseTestClass {
 	}
     
     @Test
+    @TestDescription(text = "Poll sibling with hyperlinks", title = "Poll sibling, using hyperlins")
+    @ClearCaseUniqueVobName(name = "sib-hlink-basic")
 	public void basicSiblingUsingHlink() throws Exception {
 	
 		/* The baseline that should be built */
@@ -74,6 +83,7 @@ public class BaselinesFound extends BaseTestClass {
 	}
 
     @Test
+    @ClearCaseUniqueVobName(name = "sib-hlink-rec")
     @TestDescription(title = "Poll sibling with hyperlink", text = "poll sibling with hyperlink, build success, promote baseline and recommend")
 	public void basicSiblingUsingHlinkRecommend() throws Exception {
 	
@@ -91,6 +101,7 @@ public class BaselinesFound extends BaseTestClass {
 	}
 
     @Test
+    @ClearCaseUniqueVobName(name = "sib-hlink-norec")
     @TestDescription(title = "Poll sibling", text = "poll sibling, build fails, reject baseline, no baseline created, no recommend")
 	public void basicSiblingUsingHlinkDoNotRecommend() throws Exception {
         
