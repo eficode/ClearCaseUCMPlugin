@@ -25,7 +25,7 @@ public class BaselinesFound extends BaseTestClass {
 	@Rule
 	public ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );
 	
-	private static Logger logger = Logger.getLogger( BaselinesFound.class.getName() );
+	private static final Logger logger = Logger.getLogger( BaselinesFound.class.getName() );
 	
 	public AbstractBuild<?, ?> initiateBuild( String projectName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
         PollSelfMode mode = new PollSelfMode("INTIAL");

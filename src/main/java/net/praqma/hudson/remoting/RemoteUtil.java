@@ -70,7 +70,6 @@ public abstract class RemoteUtil {
 
 
     public static List<Baseline> getRemoteBaselinesFromStream( FilePath workspace, Component component, Stream stream, Project.PromotionLevel plevel, boolean slavePolling, boolean multisitePolling, Date date ) throws IOException, InterruptedException {
-        
         if( slavePolling ) {
             return workspace.act( new GetRemoteBaselineFromStream( component, stream, plevel, multisitePolling, date ) );
         } else {

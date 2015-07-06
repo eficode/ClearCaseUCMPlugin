@@ -1,6 +1,5 @@
 package net.praqma.hudson;
 
-import hudson.Extension;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.model.listeners.RunListener;

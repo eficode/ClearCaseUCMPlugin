@@ -7,7 +7,6 @@ import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.hudson.scm.pollingmode.PollSelfMode;
 import net.praqma.hudson.test.BaseTestClass;
 import net.praqma.util.debug.Logger;
-import net.praqma.util.test.junit.TestDescription;
 import static org.junit.Assert.*;
 import org.junit.Rule;
 import org.junit.Test;

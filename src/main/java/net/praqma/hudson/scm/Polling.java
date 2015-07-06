@@ -1,5 +1,7 @@
 package net.praqma.hudson.scm;
 
+import hudson.FilePath.FileCallable;
+import hudson.model.Result;
 import java.io.Serializable;
 
 public class Polling implements Serializable {
@@ -10,6 +12,7 @@ public class Polling implements Serializable {
 		childs,
 		siblings,
         siblingshlink,
+        subscribe,
         rebase
 	}
 	
@@ -32,6 +35,8 @@ public class Polling implements Serializable {
             this.type = PollingType.siblingshlink;
         } else if (polling.equals("rebase")) {
             this.type = PollingType.rebase;
+        } else if (polling.equals("subscribe")) {
+            this.type = PollingType.subscribe;
 		} else {
 			this.type = PollingType.siblings;
 		}
@@ -40,6 +45,10 @@ public class Polling implements Serializable {
 	public boolean isPollingChilds() {
 		return this.type.equals(PollingType.childs);
 	}
+    
+    public boolean isPollingSubscribe() {
+        return this.type.equals(PollingType.subscribe);
+    }
     
     public PollingType getType() {
         return this.type;

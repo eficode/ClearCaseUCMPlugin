@@ -13,7 +13,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 /**
- *
  * @author Mads
  */
 public class PollChildMode extends PollingMode implements BaselineCreationEnabled {

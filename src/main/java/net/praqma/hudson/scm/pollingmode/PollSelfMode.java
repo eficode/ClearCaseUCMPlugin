@@ -22,6 +22,11 @@ public class PollSelfMode extends PollingMode {
         super(levelToPoll);
         polling = new Polling(Polling.PollingType.self);
     }
+
+    @Override
+    public boolean isPromotionSkipped() {
+        return this.getPromotionLevel() == null;
+    }
     
     @Extension
     public static final class PollSelfDescriptor extends PollingModeDescriptor<PollingMode> {

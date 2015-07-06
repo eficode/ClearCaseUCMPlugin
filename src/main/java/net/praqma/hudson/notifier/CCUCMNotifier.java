@@ -9,7 +9,6 @@ import hudson.AbortException;
 import org.kohsuke.stapler.StaplerRequest;
 
 import net.praqma.clearcase.ucm.entities.Baseline;
-import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.Config;
@@ -31,7 +30,6 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
-import net.praqma.clearcase.Rebase;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.hudson.exception.TemplateException;
 import net.praqma.hudson.remoting.RebaseCancelTask;
@@ -96,7 +94,6 @@ public class CCUCMNotifier extends Notifier {
 		if( baseline != null ) {
 			out.println( String.format ( "%s Processing baseline", "["+Config.nameShort + "]"));
 			status.setErrorMessage( action.getError() );
-
 			try {
 				processBuild( build, launcher, listener, action );
 				if( action.doSetDescription() ) {
@@ -108,7 +105,6 @@ public class CCUCMNotifier extends Notifier {
                         logger.fine( String.format( "Setting build description to: %s", status.getBuildDescr() ) );
 						build.setDescription( status.getBuildDescr() );
 					}
-
 				}
 
 			} catch( NotifierException ne ) {
@@ -175,12 +171,6 @@ public class CCUCMNotifier extends Notifier {
 		
 		CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
 
-		/* Initialize variables for post build steps */
-		Stream targetstream = null;
-		targetstream = pstate.getBaseline().getStream();
-		Stream sourcestream = targetstream;
-		Baseline sourcebaseline = pstate.getBaseline();
-		Baseline targetbaseline = sourcebaseline;
         logger.fine(String.format("NTBC: %s",pstate.doNeedsToBeCompleted()));
         
         /*
@@ -208,8 +198,8 @@ public class CCUCMNotifier extends Notifier {
 				if( treatSuccessful && pstate.doCreateBaseline() ) {
 
 					try {
-                        targetbaseline = createBaselineOnSuccess(workspace, pstate, build, currentWorkspace, pstate.getBaseline().getComponent());
-                        action.setCreatedBaseline( targetbaseline );
+                        Baseline succesBaseline = createBaselineOnSuccess(workspace, pstate, build, currentWorkspace, pstate.getBaseline().getComponent());
+                        action.setCreatedBaseline( succesBaseline );
 						
 					} catch( Exception e ) {
 						ExceptionUtils.print( e, out, false );
@@ -260,9 +250,6 @@ public class CCUCMNotifier extends Notifier {
 				}
 			}
 		}
-		if( pstate.getPolling().isPollingOther() || pstate.getPolling().isPollingRebase() ) {
-			targetstream = pstate.getStream();
-		}
         
         //Complete the rebase
         try {
@@ -276,8 +263,8 @@ public class CCUCMNotifier extends Notifier {
                     pstate.setWorkspace( workspace );
                     NameTemplate.validateTemplates( pstate, build.getWorkspace() );
                     String name = NameTemplate.parseTemplate( pstate.getNameTemplate(), pstate, build.getWorkspace() );
-                    targetbaseline = RemoteUtil.createRemoteBaseline( currentWorkspace, name, pstate.getStream(), pstate.getComponent(), pstate.getViewPath() );           
-                    action.setCreatedBaseline( targetbaseline );                
+                    Baseline createdRebaseBaseline = RemoteUtil.createRemoteBaseline( currentWorkspace, name, pstate.getStream(), pstate.getComponent(), pstate.getViewPath() );
+                    action.setCreatedBaseline( createdRebaseBaseline );                
                 }
                 
             } else if ( !treatSuccessful && pstate.getPolling().isPollingRebase()) {
@@ -303,15 +290,13 @@ public class CCUCMNotifier extends Notifier {
             logger.fine( String.format( "Remote post build step" ) );
             out.println( String.format( "%s Performing common post build steps",logShortPrefix ) );
             
-            //Do not promote source when polling rebase. 
-            boolean skipPromote = pstate.getPromotionLevel() == null || pstate.getPolling().isPollingRebase();
-			status = currentWorkspace.act( new RemotePostBuild( buildResult, status, listener, pstate.doMakeTag(), pstate.doRecommend(), pstate.getUnstable(), skipPromote, sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), pstate.getRebaseTargets() ) );
+            status = currentWorkspace.act(pstate.getMode().postBuildFinalizer(build, listener, status));
+			//status = currentWorkspace.act( new RemotePostBuild( buildResult, status, listener, pstate.doMakeTag(), pstate.doRecommend(), pstate.getUnstable(), skipPromote, sourcebaseline, targetbaseline, sourcestream, targetstream, build.getParent().getDisplayName(), Integer.toString( build.getNumber() ), pstate.getRebaseTargets() ) );
 		} catch( Exception e ) {
 			status.setStable( false );
             logger.log( Level.WARNING, "", e );
             out.println( String.format( "%s Error: Post build failed", logShortPrefix ) );
 			Throwable cause = net.praqma.util.ExceptionUtils.unpackFrom( IOException.class, e );
-
 			ExceptionUtils.print( cause, out, true );
 		}
 
@@ -340,7 +325,7 @@ public class CCUCMNotifier extends Notifier {
         targetbaseline = RemoteUtil.createRemoteBaseline( currentWorkspace, name, component, pstate.getViewPath() );
         return targetbaseline;
     }
-
+    
 	/**
 	 * This class is used by Hudson to define the plugin.
 	 * 

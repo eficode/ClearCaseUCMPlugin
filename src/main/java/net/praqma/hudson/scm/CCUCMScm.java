@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import jenkins.model.Jenkins;
+import net.praqma.clearcase.exceptions.CleartoolException;
 
 import net.praqma.clearcase.exceptions.DeliverException;
 import net.praqma.clearcase.exceptions.DeliverException.Type;
@@ -31,6 +32,7 @@ import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.Config;
+import net.praqma.hudson.PromotionListAction;
 import net.praqma.hudson.Util;
 import net.praqma.hudson.exception.CCUCMException;
 import net.praqma.hudson.exception.DeliverNotCancelledException;
@@ -49,6 +51,7 @@ import net.praqma.hudson.scm.pollingmode.PollChildMode;
 import net.praqma.hudson.scm.pollingmode.PollRebaseMode;
 import net.praqma.hudson.scm.pollingmode.PollSelfMode;
 import net.praqma.hudson.scm.pollingmode.PollSiblingMode;
+import net.praqma.hudson.scm.pollingmode.PollSubscribeMode;
 import net.praqma.hudson.scm.pollingmode.PollingMode;
 import net.praqma.util.execute.AbnormalProcessTerminationException;
 import net.praqma.util.structure.Tuple;
@@ -262,15 +265,21 @@ public class CCUCMScm extends SCM {
             }
         } else {
             out.println("[" + Config.nameShort + "] Polling streams: " + _getPolling().toString());
-            try {
-                resolveBaseline(workspace, build.getProject(), action, listener);
+            try {                
+                //Set the result
+                Result r = resolveBaseline(build, build.getProject(), action, listener);
+                if(r != null) {
+                    build.setResult(r);
+                }
             } catch (CCUCMException e) {
+
                 logger.warning(e.getMessage());
                 /* If the promotion level is not set, ANY, use the last found Baseline */
-                if (_getPlevel() == null) {
+                /* This also applies if you're configured to forward to the newest */
+                if (isUseLatestAlways(mode)) {
                     logger.fine("Promotion level was null [=ANY], finding the last built baseline");
                     CCUCMBuildAction last = getLastAction(build.getProject());
-                    if (action != null) {
+                    if (last != null) {
                         action.setBaseline(last.getBaseline());
                     } else {
                         build.setDescription("No valid baselines found");
@@ -302,7 +311,7 @@ public class CCUCMScm extends SCM {
         /* If a baseline is found */
         if (action.getBaseline() != null) {
             out.println("[" + Config.nameShort + "] Using " + action.getBaseline().getNormalizedName());
-            if (_getPolling().isPollingSelf() || !_getPolling().isPolling()) {
+            if (_getPolling().isPollingSelf() || !_getPolling().isPolling() || _getPolling().isPollingSubscribe()) {
                 logger.fine("Initializing workspace");
                 result = initializeWorkspace(build, workspace, changelogFile, listener, action);
             } else {
@@ -456,6 +465,9 @@ public class CCUCMScm extends SCM {
                 logger.log(Level.SEVERE, "Unable to begin rebase on stream"+state.getStream(), ex);
                 throw new AbortException("Unable to begin rebase on stream "+state.getStream());
             } 
+        //With poll subscribe we can already now determine the build status.
+        } else if(_getPolling().isPollingSubscribe()) {
+            
         }
 
         logger.fine("ENDING POSTCHECKOUT");
@@ -473,6 +485,12 @@ public class CCUCMScm extends SCM {
         this.addPostBuild = addPostBuild;
     }
 
+    /**
+     * This method validates the naming template that has been selected for when a new baseline is created by the plugin
+     * Furthermore there is a check to seel
+     * @param listener
+     * @return 
+     */
     private boolean checkInput(TaskListener listener) {
         PrintStream out = listener.getLogger();
         out.println("[" + Config.nameShort + "] Verifying input");
@@ -486,7 +504,7 @@ public class CCUCMScm extends SCM {
                 if (nameTemplate.matches("^\".+\"$")) {
                     nameTemplate = nameTemplate.substring(1, nameTemplate.length() - 1);
                 }
-
+                
                 try {
                     NameTemplate.testTemplate(nameTemplate);
                 } catch (TemplateException e) {
@@ -499,17 +517,6 @@ public class CCUCMScm extends SCM {
             }
             
         }
-
-        /* Check polling vs plevel */
-        if (_getPlevel() == null) {
-            if (_getPolling().isPollingSelf()) {
-                return true;
-            } else {
-                out.println("[" + Config.nameShort + "] You cannot poll any on other than self");
-                return false;
-            }
-        }
-
         return true;
     }
 
@@ -612,20 +619,21 @@ public class CCUCMScm extends SCM {
      * @param listener
      * @throws CCUCMException is thrown if no valid baselines are found
      */
-    private void resolveBaseline(FilePath workspace, AbstractProject<?, ?> project, CCUCMBuildAction action, BuildListener listener) throws IOException, InterruptedException, CCUCMException {
+    private Result resolveBaseline(AbstractBuild<?,?> build, AbstractProject<?, ?> project, CCUCMBuildAction action, BuildListener listener) throws IOException, InterruptedException, CCUCMException {
+        Result r = null;
         logger.fine("Resolving Baseline from the Stream " + action.getStream().getNormalizedName());
         PrintStream out = listener.getLogger();
 
         printParameters(out);
 
         /* The Stream must be loaded */
-        action.setStream((Stream) RemoteUtil.loadEntity(workspace, action.getStream(), getSlavePolling()));
+        action.setStream((Stream) RemoteUtil.loadEntity(build.getWorkspace(), action.getStream(), getSlavePolling()));
 
         List<Baseline> baselines = null;
 
         /* We need to discriminate on promotion level, JENKINS-16620 */
         Date date = null;
-        if (_getPlevel() == null) {
+        if (isUseLatestAlways(mode)) {
             CCUCMBuildAction lastAction = getLastAction(project);
             if (lastAction != null) {
                 date = lastAction.getBaseline().getDate();
@@ -636,13 +644,54 @@ public class CCUCMScm extends SCM {
         /* Old skool self polling */        
 
         if (_getPolling().isPollingSelf()) {
-            baselines = getValidBaselinesFromStream(workspace, _getPlevel(), action.getStream(), action.getComponent(), date);
+            baselines = getValidBaselinesFromStream(build.getWorkspace(), _getPlevel(), action.getStream(), action.getComponent(), date);
         } else if(_getPolling().isPollingOther()) {
-            baselines = getBaselinesFromStreams(workspace, listener, out, action.getStream(), action.getComponent(), _getPolling(), date);
+            baselines = getBaselinesFromStreams(build.getWorkspace(), listener, out, action.getStream(), action.getComponent(), _getPolling(), date);
+        } else if(_getPolling().isPollingSubscribe()) {            
+            try {
+                //Poll self method of finding baselines
+                List<Baseline> currentBls = RemoteUtil.getRemoteBaselinesFromStream(build.getWorkspace(), action.getComponent(), action.getStream(), _getPlevel(), this.getSlavePolling(), this.getMultisitePolling(), date);
+                
+                //Get our candidate baseline
+                Baseline blCandidate = selectBaseline(currentBls, mode, build.getWorkspace());
+                if(blCandidate != null) {
+                    logger.fine( String.format( "Examining baseline candidate %s", blCandidate ) );
+                }
+                
+                //Get baselines on the currently selected components
+                PollSubscribeMode subMode = (PollSubscribeMode)mode;
+                List<Baseline> consideredBaselines = subMode.getBaselinesToConsider(blCandidate, build.getWorkspace(), getSlavePolling());
+                
+                //We only promote those baselines that was created as a consequence of the parent. That means that any labelled baselines should get matched.
+                //This is done by convention.
+                ArrayList<Baseline> selections = new ArrayList<Baseline>();                
+                if(blCandidate != null) {
+                    for(Baseline blcforprom : consideredBaselines) {
+                         if(blcforprom.getShortname().startsWith(blCandidate.getShortname())) {
+                             selections.add(blcforprom);
+                         }
+                    }                    
+                }
+                
+                //Add these baselines to an action.
+                build.addAction(new PromotionListAction(selections));
+                
+
+                Tuple<Result,List<Baseline>> rez = getValidBaselinesFromStreamWithSubscribe(currentBls, consideredBaselines, build.getWorkspace(), getSlavePolling());
+                baselines = rez.t2;
+                r = rez.t1;
+                
+            } catch (UnableToInitializeEntityException ex) {
+                logger.log(Level.SEVERE, "Error in resolveBaseline, unable to initialize entity", ex);
+                throw new IOException("Error in resolveBaseline, unable to initialize entity", ex);
+            } catch (CleartoolException ex) {
+                logger.log(Level.SEVERE, "Error in resolveBaseline, cleartool exception", ex);
+                throw new IOException("Error in resolveBaseline, cleartool exception", ex);
+            }
         } else {            
             PollRebaseMode md = (PollRebaseMode)mode;
-            List<String> parsedList = parseExclusionList(workspace, md.getExcludeList());
-            Tuple<List<Baseline>,List<Baseline>> results = getBaselinesForPollRebase(workspace, listener, action.getStream(), parsedList);
+            List<String> parsedList = parseExclusionList(build.getWorkspace(), md.getExcludeList());
+            Tuple<List<Baseline>,List<Baseline>> results = getBaselinesForPollRebase(build.getWorkspace(), listener, action.getStream(), parsedList);
             baselines = results.t1;
             action.setRebaseTargets(baselines);
             action.setNewFoundationStructure(results.t2);            
@@ -661,7 +710,9 @@ public class CCUCMScm extends SCM {
         
 
         /* Select and load baseline */
-        action.setBaseline(selectBaseline(baselines, _getPlevel(), workspace));
+        Baseline blSelected = selectBaseline(baselines, mode, build.getWorkspace());
+        action.setBaseline(blSelected);
+        
         
         /* Print the baselines to jenkins out */
         printBaselines(baselines, out);
@@ -669,7 +720,7 @@ public class CCUCMScm extends SCM {
         
         if(_getPolling().isPollingRebase()) {
             PollRebaseMode md = (PollRebaseMode)mode;
-            List<String> parsedList = parseExclusionList(workspace, md.getExcludeList());
+            List<String> parsedList = parseExclusionList(build.getWorkspace(), md.getExcludeList());
             out.println("[" + Config.nameShort + "] Excluding the following components: ");
             
             for(String exclude : parsedList) {
@@ -677,8 +728,10 @@ public class CCUCMScm extends SCM {
                     out.println(String.format("%s * %s", "[" + Config.nameShort + "]", exclude));
                 }
             }
-            checkExclusionList(listener, parsedList, workspace, action.getNewFoundationStructure());
+            checkExclusionList(listener, parsedList, build.getWorkspace(), action.getNewFoundationStructure());
         }
+        
+        return r;
     }
     
     private void checkExclusionList(BuildListener listener, List<String> exludeComponents, FilePath workspace, List<Baseline> baselines) throws AbortException {
@@ -784,7 +837,7 @@ public class CCUCMScm extends SCM {
         super.buildEnvVars(build, env);
 
         String CC_BASELINE = "";
-        String CC_VIEWPATH = "";
+        String CC_VIEWPATH = "";        
         
         try {
 
@@ -884,7 +937,7 @@ public class CCUCMScm extends SCM {
              * This is ONLY for ANY!
              * */
             Date date = null;
-            if (_getPlevel() == null) {
+            if (isUseLatestAlways(mode)) {
                 CCUCMBuildAction lastAction = getLastAction(project);
                 if (lastAction != null) {
                     date = lastAction.getBaseline().getDate();
@@ -897,6 +950,34 @@ public class CCUCMScm extends SCM {
             } else if(_getPolling().isPollingOther()) {
                 /* Find the Baselines and store them */
                 baselines = getBaselinesFromStreams(workspace, listener, out, stream, loadedComponent, _getPolling(), date);
+            } else if(_getPolling().isPollingSubscribe()) {
+                try {
+                    //Poll self method of finding baselines
+                    List<Baseline> currentBls = RemoteUtil.getRemoteBaselinesFromStream(workspace, loadedComponent, stream, _getPlevel(), this.getSlavePolling(), this.getMultisitePolling(), date);
+                    logger.fine("Baseline candidates");
+                    for(Baseline blz : currentBls) {
+                        logger.fine(blz.getShortname());
+                    }
+                    //Get our candidate baseline
+                    Baseline blCandidate = selectBaseline(currentBls, mode, workspace);
+                    
+                    if(blCandidate != null) {
+                        logger.fine(String.format( "Current candidate is: %s",blCandidate.getShortname() ));                    
+                    } else {
+                        logger.fine("No candidate available!");
+                    }
+                    
+                    //Get baselines on the currently selected components
+                    PollSubscribeMode subMode = (PollSubscribeMode)mode;
+                    List<Baseline> consideredBaselines = subMode.getBaselinesToConsider(blCandidate, workspace, getSlavePolling());                                    
+                    baselines = getValidBaselinesFromStreamWithSubscribe(currentBls, consideredBaselines, workspace, getSlavePolling()).t2;
+                } catch (UnableToInitializeEntityException ex) {
+                    logger.log(Level.SEVERE, "Error in getValidBaselinesFromStreamWithSubscribe, unable to initialize entity", ex);
+                    throw new IOException("Error in getValidBaselinesFromStreamWithSubscribe, unable to initialize entity", ex);
+                } catch (CleartoolException ex) {
+                    logger.log(Level.SEVERE, "Error in getValidBaselinesFromStreamWithSubscribe, cleartool exception", ex);
+                    throw new IOException("Error in getValidBaselinesFromStreamWithSubscribe, cleartool exception", ex);
+                }
             } else {
                 PollRebaseMode md = (PollRebaseMode)mode;
                 baselines = getBaselinesForPollRebase(workspace, listener, stream, parseExclusionList(workspace, md.getExcludeList())).t1;
@@ -975,6 +1056,32 @@ public class CCUCMScm extends SCM {
         logger.fine("Retrieving valid baselines.");
         return RemoteUtil.getRemoteBaselinesFromStream(workspace, component, stream, plevel, this.getSlavePolling(), this.getMultisitePolling(), date);
     }
+    
+    private Tuple<Result,List<Baseline>> getValidBaselinesFromStreamWithSubscribe(List<Baseline> currentBaselines, List<Baseline> considerBaselines, FilePath workspace, boolean slavePolling) throws IOException, InterruptedException {
+        logger.fine("Retrieving baselines for poll subscribe");
+        Tuple<Result,List<Baseline>> t = new Tuple<Result, List<Baseline>>();
+
+        if(currentBaselines.isEmpty()) {
+            t.t1 = null;
+            t.t2 = currentBaselines;
+            return t;
+        } else {
+          
+            PollSubscribeMode psm = (PollSubscribeMode)mode;
+
+            Result r = psm.determineResult(workspace, considerBaselines, slavePolling);
+            t.t1 = r;
+            //If the oldest baseline has not been tested yet. Wait a bit
+            if(r == null) {
+                t.t2 = new ArrayList<Baseline>();                    
+            } else {
+                t.t2 = currentBaselines;                    
+            }
+            return t;                
+             
+        }
+    }
+    
 
     /**
      * Returns the last {@link CCUCMBuildAction}, that has a valid
@@ -993,11 +1100,12 @@ public class CCUCMScm extends SCM {
 
         return null;
     }
-
+    
     private CCUCMBuildAction getBuildAction() throws UnableToInitializeEntityException {
         Component cmp =  StringUtils.isBlank(_getComponent()) ? null : Component.get(_getComponent());
         CCUCMBuildAction action = new CCUCMBuildAction(Stream.get(stream), cmp);
 
+        action.setMode(mode);
         action.setDescription(setDescription);
         action.setMakeTag(makeTag);
         action.setRecommend(recommend);
@@ -1032,6 +1140,7 @@ public class CCUCMScm extends SCM {
         return scmRS;
     }
 
+    @Deprecated
     private Baseline selectBaseline(List<Baseline> baselines, Project.PromotionLevel plevel, FilePath workspace) throws IOException, InterruptedException {
         Baseline selected = null;
         if (baselines.size() > 0) {
@@ -1046,6 +1155,33 @@ public class CCUCMScm extends SCM {
             return null;
         }
     }
+    
+    private boolean isUseLatestAlways(PollingMode mode) {
+        
+        if(mode.getPromotionLevel() == null) {
+            return true;
+        }
+        if(mode instanceof PollSubscribeMode) {
+            return ((PollSubscribeMode)mode).isNewest();
+        }        
+        return false;
+    }
+    
+    private Baseline selectBaseline(List<Baseline> baselines, PollingMode mode, FilePath workspace) throws IOException, InterruptedException {        
+        Baseline selected = null;       
+        if (baselines.size() > 0) {
+            boolean isULatest = isUseLatestAlways(mode);
+            logger.fine("Skip to latest is: "+isULatest);
+            if (isULatest) {
+                selected = baselines.get(baselines.size() - 1);                
+            } else {
+                selected = baselines.get(0);
+            }
+            return (Baseline) RemoteUtil.loadEntity(workspace, selected, true);
+        } else {
+            return null;
+        }
+    }    
 
     private void printParameters(PrintStream ps) {
         ps.println("[" + Config.nameShort + "] Getting baselines for :");
