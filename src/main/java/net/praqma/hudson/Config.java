@@ -40,7 +40,6 @@ public class Config {
 	public static Stream getIntegrationStream( Baseline bl, String buildProject ) throws ScmException {
 		Stream stream = null;
 		Project project = null;
-
 		/*
 		 * If the build project was not given as a parameter to the job, try to
 		 * find hudson, Hudson, jenkins or Jenkins

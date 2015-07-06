@@ -1,0 +1,28 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+    <st:include page="config.jelly" class="net.praqma.hudson.scm.pollingmode.PollingMode"></st:include>
+
+    <f:entry field="newest" title="Use newest">
+        <f:checkbox/>
+    </f:entry>
+
+    <f:entry field="cascadePromotion" title="Cascade baseline status change">
+        <f:checkbox checked="${instance.cascadePromotion || instance == null}"/>
+    </f:entry>
+
+    <f:entry field="component" title="Component">
+        <f:textbox/>
+    </f:entry>
+
+    <f:entry description="Select the components from the stream which are of interest" title="Components">
+        <hr/>
+        <f:hetero-list descriptors="${descriptor.getCListReqs()}" items="${instance.componentsToMonitor}" name="componentsToMonitor" addCaption="Include" deleteCaption="Remove include"/>
+    </f:entry>
+
+    <f:entry description="Select the the jobs under which the interesting baselines are to be found tested" title="Requirements">
+        <hr/>
+        <f:hetero-list descriptors="${descriptor.getAllRequirements()}" items="${instance.jobsToMonitor}" name="jobsToMonitor" addCaption="Add requirement" deleteCaption="Remove requirement"/>
+    </f:entry>
+
+</j:jelly>

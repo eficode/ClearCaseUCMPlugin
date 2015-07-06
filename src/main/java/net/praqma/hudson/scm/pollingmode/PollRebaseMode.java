@@ -72,4 +72,11 @@ public class PollRebaseMode extends PollingMode implements BaselineCreationEnabl
         }
     
     }
+
+    @Override
+    public boolean isPromotionSkipped() {
+        return true;
+    }
+    
+    
 }
