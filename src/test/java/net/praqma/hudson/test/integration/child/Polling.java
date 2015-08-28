@@ -13,6 +13,7 @@ import net.praqma.clearcase.ucm.entities.Baseline.LabelBehaviour;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.util.ExceptionUtils;
+import net.praqma.hudson.scm.pollingmode.PollChildMode;
 import net.praqma.hudson.test.BaseTestClass;
 import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.util.debug.Logger;
@@ -32,12 +33,14 @@ public class Polling extends BaseTestClass {
 	@ClearCaseUniqueVobName( name = "changes-child" )
 	@TestDescription( title = "Child polling, polling", text = "baseline available" )
 	public void testPollingChildsWithChanges() throws Exception {
+        
+        PollChildMode mode = new PollChildMode("INITIAL");
+        mode.setCreateBaseline(false);
+        
         CCUCMRule.ProjectCreator creator = new CCUCMRule.ProjectCreator( "polling-test-with-baselines-" + ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob())
         .setRecommend(false)
         .setTagged(false)
-        .setRecommend(false)
-        .setType(CCUCMRule.ProjectCreator.Type.self)
-        .setCreateBaseline(false)
+        .setMode(mode)
         .withSlave(jenkins.createOnlineSlave());
         
 		FreeStyleProject project = creator.getProject();
@@ -65,12 +68,14 @@ public class Polling extends BaseTestClass {
 	@ClearCaseUniqueVobName( name = "nochanges-child" )
 	@TestDescription( title = "Child polling, polling", text = "baseline available" )
 	public void testPollingChildsWithNoChanges() throws Exception {
-        CCUCMRule.ProjectCreator creator = new CCUCMRule.ProjectCreator( "polling-test-with-baselines-" + ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob())
-                .setRecommend(false)
+        PollChildMode mode = new PollChildMode("INITIAL");
+        mode.setCreateBaseline(false);
+        
+        CCUCMRule.ProjectCreator creator = new CCUCMRule.ProjectCreator( "polling-test-with-baselines-" + ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob())                
                 .setTagged(false)
                 .setRecommend(false)
-                .setType(CCUCMRule.ProjectCreator.Type.child)
-                .setCreateBaseline(false).withSlave(jenkins.createOnlineSlave());
+                .setMode(mode)
+                .withSlave(jenkins.createOnlineSlave());
       
         FreeStyleProject project = creator.getProject();
         

@@ -5,6 +5,7 @@ import hudson.model.Project;
 import hudson.model.Result;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
+import net.praqma.hudson.scm.pollingmode.PollSelfMode;
 import net.praqma.hudson.test.BaseTestClass;
 import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.hudson.test.SystemValidator;
@@ -30,7 +31,12 @@ public class JENKINS16487 extends BaseTestClass {
     @TestDescription( title = "JENKINS-16487", text = "Promotion Level being set to INITIAL" )
     @ClearCaseUniqueVobName( name = "ANY" )
     public void jenkins16487Any() throws Exception {
-        Project project = new CCUCMRule.ProjectCreator( "JENKINS-16487-any", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).setPromotionLevel( null ).getProject();
+        
+        PollSelfMode mode = new PollSelfMode("ANY");
+        
+        Project project = new CCUCMRule.ProjectCreator( "JENKINS-16487-any", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() )
+                .setMode(mode)
+                .getProject();
 
         /* First build must be a success, because there is a valid baseline.
          * This build is done because we need a previous action object */

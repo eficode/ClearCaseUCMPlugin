@@ -7,6 +7,7 @@ import hudson.model.Project;
 import hudson.model.Result;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
+import net.praqma.hudson.scm.pollingmode.PollSelfMode;
 import net.praqma.hudson.test.BaseTestClass;
 import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.hudson.test.SystemValidator;
@@ -30,7 +31,12 @@ public class JENKINS18280 extends BaseTestClass {
     @TestDescription( title = "JENKINS-18280", text = "Testing the swipe function. Off and should leave the view private files as they were." )
     @ClearCaseUniqueVobName( name = "Remain" )
     public void jenkins18280() throws Exception {
-        Project project = new CCUCMRule.ProjectCreator( "JENKINS-18280", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).setSwipe( false ).getProject();
+        
+        PollSelfMode initial = new PollSelfMode("INITIAL");
+        Project project = new CCUCMRule.ProjectCreator( "JENKINS-18280", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() )
+                .setMode(initial)
+                .setSwipe( false )
+                .getProject();
 
         /* I need a first build */
         jenkins.getProjectBuilder( project ).build();
@@ -52,7 +58,11 @@ public class JENKINS18280 extends BaseTestClass {
     @TestDescription( title = "JENKINS-18280", text = "Testing the swipe function. On and should remove the view private files." )
     @ClearCaseUniqueVobName( name = "Swiped" )
     public void jenkins18280Swiped() throws Exception {
-        Project project = new CCUCMRule.ProjectCreator( "JENKINS-18280-swiped", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).setSwipe( true ).getProject();
+        PollSelfMode initial = new PollSelfMode("INITIAL");
+        Project project = new CCUCMRule.ProjectCreator( "JENKINS-18280-swiped", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() )
+                .setSwipe( true )
+                .setMode(initial)
+                .getProject();
 
         /* I need a first build */
         jenkins.getProjectBuilder( project ).build();

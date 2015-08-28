@@ -5,13 +5,8 @@
       <f:textbox/>
     </f:entry>
 
-    <f:entry title="Load modules" help="/plugin/clearcase-ucm-plugin/scm/help-loadModules.html">
-        <select class="setting-input" name="CCUCM.loadModule">
-            <j:set var="modules" value="${descriptor.getLoadModules()}"/>
-            <j:forEach var="lm" items="${modules}">
-                <f:option selected="${scm.loadModule==lm}" value="${lm}">${lm}</f:option>
-            </j:forEach>
-        </select>
+    <f:entry title="Load modules" help="/plugin/clearcase-ucm-plugin/scm/help-loadModules.html" field="loadModule">
+        <f:select/>
     </f:entry>
     
     <f:dropdownDescriptorSelector field="mode" title="Polling"/>

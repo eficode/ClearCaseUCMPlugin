@@ -10,12 +10,15 @@ import hudson.util.ListBoxModel;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.scm.Polling;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 /**
  *
  * @author Mads
  */
-public class PollSelfMode extends PollingMode {
+public class PollSelfMode extends PollingMode implements NewestFeatureToggle {
+    
+    private boolean newest;
     
     @DataBoundConstructor
     public PollSelfMode(String levelToPoll) {
@@ -26,6 +29,19 @@ public class PollSelfMode extends PollingMode {
     @Override
     public boolean isPromotionSkipped() {
         return this.getPromotionLevel() == null;
+    }
+    
+    @DataBoundSetter
+    public void setNewest(boolean newest) {
+        this.newest = newest;
+    }
+    
+    @Override
+    public boolean isNewest() {
+        if (getPromotionLevel() == null) {
+            return true;
+        }
+        return newest;
     }
     
     @Extension

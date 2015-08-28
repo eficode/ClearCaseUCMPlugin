@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.praqma.hudson.scm.pollingmode.PollChildMode;
 import static net.praqma.hudson.test.BaseTestClass.jenkins;
 
 import static net.praqma.hudson.test.CCUCMRule.ProjectCreator.Type;
@@ -55,10 +56,13 @@ public abstract class Story06Base extends BaseTestClass {
     
     public void runWithSlave(Stream stream1, Stream streamToMakeAnotherBaseline, String viewTag1, String viewTagToMakeAnotherBaseline, boolean jenkinsWorkspace) throws IOException, Exception {
                 /* First build to create a view */
+        
+        PollChildMode mode = new PollChildMode("INITIAL");
+        mode.setCreateBaseline(true);
+        
         Project project = new CCUCMRule.ProjectCreator(ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob())
-                .setType(Type.child)
+                .setMode(mode)
                 .setForceDeliver(true)
-                .setCreateBaseline(true) 
                .getProject();
         
         Slave slave = jenkins.createSlave();
@@ -112,15 +116,14 @@ public abstract class Story06Base extends BaseTestClass {
     
     public void run(Stream stream1, Stream streamToMakeAnotherBaseline, String viewTag1, String viewTagToMakeAnotherBaseline, boolean jenkinsWorkspace) throws Exception {
 
+        PollChildMode mode = new PollChildMode("INITIAL");
+        mode.setCreateBaseline(true);
         /* First build to create a view */
         Project project = new CCUCMRule.ProjectCreator(ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob())
-                .setType(Type.child)
+                .setMode(mode)
                 .setForceDeliver(true)
-                .setCreateBaseline(true) 
                .getProject();
         
-
-
         if (jenkinsWorkspace) {
             //project.getBuildersList().add( builder );
             project.getPublishersList().remove(CCUCMNotifier.class);

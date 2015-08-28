@@ -15,6 +15,7 @@ import hudson.scm.ChangeLogParser;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.ChangeLogSet.Entry;
 import hudson.util.Digester2;
+import java.util.logging.Level;
 
 /**
  * 
@@ -43,7 +44,7 @@ public class ChangeLogParserImpl extends ChangeLogParser {
 		try {
 			digester.parse( reader );
 		} catch( Exception e ) {
-			System.out.println( "Whoops, unable to digest. " + e.getMessage() );
+			logger.log(Level.SEVERE, "Unable to parse change log", e);
 		} finally {
 			reader.close();
 		}

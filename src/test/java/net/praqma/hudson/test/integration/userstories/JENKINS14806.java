@@ -35,12 +35,12 @@ public class JENKINS14806 extends BaseTestClass {
 
 	@Test
 	@TestDescription( title = "JENKINS-14806", text = "Multisite polling finds the same baseline multiple times", configurations = { "ClearCase multisite = true" }	)
-	public void jenkins14806() throws Exception {
+	public void jenkins14806() throws Exception {        
         PollChildMode mode = new PollChildMode("INITIAL");
         mode.setCreateBaseline(true);
         
         CCUCMScm ccucm = new CCUCMScm("_System@"+ccenv.getPVob(), "ALL", false, mode, "one_int@"+ccenv.getPVob(), "successful", "[project]_[date]_[time]", true, false, false, false, "", true, false, false);
-		//CCUCMScm ccucm = jenkins.getCCUCM( "child", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), "INITIAL", false, false, false, false, true, "[project]_[date]_[time]" );
+		
 		ccucm.setMultisitePolling( true );
 		System.out.println( "MP: " + ccucm.getMultisitePolling() );
 		FreeStyleProject project = jenkins.createProject( ccenv.getUniqueName(), ccucm );

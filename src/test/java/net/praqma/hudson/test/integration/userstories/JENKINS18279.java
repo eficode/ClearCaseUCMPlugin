@@ -15,13 +15,14 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.logging.Logger;
+import net.praqma.hudson.scm.pollingmode.PollSelfMode;
 
 /**
  * @author cwolfgang
  */
 public class JENKINS18279 extends BaseTestClass {
 
-    private static Logger logger = Logger.getLogger( JENKINS18279.class.getName() );
+    private static final Logger logger = Logger.getLogger( JENKINS18279.class.getName() );
 
     @Rule
     public ClearCaseRule ccenv = new ClearCaseRule( "JENKINS-18279" );
@@ -32,7 +33,11 @@ public class JENKINS18279 extends BaseTestClass {
     @Test
     @TestDescription( title = "JENKINS-18279", text = "Testing the swipe function. UPDT's must remain as non-view private files." )
     public void jenkins18279() throws Exception {
-        Project project = new CCUCMRule.ProjectCreator( "JENKINS-18279", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).setSwipe( true ).getProject();
+        PollSelfMode initial = new PollSelfMode("INITIAL");
+        Project project = new CCUCMRule.ProjectCreator( "JENKINS-18279", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() )
+                .setSwipe( true )
+                .setMode(initial)
+                .getProject();
 
         /* I need a first build */
         jenkins.getProjectBuilder( project ).build();

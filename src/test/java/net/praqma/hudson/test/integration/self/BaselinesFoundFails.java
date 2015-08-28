@@ -28,7 +28,7 @@ public class BaselinesFoundFails extends BaseTestClass {
 	private static Logger logger = Logger.getLogger();
 	
 	public AbstractBuild<?, ?> initiateBuild( String projectName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
-        PollSelfMode mode = new PollSelfMode("INTIAL");
+        PollSelfMode mode = new PollSelfMode("INITIAL");
 		return jenkins.initiateBuild( projectName, mode, "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), recommend, tag, description, fail);
 	}
 

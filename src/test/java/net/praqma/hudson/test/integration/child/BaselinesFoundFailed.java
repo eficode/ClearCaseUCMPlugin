@@ -7,6 +7,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import hudson.model.AbstractBuild;
+import hudson.model.FreeStyleBuild;
+import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.ucm.entities.Activity;
@@ -23,6 +25,7 @@ import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.hudson.scm.pollingmode.PollChildMode;
 import static net.praqma.hudson.test.BaseTestClass.jenkins;
+import net.praqma.hudson.test.CCUCMRule;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
@@ -46,7 +49,17 @@ public class BaselinesFoundFailed extends BaseTestClass {
 
         Baseline baseline = getNewBaseline();
 
-        AbstractBuild<?, ?> build = initiateBuild("no-options-" + ccenv.getUniqueName(), false, false, false, true);
+        PollChildMode mode = new PollChildMode("INITIAL");
+        mode.setCreateBaseline(false);
+        
+        CCUCMRule.ProjectCreator c = new CCUCMRule.ProjectCreator("no-options-" + ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob())
+                .setForceDeliver(true)
+                .setRecommend(false)
+                .setMode(mode)
+                .setTagged(false);
+        
+        FreeStyleProject fsb = c.getProject();        
+        AbstractBuild<?, ?> build = jenkins.getProjectBuilder(fsb).failBuild(true).build();
 
         SystemValidator validator = new SystemValidator(build)
                 .validateBuild(Result.FAILURE)
@@ -61,9 +74,19 @@ public class BaselinesFoundFailed extends BaseTestClass {
     public void testRecommended() throws Exception {
 
         Baseline baseline = getNewBaseline();
-
-        AbstractBuild<?, ?> build = initiateBuild("recommended-" + ccenv.getUniqueName(), true, false, false, true);
-
+        
+        PollChildMode mode = new PollChildMode("INITIAL");
+        mode.setCreateBaseline(true);
+        
+        CCUCMRule.ProjectCreator c = new CCUCMRule.ProjectCreator("recommended-" + ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob())
+                .setForceDeliver(true)
+                .setRecommend(true)
+                .setMode(mode)
+                .setTagged(false);
+        
+        FreeStyleProject fsb = c.getProject();        
+        AbstractBuild<?, ?> build = jenkins.getProjectBuilder(fsb).failBuild(true).build();
+        
         SystemValidator validator = new SystemValidator(build)
                 .validateBuild(Result.FAILURE)
                 .validateBuiltBaseline(PromotionLevel.REJECTED, baseline, false)
@@ -77,8 +100,20 @@ public class BaselinesFoundFailed extends BaseTestClass {
     public void testDescription() throws Exception {
 
         Baseline baseline = getNewBaseline();
+        
+        PollChildMode mode = new PollChildMode("INITIAL");
+        mode.setCreateBaseline(false);
+        
+        CCUCMRule.ProjectCreator c = new CCUCMRule.ProjectCreator("description-" + ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob())
+                .setForceDeliver(true)
+                .setRecommend(false)
+                .setMode(mode)
+                .setDescribed(true)
+                .setTagged(false);
 
-        AbstractBuild<?, ?> build = initiateBuild("description-" + ccenv.getUniqueName(), false, false, true, true);
+        FreeStyleProject fsb = c.getProject();
+        
+        AbstractBuild<?, ?> build = jenkins.getProjectBuilder(fsb).failBuild(true).build();
 
         SystemValidator validator = new SystemValidator(build)
                 .validateBuild(Result.FAILURE)
@@ -93,9 +128,19 @@ public class BaselinesFoundFailed extends BaseTestClass {
     public void testTagged() throws Exception {
         jenkins.makeTagType(ccenv.getPVob());
         Baseline baseline = getNewBaseline();
-
-        AbstractBuild<?, ?> build = initiateBuild("tagged-" + ccenv.getUniqueName(), false, true, false, true);
-
+        
+        PollChildMode mode = new PollChildMode("INITIAL");
+        mode.setCreateBaseline(false);
+        
+        CCUCMRule.ProjectCreator c = new CCUCMRule.ProjectCreator("no-options-" + ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob())
+                .setForceDeliver(true)
+                .setRecommend(false)
+                .setMode(mode)
+                .setTagged(true);
+        
+        FreeStyleProject fsb = c.getProject();
+        AbstractBuild<?, ?> build = jenkins.getProjectBuilder(fsb).failBuild(true).build();
+        
         SystemValidator validator = new SystemValidator(build)
                 .validateBuild(Result.FAILURE)
                 .validateBuiltBaseline(PromotionLevel.REJECTED, baseline, false)

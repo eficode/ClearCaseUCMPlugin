@@ -97,18 +97,30 @@ public class CCUCMRule extends JenkinsRule {
             this.component = component;
             this.stream = stream;
         }
+        
+        public ProjectCreator( String name, String component, String stream, PollingMode mode ) {
+            this.name = name;
+            this.component = component;
+            this.stream = stream;
+            this.mode = mode;
+        }
+        
+        public ProjectCreator setMode(PollingMode mode) {
+            this.mode = mode;
+            return this;
+        }
 
         public String getName() {
             return name;
         }
-
-        public ProjectCreator setType( Type type ) {
-            this.type = type;
-            return this;
-        }
         
         public ProjectCreator setTagged( boolean tagged ) {
             this.tag = tagged;
+            return this;
+        }
+        
+        public ProjectCreator setTemplate(String template ) {
+            this.template = template;
             return this;
         }
 
@@ -122,20 +134,8 @@ public class CCUCMRule extends JenkinsRule {
             return this;
         }
 
-        public ProjectCreator setCreateBaseline( boolean createBaseline ) {
-            this.createBaseline = createBaseline;
-            return this;
-        }
-
-        public ProjectCreator setPromotionLevel( PromotionLevel level ) {
-            this.promotionLevel = level;
-
-            return this;
-        }
-
         public ProjectCreator setForceDeliver( boolean forceDeliver ) {
             this.forceDeliver = forceDeliver;
-
             return this;
         }
         
@@ -164,12 +164,12 @@ public class CCUCMRule extends JenkinsRule {
             System.out.println( "==== [Setting up ClearCase UCM project] ====" );
             System.out.println( " * Stream         : " + stream );
             System.out.println( " * Component      : " + component );
-            System.out.println( " * Level          : " + promotionLevel );
-            System.out.println( " * Polling        : " + type );
+            System.out.println( " * Level          : " + mode.getLevelToPoll() != null ? mode.getLevelToPoll() : "ANY"  );
+            System.out.println( " * Polling        : " + mode.getPolling().getType() );
             System.out.println( " * Recommend      : " + recommend );
             System.out.println( " * Tag            : " + tag );
             System.out.println( " * Description    : " + description );
-            System.out.println( " * Create baseline: " + createBaseline );
+            System.out.println( " * Create baseline: " + mode.createBaselineEnabled() );
             System.out.println( " * Template       : " + template );
             System.out.println( " * Force deliver  : " + forceDeliver );
             System.out.println( " * Swipe          : " + swipe );
@@ -177,20 +177,10 @@ public class CCUCMRule extends JenkinsRule {
             System.out.println( " * Discard        : " + discard);
             System.out.println( "============================================" );
 
-            FreeStyleProject project = Jenkins.getInstance().createProject( projectClass, name );
-            PollingMode md = null;
-            if(type.equals(ProjectCreator.Type.child)) {
-                md = new PollChildMode(promotionLevel != null ? promotionLevel.name() : "ANY" );                
-                ((PollChildMode)md).setCreateBaseline(createBaseline);
-            } else if (type.equals(ProjectCreator.Type.self)) {                
-                md = new PollSelfMode(promotionLevel != null ? promotionLevel.name() : "ANY" );
-            } else {
-                md = new PollSiblingMode(promotionLevel != null ? promotionLevel.name() : "ANY" );
-                ((PollSiblingMode)md).setCreateBaseline(createBaseline);
-            }            
-            
-            CCUCMScm scm = new CCUCMScm( component, "ALL", false, md, stream, "successful", template, forceDeliver, recommend, tag, description, "", swipe, trim, discard );
+            FreeStyleProject project = Jenkins.getInstance().createProject( projectClass, name );            
+            CCUCMScm scm = new CCUCMScm( component, "ALL", false, mode, stream, "successful", template, forceDeliver, recommend, tag, description, "", swipe, trim, discard );
             project.setScm( scm );
+            
             if(slave != null ) {
                 project.setAssignedNode(slave);
             }
@@ -238,8 +228,7 @@ public class CCUCMRule extends JenkinsRule {
 		printInfo(projectName, mode.getPolling().getType().name(), component, stream, recommend, tag, description, mode.createBaselineEnabled(), forceDeliver, template, mode.getPromotionLevel() == null ? "ANY" : mode.getPromotionLevel().name());
 		FreeStyleProject project = createFreeStyleProject( "ccucm-" + projectName );
         DumbSlave slave = createOnlineSlave();
-        project.setAssignedLabel(slave.getSelfLabel());
-        
+        project.setAssignedNode(slave);
         System.out.println( " * Slave          : " + slave.getSelfLabel().getName() );
 		System.out.println( "============================================" );
         

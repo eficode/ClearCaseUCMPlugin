@@ -20,7 +20,6 @@ import java.util.regex.Pattern;
  */
 public class ChangeLogEntryImpl extends Entry {
 
-    
     /*Pattern we use to tablify the 'file' entry */
     private static final transient Pattern splitChangeSet = Pattern.compile("^([^\\(]+)\\(([^\\)]+)(.*?)(\\S+)(\\S+)(.*)");
     private ChangeLogSetImpl parent;
@@ -102,7 +101,6 @@ public class ChangeLogEntryImpl extends Entry {
 
 	/**
 	 * This is to tell the Entry which Changeset it belongs to
-	 * 
 	 * @param parent
 	 */
 	public void setParent( ChangeLogSetImpl parent ) {
@@ -129,6 +127,4 @@ public class ChangeLogEntryImpl extends Entry {
 		return actHeadline;
 	}
         
-        
-
 }

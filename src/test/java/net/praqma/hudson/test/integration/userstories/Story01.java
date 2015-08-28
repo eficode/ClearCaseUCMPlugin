@@ -49,7 +49,7 @@ public class Story01 extends BaseTestClass {
 		assertTrue( build.getResult().isBetterOrEqualTo( Result.SUCCESS ) );		
 		
 		/* New scm with wrong component */
-		CCUCMScm scm = new CCUCMScm( "_System2@" + ccenv.getPVob(), "ALL", false, new PollSelfMode("INTIAL"), "one_int@" + ccenv.getPVob(), "successful","", true, false, false, false, "jenkins", true, false, false);
+		CCUCMScm scm = new CCUCMScm( "_System2@" + ccenv.getPVob(), "ALL", false, new PollSelfMode("INITIAL"), "one_int@" + ccenv.getPVob(), "successful","", true, false, false, false, "jenkins", true, false, false);
 		project.setScm( scm );
 		
 		TaskListener listener = jenkins.createTaskListener();

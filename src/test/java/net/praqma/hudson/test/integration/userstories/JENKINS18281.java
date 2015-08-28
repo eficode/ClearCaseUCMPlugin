@@ -26,6 +26,7 @@ import org.junit.Test;
 import java.io.File;
 import java.util.List;
 import java.util.logging.Logger;
+import net.praqma.hudson.scm.pollingmode.PollSelfMode;
 import org.apache.commons.lang.SystemUtils;
 
 /**
@@ -87,8 +88,10 @@ public class JENKINS18281 extends BaseTestClass {
         Baseline bl_dev_2 = Baseline.create( "bl2", component, cc2_1.getPath(), Baseline.LabelBehaviour.FULL, false );
 
         /* Create the Jenkins project for the dev stream */
-        Project project = new CCUCMRule.ProjectCreator( "JENKINS-18281", "_System@" + ccenv.getPVob(), "one_dev@" + ccenv.getPVob() ).getProject();
-
+        PollSelfMode psm = new PollSelfMode("INITIAL");
+        Project project = new CCUCMRule.ProjectCreator( "JENKINS-18281", "_System@" + ccenv.getPVob(), "one_dev@" + ccenv.getPVob() )
+                .setMode(psm)
+                .getProject();
         /* I need a first build */
         jenkins.getProjectBuilder( project ).build();
 

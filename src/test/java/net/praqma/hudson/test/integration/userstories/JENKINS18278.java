@@ -21,6 +21,7 @@ import org.junit.Test;
 
 import java.util.List;
 import java.util.logging.Logger;
+import net.praqma.hudson.scm.pollingmode.PollSelfMode;
 import org.apache.commons.lang.SystemUtils;
 
 /**
@@ -35,6 +36,8 @@ public class JENKINS18278 extends BaseTestClass {
 
     @Rule
     public DescriptionRule desc = new DescriptionRule();
+    
+    private PollSelfMode mode = new PollSelfMode("INITIAL");
 
     @Test
     @ClearCaseUniqueVobName( name = "regular" )
@@ -60,10 +63,14 @@ public class JENKINS18278 extends BaseTestClass {
         new Rebase( stream ).addBaseline( ccint4.getBaseline() ).rebase( true );
 
         /* Create the last baseline on dev */
+        
         ClearCaseRule.ContentCreator cc2 = ccenv.getContentCreator().setBaselineName( "bl-2" ).setFilename( "foo.bar" ).setActivityName( "dev-act2" ).create();
 
-        /* Create the Jenkins project for the dev stream */
-        Project project = new CCUCMRule.ProjectCreator( "JENKINS-18278", "_System@" + ccenv.getPVob(), "one_dev@" + ccenv.getPVob() ).getProject();
+        /* Create the Jenkins project for the dev stream */     
+        
+        Project project = new CCUCMRule.ProjectCreator( "JENKINS-18278", "_System@" + ccenv.getPVob(), "one_dev@" + ccenv.getPVob() )
+                .setMode(mode)
+                .getProject();
 
         /* I need a first build */
         jenkins.getProjectBuilder( project ).build();
@@ -114,7 +121,10 @@ public class JENKINS18278 extends BaseTestClass {
         ClearCaseRule.ContentCreator cc2 = ccenv.getContentCreator().setBaselineName( "bl-2" ).setFilename( "foo.bar" ).setActivityName( "dev-act2" ).create();
 
         /* Create the Jenkins project for the dev stream */
-        Project project = new CCUCMRule.ProjectCreator( "JENKINS-18278-trimmed", "_System@" + ccenv.getPVob(), "one_dev@" + ccenv.getPVob() ).setTrim( true ).getProject();
+        Project project = new CCUCMRule.ProjectCreator( "JENKINS-18278-trimmed", "_System@" + ccenv.getPVob(), "one_dev@" + ccenv.getPVob() )
+                .setTrim( true )
+                .setMode(mode)
+                .getProject();
 
         /* I need a first build */
         jenkins.getProjectBuilder( project ).build();

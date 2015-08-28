@@ -11,6 +11,7 @@ import hudson.scm.SCMDescriptor;
 import hudson.scm.SCMRevisionState;
 import hudson.scm.SCM;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -47,6 +48,7 @@ import net.praqma.hudson.remoting.deliver.StartDeliver;
 import static net.praqma.hudson.scm.CCUCMScm.getLastAction;
 import net.praqma.hudson.scm.Polling.PollingType;
 import net.praqma.hudson.scm.pollingmode.BaselineCreationEnabled;
+import net.praqma.hudson.scm.pollingmode.NewestFeatureToggle;
 import net.praqma.hudson.scm.pollingmode.PollChildMode;
 import net.praqma.hudson.scm.pollingmode.PollRebaseMode;
 import net.praqma.hudson.scm.pollingmode.PollSelfMode;
@@ -275,9 +277,8 @@ public class CCUCMScm extends SCM {
 
                 logger.warning(e.getMessage());
                 /* If the promotion level is not set, ANY, use the last found Baseline */
-                /* This also applies if you're configured to forward to the newest */
-                if (isUseLatestAlways(mode)) {
-                    logger.fine("Promotion level was null [=ANY], finding the last built baseline");
+                if (mode.getPromotionLevel() == null) {
+                    logger.fine("Configured to use the latest always.");
                     CCUCMBuildAction last = getLastAction(build.getProject());
                     if (last != null) {
                         action.setBaseline(last.getBaseline());
@@ -522,13 +523,10 @@ public class CCUCMScm extends SCM {
 
     private boolean initializeWorkspace(AbstractBuild<?, ?> build, FilePath workspace, File changelogFile, BuildListener listener, CCUCMBuildAction action) throws IOException, InterruptedException {
         PrintStream consoleOutput = listener.getLogger();
-        EstablishResult er = null;
-        
         CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), action.getStream(), loadModule, action.getBaseline(), buildProject, (_getPlevel() == null), action.doRemoveViewPrivateFiles());
-        er = workspace.act(ct);
+        EstablishResult er = workspace.act(ct);
 
-        String changelog = "";
-        changelog = Util.createChangelog(build, er.getActivities(), action.getBaseline(), trimmedChangeSet, er.getView().getViewRoot(), er.getView().getReadOnlyLoadLines(), discard);
+        String changelog = Util.createChangelog(build, er.getActivities(), action.getBaseline(), trimmedChangeSet, er.getView().getViewRoot(), er.getView().getReadOnlyLoadLines(), discard);
         action.setActivities(er.getActivities());
 
         this.viewtag = er.getViewtag();
@@ -696,18 +694,11 @@ public class CCUCMScm extends SCM {
             action.setRebaseTargets(baselines);
             action.setNewFoundationStructure(results.t2);            
         }
-        
-        
-        
 
         /* if we did not find any baselines we should return false */
         if (baselines.size() < 1) {
             throw new CCUCMException("No valid Baselines found");
-        }
-        
-                    
-            /* If the exlusion list contains invalid elements */
-        
+        }        
 
         /* Select and load baseline */
         Baseline blSelected = selectBaseline(baselines, mode, build.getWorkspace());
@@ -810,10 +801,7 @@ public class CCUCMScm extends SCM {
         GetChanges gc = new GetChanges(listener, state.getStream(), state.getBaseline(), snapshotView.getPath());
         List<Activity> activities = workspace.act(gc);
 
-        String changelog = "";
-        
-        
-        changelog = Util.createChangelog(build, activities, state.getBaseline(), trimmedChangeSet, new File(snapshotView.getPath()), snapshotView.getReadOnlyLoadLines(), discard, getSlavePolling());
+        String changelog = Util.createChangelog(build, activities, state.getBaseline(), trimmedChangeSet, new File(snapshotView.getPath()), snapshotView.getReadOnlyLoadLines(), discard, getSlavePolling());
         state.setActivities(activities);
 
         /* Write change log */
@@ -840,15 +828,9 @@ public class CCUCMScm extends SCM {
         String CC_VIEWPATH = "";        
         
         try {
-
             CCUCMBuildAction action = build.getAction(CCUCMBuildAction.class);
             CC_BASELINE = action.getBaseline().getFullyQualifiedName();
-        } catch (Exception e1) {
-            if (build != null) {
-                System.out.println( String.format ( "Failure in build environment variables (buildEnvVars) for job %s %nFull trace written to log", build.getProject().getName()) ); 
-            } else {
-                System.out.println( String.format ( "Build is null in buildEnvVars.%nTrace written to log as no other information can be gathered" ) ); 
-            }
+        } catch (Exception e1) {            
             logger.log(Level.WARNING, "Exception caught in buildEnvVars method", e1);
         }
 
@@ -932,10 +914,6 @@ public class CCUCMScm extends SCM {
 
             List<Baseline> baselines = null;
 
-            /* We need to discriminate on promotion level, JENKINS-16620.
-             *
-             * This is ONLY for ANY!
-             * */
             Date date = null;
             if (isUseLatestAlways(mode)) {
                 CCUCMBuildAction lastAction = getLastAction(project);
@@ -1082,7 +1060,6 @@ public class CCUCMScm extends SCM {
         }
     }
     
-
     /**
      * Returns the last {@link CCUCMBuildAction}, that has a valid
      * {@link Baseline}
@@ -1139,30 +1116,10 @@ public class CCUCMScm extends SCM {
         }
         return scmRS;
     }
-
-    @Deprecated
-    private Baseline selectBaseline(List<Baseline> baselines, Project.PromotionLevel plevel, FilePath workspace) throws IOException, InterruptedException {
-        Baseline selected = null;
-        if (baselines.size() > 0) {
-            if (plevel != null) {
-                selected = baselines.get(0);
-            } else {
-                selected = baselines.get(baselines.size() - 1);
-            }
-
-            return (Baseline) RemoteUtil.loadEntity(workspace, selected, true);
-        } else {
-            return null;
-        }
-    }
     
     private boolean isUseLatestAlways(PollingMode mode) {
-        
-        if(mode.getPromotionLevel() == null) {
-            return true;
-        }
-        if(mode instanceof PollSubscribeMode) {
-            return ((PollSubscribeMode)mode).isNewest();
+        if(mode instanceof NewestFeatureToggle) {
+            return ((NewestFeatureToggle)mode).isNewest();
         }        
         return false;
     }
@@ -1364,11 +1321,8 @@ public class CCUCMScm extends SCM {
         private String hLinkFeedFrom;
         private boolean slavePolling;
         private boolean multisitePolling;
-        private List<String> loadModules;
-
         public CCUCMScmDescriptor() {
             super(CCUCMScm.class, null);
-            loadModules = getLoadModules();
             load();
         }
 
@@ -1456,21 +1410,17 @@ public class CCUCMScm extends SCM {
             }        
             return FormValidation.ok();
         }
+        
+        public ListBoxModel doFillLoadModuleItems() {
+            ListBoxModel model = new ListBoxModel();
+            model.add("All", "ALL");
+            model.add("Modifiable","MODIFIABLE");
+            return model;
+        }
     
         @Override
-        public CCUCMScm newInstance(StaplerRequest req, JSONObject formData) throws Descriptor.FormException {
-            CCUCMScm temp;
-            CCUCMScm instance;
-            try {
-                temp = req.bindJSON(CCUCMScm.class, formData);
-            } catch (JSONException e) {
-                throw new Descriptor.FormException("You missed some fields: " + e.getMessage(), "CCUCM.polling");
-            }
-            instance = temp;
-            
-
-            /* TODO This is actually where the Notifier check should be!!! */
-            return instance;
+        public CCUCMScm newInstance(StaplerRequest req, JSONObject formData) {
+            return req.bindJSON(CCUCMScm.class, formData);
         }
 
         /**
@@ -1483,20 +1433,7 @@ public class CCUCMScm extends SCM {
         public List<String> getLevels() {
             return Config.getLevels();
         }
-
-        /**
-         * Used by Hudson to display a list of loadModules (whether to poll all
-         * or only modifiable elements
-         *
-         * @return
-         */
-        public List<String> getLoadModules() {
-            loadModules = new ArrayList<String>();
-            loadModules.add("All");
-            loadModules.add("Modifiable");
-            return loadModules;
-        }
-
+        
         /**
          * @return the hLinkFeedFrom
          */

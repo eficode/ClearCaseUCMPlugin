@@ -9,6 +9,7 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.scm.ChangeLogEntryImpl;
 import net.praqma.hudson.scm.ChangeLogSetImpl;
+import net.praqma.hudson.scm.pollingmode.PollChildMode;
 import net.praqma.hudson.test.BaseTestClass;
 import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.hudson.test.SystemValidator;
@@ -31,7 +32,12 @@ public class JENKINS19558 extends BaseTestClass {
     @Test
     @TestDescription( title = "JENKINS-19558", text = "Failed deliver looses changeset, no changelog written" )
     public void jenkins19558() throws Exception {
-        Project project = new CCUCMRule.ProjectCreator( "JENKINS-19558", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).setSwipe( false ).setType( CCUCMRule.ProjectCreator.Type.child ).getProject();
+        PollChildMode mode = new PollChildMode("INITIAL");
+        
+        Project project = new CCUCMRule.ProjectCreator( "JENKINS-19558", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() )
+                .setSwipe( false )
+                .setMode(mode)
+                .getProject();
 
         /* I need a first build */
         

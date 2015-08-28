@@ -15,9 +15,10 @@ import org.kohsuke.stapler.DataBoundSetter;
 /**
  * @author Mads
  */
-public class PollChildMode extends PollingMode implements BaselineCreationEnabled {
+public class PollChildMode extends PollingMode implements BaselineCreationEnabled, NewestFeatureToggle {
     
     private boolean createBaseline = false;
+    private boolean newest = false;
     
     @DataBoundConstructor
     public PollChildMode(String levelToPoll) {
@@ -39,6 +40,15 @@ public class PollChildMode extends PollingMode implements BaselineCreationEnable
     @DataBoundSetter
     public void setCreateBaseline(boolean createBaseline) {
         this.createBaseline = createBaseline;
+    }
+    
+    @DataBoundSetter
+    public void setNewest(boolean newest) {
+        this.newest = newest;
+    }
+    
+    public boolean isNewest() {
+        return newest;
     }
     
     @Extension

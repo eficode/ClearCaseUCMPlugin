@@ -3,6 +3,7 @@ package net.praqma.hudson.test.integration.userstories;
 import hudson.model.AbstractBuild;
 import hudson.model.Project;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
+import net.praqma.hudson.scm.pollingmode.PollSelfMode;
 import net.praqma.hudson.test.BaseTestClass;
 import net.praqma.hudson.test.CCUCMRule;
 import org.junit.Rule;
@@ -20,8 +21,10 @@ public class Story11 extends BaseTestClass {
     @Test
     public void test() throws Exception {
         /* First build to create a view */
+        PollSelfMode mode = new PollSelfMode("INITIAL");
+        
         Project project = new CCUCMRule.ProjectCreator( ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() )
-                .setType( CCUCMRule.ProjectCreator.Type.self )
+                .setMode(mode)
                 .getProject();
 
         AbstractBuild<?, ?> firstbuild = jenkins.buildProject( project, false );

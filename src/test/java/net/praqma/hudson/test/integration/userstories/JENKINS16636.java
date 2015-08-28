@@ -5,6 +5,7 @@ import hudson.model.Project;
 import hudson.model.Result;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
+import net.praqma.hudson.scm.pollingmode.PollSelfMode;
 import net.praqma.hudson.test.BaseTestClass;
 import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.hudson.test.SystemValidator;
@@ -31,7 +32,10 @@ public class JENKINS16636 extends BaseTestClass {
     @TestDescription( title = "JENKINS-16636", text = "No new baseline found, but can be build anyway" )
     @ClearCaseUniqueVobName( name = "NORMAL" )
     public void jenkins16636() throws Exception {
-        Project project = new CCUCMRule.ProjectCreator( "JENKINS-16636", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).getProject();
+        PollSelfMode mode = new PollSelfMode("INITIAL");
+        Project project = new CCUCMRule.ProjectCreator( "JENKINS-16636", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() )
+                .setMode(mode)
+                .getProject();
 
         /* First build must be a success, because there is a valid baseline.
          * This build is done because we need a previous action object */
@@ -47,7 +51,11 @@ public class JENKINS16636 extends BaseTestClass {
     @TestDescription( title = "JENKINS-16636", text = "No new baseline found, but can be build anyway. Correct behaviour for ANY" )
     @ClearCaseUniqueVobName( name = "ANY" )
     public void jenkins16636Any() throws Exception {
-        Project project = new CCUCMRule.ProjectCreator( "JENKINS-16636-any", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).setPromotionLevel( null ).getProject();
+        PollSelfMode mode = new PollSelfMode("ANY");
+        
+        Project project = new CCUCMRule.ProjectCreator( "JENKINS-16636-any", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() )
+                .setMode(mode)
+                .getProject();
 
         /* First build must be a success, because there is a valid baseline.
          * This build is done because we need a previous action object */

@@ -6,6 +6,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import hudson.model.AbstractBuild;
+import hudson.model.Project;
+import hudson.model.Result;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
@@ -15,6 +17,7 @@ import net.praqma.hudson.test.SystemValidator;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.scm.pollingmode.PollSiblingMode;
+import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.util.test.junit.DescriptionRule;
 import net.praqma.util.test.junit.TestDescription;
 
@@ -28,14 +31,14 @@ public class BaselinesFound extends BaseTestClass {
     public DescriptionRule desc = new DescriptionRule();
     	
 	public AbstractBuild<?, ?> initiateBuild( String projectName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
-        PollSiblingMode mode = new PollSiblingMode("INTIAL");
+        PollSiblingMode mode = new PollSiblingMode("INITIAL");
         mode.setCreateBaseline(true);
         mode.setUseHyperLinkForPolling(false);
 		return jenkins.initiateBuild( projectName, mode, "_System@" + ccenv.getPVob(), "two_int@" + ccenv.getPVob(), recommend, tag, description, fail);
 	}
     
     public AbstractBuild<?, ?> initiateBuildUsingHyperLink( String projectName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {
-        PollSiblingMode mode = new PollSiblingMode("INTIAL");
+        PollSiblingMode mode = new PollSiblingMode("INITIAL");
         mode.setCreateBaseline(true);
         mode.setUseHyperLinkForPolling(true);
 		return jenkins.initiateBuild( projectName, mode, "_System@" + ccenv.getPVob(), "two_int@" + ccenv.getPVob(), recommend, tag, description, fail);
@@ -117,4 +120,37 @@ public class BaselinesFound extends BaseTestClass {
                 validateCreatedBaseline( false, false );
 		validator.validate();
 	}
+    
+    @Test
+    @ClearCaseUniqueVobName(name = "sibling-use-newest")
+    @TestDescription(title = "Poll sibling", text = "poll sibling, use newest")
+    public void siblingsUsingUseNewest() throws Exception {
+        
+        Stream one = ccenv.context.streams.get( "one_int" );
+		Stream two = ccenv.context.streams.get( "two_int" );
+		one.setDefaultTarget( two );
+        
+        Baseline baseline = ccenv.context.baselines.get( "model-3" );
+        
+        PollSiblingMode mode = new PollSiblingMode("INITIAL");
+        mode.setCreateBaseline(true);
+        mode.setUseHyperLinkForPolling(false);
+        mode.setNewest(true);
+        
+        Project project = new CCUCMRule.ProjectCreator("sib-newest" + ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "two_int@" + ccenv.getPVob())
+            .setMode(mode)
+            .getProject();                
+
+        AbstractBuild<?, ?> build = jenkins.getProjectBuilder(project).build();
+		SystemValidator validator = new SystemValidator( build ).
+                validateBuild( build.getResult() ).
+                validateBuiltBaseline( PromotionLevel.BUILT, baseline, false ).
+                validateCreatedBaseline( true );
+		validator.validate();
+        
+        AbstractBuild<?, ?> build2 = jenkins.getProjectBuilder(project).build();
+        SystemValidator validator2 = new SystemValidator( build2 ).validateBuild(Result.NOT_BUILT);
+        validator2.validate();
+    }
+    
 }

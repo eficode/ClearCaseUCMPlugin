@@ -6,6 +6,7 @@ import hudson.scm.PollingResult;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.clearcase.ucm.entities.*;
+import net.praqma.hudson.scm.pollingmode.PollSelfMode;
 import net.praqma.hudson.test.BaseTestClass;
 import net.praqma.hudson.test.CCUCMRule;
 import net.praqma.hudson.test.SystemValidator;
@@ -33,7 +34,12 @@ public class JENKINS16620 extends BaseTestClass {
     @TestDescription( title = "JENKINS-16620", text = "Changed baselines cannot be rebuild" )
     @ClearCaseUniqueVobName( name = "NORMAL" )
     public void jenkins16620() throws Exception {
-        Project project = new CCUCMRule.ProjectCreator( "JENKINS-16620", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).getProject();
+        
+        PollSelfMode m = new PollSelfMode("INITIAL");
+        
+        Project project = new CCUCMRule.ProjectCreator( "JENKINS-16620", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() )
+                .setMode(m)
+                .getProject();
 
         AbstractBuild build1 = jenkins.getProjectBuilder( project ).failBuild( true ).build();
 
@@ -50,7 +56,12 @@ public class JENKINS16620 extends BaseTestClass {
     @TestDescription( title = "JENKINS-16620", text = "Changed baselines MUST NOT ABLE TO be rebuild on ANY" )
     @ClearCaseUniqueVobName( name = "ANY" )
     public void jenkins16620Any() throws Exception {
-        Project project = new CCUCMRule.ProjectCreator( "JENKINS-16620-ANY", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() ).setPromotionLevel( null ).getProject();
+        
+        PollSelfMode mode = new PollSelfMode("ANY");
+        
+        Project project = new CCUCMRule.ProjectCreator( "JENKINS-16620-ANY", "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob() )
+            .setMode( mode )
+            .getProject();
 
         AbstractBuild build1 = jenkins.getProjectBuilder( project ).failBuild( false ).build();
 

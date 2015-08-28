@@ -1,21 +1,14 @@
 package net.praqma.hudson.test.integration.child;
 
-import java.io.File;
-
 import net.praqma.hudson.test.BaseTestClass;
 import org.junit.Rule;
 import org.junit.Test;
 
 import hudson.model.AbstractBuild;
+import hudson.model.FreeStyleProject;
 import hudson.model.Result;
-import net.praqma.clearcase.exceptions.ClearCaseException;
-import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Baseline;
-import net.praqma.clearcase.ucm.entities.Stream;
-import net.praqma.clearcase.ucm.entities.Baseline.LabelBehaviour;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
-import net.praqma.clearcase.ucm.view.UCMView;
-import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.test.SystemValidator;
 import net.praqma.util.test.junit.DescriptionRule;
 import net.praqma.util.test.junit.TestDescription;
@@ -23,6 +16,7 @@ import net.praqma.util.test.junit.TestDescription;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.hudson.scm.pollingmode.PollChildMode;
+import net.praqma.hudson.test.CCUCMRule;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
@@ -45,7 +39,7 @@ public class BaselinesFound extends BaseTestClass {
     @ClearCaseUniqueVobName(name = "nop-child")
     @TestDescription(title = "Child polling", text = "baseline available")
     public void testNoOptions() throws Exception {
-        Baseline baseline = getNewBaseline();
+        Baseline baseline = ccenv.createNewDevStreamContents("one_dev");
         AbstractBuild<?, ?> build = initiateBuild("no-options-" + ccenv.getUniqueName(), false, false, false, false);
         SystemValidator validator = new SystemValidator(build)
                 .validateBuild(Result.SUCCESS)
@@ -59,8 +53,7 @@ public class BaselinesFound extends BaseTestClass {
     @ClearCaseUniqueVobName(name = "rec-child")
     @TestDescription(title = "Child polling", text = "baseline available", configurations = {"Recommended = true"})
     public void testRecommended() throws Exception {
-        System.out.println("2");
-        Baseline baseline = getNewBaseline();
+        Baseline baseline = ccenv.createNewDevStreamContents("one_dev");
 
         AbstractBuild<?, ?> build = initiateBuild("rec-" + ccenv.getUniqueName(), true, false, false, false);
         
@@ -76,8 +69,7 @@ public class BaselinesFound extends BaseTestClass {
     @ClearCaseUniqueVobName(name = "description-child")
     @TestDescription(title = "Child polling", text = "baseline available", configurations = {"Set description = true"})
     public void testDescription() throws Exception {
-        System.out.println("3");
-        Baseline baseline = getNewBaseline();
+        Baseline baseline = ccenv.createNewDevStreamContents("one_dev");
 
         AbstractBuild<?, ?> build = initiateBuild("description-" + ccenv.getUniqueName(), false, false, true, false);
  
@@ -94,9 +86,8 @@ public class BaselinesFound extends BaseTestClass {
     @ClearCaseUniqueVobName(name = "tagged-child")
     @TestDescription(title = "Child polling", text = "baseline available", configurations = {"Set tag = true"})
     public void testTagged() throws Exception {
-        System.out.println("4");
         jenkins.makeTagType(ccenv.getPVob());
-        Baseline baseline = getNewBaseline();
+        Baseline baseline = ccenv.createNewDevStreamContents("one_dev");
 
         AbstractBuild<?, ?> build = initiateBuild("tagged-" + ccenv.getUniqueName(), false, true, false, false);
 
@@ -108,24 +99,38 @@ public class BaselinesFound extends BaseTestClass {
                 .validateCreatedBaseline(true)
                 .validate();
     }
+    
+    @Test
+    @ClearCaseUniqueVobName(name = "newest-child")
+    @TestDescription(title = "Child polling", text = "baseline available", configurations = {"Use newest = true"})
+    public void testUseNewest() throws Exception {        
+        //Create a new baseline
+        Baseline bl1 = ccenv.createNewDevStreamContents("one_dev").load();
+        
+        //Create another 
+        Baseline bl2 = ccenv.createNewDevStreamContents("one_dev").load();
+        
+        PollChildMode modeChild = new PollChildMode("INITIAL");
+        modeChild.setNewest(true);
+        modeChild.setCreateBaseline(true);
 
-    protected Baseline getNewBaseline() throws ClearCaseException {
-        /**/
-        String viewtag = ccenv.getUniqueName() + "_one_dev";
-        System.out.println("VIEW: " + ccenv.context.views.get(viewtag));
-        File path = new File(ccenv.context.mvfs + "/" + viewtag + "/" + ccenv.getVobName());
-
-        System.out.println("PATH: " + path);
-
-        Stream stream = Stream.get("one_dev", ccenv.getPVob());
-        Activity activity = Activity.create("ccucm-activity", stream, ccenv.getPVob(), true, "ccucm activity", null, path);
-        UCMView.setActivity(activity, path, null, null);
-
-        try {
-            ccenv.addNewElement(ccenv.context.components.get("Model"), path, "test2.txt");
-        } catch (ClearCaseException e) {
-            ExceptionUtils.print(e, System.out, true);
-        }
-        return Baseline.create("baseline-for-test", ccenv.context.components.get("_System"), path, LabelBehaviour.FULL, false);
+        CCUCMRule.ProjectCreator creator = new CCUCMRule.ProjectCreator("newest-" + ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob())
+        .setMode(modeChild);
+        
+        FreeStyleProject p = creator.getProject();         
+        AbstractBuild<?,?> buildNewest = jenkins.getProjectBuilder(p).build();
+        
+        //First build should be succes
+        SystemValidator validator = new SystemValidator(buildNewest)
+                .validateBuild(Result.SUCCESS)
+                .validateBuiltBaseline(PromotionLevel.BUILT, bl2)
+                .validateCreatedBaseline(true);
+        validator.validate();
+        
+        //Next build. Nothing to do
+        AbstractBuild<?,?> nothing = jenkins.getProjectBuilder(p).build();
+        SystemValidator validator2 = new SystemValidator(nothing)
+                .validateBuild(Result.NOT_BUILT);
+        validator2.validate();
     }
 }

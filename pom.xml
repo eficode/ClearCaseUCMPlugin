@@ -436,14 +436,14 @@
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>cool</artifactId>
-            <version>0.6.40</version>
+            <version>0.6.43-SNAPSHOT</version>
             <type>jar</type>
         </dependency>
 
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>cool</artifactId>
-            <version>0.6.40</version>
+            <version>0.6.43-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>

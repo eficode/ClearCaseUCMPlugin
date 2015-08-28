@@ -26,7 +26,7 @@ public class JENKINS13944 extends BaseTestClass {
 	public void jenkins13944() throws Exception {
 		
 		/* First build to create a view */
-		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), new PollSelfMode("INTIAL"), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, true, false, false, false );
+		AbstractBuild<?, ?> build = jenkins.initiateBuild( ccenv.getUniqueName(), new PollSelfMode("INITIAL"), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, true, false, false, false );
 		Baseline baseline = ccenv.context.baselines.get( "model-1" );
 		new SystemValidator( build ).validateBuild( Result.UNSTABLE ).validateBaselineTag( baseline, false ).validate();
 	}

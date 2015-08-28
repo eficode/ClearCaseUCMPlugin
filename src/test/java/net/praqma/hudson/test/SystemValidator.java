@@ -171,7 +171,7 @@ public class SystemValidator {
 	private Boolean builtBaselineIsRecommended;
 	
 	public SystemValidator validateBuiltBaseline( PromotionLevel level, Baseline expected ) {
-		return validateBuiltBaseline( builtBaselineLevel, expected, null );
+		return validateBuiltBaseline( level, expected, null );
 	}
 	
 	public SystemValidator validateBuiltBaseline( PromotionLevel level, Baseline expected, Boolean isRecommended ) {

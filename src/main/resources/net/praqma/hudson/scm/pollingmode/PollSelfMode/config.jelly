@@ -4,4 +4,7 @@
     <f:entry field="component" title="Component">
         <f:textbox/>
     </f:entry>
+    <f:entry field="newest" title="Use newest">
+        <f:checkbox/>
+    </f:entry>
 </j:jelly>
