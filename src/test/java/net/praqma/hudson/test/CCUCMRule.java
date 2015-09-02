@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -227,9 +228,9 @@ public class CCUCMRule extends JenkinsRule {
         System.out.println( "==== [Setting up ClearCase UCM project] ====" );
 		printInfo(projectName, mode.getPolling().getType().name(), component, stream, recommend, tag, description, mode.createBaselineEnabled(), forceDeliver, template, mode.getPromotionLevel() == null ? "ANY" : mode.getPromotionLevel().name());
 		FreeStyleProject project = createFreeStyleProject( "ccucm-" + projectName );
-        DumbSlave slave = createOnlineSlave();
+        DumbSlave slave = createOnlineSlave(Label.get(UUID.randomUUID().toString()));
         project.setAssignedNode(slave);
-        System.out.println( " * Slave          : " + slave.getSelfLabel().getName() );
+        System.out.println( " * Slave          : " + slave.getLabelString() );
 		System.out.println( "============================================" );
         
 		this.scm = new CCUCMScm(component, "ALL", false, mode, stream, "successful", template, forceDeliver, recommend, tag, description, "", true, false, false);
@@ -352,12 +353,12 @@ public class CCUCMRule extends JenkinsRule {
         AbstractBuild<?,?> build = null;
 		try {
             build = project.scheduleBuild2(0, new Cause.UserIdCause(), action ).get();
-		} catch( Exception e ) {
+        } catch ( Exception e ) {
             if(!fail) {
                 logger.log(Level.SEVERE, "Build failed...it should not!", e);
                 throw e;
             }
-			logger.info( "Build failed, and it should!");
+			logger.info( "Build failed, and it should!");            
 		}
         
    

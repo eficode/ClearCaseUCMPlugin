@@ -61,7 +61,7 @@ public class BaselinesFound extends BaseTestClass {
                 .validateBuild(Result.SUCCESS)
                 .validateBuildView()
                 .validateBuiltBaseline(PromotionLevel.BUILT, baseline, false)
-                .validateCreatedBaseline(true)
+                .validateCreatedBaseline(true, true)
                 .validate();
     }
 
