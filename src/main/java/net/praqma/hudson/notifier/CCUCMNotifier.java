@@ -42,8 +42,6 @@ public class CCUCMNotifier extends Notifier {
 
 	private Status status;
 	private static final Logger logger = Logger.getLogger( CCUCMNotifier.class.getName() );
-	private String jobName = "";
-	private Integer jobNumber = 0;
     public static String logShortPrefix = String.format("[%s]", Config.nameShort);
 
 	public CCUCMNotifier() { }
@@ -68,11 +66,7 @@ public class CCUCMNotifier extends Notifier {
 		boolean result = true;
 		out = listener.getLogger();
 		status = new Status();
-
-		/* Prepare job variables */
-		jobName = build.getParent().getDisplayName().replace( ' ', '_' );
-		jobNumber = build.getNumber();
-
+        
 		SCM scmTemp = build.getProject().getScm();
 		if( !( scmTemp instanceof CCUCMScm ) ) {
 			/* SCM is not ClearCase ucm, just move it along... Not fail it, duh! */
