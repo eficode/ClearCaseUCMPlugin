@@ -357,14 +357,13 @@ public class CCUCMBuildAction implements Action {
     }
 
     public String stringify() {
-        StringBuilder sb = new StringBuilder();        
-        sb.append( "Stream          : " + stream + "\n" );
-        sb.append( "Component       : " + component + "\n" );
-        sb.append( "Promotion Level : " + promotionLevel + "\n" );
-        sb.append( "Baseline        : " + baseline + "\n" );
-        sb.append( "Created Baseline: " + createdBaseline + "\n" );
-        sb.append( "Polling         : " + polling + "\n" );
-
+        StringBuilder sb = new StringBuilder().append("\n");        
+        sb.append( "Stream          : ").append(stream).append("\n" );
+        sb.append( "Component       : ").append(component).append("\n" );
+        sb.append( "Promotion Level : ").append(promotionLevel).append("\n" );
+        sb.append( "Baseline        : ").append(baseline).append("\n" );
+        sb.append( "Created Baseline: ").append(createdBaseline).append("\n" );
+        sb.append( "Polling         : ").append(polling).append("\n" );
         return sb.toString();
     }
 

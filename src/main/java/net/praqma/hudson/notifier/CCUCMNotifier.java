@@ -77,8 +77,7 @@ public class CCUCMNotifier extends Notifier {
 		
 		CCUCMBuildAction action = build.getAction( CCUCMBuildAction.class );
 
-		if( action != null ) {
-            logger.fine( action.stringify() );
+		if( action != null ) {            
 			baseline = action.getBaseline();
 		} else {
             throw new AbortException( "No ClearCase Action object found" );
@@ -90,6 +89,7 @@ public class CCUCMNotifier extends Notifier {
 			status.setErrorMessage( action.getError() );
 			try {
 				processBuild( build, launcher, listener, action );
+                logger.fine( action.stringify() );
 				if( action.doSetDescription() ) {
 					String d = build.getDescription();
                     logger.fine( String.format( "build.getDesciption() is: %s", d ) );
