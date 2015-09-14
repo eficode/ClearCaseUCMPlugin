@@ -4,7 +4,7 @@
     <f:entry field="component" title="Component">
         <f:textbox/>
     </f:entry>
-    <f:entry title="Exlude components" description="Newline delimited list of components to exclude when polling, expand the box by clicking the arrow on the right side of the text box.">
+    <f:entry title="Exclude components" description="Newline delimited list of components to exclude when polling, expand the box by clicking the arrow on the right side of the text box.">
         <f:expandableTextbox field="excludeList">
         </f:expandableTextbox>
     </f:entry>
