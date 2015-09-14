@@ -42,7 +42,7 @@ import org.kohsuke.stapler.DataBoundSetter;
  *
  * @author Mads
  */
-public class PollSubscribeMode extends PollingMode implements BaselineCreationEnabled {
+public class PollSubscribeMode extends PollingMode implements BaselineCreationEnabled, NewestFeatureToggle {
     
     private List<ComponentSelectionCriteriaRequirement> componentsToMonitor = new ArrayList<ComponentSelectionCriteriaRequirement>();
     private List<JobNameRequirement> jobsToMonitor = new ArrayList<JobNameRequirement>();
@@ -63,6 +63,7 @@ public class PollSubscribeMode extends PollingMode implements BaselineCreationEn
         this.newest = newest;
     }
     
+    @Override
     public boolean isNewest() {
         return newest;
     }
