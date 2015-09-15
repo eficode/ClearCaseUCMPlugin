@@ -28,9 +28,6 @@ import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.scm.CCUCMScm;
 import net.praqma.hudson.scm.ChangeLogEntryImpl;
-import net.praqma.hudson.scm.pollingmode.PollChildMode;
-import net.praqma.hudson.scm.pollingmode.PollSelfMode;
-import net.praqma.hudson.scm.pollingmode.PollSiblingMode;
 import net.praqma.hudson.scm.pollingmode.PollingMode;
 
 import static org.junit.Assert.*;
