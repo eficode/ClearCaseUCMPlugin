@@ -14,6 +14,7 @@ import hudson.remoting.VirtualChannel;
 import net.praqma.clearcase.ucm.utils.filters.AfterDate;
 import net.praqma.clearcase.ucm.utils.filters.NoDeliver;
 import net.praqma.clearcase.ucm.utils.filters.NoLabels;
+import org.jenkinsci.remoting.RoleChecker;
 
 public class GetRemoteBaselineFromStream implements FileCallable<BaselineList> {
 
@@ -64,6 +65,11 @@ public class GetRemoteBaselineFromStream implements FileCallable<BaselineList> {
         }
 
         return baselines;
+    }
+
+    @Override
+    public void checkRoles(RoleChecker checker) throws SecurityException {
+        
     }
 
 }

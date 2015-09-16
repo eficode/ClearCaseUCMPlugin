@@ -13,13 +13,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import net.praqma.clearcase.Cool;
-import net.praqma.clearcase.exceptions.UnableToLoadEntityException;
 import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.utils.ReadOnlyVersionFilter;
 import net.praqma.clearcase.ucm.utils.VersionList;
 import net.praqma.hudson.Util;
+import org.jenkinsci.remoting.RoleChecker;
 
 /**
  *
@@ -75,6 +75,11 @@ public class CreateChangeSetRemote implements FilePath.FileCallable<String>{
         }
 
         return csg.close().get();
+    }
+
+    @Override
+    public void checkRoles(RoleChecker checker) throws SecurityException {
+        
     }
     
 }

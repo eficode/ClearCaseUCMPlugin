@@ -10,7 +10,6 @@ import hudson.model.TaskListener;
 import hudson.remoting.VirtualChannel;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import net.praqma.clearcase.Rebase;
@@ -18,6 +17,7 @@ import net.praqma.clearcase.exceptions.CleartoolException;
 import net.praqma.clearcase.exceptions.RebaseException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
+import org.jenkinsci.remoting.RoleChecker;
 
 /**
  *
@@ -62,6 +62,11 @@ public class RebaseTask implements FilePath.FileCallable<Boolean> {
            return false;
         }
         return true;
+    }
+
+    @Override
+    public void checkRoles(RoleChecker checker) throws SecurityException {
+        
     }
     
 }

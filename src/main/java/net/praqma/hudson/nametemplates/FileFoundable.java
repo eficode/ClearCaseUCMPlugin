@@ -10,6 +10,7 @@ import hudson.remoting.VirtualChannel;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
+import org.jenkinsci.remoting.RoleChecker;
 
 /**
  *
@@ -47,6 +48,11 @@ public class FileFoundable implements FilePath.FileCallable<String> {
             logger.fine(String.format("[FileTemplate] Invoke caught exception with message %s", ex.getMessage()));
             throw ex;
         }
+    }
+
+    @Override
+    public void checkRoles(RoleChecker checker) throws SecurityException {
+        
     }
 
 }

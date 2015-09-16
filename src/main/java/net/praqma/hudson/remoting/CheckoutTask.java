@@ -30,6 +30,7 @@ import hudson.model.BuildListener;
 import hudson.remoting.VirtualChannel;
 import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules2;
 import net.praqma.clearcase.ucm.view.UpdateView;
+import org.jenkinsci.remoting.RoleChecker;
 
 public class CheckoutTask implements FileCallable<EstablishResult> {
 
@@ -229,5 +230,10 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
 
     public SnapshotView getSnapshotView() {
         return sv;
+    }
+
+    @Override
+    public void checkRoles(RoleChecker checker) throws SecurityException {
+        
     }
 }

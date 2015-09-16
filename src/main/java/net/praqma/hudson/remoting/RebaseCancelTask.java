@@ -12,6 +12,7 @@ import java.io.IOException;
 import net.praqma.clearcase.Rebase;
 import net.praqma.clearcase.exceptions.CleartoolException;
 import net.praqma.clearcase.ucm.entities.Stream;
+import org.jenkinsci.remoting.RoleChecker;
 
 /**
  *
@@ -34,6 +35,11 @@ public class RebaseCancelTask implements FilePath.FileCallable<Boolean> {
         } catch (CleartoolException ex) {
             throw new IOException("Failed to cancel the rebase", ex);
         }
+    }
+
+    @Override
+    public void checkRoles(RoleChecker checker) throws SecurityException {
+        
     }
     
 }

@@ -10,6 +10,7 @@ import net.praqma.clearcase.ucm.entities.Component;
 import hudson.FilePath.FileCallable;
 import hudson.remoting.VirtualChannel;
 import net.praqma.clearcase.ucm.entities.Stream;
+import org.jenkinsci.remoting.RoleChecker;
 
 public class CreateRemoteBaseline implements FileCallable<Baseline> {
 
@@ -49,5 +50,10 @@ public class CreateRemoteBaseline implements FileCallable<Baseline> {
 
 		return bl;
 	}
+
+    @Override
+    public void checkRoles(RoleChecker checker) throws SecurityException {
+        
+    }
 
 }

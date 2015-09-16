@@ -22,6 +22,7 @@ import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.scm.Unstable;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.remoting.RoleChecker;
 
 /**
  * 
@@ -323,5 +324,10 @@ public class RemotePostBuild implements FileCallable<Status> {
      */
     public List<Baseline> getRebaseTargets() {
         return rebaseTargets;
+    }
+
+    @Override
+    public void checkRoles(RoleChecker checker) throws SecurityException {
+        
     }
 }

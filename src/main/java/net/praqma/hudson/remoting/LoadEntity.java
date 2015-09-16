@@ -7,6 +7,7 @@ import net.praqma.clearcase.ucm.entities.UCMEntity;
 
 import hudson.FilePath.FileCallable;
 import hudson.remoting.VirtualChannel;
+import org.jenkinsci.remoting.RoleChecker;
 
 public class LoadEntity implements FileCallable<UCMEntity> {
 
@@ -29,5 +30,10 @@ public class LoadEntity implements FileCallable<UCMEntity> {
 
 		return entity;
 	}
+
+    @Override
+    public void checkRoles(RoleChecker checker) throws SecurityException {
+        
+    }
 
 }

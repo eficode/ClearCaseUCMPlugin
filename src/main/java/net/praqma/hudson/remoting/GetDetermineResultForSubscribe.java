@@ -17,6 +17,7 @@ import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.hudson.scm.pollingmode.JobNameRequirement;
 import org.jenkinsci.plugins.compatibilityaction.CompatibilityDataProvider;
 import org.jenkinsci.plugins.compatibilityaction.MongoProviderImpl;
+import org.jenkinsci.remoting.RoleChecker;
 
 /**
  *
@@ -79,6 +80,11 @@ public class GetDetermineResultForSubscribe implements FilePath.FileCallable<Res
             }           
         }
         return r;
+    }
+
+    @Override
+    public void checkRoles(RoleChecker rc) throws SecurityException {
+        
     }
     
 }

@@ -9,6 +9,7 @@ import net.praqma.util.debug.Logger;
 
 import hudson.FilePath.FileCallable;
 import hudson.remoting.VirtualChannel;
+import org.jenkinsci.remoting.RoleChecker;
 
 public class GetClearCaseVersion implements FileCallable<String> {
 
@@ -34,5 +35,10 @@ public class GetClearCaseVersion implements FileCallable<String> {
 
 		return version;
 	}
+
+    @Override
+    public void checkRoles(RoleChecker checker) throws SecurityException {
+        
+    }
 
 }

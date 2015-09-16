@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
+import org.jenkinsci.remoting.RoleChecker;
 
 /**
  * @author cwolfgang
@@ -48,5 +49,10 @@ public class GetChanges implements FilePath.FileCallable<List<Activity>> {
         } catch( Exception e ) {
             throw new IOException( "Error while retrieving changes", e );
         }
+    }
+
+    @Override
+    public void checkRoles(RoleChecker checker) throws SecurityException {
+        
     }
 }

@@ -19,6 +19,7 @@ import java.io.PrintStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.praqma.clearcase.ucm.view.UpdateView;
+import org.jenkinsci.remoting.RoleChecker;
 
 /**
  * @author cwolfgang
@@ -125,5 +126,10 @@ public class StartDeliver implements FilePath.FileCallable<Boolean> {
 
             throw new IOException( e );
         }
+    }
+
+    @Override
+    public void checkRoles(RoleChecker checker) throws SecurityException {
+        
     }
 }

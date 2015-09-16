@@ -4,6 +4,7 @@ import net.praqma.clearcase.cleartool.Cleartool;
 import net.praqma.util.execute.AbnormalProcessTerminationException;
 
 import hudson.remoting.Callable;
+import org.jenkinsci.remoting.RoleChecker;
 
 public class RemoteClearCaseCheck implements Callable<Boolean, AbnormalProcessTerminationException> {
 
@@ -14,5 +15,10 @@ public class RemoteClearCaseCheck implements Callable<Boolean, AbnormalProcessTe
 		
 		return null;
 	}
+
+    @Override
+    public void checkRoles(RoleChecker checker) throws SecurityException {
+        
+    }
 
 }

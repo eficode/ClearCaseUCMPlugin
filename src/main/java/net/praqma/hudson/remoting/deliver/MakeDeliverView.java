@@ -11,6 +11,7 @@ import net.praqma.hudson.exception.ScmException;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
+import org.jenkinsci.remoting.RoleChecker;
 
 /**
  * @author cwolfgang
@@ -49,5 +50,10 @@ public class MakeDeliverView implements FilePath.FileCallable<SnapshotView> {
         File viewroot = new File( workspace, "view" );
         SnapshotView view = Util.makeView( stream, workspace, listener, loadModule, viewroot, viewtag, true );
         return view;
+    }
+
+    @Override
+    public void checkRoles(RoleChecker checker) throws SecurityException {
+        
     }
 }
