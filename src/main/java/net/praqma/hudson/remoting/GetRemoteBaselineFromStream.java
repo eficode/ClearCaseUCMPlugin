@@ -13,6 +13,7 @@ import hudson.FilePath.FileCallable;
 import hudson.remoting.VirtualChannel;
 import net.praqma.clearcase.ucm.utils.filters.AfterDate;
 import net.praqma.clearcase.ucm.utils.filters.NoDeliver;
+import net.praqma.clearcase.ucm.utils.filters.NoLabels;
 
 public class GetRemoteBaselineFromStream implements FileCallable<BaselineList> {
 
@@ -42,6 +43,7 @@ public class GetRemoteBaselineFromStream implements FileCallable<BaselineList> {
 
         baselines = new BaselineList( stream, component, plevel, multisitePolling ).
                 setSorting( new BaselineList.AscendingDateSort() ).
+                addFilter( new NoLabels()).
                 addFilter( new NoDeliver() );
         
         /* Only filter by date, if it is valid */
