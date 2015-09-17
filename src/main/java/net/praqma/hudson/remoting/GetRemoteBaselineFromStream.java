@@ -37,7 +37,7 @@ public class GetRemoteBaselineFromStream implements FileCallable<BaselineList> {
     @Override
     public BaselineList invoke( File f, VirtualChannel channel ) throws IOException, InterruptedException {
 
-    	logger.fine( "Retrieving remote baselines from " + stream.getShortname() );
+    	logger.fine( String.format( "Retrieving remote baselines from " + stream.getShortname() ) );
     	
         /* The baseline list */
         BaselineList baselines = null;
