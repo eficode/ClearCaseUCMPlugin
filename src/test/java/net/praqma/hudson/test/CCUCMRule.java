@@ -224,9 +224,7 @@ public class CCUCMRule extends JenkinsRule {
         logger.info(msg);
         System.out.println( "==== [Setting up ClearCase UCM project] ====" );
 		printInfo(projectName, mode.getPolling().getType().name(), component, stream, recommend, tag, description, mode.createBaselineEnabled(), forceDeliver, template, mode.getPromotionLevel() == null ? "ANY" : mode.getPromotionLevel().name());
-		FreeStyleProject project = createFreeStyleProject( "ccucm-" + projectName );        
-        jenkins.getNodes().clear();
-        jenkins.save();
+		FreeStyleProject project = createFreeStyleProject( "ccucm-" + projectName );
         
         DumbSlave slave = createOnlineSlave();
         project.setAssignedNode(slave);
