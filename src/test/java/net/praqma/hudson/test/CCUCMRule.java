@@ -178,7 +178,11 @@ public class CCUCMRule extends JenkinsRule {
             System.out.println( " * Project type   : " + projectClass.getSimpleName()  );
             System.out.println( "============================================" );
 
-            FreeStyleProject project = Jenkins.getInstance().createProject( projectClass, name );            
+            Jenkins j = Jenkins.getInstance();
+            
+            assert j != null;
+            
+            FreeStyleProject project = j.createProject( projectClass, name );            
             CCUCMScm scm = new CCUCMScm( component, "ALL", false, mode, stream, "successful", template, forceDeliver, recommend, tag, description, "", swipe, trim, discard );
             project.setScm( scm );
             
