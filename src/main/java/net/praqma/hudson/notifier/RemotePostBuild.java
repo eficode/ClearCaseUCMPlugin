@@ -168,7 +168,8 @@ public class RemotePostBuild implements FileCallable<Status> {
 					 * break method here
 					 */
 					hudsonOut.println( CCUCMNotifier.logShortPrefix+" Could not promote baseline " + sourcebaseline.getShortname() + ". " + e.getMessage() );
-					logger.warning( "Could not promote baseline. " + e.getMessage() );
+					logger.warning(String.format("Could not promote baseline: %s", sourcebaseline.getShortname()));
+                    logger.log(Level.WARNING, "Unable to promote baseline. Not recommended is disabled.", e);
 				}
 			}
 
