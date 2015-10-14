@@ -174,6 +174,8 @@ public class CCUCMRule extends JenkinsRule {
             System.out.println( " * Swipe          : " + swipe );
             System.out.println( " * Trim           : " + trim );
             System.out.println( " * Discard        : " + discard);
+            System.out.println( " * Project name   : " + name);
+            System.out.println( " * Project type   : " + projectClass.getSimpleName()  );
             System.out.println( "============================================" );
 
             FreeStyleProject project = Jenkins.getInstance().createProject( projectClass, name );            
