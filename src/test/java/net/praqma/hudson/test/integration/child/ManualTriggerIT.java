@@ -37,7 +37,7 @@ public class ManualTriggerIT {
     @Test
     @ClearCaseUniqueVobName(name = "manual-trigger")
     @TestDescription(title = "Child polling, exhaust baseline build manually last build", text = "baseline available", configurations = {"Use newest = true"})
-    public void testUseNewest() throws Exception {        
+    public void testManual() throws Exception {        
         //Create a new baseline
         Baseline bl1 = ccenv.createNewDevStreamContents("one_dev").load();
         
@@ -48,7 +48,7 @@ public class ManualTriggerIT {
         modeChild.setNewest(true);
         modeChild.setCreateBaseline(true);
 
-        CCUCMRule.ProjectCreator creator = new CCUCMRule.ProjectCreator("newest-" + ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob())
+        CCUCMRule.ProjectCreator creator = new CCUCMRule.ProjectCreator("manual-" + ccenv.getUniqueName(), "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob())
         .setMode(modeChild);
         
         
