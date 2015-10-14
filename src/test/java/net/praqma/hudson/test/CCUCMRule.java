@@ -180,7 +180,7 @@ public class CCUCMRule extends JenkinsRule {
 
             Jenkins j = Jenkins.getInstance();
             
-            assert j != null;
+            assert j != null : "Jenkins is null in this instance...should not be possible";
             
             FreeStyleProject project = j.createProject( projectClass, name );            
             CCUCMScm scm = new CCUCMScm( component, "ALL", false, mode, stream, "successful", template, forceDeliver, recommend, tag, description, "", swipe, trim, discard );
