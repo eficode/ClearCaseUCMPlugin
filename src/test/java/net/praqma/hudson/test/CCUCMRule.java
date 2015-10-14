@@ -313,7 +313,7 @@ public class CCUCMRule extends JenkinsRule {
                 action = new EnableLoggerAction( outputDir );
             }
 
-            Future<? extends Build<?, ?>> futureBuild = project.scheduleBuild2( 0, new Cause.UserIdCause(), action );
+            Future<? extends Build<?, ?>> futureBuild = project.scheduleBuild2( 0, cause, action );
 
             AbstractBuild build = futureBuild.get();
 
