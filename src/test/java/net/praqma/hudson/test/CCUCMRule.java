@@ -6,6 +6,7 @@ import hudson.model.Project;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.ChangeLogSet.Entry;
 import hudson.slaves.DumbSlave;
+import hudson.triggers.SCMTrigger;
 
 import java.io.File;
 import java.io.IOException;
@@ -291,8 +292,12 @@ public class CCUCMRule extends JenkinsRule {
             this.fail = cancel;
             return this;
         }
+        
+        public AbstractBuild build() throws ExecutionException, InterruptedException, IOException { 
+            return build(new Cause.UserIdCause());
+        }
 
-        public AbstractBuild build() throws ExecutionException, InterruptedException, IOException {
+        public AbstractBuild build(Cause cause) throws ExecutionException, InterruptedException, IOException {
 
             if( fail ) {
                 logger.info( "Failing " + project );
@@ -349,7 +354,7 @@ public class CCUCMRule extends JenkinsRule {
 
         AbstractBuild<?,?> build = null;
 		try {
-            build = project.scheduleBuild2(0, new Cause.UserIdCause(), action ).get();
+            build = project.scheduleBuild2(0, new SCMTrigger.SCMTriggerCause("SCM trigger by testing"), action ).get();
         } catch ( Exception e ) {
             if(!fail) {
                 logger.log(Level.SEVERE, "Build failed...it should not!", e);

@@ -5,6 +5,7 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.*;
+import hudson.model.Cause.UserIdCause;
 import hudson.scm.ChangeLogParser;
 import hudson.scm.PollingResult;
 import hudson.scm.SCMDescriptor;
@@ -276,8 +277,8 @@ public class CCUCMScm extends SCM {
             } catch (CCUCMException e) {
 
                 logger.warning(e.getMessage());
-                /* If the promotion level is not set, ANY, use the last found Baseline */
-                if (mode.getPromotionLevel() == null) {
+                /* If the promotion level is not set, ANY, use the last found Baseline, or the manual build was triggered */
+                if (mode.getPromotionLevel() == null || build.getCause(UserIdCause.class) != null) {
                     logger.fine("Configured to use the latest always.");
                     CCUCMBuildAction last = getLastAction(build.getProject());
                     if (last != null) {

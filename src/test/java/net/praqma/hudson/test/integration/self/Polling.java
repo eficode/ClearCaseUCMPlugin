@@ -2,6 +2,7 @@ package net.praqma.hudson.test.integration.self;
 
 import hudson.model.FreeStyleProject;
 import hudson.scm.PollingResult;
+import hudson.triggers.SCMTrigger;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.hudson.scm.pollingmode.PollSelfMode;
@@ -25,7 +26,7 @@ public class Polling extends BaseTestClass {
 		
 		/* BUILD 1 */
 		try {
-			project.scheduleBuild2( 0 ).get();
+			project.scheduleBuild2( 0, new SCMTrigger.SCMTriggerCause("Triggered for testing") ).get();
 		} catch( Exception e ) {
 			logger.info( "Build failed: " + e.getMessage() );
 		}
@@ -40,41 +41,41 @@ public class Polling extends BaseTestClass {
 		
 		/* BUILD 1 */
 		try {
-			project.scheduleBuild2( 0 ).get();
+			project.scheduleBuild2( 0, new SCMTrigger.SCMTriggerCause("Triggered for testing") ).get();
 		} catch( Exception e ) {
 			logger.info( "Build failed: " + e.getMessage() );
 		}		
 		/* BUILD 2 */
 		try {
-			project.scheduleBuild2( 0 ).get();
+			project.scheduleBuild2( 0, new SCMTrigger.SCMTriggerCause("Triggered for testing") ).get();
 		} catch( Exception e ) {
 			logger.info( "Build failed: " + e.getMessage() );
 		}
 		
 		/* BUILD 3 */
 		try {
-			project.scheduleBuild2( 0 ).get();
+			project.scheduleBuild2( 0, new SCMTrigger.SCMTriggerCause("Triggered for testing") ).get();
 		} catch( Exception e ) {
 			logger.info( "Build failed: " + e.getMessage() );
 		}
 		
 		/* BUILD 4 */
 		try {
-			project.scheduleBuild2( 0 ).get();
+			project.scheduleBuild2( 0, new SCMTrigger.SCMTriggerCause("Triggered for testing") ).get();
 		} catch( Exception e ) {
 			logger.info( "Build failed: " + e.getMessage() );
 		}
 		
 		/* BUILD 5 */
 		try {
-			project.scheduleBuild2( 0 ).get();
+			project.scheduleBuild2( 0, new SCMTrigger.SCMTriggerCause("Triggered for testing") ).get();
 		} catch( Exception e ) {
 			logger.info( "Build failed: " + e.getMessage() );
 		}
 		
 		/* BUILD 6 */
 		try {
-			project.scheduleBuild2( 0 ).get();
+			project.scheduleBuild2( 0, new SCMTrigger.SCMTriggerCause("Triggered for testing") ).get();
 		} catch( Exception e ) {
 			logger.info( "Build failed: " + e.getMessage() );
 		}

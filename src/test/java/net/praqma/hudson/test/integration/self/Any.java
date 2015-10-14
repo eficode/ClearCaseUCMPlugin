@@ -5,6 +5,7 @@ import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.model.Slave;
 import hudson.scm.PollingResult;
+import hudson.triggers.SCMTrigger;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
@@ -86,7 +87,7 @@ public class Any extends BaseTestClass {
         /* BUILD 1 */
         AbstractBuild<?, ?> build = null;
         try {
-            build = project.scheduleBuild2( 0 ).get();
+            build = project.scheduleBuild2( 0, new SCMTrigger.SCMTriggerCause("Triggered for testing") ).get();
         } catch( Exception e ) {
             logger.info( "Build failed: " + e.getMessage() );
         }
@@ -111,7 +112,7 @@ public class Any extends BaseTestClass {
         /* BUILD 1 */
         AbstractBuild<?, ?> build = null;
         try {
-            build = project.scheduleBuild2( 0 ).get();
+            build = project.scheduleBuild2( 0, new SCMTrigger.SCMTriggerCause("Triggered for testing") ).get();
         } catch( Exception e ) {
             logger.info( "Build failed: " + e.getMessage() );
         }
@@ -138,7 +139,7 @@ public class Any extends BaseTestClass {
         /* BUILD 2 */
         AbstractBuild<?, ?> build2 = null;
         try {
-            build2 = project.scheduleBuild2( 0 ).get();
+            build2 = project.scheduleBuild2( 0, new SCMTrigger.SCMTriggerCause("Triggered for testing") ).get();
         } catch( Exception e ) {
             logger.info( "Build failed: " + e.getMessage() );
         }

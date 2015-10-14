@@ -16,6 +16,7 @@ import hudson.model.FreeStyleProject;
 import hudson.model.BuildListener;
 import hudson.model.FreeStyleBuild;
 import hudson.scm.PollingResult;
+import hudson.triggers.SCMTrigger;
 import net.praqma.hudson.scm.CCUCMScm;
 
 import net.praqma.clearcase.test.junit.ClearCaseRule;
@@ -54,7 +55,7 @@ public class JENKINS14806 extends BaseTestClass {
 		project.getBuildersList().add( new WaitBuilder() );
 		
 		System.out.println( "Async build" );
-		Future<FreeStyleBuild> futureBuild = project.scheduleBuild2( 0 );
+		Future<FreeStyleBuild> futureBuild = project.scheduleBuild2( 0, new SCMTrigger.SCMTriggerCause("Triggered for test") );
 		
 		/* Remove the builder again */
 		System.out.println( "Clear builders" );
