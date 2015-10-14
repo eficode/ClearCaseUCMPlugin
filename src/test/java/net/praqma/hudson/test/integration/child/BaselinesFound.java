@@ -7,6 +7,7 @@ import org.junit.Test;
 import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
+import hudson.triggers.SCMTrigger;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.hudson.test.SystemValidator;
@@ -118,7 +119,7 @@ public class BaselinesFound extends BaseTestClass {
         .setMode(modeChild);
         
         FreeStyleProject p = creator.getProject();         
-        AbstractBuild<?,?> buildNewest = jenkins.getProjectBuilder(p).build();
+        AbstractBuild<?,?> buildNewest = jenkins.getProjectBuilder(p).build(new SCMTrigger.SCMTriggerCause("Trigger change for SCM test"));
         
         //First build should be succes
         SystemValidator validator = new SystemValidator(buildNewest)
@@ -128,7 +129,7 @@ public class BaselinesFound extends BaseTestClass {
         validator.validate();
         
         //Next build. Nothing to do
-        AbstractBuild<?,?> nothing = jenkins.getProjectBuilder(p).build();
+        AbstractBuild<?,?> nothing = jenkins.getProjectBuilder(p).build(new SCMTrigger.SCMTriggerCause("Trigger change for SCM test"));
         SystemValidator validator2 = new SystemValidator(nothing)
                 .validateBuild(Result.NOT_BUILT);
         validator2.validate();

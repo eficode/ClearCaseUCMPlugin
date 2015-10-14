@@ -3,6 +3,7 @@ package net.praqma.hudson.test.integration.userstories;
 import hudson.model.AbstractBuild;
 import hudson.model.Project;
 import hudson.model.Result;
+import hudson.triggers.SCMTrigger;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.hudson.scm.pollingmode.PollSelfMode;
@@ -39,11 +40,11 @@ public class JENKINS16636 extends BaseTestClass {
 
         /* First build must be a success, because there is a valid baseline.
          * This build is done because we need a previous action object */
-        AbstractBuild build1 = jenkins.getProjectBuilder( project ).build();
+        AbstractBuild build1 = jenkins.getProjectBuilder( project ).build(new SCMTrigger.SCMTriggerCause("Trigger change for SCM test"));
         new SystemValidator( build1 ).validateBuild( Result.SUCCESS ).validate();
 
         /* Because there are no new baselines, the build must fail */
-        AbstractBuild build2 = jenkins.getProjectBuilder( project ).build();
+        AbstractBuild build2 = jenkins.getProjectBuilder( project ).build(new SCMTrigger.SCMTriggerCause("Trigger change for SCM test"));
         new SystemValidator( build2 ).validateBuild( Result.NOT_BUILT ).validate();
     }
 
@@ -66,7 +67,5 @@ public class JENKINS16636 extends BaseTestClass {
         AbstractBuild build2 = jenkins.getProjectBuilder( project ).build();
         new SystemValidator( build2 ).validateBuild( Result.SUCCESS ).validate();
     }
-
-
 
 }

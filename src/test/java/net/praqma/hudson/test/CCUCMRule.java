@@ -6,6 +6,7 @@ import hudson.model.Project;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.ChangeLogSet.Entry;
 import hudson.slaves.DumbSlave;
+import hudson.triggers.SCMTrigger;
 
 import java.io.File;
 import java.io.IOException;
@@ -173,9 +174,15 @@ public class CCUCMRule extends JenkinsRule {
             System.out.println( " * Swipe          : " + swipe );
             System.out.println( " * Trim           : " + trim );
             System.out.println( " * Discard        : " + discard);
+            System.out.println( " * Project name   : " + name);
+            System.out.println( " * Project type   : " + projectClass.getSimpleName()  );
             System.out.println( "============================================" );
 
-            FreeStyleProject project = Jenkins.getInstance().createProject( projectClass, name );            
+            Jenkins j = Jenkins.getInstance();
+            
+            assert j != null : "Jenkins is null in this instance...should not be possible";
+            
+            FreeStyleProject project = j.createProject( projectClass, name );            
             CCUCMScm scm = new CCUCMScm( component, "ALL", false, mode, stream, "successful", template, forceDeliver, recommend, tag, description, "", swipe, trim, discard );
             project.setScm( scm );
             
@@ -291,8 +298,12 @@ public class CCUCMRule extends JenkinsRule {
             this.fail = cancel;
             return this;
         }
+        
+        public AbstractBuild build() throws ExecutionException, InterruptedException, IOException { 
+            return build(new Cause.UserIdCause());
+        }
 
-        public AbstractBuild build() throws ExecutionException, InterruptedException, IOException {
+        public AbstractBuild build(Cause cause) throws ExecutionException, InterruptedException, IOException {
 
             if( fail ) {
                 logger.info( "Failing " + project );
@@ -308,7 +319,7 @@ public class CCUCMRule extends JenkinsRule {
                 action = new EnableLoggerAction( outputDir );
             }
 
-            Future<? extends Build<?, ?>> futureBuild = project.scheduleBuild2( 0, new Cause.UserIdCause(), action );
+            Future<? extends Build<?, ?>> futureBuild = project.scheduleBuild2( 0, cause, action );
 
             AbstractBuild build = futureBuild.get();
 
@@ -349,7 +360,7 @@ public class CCUCMRule extends JenkinsRule {
 
         AbstractBuild<?,?> build = null;
 		try {
-            build = project.scheduleBuild2(0, new Cause.UserIdCause(), action ).get();
+            build = project.scheduleBuild2(0, new SCMTrigger.SCMTriggerCause("SCM trigger by testing"), action ).get();
         } catch ( Exception e ) {
             if(!fail) {
                 logger.log(Level.SEVERE, "Build failed...it should not!", e);

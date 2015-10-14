@@ -3,6 +3,7 @@ package net.praqma.hudson.test.integration.child;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.scm.PollingResult;
+import hudson.triggers.SCMTrigger;
 import java.io.File;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
@@ -51,7 +52,7 @@ public class Polling extends BaseTestClass {
 		
 		FreeStyleBuild build = null;
 		try {
-			build = project.scheduleBuild2( 0 ).get();
+			build = project.scheduleBuild2( 0, new SCMTrigger.SCMTriggerCause("Triggered for testing") ).get();
 		} catch( Exception e ) {
 			logger.info( "Build failed: " + e.getMessage() );
             fail("The test failed with exception message: "+e.getMessage());            
@@ -87,7 +88,7 @@ public class Polling extends BaseTestClass {
         
 		FreeStyleBuild build = null;
 		try {
-			build = project.scheduleBuild2( 0 ).get();
+			build = project.scheduleBuild2( 0, new SCMTrigger.SCMTriggerCause("Triggered for testing") ).get();
 		} catch( Exception e ) {
 			logger.info( "Build failed: " + e.getMessage() );
             fail("The test failed with exception message: "+e.getMessage());            
