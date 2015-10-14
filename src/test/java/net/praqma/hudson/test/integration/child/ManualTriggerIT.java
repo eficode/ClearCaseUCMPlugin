@@ -64,6 +64,7 @@ public class ManualTriggerIT extends BaseTestClass {
         
         //Reset promotion level
         bl2.setPromotionLevel(Project.PromotionLevel.INITIAL);
+        bl2.load();
         
         //Next build. Since we trigger manually. The project should pick up the previous baseline.
         AbstractBuild<?,?> nothing = jenkins.getProjectBuilder(p).build(new Cause.UserIdCause());
