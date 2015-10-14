@@ -3,7 +3,6 @@ package net.praqma.hudson.test.integration.child;
 import java.io.File;
 
 import net.praqma.hudson.test.BaseTestClass;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -17,7 +16,6 @@ import net.praqma.clearcase.ucm.entities.Baseline.LabelBehaviour;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.clearcase.ucm.view.UCMView;
 import net.praqma.clearcase.util.ExceptionUtils;
-import net.praqma.hudson.test.LoggerRule;
 import net.praqma.hudson.test.SystemValidator;
 import net.praqma.util.test.junit.TestDescription;
 
