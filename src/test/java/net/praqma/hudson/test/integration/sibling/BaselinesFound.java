@@ -8,6 +8,7 @@ import org.junit.Test;
 import hudson.model.AbstractBuild;
 import hudson.model.Project;
 import hudson.model.Result;
+import hudson.triggers.SCMTrigger;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
@@ -141,14 +142,14 @@ public class BaselinesFound extends BaseTestClass {
             .setMode(mode)
             .getProject();                
 
-        AbstractBuild<?, ?> build = jenkins.getProjectBuilder(project).build();
+        AbstractBuild<?, ?> build = jenkins.getProjectBuilder(project).build(new SCMTrigger.SCMTriggerCause("Trigger change for SCM test"));
 		SystemValidator validator = new SystemValidator( build ).
                 validateBuild( build.getResult() ).
                 validateBuiltBaseline( PromotionLevel.BUILT, baseline, false ).
                 validateCreatedBaseline( true );
 		validator.validate();
         
-        AbstractBuild<?, ?> build2 = jenkins.getProjectBuilder(project).build();
+        AbstractBuild<?, ?> build2 = jenkins.getProjectBuilder(project).build(new SCMTrigger.SCMTriggerCause("Trigger change for SCM test"));
         SystemValidator validator2 = new SystemValidator( build2 ).validateBuild(Result.NOT_BUILT);
         validator2.validate();
     }
