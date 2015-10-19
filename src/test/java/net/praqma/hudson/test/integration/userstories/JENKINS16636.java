@@ -68,6 +68,4 @@ public class JENKINS16636 extends BaseTestClass {
         new SystemValidator( build2 ).validateBuild( Result.SUCCESS ).validate();
     }
 
-
-
 }
