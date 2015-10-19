@@ -121,11 +121,11 @@ public class RemotePostBuild implements FileCallable<Status> {
                         Project.PromotionLevel pl;
                         if( !status.isStable() && !unstable.treatSuccessful() ) {
                             /* Treat the not stable build as unsuccessful */
-                            pl = sourcebaseline.load().reject();
+                            pl = sourcebaseline.reject();
                             hudsonOut.println( CCUCMNotifier.logShortPrefix + " Baseline " + sourcebaseline.getShortname() + " is " + pl.toString() + "." );
                         } else {
                             /* Treat the build as successful */
-                            pl = sourcebaseline.load().promote();
+                            pl = sourcebaseline.promote();
                             hudsonOut.print( CCUCMNotifier.logShortPrefix + " Baseline " + sourcebaseline.getShortname() + " promoted to " + pl.toString() );
                             if( !status.isStable() ) {
                                 hudsonOut.println( ", even though the build is unstable." );
