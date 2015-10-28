@@ -29,6 +29,7 @@ import net.praqma.clearcase.exceptions.CleartoolException;
 import net.praqma.clearcase.exceptions.DeliverException;
 import net.praqma.clearcase.exceptions.DeliverException.Type;
 import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
+import net.praqma.clearcase.exceptions.UnableToLoadEntityException;
 import net.praqma.clearcase.ucm.entities.*;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.view.SnapshotView;
@@ -277,10 +278,22 @@ public class CCUCMScm extends SCM {
             } catch (CCUCMException e) {
 
                 logger.warning(e.getMessage());
-                /* If the promotion level is not set, ANY, use the last found Baseline, or the manual build was triggered */
-                if (mode.getPromotionLevel() == null || build.getCause(UserIdCause.class) != null) {
+                CCUCMBuildAction last = getLastAction(build.getProject());
+                Baseline updated = null;
+                if(last != null)  {
+                    try {
+                        updated = Baseline.get(last.getBaseline().getFullyQualifiedName()).load(true);
+                    } catch (UnableToInitializeEntityException | UnableToLoadEntityException ex) {
+                        logger.log(Level.WARNING, "Unable to reload previous baseline", ex);
+                    } 
+                }
+                
+                /* 
+                    If the promotion level is not set, ANY, use the last found Baseline. Alternatively, if the baseline that was last built has not been altered (Rejected/Promoted)
+                    the we assume we can safely do the same again.
+                */
+                if (mode.getPromotionLevel() == null || (updated != null && mode.getPromotionLevel().equals(updated.getPromotionLevel()))) {
                     logger.fine("Configured to use the latest always.");
-                    CCUCMBuildAction last = getLastAction(build.getProject());
                     if (last != null) {
                         action.setBaseline(last.getBaseline());
                     } else {
