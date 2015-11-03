@@ -23,8 +23,8 @@ public class BaseTestClass {
     @ClassRule
     public static CCUCMRule jenkins = new CCUCMRule();
 
-    //@ClassRule
-    //public static LoggingRule lrule = new LoggingRule( "net.praqma" );
+    @ClassRule
+    public static LoggingRule lrule = new LoggingRule( "net.praqma" );
     	
 	@ClassRule
 	public static LoggerRule loggerRule = new LoggerRule();
