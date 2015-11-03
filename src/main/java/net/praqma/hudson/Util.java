@@ -212,8 +212,7 @@ public abstract class Util {
     }
     
     /**
-     * This method generalizes some functionality. The logic to create the viewtag is now also used used in
-     * the {@link CheckoutTask} class and the {@link RemoteDeliver} class. This is an attempt to fix JENKINS-20748
+     * A method that fixes JENKINS-20748
      * @param str The base view tag name
      * @return A view tag with CCUCM prefixed, and the computer name appended.
      */

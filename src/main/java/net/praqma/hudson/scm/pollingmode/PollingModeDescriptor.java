@@ -15,7 +15,7 @@ import org.kohsuke.stapler.StaplerRequest;
 /**
  *
  * @author Mads
- * @param <T>
+ * @param <T> The {@link Descriptor}'s base class
  */
 public abstract class PollingModeDescriptor<T extends PollingMode> extends Descriptor<PollingMode> {
 
