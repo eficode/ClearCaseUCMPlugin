@@ -211,7 +211,7 @@ public class SystemValidator {
 		
 		/* Check level */
 		System.out.println( "[assert] " + baseline.getNormalizedName() + " must have the promotion level " + builtBaselineLevel );
-		assertEquals( builtBaselineLevel, baseline.getPromotionLevel( true ) );
+		assertEquals( builtBaselineLevel, baseline.getPromotionLevel( ) );
 		
 		/* Check expected */
 		System.out.println( "[assert] " + baseline.getNormalizedName() + " must be the same as " + expectedBuiltBaseline.getNormalizedName() );

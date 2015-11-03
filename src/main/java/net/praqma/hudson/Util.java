@@ -39,24 +39,6 @@ public abstract class Util {
 			return Project.getPlevelFromString( level );
 		}
 	}
-
-	public Stream getDeveloperStream( String streamname, PVob pvob, Stream buildIntegrationStream, Baseline foundationBaseline ) throws ScmException {
-		Stream devstream = null;
-
-		try {
-			if( Stream.streamExists( streamname + pvob ) ) {
-				devstream = Stream.get( streamname, pvob );
-			} else {
-				devstream = Stream.create( buildIntegrationStream, streamname + pvob, true, foundationBaseline );
-			}
-			
-			devstream.load();
-		} catch( Exception e ) {
-			throw new ScmException( "Could not get stream: " + streamname, e );
-		}
-
-		return devstream;
-	}
     
     public static String createChangelog(AbstractBuild<?, ?> build, List<Activity> activities, Baseline bl, boolean trimmed, File viewRoot, List<String> readonly, boolean ignoreReadOnly) throws IOException, InterruptedException {
         return Util.createChangelog(build, activities, bl, trimmed, viewRoot, readonly, ignoreReadOnly, true);
@@ -116,11 +98,7 @@ public abstract class Util {
             return buffer.toString();
         }
     }
-/*
-	public static SnapshotView makeView( Stream stream, File workspace, BuildListener listener, String loadModule, File viewroot, String viewtag ) throws ScmException {
-		return makeView( stream, workspace, listener, loadModule, viewroot, viewtag, true );
-	}
-*/
+
 	public static SnapshotView makeView( Stream stream, File workspace, BuildListener listener, String loadModule, File viewroot, String viewtag, boolean update ) throws ScmException {
 
 		PrintStream hudsonOut = listener.getLogger();
@@ -131,9 +109,6 @@ public abstract class Util {
 
 		boolean pathExists = false;
 
-		/*
-		 * Determine if there is a view path if not, create it
-		 */
 		try {
 			if( viewroot.exists() ) {
 				pathExists = true;
@@ -232,22 +207,14 @@ public abstract class Util {
         out.println( "[" + Config.nameShort + "] " + msg.toString()  );
     }
 
-    public static void storeException( File file, Throwable throwable ) throws IOException {
-        file.delete();
-        PrintWriter out = new PrintWriter( file );
-        throwable.printStackTrace( out );
-        out.close();
-    }
-
     private static String sanitize( String str ) {
         return str.replaceAll( "\\s", "_" );
     }
     
     /**
-     * This method generalizes some functionality. The logic to create the viewtag is now also used used in
-     * the {@link CheckoutTask} class and the {@link RemoteDeliver} class. This is an attempt to fix JENKINS-20748
-     * @param str
-     * @return 
+     * A method that fixes JENKINS-20748
+     * @param str The base view tag name
+     * @return A view tag with CCUCM prefixed, and the computer name appended.
      */
     public static String createAndSanitizeCCUCMViewTag(String str) {
         String viewtag = null;        

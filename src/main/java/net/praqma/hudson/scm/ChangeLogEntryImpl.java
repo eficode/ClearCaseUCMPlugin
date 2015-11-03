@@ -20,7 +20,6 @@ import java.util.regex.Pattern;
  */
 public class ChangeLogEntryImpl extends Entry {
 
-    /*Pattern we use to tablify the 'file' entry */
     private static final transient Pattern splitChangeSet = Pattern.compile("^([^\\(]+)\\(([^\\)]+)(.*?)(\\S+)(\\S+)(.*)");
     private ChangeLogSetImpl parent;
     private String actName;
@@ -30,18 +29,17 @@ public class ChangeLogEntryImpl extends Entry {
     private String date;
 
 	protected static final Logger logger = Logger.getLogger( ChangeLogEntryImpl.class.getName()  );
-	private volatile List<String> affectedPaths = new ArrayList<String>();
+	private volatile List<String> affectedPaths = new ArrayList<>();
 
 	public ChangeLogEntryImpl() {
 	}
 
 	/**
 	 * Hudson calls this to show changes on the changes-page
+     * @return A string of path names for changes
 	 */
 	@Override
 	public Collection<String> getAffectedPaths() {
-		// a baseline can be set without any files changed - but then we wont
-		// build
 		return affectedPaths;
 	}
     
@@ -93,15 +91,13 @@ public class ChangeLogEntryImpl extends Entry {
 		return User.get( author );
 	}
 
-	// Digester in ChangeLogParserImpl cannot call setAuthor successfully, but
-	// setMyAuthor works.
 	public void setMyAuthor( String author ) {
 		this.author = author;
 	}
 
 	/**
-	 * This is to tell the Entry which Changeset it belongs to
-	 * @param parent
+	 * This is to tell the Entry which Change set it belongs to
+	 * @param parent Ties entry to this parent
 	 */
 	public void setParent( ChangeLogSetImpl parent ) {
 		this.parent = parent;
@@ -109,6 +105,7 @@ public class ChangeLogEntryImpl extends Entry {
 
 	/**
 	 * Used in digest.jelly to get the message attached to the entry
+     * @return A message string
 	 */
 	@Override
 	public String getMsg() {

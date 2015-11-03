@@ -136,7 +136,7 @@ public class RemotePostBuild implements FileCallable<Status> {
                         status.setPromotedLevel( pl );
                     }
                 } else {
-                    status.setPromotedLevel( sourcebaseline.getPromotionLevel( false ) );
+                    status.setPromotedLevel( sourcebaseline.getPromotionLevel() );
                 }
 
 				/* Recommend the Baseline */
@@ -192,7 +192,7 @@ public class RemotePostBuild implements FileCallable<Status> {
                         logger.warning( "Rejecting baseline" );
                         Project.PromotionLevel pl = sourcebaseline.reject();
                         status.setPromotedLevel( pl );
-                        hudsonOut.println( CCUCMNotifier.logShortPrefix + " Baseline " + sourcebaseline.getShortname() + " is " + sourcebaseline.getPromotionLevel( true ).toString() + "." );
+                        hudsonOut.println( CCUCMNotifier.logShortPrefix + " Baseline " + sourcebaseline.getShortname() + " is " + sourcebaseline.getPromotionLevel().toString() + "." );
                     }
                 } catch( Exception e ) {
                     status.setStable( false );
@@ -200,7 +200,7 @@ public class RemotePostBuild implements FileCallable<Status> {
                     logger.log( Level.WARNING, "Could not reject baseline", e );
                 }
             } else {
-                status.setPromotedLevel( sourcebaseline.getPromotionLevel( false ) );
+                status.setPromotedLevel( sourcebaseline.getPromotionLevel() );
             }
 
 		}
@@ -233,7 +233,7 @@ public class RemotePostBuild implements FileCallable<Status> {
 				hudsonOut.println( CCUCMNotifier.logShortPrefix + " Tag object was null, tag not set." );
 			}
 		}
-		newPLevel = sourcebaseline.getPromotionLevel( true ).toString();
+		newPLevel = sourcebaseline.getPromotionLevel().toString();
 
         if ( rebaseTargets != null && !rebaseTargets.isEmpty() ) {
             logger.info("Writing build description for poll rebase");
@@ -256,7 +256,7 @@ public class RemotePostBuild implements FileCallable<Status> {
 
 	private void printPostedOutput( Baseline sourcebaseline ) throws ClearCaseException {
 		hudsonOut.println( CCUCMNotifier.logShortPrefix + " Baseline " + sourcebaseline.getShortname() + " was a posted delivery, and has a different mastership." );
-		hudsonOut.println( CCUCMNotifier.logShortPrefix + " Its promotion level cannot be updated, but is left as " + sourcebaseline.getPromotionLevel( true ).toString() );
+		hudsonOut.println( CCUCMNotifier.logShortPrefix + " Its promotion level cannot be updated, but is left as " + sourcebaseline.getPromotionLevel().toString() );
 	}
 
 	private boolean hasRemoteMastership() throws ClearCaseException {

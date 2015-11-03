@@ -9,6 +9,7 @@ import hudson.slaves.DumbSlave;
 import hudson.triggers.SCMTrigger;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -210,6 +211,7 @@ public class CCUCMRule extends JenkinsRule {
     /**
      * New set of methods that sets up a freestyle build with a slave.
      * @param projectName
+     * @param mode
      * @param component
      * @param stream
      * @param recommend
@@ -320,23 +322,17 @@ public class CCUCMRule extends JenkinsRule {
             }
 
             Future<? extends Build<?, ?>> futureBuild = project.scheduleBuild2( 0, cause, action );
-
-            AbstractBuild build = futureBuild.get();
-
+            AbstractBuild build = null;
+            try {                
+                build = futureBuild.get();
+            } catch (ExecutionException | InterruptedException e) {
+                PrintStream outerror = new PrintStream( new File( outputDir, "jenkins." + getSafeName( project.getDisplayName() ) + "." + "error" + ".log" ) );
+                printError(outerror, e);
+                throw e;
+            }
+            
             PrintStream out = new PrintStream( new File( outputDir, "jenkins." + getSafeName( project.getDisplayName() ) + "." + build.getNumber() + ".log" ) );
-
-            out.println( "Build      : " + build );
-            out.println( "Workspace  : " + build.getWorkspace() );
-            out.println( "Logfile    : " + build.getLogFile() );
-            out.println( "Description: " + build.getDescription() );
-            out.println();
-            out.println( "-------------------------------------------------" );
-            out.println( "                JENKINS LOG: " );
-            out.println( "-------------------------------------------------" );
-            out.println( getLog( build ) );
-            out.println( "-------------------------------------------------" );
-            out.println( "-------------------------------------------------" );
-            out.println();
+            printStatus(out, build);
 
             return build;
         }
@@ -350,28 +346,7 @@ public class CCUCMRule extends JenkinsRule {
         }
     }
     
-	public AbstractBuild<?, ?> buildProject( AbstractProject<?, ?> project, boolean fail ) throws IOException, Exception {
-        
-        EnableLoggerAction action = null;
-        if( outputDir != null ) {
-            logger.fine( "Enabling logging" );
-            action = new EnableLoggerAction( outputDir );
-        }
-
-        AbstractBuild<?,?> build = null;
-		try {
-            build = project.scheduleBuild2(0, new SCMTrigger.SCMTriggerCause("SCM trigger by testing"), action ).get();
-        } catch ( Exception e ) {
-            if(!fail) {
-                logger.log(Level.SEVERE, "Build failed...it should not!", e);
-                throw e;
-            }
-			logger.info( "Build failed, and it should!");            
-		}
-        
-   
-        PrintStream out = new PrintStream( new File( outputDir, "jenkins." + getSafeName( project.getDisplayName() ) + "." + build.getNumber() + ".log" ) );
-
+    private void printStatus(PrintStream out, AbstractBuild<?,?> build) throws IOException {
         out.println( "Build      : " + build );
         out.println( "Workspace  : " + build.getWorkspace() );
         out.println( "Logfile    : " + build.getLogFile() );
@@ -383,8 +358,38 @@ public class CCUCMRule extends JenkinsRule {
         out.println( getLog( build ) );
         out.println( "-------------------------------------------------" );
         out.println( "-------------------------------------------------" );
-        out.println();
-		
+        out.println();        
+        out.close();
+    }
+    
+    private void printError(PrintStream out, Exception e) {
+        out.println("Fatal error during build");
+        e.printStackTrace(out);
+        out.close();
+    }
+    
+	public AbstractBuild<?, ?> buildProject( AbstractProject<?, ?> project, boolean fail ) throws IOException, Exception {        
+        EnableLoggerAction action = null;
+        if( outputDir != null ) {
+            logger.fine( "Enabling logging" );
+            action = new EnableLoggerAction( outputDir );
+        }
+        
+        AbstractBuild<?,?> build = null;
+		try {
+            build = project.scheduleBuild2(0, new SCMTrigger.SCMTriggerCause("SCM trigger by testing"), action ).get();
+        } catch ( InterruptedException | ExecutionException e ) {
+            if(!fail) {
+                logger.log(Level.SEVERE, "Build failed...it should not!", e);
+                PrintStream errorout = new PrintStream( new File( outputDir, "jenkins." + getSafeName( project.getDisplayName() ) + "." + "error" + ".log" ) );
+                printError(errorout, e);
+                throw e;
+            }
+		}
+
+        PrintStream out = new PrintStream( new File( outputDir, "jenkins." + getSafeName( project.getDisplayName() ) + "." + build.getNumber() + ".log" ) );
+        printStatus(out, build);
+
 		return build;
 	}
 	
@@ -450,12 +455,10 @@ public class CCUCMRule extends JenkinsRule {
 	}
 	
 	public Tag getTag( Baseline baseline, AbstractBuild<?, ?> build ) throws ClearCaseException {
-		logger.severe( "Getting tag with \"" + build.getParent().getDisplayName() + "\" - \"" + build.getNumber() + "\"" );
-		logger.severe( "--->" + build.getParent().getDisplayName() );
 		Tag tag = Tag.getTag( baseline, build.getParent().getDisplayName(), build.getNumber()+"", false );
 		
 		if( tag != null ) {
-			logger.info( "TAG: " + tag.stringify() );
+			logger.log(Level.INFO, "TAG: {0}", tag.stringify());
 		} else {
 			logger.info( "TAG WAS NULL" );
 		}
@@ -464,10 +467,8 @@ public class CCUCMRule extends JenkinsRule {
 	}
 	
 	public void samePromotionLevel( Baseline baseline, PromotionLevel level ) throws ClearCaseException {
-		logger.info( "Current promotion level: " + baseline.getPromotionLevel( false ) );
 		baseline.load();
-		logger.info( "Future promotion level: " + baseline.getPromotionLevel( false ) );
-		assertEquals( level, baseline.getPromotionLevel( false ) );
+		assertEquals( level, baseline.getPromotionLevel( ) );
 	}
 	
 	public void testCreatedBaseline( AbstractBuild<?, ?> build ) {
@@ -500,9 +501,7 @@ public class CCUCMRule extends JenkinsRule {
 		
 		Object[] items = ls.getItems();
 		
-		System.out.println( "ITEMS: " + items );
-		
-		List<User> users = new ArrayList<User>();
+		List<User> users = new ArrayList<>();
 		
 		for( Object item : items ) {
 			try {

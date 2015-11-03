@@ -13,7 +13,7 @@ import net.praqma.hudson.exception.TemplateException;
 
 public class NameTemplate {
 
-	private static final Map<String, Template> templates = new HashMap<String, Template>();
+	private static final Map<String, Template> templates = new HashMap<>();
 	private static final Logger logger = Logger.getLogger( NameTemplate.class.getName() );
 
 	static  {
@@ -33,14 +33,9 @@ public class NameTemplate {
 	private static Pattern rx_ = Pattern.compile( "(\\[.*?\\])" );
 	private static Pattern rx_checkFinal = Pattern.compile( "^[\\w\\._-]*$" );
 
-    /**
-     * This is the method we use to validate templates.
-     * @param action 
-     */
+
 	public static void validateTemplates( CCUCMBuildAction action) {
 		logger.finer( "Validating templates for " + action );
-         //Only evaluate those that are actually chosen
-        
 		HashMap<String, String> chosentemplates = getChosenTemplates(action.getNameTemplate());
 		for( Entry<String, String> val : chosentemplates.entrySet() ) {			
 			try {
@@ -54,8 +49,7 @@ public class NameTemplate {
     
     public static void validateTemplates( CCUCMBuildAction action, FilePath ws) {
 		logger.finer( "Validating templates for " + action );
-         //Only evaluate those that are actually chosen
-        
+
 		HashMap<String, String> chosentemplates = getChosenTemplates(action.getNameTemplate());
 		for( Entry<String, String> val : chosentemplates.entrySet() ) {			
 			try {
@@ -76,11 +70,11 @@ public class NameTemplate {
 
     /**
      * Method that extracts the names of the chose templates.
-     * @param templatestring
+     * @param templatestring The string to get the {@link Template}s that needs to be applied
      * @return a Set containing the name of the templates chosen.
      */
     public static HashMap<String,String> getChosenTemplates(String templatestring) {
-        HashMap<String,String> chosenTemplates = new HashMap<String,String>();
+        HashMap<String,String> chosenTemplates = new HashMap<>();
         Matcher m = rx_.matcher( templatestring );
 
         while( m.find() ) {
@@ -101,11 +95,10 @@ public class NameTemplate {
         
     /**
      * Checks to see if the templates are valid, and that the template names are available.
-     * @param template
-     * @return
-     * @throws TemplateException 
+     * @param template The template to test. 
+     * @throws TemplateException Thrown when there is an error in the chosen template
      */
-	public static boolean testTemplate( String template ) throws TemplateException {
+	public static void testTemplate( String template ) throws TemplateException {
 		Matcher m = rx_.matcher( template );
 		String result = template;
 
@@ -130,23 +123,19 @@ public class NameTemplate {
 		if( !f.find() ) {
 			throw new TemplateException( "The template is not correct" );
 		}
-
-		return true;
 	}
     
     /**
      * At this point. We do not need to filter chosen templates. 
-     * @param template
-     * @param action
-     * @param ws
-     * @return
-     * @throws TemplateException 
+     * @param template The string template. To be parsed
+     * @param action Current action
+     * @param ws Current workspace
+     * @return The parsed template
+     * @throws TemplateException Thrown when the template cannot be parsed
      */
 	public static String parseTemplate( String template, CCUCMBuildAction action, FilePath ws) throws TemplateException {
 		Matcher m = rx_.matcher( template );
 		String result = template;
-		
-		logger.finer( "PARSING TEMPLATE " + template );
 
 		while( m.find() ) {
 			String replace = m.group(1);
@@ -161,7 +150,7 @@ public class NameTemplate {
 				templateName = s[0];
 				args = s[1];
 			}
-                        
+            
 			if( !templates.containsKey( templateName ) ) {
 				throw new TemplateException( "The template " + templateName + " does not exist" );
 			} else {

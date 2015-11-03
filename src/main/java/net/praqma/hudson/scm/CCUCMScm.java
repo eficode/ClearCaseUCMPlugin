@@ -562,11 +562,13 @@ public class CCUCMScm extends SCM {
      * Resolve the {@link Baseline} parameter and store the information in the
      * Action
      *
-     * @param build
-     * @param baselineInput
-     * @param action
-     * @param listener
-     * @throws UnableToInitializeEntityException
+     * @param build The build to look for the baseline input
+     * @param baselineInput The Special CC_BASELINE environment variable
+     * @param action The action in which we store the baseline specified in the environment
+     * @param listener Listener
+     * @throws UnableToInitializeEntityException Thrown when cleartool cannot load the resolved input baseline
+     * @throws java.io.IOException Thrown on system error or Jenkins failure
+     * @throws java.lang.InterruptedException Thrown on system error or Jenkins failure
      */
     public void resolveBaselineInput(AbstractBuild<?, ?> build, String baselineInput, CCUCMBuildAction action, BuildListener listener) throws UnableToInitializeEntityException, IOException, InterruptedException {
 
@@ -601,7 +603,7 @@ public class CCUCMScm extends SCM {
     
     private List<String> parseExclusionList(FilePath workspace, String exclude) throws IOException, InterruptedException {
         
-        List<String> excludes = new ArrayList<String>();
+        List<String> excludes = new ArrayList<>();
         Pattern p_file = Pattern.compile("\\[file=(.*)\\]");
         
         for(String s : exclude.split("[\\r\\n]+")) {
@@ -625,10 +627,10 @@ public class CCUCMScm extends SCM {
     /**
      * Resolve the {@link Baseline} to be build
      *
-     * @param workspace
-     * @param project
-     * @param action
-     * @param listener
+     * @param workspace Workspace
+     * @param project Project
+     * @param action Action
+     * @param listener Listener
      * @throws CCUCMException is thrown if no valid baselines are found
      */
     private Result resolveBaseline(AbstractBuild<?,?> build, AbstractProject<?, ?> project, CCUCMBuildAction action, BuildListener listener) throws IOException, InterruptedException, CCUCMException {
@@ -676,7 +678,7 @@ public class CCUCMScm extends SCM {
                 
                 //We only promote those baselines that was created as a consequence of the parent. That means that any labelled baselines should get matched.
                 //This is done by convention.
-                ArrayList<Baseline> selections = new ArrayList<Baseline>();                
+                ArrayList<Baseline> selections = new ArrayList<>();                
                 if(blCandidate != null) {
                     for(Baseline blcforprom : consideredBaselines) {
                          if(blcforprom.getShortname().startsWith(blCandidate.getShortname())) {
@@ -775,13 +777,13 @@ public class CCUCMScm extends SCM {
     }
 
     /**
-     * Initialize the deliver view
-     * @param build
-     * @param state
-     * @param listener
-     * @return 
-     * @throws java.io.IOException
-     * @throws java.lang.InterruptedException
+     * Initialise the deliver view
+     * @param build Build
+     * @param state State
+     * @param listener Listener
+     * @return A {@link SnapshotView} in which we perform the deliver
+     * @throws java.io.IOException Thrown on system error
+     * @throws java.lang.InterruptedException Thrown on system error
      */
     public SnapshotView initializeDeliverView(AbstractBuild<?, ?> build, CCUCMBuildAction state, BuildListener listener) throws IOException, InterruptedException {
         logger.fine("Initializing deliver view");
@@ -797,13 +799,13 @@ public class CCUCMScm extends SCM {
 
     /**
      * Generate the change log for poll/sibling mode
-     * @param build
-     * @param state
-     * @param listener
-     * @param changelogFile
-     * @param snapshotView
-     * @throws java.io.IOException
-     * @throws java.lang.InterruptedException
+     * @param build Build
+     * @param state State
+     * @param listener Listener
+     * @param changelogFile File
+     * @param snapshotView Snapshot view
+     * @throws java.io.IOException Generic system error
+     * @throws java.lang.InterruptedException Generic system error
      */
     public void generateChangeLog(AbstractBuild<?, ?> build, CCUCMBuildAction state, BuildListener listener, File changelogFile, SnapshotView snapshotView) throws IOException, InterruptedException {
         FilePath workspace = build.getWorkspace();
@@ -865,14 +867,14 @@ public class CCUCMScm extends SCM {
      * This method polls the version control system to see if there are any
      * changes in the source code.
      *
-     * @param project
-     * @param launcher
-     * @param workspace
-     * @param listener
-     * @param rstate
-     * @return 
-     * @throws java.io.IOException
-     * @throws java.lang.InterruptedException
+     * @param project Project
+     * @param launcher Launcher
+     * @param workspace Workspace
+     * @param listener Listener
+     * @param rstate RevisionState
+     * @return A {@link PollingResult}
+     * @throws java.io.IOException Generic system error
+     * @throws java.lang.InterruptedException Generic system error
      */
     @Override
     public PollingResult compareRemoteRevisionWith(AbstractProject<?, ?> project, Launcher launcher, FilePath workspace, TaskListener listener, SCMRevisionState rstate) throws IOException, InterruptedException {
@@ -992,12 +994,12 @@ public class CCUCMScm extends SCM {
     /**
      * Get the {@link Baseline}s from a {@link Stream}s related Streams.
      *
-     * @return A list of {@link Baseline}'s
+     * @return A list of {@link Baseline}s
      */
     private List<Baseline> getBaselinesFromStreams(FilePath workspace, TaskListener listener, PrintStream consoleOutput, Stream stream, Component component, Polling polling, Date date) {
 
         List<Stream> streams = null;
-        List<Baseline> baselines = new ArrayList<Baseline>();
+        List<Baseline> baselines = new ArrayList<>();
 
         try {
             streams = RemoteUtil.getRelatedStreams(workspace, listener, stream, polling, this.getSlavePolling(), this.getMultisitePolling(), this.getHLinkFeedFrom());
@@ -1037,12 +1039,12 @@ public class CCUCMScm extends SCM {
      * {@link net.praqma.clearcase.ucm.entities.Project.PromotionLevel} a list
      * of valid {@link Baseline}s is returned.
      *
-     * @param workspace
-     * @param plevel
-     * @param stream
-     * @param component
+     * @param workspace Workspace
+     * @param plevel Promotion level
+     * @param stream Stream
+     * @param component Component
      * @return A list of {@link Baseline}'s
-     * @throws CCUCMException
+     * @throws CCUCMException Thrown when cleartool reports errors
      */
     private List<Baseline> getValidBaselinesFromStream(FilePath workspace, Project.PromotionLevel plevel, Stream stream, Component component, Date date) throws IOException, InterruptedException {
         logger.fine("Retrieving valid baselines.");
@@ -1078,7 +1080,7 @@ public class CCUCMScm extends SCM {
      * Returns the last {@link CCUCMBuildAction}, that has a valid
      * {@link Baseline}
      *
-     * @param project
+     * @param project Project
      * @return An Action
      */
     public static CCUCMBuildAction getLastAction(AbstractProject<?, ?> project) {
@@ -1190,10 +1192,6 @@ public class CCUCMScm extends SCM {
         }
     }
 
-    /*
-     * The following getters and booleans (six in all) are used to display saved
-     * userdata in Hudsons gui
-     */
     public String getLevelToPoll() {
         return levelToPoll;
     }
@@ -1322,13 +1320,6 @@ public class CCUCMScm extends SCM {
         this.stream = stream;
     }
 
-    /**
-     * This class is used to describe the plugin to Hudson
-     *
-     * @author Troels Selch
-     * @author Margit Bennetzen
-     *
-     */
     @Extension
     public static class CCUCMScmDescriptor extends SCMDescriptor<CCUCMScm> implements hudson.model.ModelObject {
 
@@ -1340,14 +1331,6 @@ public class CCUCMScm extends SCM {
             load();
         }
 
-        /**
-         * This method is called, when the user saves the global Hudson
-         * configuration.
-         * @param req
-         * @param json
-         * @return 
-         * @throws hudson.model.Descriptor.FormException
-         */
         @Override
         public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
             try {
@@ -1393,13 +1376,6 @@ public class CCUCMScm extends SCM {
             return "ClearCase UCM";
         }
 
-        /**
-         * This method is called by the scm/CCUCM/global.jelly to validate the
-         * input without reloading the global configuration page
-         *
-         * @param value
-         * @return
-         */
         public FormValidation doExecutableCheck(@QueryParameter String value) {
             return FormValidation.validateExecutable(value);
         }
@@ -1439,10 +1415,9 @@ public class CCUCMScm extends SCM {
 
         /**
          * Used by Hudson to display a list of valid promotion levels to build
-         * from. The list of promotion levels is hard coded in
-         * net.praqma.hudson.Config.java
+         * from.
          *
-         * @return
+         * @return A list of valid promtion levels
          */
         public List<String> getLevels() {
             return Config.getLevels();

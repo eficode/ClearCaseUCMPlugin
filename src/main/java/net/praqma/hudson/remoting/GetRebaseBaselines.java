@@ -39,7 +39,6 @@ public class GetRebaseBaselines implements FilePath.FileCallable<Tuple<List<Base
     public final List<String> components;
     public final Project.PromotionLevel plevel;
     
-    //FIXME: For later we might want to expand upon the way we 'unfold' the stucture
     private boolean useFlat = true;
 
     public GetRebaseBaselines(Stream stream, List<String> components, Project.PromotionLevel plevel) {
@@ -54,11 +53,11 @@ public class GetRebaseBaselines implements FilePath.FileCallable<Tuple<List<Base
      * the newest baseline found the the stream where the baseline originated.
      *
      *
-     * @param bl
-     * @param plvevel
-     * @return
-     * @throws UnableToInitializeEntityException
-     * @throws UnableToListBaselinesException
+     * @param bl The baseline. We use this {@link Baseline} to get it's {@link Stream}
+     * @param plvevel The promotion level to look for
+     * @return A {@link BaselineList}
+     * @throws UnableToInitializeEntityException Thrown when Cleartool cannot initialise an object
+     * @throws UnableToListBaselinesException Thrown on a Cleartool error
      */
     private BaselineList getLatestBaselineFromStream(Baseline bl, Project.PromotionLevel pl) throws UnableToInitializeEntityException, UnableToListBaselinesException {
         BaselineList blsc = new BaselineList();
@@ -75,8 +74,8 @@ public class GetRebaseBaselines implements FilePath.FileCallable<Tuple<List<Base
     /**
      * Remove the baselines found which we've chosen to ignore.
      *
-     * @param bls
-     * @return
+     * @param bls The {@link List} of {@link Baseline}s
+     * @return The pruned list of {@link Baseline}
      */
     private List<Baseline> pruneFromComponent(List<Baseline> bls) {
 
@@ -94,11 +93,11 @@ public class GetRebaseBaselines implements FilePath.FileCallable<Tuple<List<Base
     /**
      * Cleanup - We need to to remove the children if there are newer
      *
-     * @param bls
-     * @return
+     * @param The {@link List} of {@link Baseline}s
+     * @return The pruned list of {@link Baseline}
      */
     private List<Baseline> pruneFinalListOfBaselines(List<Baseline> bls) {
-        ArrayList<Baseline> copy = new ArrayList<Baseline>();
+        ArrayList<Baseline> copy = new ArrayList<>();
         try {
             //Copy the list. We return the pruned list
             copy.addAll(bls);
@@ -121,17 +120,17 @@ public class GetRebaseBaselines implements FilePath.FileCallable<Tuple<List<Base
     }
 
     /**
-     * @param f
-     * @param channel
+     * @param f A {@link File} usually a workspace denoted by a {@link FilePath}
+     * @param channel The channel
      * @return A tuple, with the first value t1 being the baselines found, t2
      * being the proposed new foundation composition.
-     * @throws IOException
-     * @throws InterruptedException
+     * @throws IOException Thrown on system error
+     * @throws InterruptedException Thrown on system error
      */
     public Tuple<List<Baseline>, List<Baseline>> invokeDeepStructure(File f, VirtualChannel channel) throws IOException, InterruptedException {
-        List<Baseline> foundBaselines = new ArrayList<Baseline>();
-        Tuple<List<Baseline>, List<Baseline>> result = new Tuple<List<Baseline>, List<Baseline>>();
-        HashMap<Component, Baseline> foundationComposition = new HashMap<Component, Baseline>();
+        List<Baseline> foundBaselines = new ArrayList<>();
+        Tuple<List<Baseline>, List<Baseline>> result = new Tuple<>();
+        HashMap<Component, Baseline> foundationComposition = new HashMap<>();
 
         /**
          * Break down the Stream whole foundation into a set of components. That
@@ -191,7 +190,7 @@ public class GetRebaseBaselines implements FilePath.FileCallable<Tuple<List<Base
         Collections.sort(foundBaselines, new BaselineList.DescendingDateSort());
 
         result.t1 = foundBaselines;
-        result.t2 = new ArrayList<Baseline>(foundationComposition.values());
+        result.t2 = new ArrayList<>(foundationComposition.values());
 
         //Return the result - 
         return result;
@@ -202,18 +201,18 @@ public class GetRebaseBaselines implements FilePath.FileCallable<Tuple<List<Base
      * never add an override entry. Thus..we can just use the defined
      * foundations to get the baselines we need.
      *
-     * @param f
-     * @param channel
-     * @return
-     * @throws IOException
-     * @throws InterruptedException
+     * @param f File
+     * @param channel Channel
+     * @return A {@link Tuple} containing the foundation {@link Baseline}s and Components
+     * @throws IOException An exception thrown on system error
+     * @throws InterruptedException An exception thrown on system error
      */
     private Tuple<List<Baseline>, List<Baseline>> invokeUsingFlatStructure(File f, VirtualChannel channel) throws IOException, InterruptedException {
 
-        List<Baseline> foundBaselines = new ArrayList<Baseline>();
-        Tuple<List<Baseline>, List<Baseline>> result = new Tuple<List<Baseline>, List<Baseline>>();
+        List<Baseline> foundBaselines = new ArrayList<>();
+        Tuple<List<Baseline>, List<Baseline>> result = new Tuple<>();
         
-        HashMap<Component,Baseline> composition = new HashMap<Component, Baseline>();
+        HashMap<Component,Baseline> composition = new HashMap<>();
         
         //Extract foundation baselines
         List<Baseline> foundations = stream.getFoundationBaselines();
@@ -248,7 +247,7 @@ public class GetRebaseBaselines implements FilePath.FileCallable<Tuple<List<Base
         Collections.sort(foundBaselines, new BaselineList.DescendingDateSort());
 
         result.t1 = foundBaselines;
-        result.t2 = new ArrayList<Baseline>(composition.values());
+        result.t2 = new ArrayList<>(composition.values());
         
         return result;
     }

@@ -76,11 +76,11 @@ public class JobNameRequirement extends Requirement {
     
     /**
      * Split the component section for this requirement into a list of ClearCase component objects.
-     * @return
-     * @throws UnableToInitializeEntityException 
+     * @return A list of {@link Component}s 
+     * @throws UnableToInitializeEntityException Thrown when cleartool reports errors
      */
     public List<Component> extractComponents() throws UnableToInitializeEntityException {
-        List<Component> comps = new ArrayList<Component>();
+        List<Component> comps = new ArrayList<>();
         if(StringUtils.isBlank(ignores)) {
             return comps;
         }
@@ -99,12 +99,12 @@ public class JobNameRequirement extends Requirement {
     
     /**
      * 
-     * @param bl
-     * @param impl
+     * @param bl {@link Baseline}
+     * @param impl The data provider
      * @return The result of the execution for the given job. Null if the baseline is not in our database of
      * tested configurations
-     * @throws CompatibilityDataException
-     * @throws UnableToInitializeEntityException 
+     * @throws CompatibilityDataException Thrown on database error
+     * @throws UnableToInitializeEntityException Thrown on cleartool error
      */
     public Result getJobResult(Baseline bl, MongoProviderImpl impl) throws CompatibilityDataException, UnableToInitializeEntityException {
         Result r = null;

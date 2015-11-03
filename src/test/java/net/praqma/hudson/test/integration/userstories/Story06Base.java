@@ -4,7 +4,6 @@ import hudson.model.AbstractBuild;
 import hudson.model.Project;
 import hudson.model.Result;
 import hudson.model.Slave;
-import hudson.slaves.DumbSlave;
 import net.praqma.clearcase.Deliver;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
@@ -28,7 +27,6 @@ import java.util.logging.Logger;
 import net.praqma.hudson.scm.pollingmode.PollChildMode;
 import static net.praqma.hudson.test.BaseTestClass.jenkins;
 
-import static net.praqma.hudson.test.CCUCMRule.ProjectCreator.Type;
 
 public abstract class Story06Base extends BaseTestClass {
 
