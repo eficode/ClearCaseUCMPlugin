@@ -22,6 +22,9 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import net.praqma.hudson.scm.pollingmode.PollChildMode;
 import net.praqma.hudson.scm.pollingmode.PollSelfMode;
 
@@ -55,7 +58,7 @@ public class Any extends BaseTestClass {
     @ClearCaseUniqueVobName( name = "self-any" )
     @TestDescription( title = "Self polling", text = "baselines available, find the newest" )
     public void test() throws Exception {
-        AbstractBuild<?, ?> build = initiateBuild( ccenv.getUniqueName(), false, false, false, false );
+        AbstractBuild<?, ?> build = initiateBuild( "self-any-"+ccenv.getUniqueName(), false, false, false, false );
 
         Baseline baseline = ccenv.context.baselines.get( "client-3" );
         SystemValidator validator = new SystemValidator( build )
@@ -68,7 +71,7 @@ public class Any extends BaseTestClass {
     @ClearCaseUniqueVobName( name = "self-any-recommend" )
     @TestDescription( title = "Self polling", text = "baselines available, find the newest" )
     public void testRecommend() throws Exception {
-        AbstractBuild<?, ?> build = initiateBuild( ccenv.getUniqueName(), true, false, false, false );
+        AbstractBuild<?, ?> build = initiateBuild( "self-any-rec-"+ccenv.getUniqueName(), true, false, false, false );
 
         Baseline baseline = ccenv.context.baselines.get( "client-3" );
         SystemValidator validator = new SystemValidator( build )
@@ -88,8 +91,9 @@ public class Any extends BaseTestClass {
         AbstractBuild<?, ?> build = null;
         try {
             build = project.scheduleBuild2( 0, new SCMTrigger.SCMTriggerCause("Triggered for testing") ).get();
-        } catch( Exception e ) {
-            logger.info( "Build failed: " + e.getMessage() );
+        } catch( InterruptedException | ExecutionException e ) {
+            logger.fatal( "Build failed: " + e.getMessage() );
+            throw e;
         }
 
         Baseline baseline = ccenv.context.baselines.get( "client-3" );
@@ -107,14 +111,15 @@ public class Any extends BaseTestClass {
     @TestDescription( title = "Self polling", text = "baselines available, find the newest, add baselines, poll" )
     public void testPollThree() throws Exception {
         PollSelfMode mode = new PollSelfMode("ANY");
-        FreeStyleProject project = jenkins.setupProjectWithASlave( "polling-test-with-baselines-" + ccenv.getUniqueName(), mode, "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, "");
+        FreeStyleProject project = jenkins.setupProjectWithASlave( "2newbl-with-baselines-" + ccenv.getUniqueName(), mode, "_System@" + ccenv.getPVob(), "one_int@" + ccenv.getPVob(), false, false, false, false, "");
 
         /* BUILD 1 */
         AbstractBuild<?, ?> build = null;
         try {
-            build = project.scheduleBuild2( 0, new SCMTrigger.SCMTriggerCause("Triggered for testing") ).get();
-        } catch( Exception e ) {
-            logger.info( "Build failed: " + e.getMessage() );
+            build = project.scheduleBuild2( 0, new SCMTrigger.SCMTriggerCause("Triggered for testing") ).get(1, TimeUnit.MINUTES);
+        } catch( InterruptedException | ExecutionException | TimeoutException e ) {
+            logger.fatal( "Build failed: " + e.getMessage() );
+            throw e;
         }
 
         Baseline baseline = ccenv.context.baselines.get( "client-3" );
@@ -139,9 +144,10 @@ public class Any extends BaseTestClass {
         /* BUILD 2 */
         AbstractBuild<?, ?> build2 = null;
         try {
-            build2 = project.scheduleBuild2( 0, new SCMTrigger.SCMTriggerCause("Triggered for testing") ).get();
-        } catch( Exception e ) {
+            build2 = project.scheduleBuild2( 0, new SCMTrigger.SCMTriggerCause("Triggered for testing") ).get(1, TimeUnit.MINUTES);
+        } catch( InterruptedException | ExecutionException | TimeoutException e ) {
             logger.info( "Build failed: " + e.getMessage() );
+            throw e;
         }
 
         new SystemValidator( build2 )
@@ -154,7 +160,6 @@ public class Any extends BaseTestClass {
 
 
     protected Baseline getNewBaseline( File path, String filename, String bname ) throws ClearCaseException {
-
         try {
             ccenv.addNewElement( ccenv.context.components.get( "Model" ), path, filename );
         } catch( ClearCaseException e ) {
