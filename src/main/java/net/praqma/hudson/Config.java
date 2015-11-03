@@ -22,28 +22,10 @@ public class Config {
 		return levels;
 	}
 
-	/* Below method is obsolete - remove when everything works */
-	/**
-	 * @deprecated
-	 */
-	public static Stream devStream( String pvob ) throws ScmException {
-		Stream devStream = null;
-		try {
-			devStream = Stream.get( "Hudson_Server_dev@" + pvob );
-			devStream.load();
-		} catch( ClearCaseException e ) {
-			throw new ScmException( "Could not get developer stream", e );
-		}
-		return devStream;
-	}
-
 	public static Stream getIntegrationStream( Baseline bl, String buildProject ) throws ScmException {
 		Stream stream = null;
 		Project project = null;
-		/*
-		 * If the build project was not given as a parameter to the job, try to
-		 * find hudson, Hudson, jenkins or Jenkins
-		 */
+
 		if( buildProject == null ) {
 			try {
 				project = Project.get( "hudson", bl.getPVob() ).load();
@@ -73,7 +55,6 @@ public class Config {
 			} catch( Exception e ) {
 				//throw new ScmException( "Could not find project 'hudson' in " + pvob + ". You can install the Poject with: \"cleartool mkproject -c \"The special Hudson Project\" -in rootFolder@\\your_pvob hudson@\\your_pvob\"." );
 				logger.warning( "The build Project was not found." );
-
 				project = bl.getStream().getProject();
 			}
 		}

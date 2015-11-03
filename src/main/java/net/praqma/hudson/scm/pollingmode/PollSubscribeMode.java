@@ -44,8 +44,8 @@ import org.kohsuke.stapler.DataBoundSetter;
  */
 public class PollSubscribeMode extends PollingMode implements BaselineCreationEnabled, NewestFeatureToggle {
     
-    private List<ComponentSelectionCriteriaRequirement> componentsToMonitor = new ArrayList<ComponentSelectionCriteriaRequirement>();
-    private List<JobNameRequirement> jobsToMonitor = new ArrayList<JobNameRequirement>();
+    private List<ComponentSelectionCriteriaRequirement> componentsToMonitor = new ArrayList<>();
+    private List<JobNameRequirement> jobsToMonitor = new ArrayList<>();
     private static final Logger logger = Logger.getLogger(PollSubscribeMode.class.getName());
     private boolean newest = false;
     private boolean cascadePromotion = true;
@@ -107,12 +107,12 @@ public class PollSubscribeMode extends PollingMode implements BaselineCreationEn
     /**
      * Determine the result of this subscribe action that triggered the build. We need to take action
      * on incompatible configurations.
-     * @param workspace
-     * @param bls
-     * @param slavePolling
+     * @param workspace Workspace
+     * @param bls Baseline
+     * @param slavePolling Slave polling enabled. (Allow polling on slaves)
      * @return The desired build status. Null if one of the baselines specified was not found in all the required jobs. 
-     * @throws java.io.IOException 
-     * @throws java.lang.InterruptedException 
+     * @throws java.io.IOException Generic system error
+     * @throws java.lang.InterruptedException Generic system error 
      */
     public Result determineResult(FilePath workspace, List<Baseline> bls, boolean slavePolling) throws IOException, InterruptedException {        
         CompatibilityDataProvider pr = GlobalConfiguration.all().get(CompatibilityDataPlugin.class).getProvider(MongoProviderImpl.class);
@@ -125,17 +125,18 @@ public class PollSubscribeMode extends PollingMode implements BaselineCreationEn
     /**
      * First filter. We take out the composite baselines of this baseline we might not be interested in. This needs to be filtered 
      * further.
-     * @param bl
-     * @param workspace
-     * @return
-     * @throws UnableToInitializeEntityException
-     * @throws CleartoolException 
-     * @throws java.io.IOException 
-     * @throws java.lang.InterruptedException 
+     * @param bl Baseline
+     * @param workspace Workspace
+     * @param slavePolling Allow polling on slaves
+     * @return A list of {@link Baseline}s under the chosen components
+     * @throws UnableToInitializeEntityException Cleartool error
+     * @throws CleartoolException Cleartool error
+     * @throws java.io.IOException System errors 
+     * @throws java.lang.InterruptedException System errors  
      */
     public List<Baseline> getBaselinesToConsider(final Baseline bl, FilePath workspace, boolean slavePolling) throws UnableToInitializeEntityException, CleartoolException, IOException, InterruptedException {        
         logger.fine("Preparing to list baselines on remote for poll subscribe");
-        List<Baseline> blzzz = new ArrayList<Baseline>();
+        List<Baseline> blzzz = new ArrayList<>();
         if(slavePolling) {
             blzzz = workspace.act(new GetConsideredBaselinesForSubscribe(bl, componentsToMonitor));            
         } else {

@@ -45,7 +45,7 @@ public class ChangeLogSetImpl extends ChangeLogSet<ChangeLogEntryImpl> {
 	/**
 	 * Used by index.jelly to display list of entries
 	 * 
-	 * @return
+	 * @return A list of {@link ChangeLogEntryImpl}
 	 */
 	public List<ChangeLogEntryImpl> getEntries() {
 		return entries;

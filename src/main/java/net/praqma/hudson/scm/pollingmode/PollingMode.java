@@ -111,7 +111,7 @@ public class PollingMode implements Describable<PollingMode>, ExtensionPoint, Se
      * of the source baseline. Disabled by default for poll rebase and poll self when
      * 'ANY' promotion level is selected.
      * 
-     * @return a boolean indicating if promotion should be skipped
+     * @return a boolean indicating if promotion should be skipped.
      */
     public boolean isPromotionSkipped() {
         return false;
@@ -122,9 +122,9 @@ public class PollingMode implements Describable<PollingMode>, ExtensionPoint, Se
      * actions after the build has completed. The return value is always the result of the operation.
      * 
      * The result can be used to set the build status of a Jenkins job
-     * @param b
-     * @param listener
-     * @param buildStatus
+     * @param b Build
+     * @param listener Listener
+     * @param buildStatus Build status
      * @return The callable to perform on the slave. 
      **/
     public FileCallable<Status> postBuildFinalizer(AbstractBuild<?,?> b, BuildListener listener, Status buildStatus){

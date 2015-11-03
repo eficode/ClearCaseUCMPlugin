@@ -48,7 +48,7 @@ public class CCUCMNotifier extends Notifier {
 	/**
 	 * This indicates whether to let CCUCM run after(true) the job is done or
 	 * before(false)
-     * @return 
+     * @return Always false
 	 */
 	@Override
 	public boolean needsToRunAfterFinalized() {
