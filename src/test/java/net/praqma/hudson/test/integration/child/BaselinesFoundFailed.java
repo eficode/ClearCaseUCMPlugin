@@ -7,7 +7,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import hudson.model.AbstractBuild;
-import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import net.praqma.clearcase.exceptions.ClearCaseException;
@@ -27,10 +26,7 @@ import net.praqma.hudson.scm.pollingmode.PollChildMode;
 import static net.praqma.hudson.test.BaseTestClass.jenkins;
 import net.praqma.hudson.test.CCUCMRule;
 
-import org.junit.FixMethodOrder;
-import org.junit.runners.MethodSorters;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class BaselinesFoundFailed extends BaseTestClass {
 
     @Rule

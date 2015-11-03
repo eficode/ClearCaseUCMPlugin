@@ -43,10 +43,7 @@ public class Any extends BaseTestClass {
 
     @Rule
     public ClearCaseRule ccenv = new ClearCaseRule( "ccucm" );
-
-    @Rule
-    public DescriptionRule desc = new DescriptionRule();
-
+    
     private static final Logger logger = Logger.getLogger();
 
     public AbstractBuild<?, ?> initiateBuild( String projectName, boolean recommend, boolean tag, boolean description, boolean fail ) throws Exception {

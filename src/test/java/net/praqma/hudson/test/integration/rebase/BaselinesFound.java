@@ -8,12 +8,10 @@ import org.junit.Test;
 import hudson.model.AbstractBuild;
 import hudson.model.Result;
 import java.io.File;
-import java.util.logging.Logger;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.hudson.test.SystemValidator;
-import net.praqma.util.test.junit.DescriptionRule;
 import net.praqma.util.test.junit.TestDescription;
 
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
@@ -26,14 +24,9 @@ import net.praqma.hudson.scm.pollingmode.PollRebaseMode;
 
 public class BaselinesFound extends BaseTestClass {
 
-      
-    private static final Logger logger = Logger.getLogger(BaselinesFound.class.getName());
-    
     @Rule
     public ClearCaseRule ccenv = new ClearCaseRule("ccucm", "setup-interproject.xml" );
-    @Rule
-    public DescriptionRule desc = new DescriptionRule();
-
+    
     public AbstractBuild<?, ?> initiateBuild(String projectName, boolean recommend, boolean tag, boolean description, boolean fail, boolean mkbl) throws Exception {
         PollRebaseMode mode = new PollRebaseMode("INITIAL");
         mode.setComponent("_System@" + ccenv.getPVob());

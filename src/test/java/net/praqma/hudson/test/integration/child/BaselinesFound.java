@@ -11,7 +11,6 @@ import hudson.triggers.SCMTrigger;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.hudson.test.SystemValidator;
-import net.praqma.util.test.junit.DescriptionRule;
 import net.praqma.util.test.junit.TestDescription;
 
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
@@ -19,16 +18,11 @@ import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.hudson.scm.pollingmode.PollChildMode;
 import net.praqma.hudson.test.CCUCMRule;
 
-import org.junit.FixMethodOrder;
-import org.junit.runners.MethodSorters;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class BaselinesFound extends BaseTestClass {
 
     @Rule
     public ClearCaseRule ccenv = new ClearCaseRule("ccucm");
-    @Rule
-    public DescriptionRule desc = new DescriptionRule();
 
     public AbstractBuild<?, ?> initiateBuild(String projectName, boolean recommend, boolean tag, boolean description, boolean fail) throws Exception {
         PollChildMode mode = new PollChildMode("INITIAL");
