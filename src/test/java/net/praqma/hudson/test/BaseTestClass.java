@@ -8,7 +8,6 @@ import net.praqma.clearcase.exceptions.UnableToLoadEntityException;
 import net.praqma.clearcase.interfaces.Diffable;
 import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Version;
-import net.praqma.util.test.junit.LoggingRule;
 import org.junit.Before;
 import org.junit.ClassRule;
 
@@ -24,8 +23,8 @@ public class BaseTestClass {
     @ClassRule
     public static CCUCMRule jenkins = new CCUCMRule();
 
-    @ClassRule
-    public static LoggingRule lrule = new LoggingRule( "net.praqma" );
+    //@ClassRule
+    //public static LoggingRule lrule = new LoggingRule( "net.praqma" );
     	
 	@ClassRule
 	public static LoggerRule loggerRule = new LoggerRule();
