@@ -79,7 +79,7 @@ public class Story05 extends BaseTestClass {
 		/* Expected build baseline */
 		Baseline buildBaseline = jenkins.getBuildBaseline( build );
 		assertEquals( bl2, buildBaseline );
-		assertEquals( PromotionLevel.REJECTED, buildBaseline.getPromotionLevel( true ) );
+		assertEquals( PromotionLevel.REJECTED, buildBaseline.getPromotionLevel( ) );
 		
 		/* Created baseline */
 		Baseline createdBaseline = jenkins.getCreatedBaseline( build );

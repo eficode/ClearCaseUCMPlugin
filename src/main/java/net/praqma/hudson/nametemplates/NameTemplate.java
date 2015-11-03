@@ -80,7 +80,7 @@ public class NameTemplate {
      * @return a Set containing the name of the templates chosen.
      */
     public static HashMap<String,String> getChosenTemplates(String templatestring) {
-        HashMap<String,String> chosenTemplates = new HashMap<String,String>();
+        HashMap<String,String> chosenTemplates = new HashMap<>();
         Matcher m = rx_.matcher( templatestring );
 
         while( m.find() ) {

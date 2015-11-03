@@ -450,12 +450,10 @@ public class CCUCMRule extends JenkinsRule {
 	}
 	
 	public Tag getTag( Baseline baseline, AbstractBuild<?, ?> build ) throws ClearCaseException {
-		logger.severe( "Getting tag with \"" + build.getParent().getDisplayName() + "\" - \"" + build.getNumber() + "\"" );
-		logger.severe( "--->" + build.getParent().getDisplayName() );
 		Tag tag = Tag.getTag( baseline, build.getParent().getDisplayName(), build.getNumber()+"", false );
 		
 		if( tag != null ) {
-			logger.info( "TAG: " + tag.stringify() );
+			logger.log(Level.INFO, "TAG: {0}", tag.stringify());
 		} else {
 			logger.info( "TAG WAS NULL" );
 		}
@@ -464,10 +462,8 @@ public class CCUCMRule extends JenkinsRule {
 	}
 	
 	public void samePromotionLevel( Baseline baseline, PromotionLevel level ) throws ClearCaseException {
-		logger.info( "Current promotion level: " + baseline.getPromotionLevel( false ) );
 		baseline.load();
-		logger.info( "Future promotion level: " + baseline.getPromotionLevel( false ) );
-		assertEquals( level, baseline.getPromotionLevel( false ) );
+		assertEquals( level, baseline.getPromotionLevel( ) );
 	}
 	
 	public void testCreatedBaseline( AbstractBuild<?, ?> build ) {
@@ -500,9 +496,7 @@ public class CCUCMRule extends JenkinsRule {
 		
 		Object[] items = ls.getItems();
 		
-		System.out.println( "ITEMS: " + items );
-		
-		List<User> users = new ArrayList<User>();
+		List<User> users = new ArrayList<>();
 		
 		for( Object item : items ) {
 			try {
