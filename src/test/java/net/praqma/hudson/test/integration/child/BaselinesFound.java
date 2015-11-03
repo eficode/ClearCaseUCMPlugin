@@ -11,6 +11,7 @@ import hudson.triggers.SCMTrigger;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project.PromotionLevel;
 import net.praqma.hudson.test.SystemValidator;
+import net.praqma.util.test.junit.DescriptionRule;
 import net.praqma.util.test.junit.TestDescription;
 
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
@@ -23,6 +24,9 @@ public class BaselinesFound extends BaseTestClass {
 
     @Rule
     public ClearCaseRule ccenv = new ClearCaseRule("ccucm");
+    
+    @Rule
+    public DescriptionRule desc = new DescriptionRule();
 
     public AbstractBuild<?, ?> initiateBuild(String projectName, boolean recommend, boolean tag, boolean description, boolean fail) throws Exception {
         PollChildMode mode = new PollChildMode("INITIAL");
@@ -45,22 +49,6 @@ public class BaselinesFound extends BaseTestClass {
     }
 
     @Test
-    @ClearCaseUniqueVobName(name = "rec-child")
-    @TestDescription(title = "Child polling", text = "baseline available", configurations = {"Recommended = true"})
-    public void testRecommended() throws Exception {
-        Baseline baseline = ccenv.createNewDevStreamContents("one_dev");
-
-        AbstractBuild<?, ?> build = initiateBuild("rec-" + ccenv.getUniqueName(), true, false, false, false);
-        
-        SystemValidator validator = new SystemValidator(build)
-                .validateBuild(Result.SUCCESS)
-                .validateBuildView()
-                .validateBuiltBaseline(PromotionLevel.BUILT, baseline, false)
-                .validateCreatedBaseline(true, true)
-                .validate();
-    }
-
-    @Test
     @ClearCaseUniqueVobName(name = "description-child")
     @TestDescription(title = "Child polling", text = "baseline available", configurations = {"Set description = true"})
     public void testDescription() throws Exception {
@@ -68,6 +56,7 @@ public class BaselinesFound extends BaseTestClass {
 
         AbstractBuild<?, ?> build = initiateBuild("description-" + ccenv.getUniqueName(), false, false, true, false);
  
+        
         SystemValidator validator = new SystemValidator(build)
                 .validateBuild(Result.SUCCESS)
                 .validateBuildView()

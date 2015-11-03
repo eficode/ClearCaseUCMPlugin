@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
+import net.praqma.util.test.junit.LoggingRule;
 
 public class BaseTestClass {
 
