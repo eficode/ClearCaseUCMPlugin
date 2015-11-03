@@ -361,32 +361,36 @@ public class CCUCMRule extends JenkinsRule {
         }
 
         AbstractBuild<?,?> build = null;
-        PrintStream out = new PrintStream( new File( outputDir, "jenkins." + getSafeName( project.getDisplayName() ) + "." + build.getNumber() + ".log" ) );
-        
+        PrintStream out = null;
 		try {
-            build = project.scheduleBuild2(3, new SCMTrigger.SCMTriggerCause("SCM trigger by testing"), action ).get(1, TimeUnit.MINUTES);
+            build = project.scheduleBuild2(3, new SCMTrigger.SCMTriggerCause("SCM trigger by testing"), action ).get(1, TimeUnit.MINUTES);            
+            out = new PrintStream( new File( outputDir, "jenkins." + getSafeName( project.getDisplayName() ) + "." + build.getNumber() + ".log" ) );            
         } catch ( InterruptedException | ExecutionException | TimeoutException e ) {
             if(!fail) {
-                logger.log(Level.SEVERE, "Build failed...it should not!", e);
+                out = new PrintStream( new File( outputDir, "jenkins." + getSafeName( project.getDisplayName() ) + "." + "error" + ".log" ) );
+                logger.log(Level.SEVERE, "Build failed...it should not!", e);                
                 out.println("Build failed. At this point it should not. Write stacktrace to file.");
                 e.printStackTrace(out);
                 throw e;
             }
 			logger.info( "Build failed, and it should!");            
 		}        
-
-        out.println( "Build      : " + build );
-        out.println( "Workspace  : " + build.getWorkspace() );
-        out.println( "Logfile    : " + build.getLogFile() );
-        out.println( "Description: " + build.getDescription() );
-        out.println();
-        out.println( "-------------------------------------------------" );
-        out.println( "                JENKINS LOG: " );
-        out.println( "-------------------------------------------------" );
-        out.println( getLog( build ) );
-        out.println( "-------------------------------------------------" );
-        out.println( "-------------------------------------------------" );
-        out.println();
+        
+        if (out != null) {  
+            out.println( "Build      : " + build );
+            out.println( "Workspace  : " + build.getWorkspace() );
+            out.println( "Logfile    : " + build.getLogFile() );
+            out.println( "Description: " + build.getDescription() );
+            out.println();
+            out.println( "-------------------------------------------------" );
+            out.println( "                JENKINS LOG: " );
+            out.println( "-------------------------------------------------" );
+            out.println( getLog( build ) );
+            out.println( "-------------------------------------------------" );
+            out.println( "-------------------------------------------------" );
+            out.println();
+            out.close();
+        }
 		
 		return build;
 	}
