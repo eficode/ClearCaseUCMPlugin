@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jenkins.model.Jenkins;
@@ -359,18 +361,19 @@ public class CCUCMRule extends JenkinsRule {
         }
 
         AbstractBuild<?,?> build = null;
+        PrintStream out = new PrintStream( new File( outputDir, "jenkins." + getSafeName( project.getDisplayName() ) + "." + build.getNumber() + ".log" ) );
+        
 		try {
-            build = project.scheduleBuild2(0, new SCMTrigger.SCMTriggerCause("SCM trigger by testing"), action ).get();
-        } catch ( Exception e ) {
+            build = project.scheduleBuild2(3, new SCMTrigger.SCMTriggerCause("SCM trigger by testing"), action ).get(1, TimeUnit.MINUTES);
+        } catch ( InterruptedException | ExecutionException | TimeoutException e ) {
             if(!fail) {
                 logger.log(Level.SEVERE, "Build failed...it should not!", e);
+                out.println("Build failed. At this point it should not. Write stacktrace to file.");
+                e.printStackTrace(out);
                 throw e;
             }
 			logger.info( "Build failed, and it should!");            
-		}
-        
-   
-        PrintStream out = new PrintStream( new File( outputDir, "jenkins." + getSafeName( project.getDisplayName() ) + "." + build.getNumber() + ".log" ) );
+		}        
 
         out.println( "Build      : " + build );
         out.println( "Workspace  : " + build.getWorkspace() );

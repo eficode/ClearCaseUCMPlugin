@@ -68,7 +68,6 @@ public class BaselinesFound extends BaseTestClass {
 
         AbstractBuild<?, ?> build = initiateBuild("description-" + ccenv.getUniqueName(), false, false, true, false);
  
-        
         SystemValidator validator = new SystemValidator(build)
                 .validateBuild(Result.SUCCESS)
                 .validateBuildView()
