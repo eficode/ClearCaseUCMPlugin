@@ -335,7 +335,7 @@
                         <configuration>
                             <forkCount>1</forkCount>
                             <reuseForks>true</reuseForks>
-                            <argLine>-Xrs -Xms64m -Xmx256m</argLine>
+                            <argLine>-Xrs -Xms64m -Xmx512m</argLine>
                             <includes>
                                 <include>net/praqma/hudson/test/integration/*/*.java</include>
                             </includes>
@@ -357,7 +357,7 @@
                         <configuration>
                             <forkCount>1</forkCount>
                             <reuseForks>true</reuseForks>
-                            <argLine>-Xrs -Xms64m -Xmx256m</argLine>
+                            <argLine>-Xrs -Xms64m -Xmx512</argLine>
                             <includes>
                                 <include>net/praqma/hudson/test/enslaved/*</include>
                                 <include>net/praqma/hudson/test/integration/*/*.java</include>

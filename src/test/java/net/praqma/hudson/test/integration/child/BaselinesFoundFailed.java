@@ -27,9 +27,6 @@ import net.praqma.hudson.scm.pollingmode.PollChildMode;
 import static net.praqma.hudson.test.BaseTestClass.jenkins;
 import net.praqma.hudson.test.CCUCMRule;
 
-import org.junit.FixMethodOrder;
-import org.junit.runners.MethodSorters;
-
 public class BaselinesFoundFailed extends BaseTestClass {
 
     @Rule
