@@ -1,6 +1,5 @@
 package net.praqma.hudson.notifier;
 
-import hudson.FilePath;
 import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
 import hudson.model.Result;
@@ -20,11 +19,9 @@ import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.entities.Tag;
 import net.praqma.clearcase.util.ExceptionUtils;
-import net.praqma.hudson.CCUCMBuildAction;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.scm.Unstable;
 import net.praqma.hudson.scm.pollingmode.PollSubscribeMode;
-import net.praqma.hudson.scm.pollingmode.PollingMode;
 
 /**
  * 

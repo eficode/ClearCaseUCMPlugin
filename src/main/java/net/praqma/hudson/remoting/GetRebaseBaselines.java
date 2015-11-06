@@ -38,8 +38,6 @@ public class GetRebaseBaselines implements FilePath.FileCallable<Tuple<List<Base
     public final Stream stream;
     public final List<String> components;
     public final Project.PromotionLevel plevel;
-    
-    private boolean useFlat = true;
 
     public GetRebaseBaselines(Stream stream, List<String> components, Project.PromotionLevel plevel) {
         this.stream = stream;
@@ -230,12 +228,10 @@ public class GetRebaseBaselines implements FilePath.FileCallable<Tuple<List<Base
                     LOG.log(Level.FINEST, String.format("Comparing %s to foundation %s", bls.get(0), bl));
                 }
                 
-                if (!bls.isEmpty() && !components.contains(bl.getComponent().getNormalizedName()) && bls.get(0).getDate().after(bl.getDate())) {
+                if (!bls.isEmpty() && !components.contains(bl.getComponent().getNormalizedName()) && bls.get(0).getDate().after(bl.getDate()) && !stream.equals(bls.get(0).getStream()) ) {
                     //Do not include baselines created on this stream
-                    if(!stream.equals(bls.get(0).getStream())) {
-                        composition.put(bl.getComponent(), bls.get(0));
-                        foundBaselines.addAll(bls);
-                    }
+                    composition.put(bl.getComponent(), bls.get(0));
+                    foundBaselines.addAll(bls);                    
                 }
             }
         } catch (Exception ex) {

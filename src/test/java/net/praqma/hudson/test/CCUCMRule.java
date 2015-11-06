@@ -9,7 +9,6 @@ import hudson.slaves.DumbSlave;
 import hudson.triggers.SCMTrigger;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;

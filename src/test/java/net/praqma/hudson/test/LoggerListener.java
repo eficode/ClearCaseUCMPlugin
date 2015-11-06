@@ -49,12 +49,9 @@ public class LoggerListener extends RunListener<AbstractBuild> {
             int threadId = (int) Thread.currentThread().getId();
             Logger logger = Logger.getLogger( "net.praqma" );
             for( Handler handler : logger.getHandlers() ) {
-                //System.out.println( "[[]] Checking " + handler );
                 if( handler instanceof PraqmaticLogHandler ) {
-                    PraqmaticLogHandler h = (PraqmaticLogHandler) handler;
-                    //System.out.println( "[[PH]] THREAD " + h.getThreadId() );
-                    if( h.getThreadId() == threadId ) {
-                        //System.out.println( "[[PH]] REMOVING THREAD " + h.getThreadId() );
+                    PraqmaticLogHandler h = (PraqmaticLogHandler) handler;                    
+                    if( h.getThreadId() == threadId ) {                        
                         logger.removeHandler( handler );
                         handler.close();
                     }

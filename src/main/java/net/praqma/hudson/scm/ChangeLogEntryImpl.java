@@ -31,8 +31,7 @@ public class ChangeLogEntryImpl extends Entry {
 	protected static final Logger logger = Logger.getLogger( ChangeLogEntryImpl.class.getName()  );
 	private volatile List<String> affectedPaths = new ArrayList<>();
 
-	public ChangeLogEntryImpl() {
-	}
+	public ChangeLogEntryImpl() { }
 
 	/**
 	 * Hudson calls this to show changes on the changes-page
@@ -44,39 +43,39 @@ public class ChangeLogEntryImpl extends Entry {
 	}
     
     public String getOnlyChangedFile(String fulltext) {
+        String change = null;
         Matcher m = splitChangeSet.matcher(fulltext);
         try {
             while(m.find()) {
-                return m.group(1);
+                change = m.group(1);
+                break;                
             }
-        } catch (Exception ex) {
-            //ignore;
-        }
-        return null;
+        } catch (Exception ex) { }
+        return change;
     }
     
     public String getOnlyClearCaseChangedFile(String fulltext) {
+        String changedFile = null;
         Matcher m = splitChangeSet.matcher(fulltext);
         try {
             while(m.find()) {
-                return m.group(2);
+                changedFile = m.group(2);
+                break;
             } 
-        } catch (Exception ex) {
-            //ignore
-        }
-        return null;
+        } catch (Exception ex) { }
+        return changedFile;
     }
     
     public String getUserClearCaseNumber(String fulltext) {
+        String userCC = null;
         Matcher m = splitChangeSet.matcher(fulltext);
         try {
             while(m.find()) {
-                return m.group(6);
+                userCC = m.group(6);
+                break;
             } 
-        } catch (Exception ex) {
-            //ignore
-        }
-        return null;
+        } catch (Exception ex) { }
+        return userCC;
     }
 
 	public void setNextFilepath( String filepath ) {

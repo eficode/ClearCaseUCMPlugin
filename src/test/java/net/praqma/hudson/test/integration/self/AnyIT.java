@@ -3,7 +3,6 @@ package net.praqma.hudson.test.integration.self;
 import hudson.model.AbstractBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
-import hudson.model.Slave;
 import hudson.scm.PollingResult;
 import hudson.triggers.SCMTrigger;
 import net.praqma.clearcase.exceptions.ClearCaseException;
@@ -22,7 +21,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
-import net.praqma.hudson.scm.pollingmode.PollChildMode;
 import net.praqma.hudson.scm.pollingmode.PollSelfMode;
 
 import static org.hamcrest.core.Is.is;

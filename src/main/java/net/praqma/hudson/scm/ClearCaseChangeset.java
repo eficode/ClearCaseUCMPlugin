@@ -24,7 +24,7 @@ public class ClearCaseChangeset implements Serializable {
 		}
 	}
 	
-	private List<Element> changeset = new ArrayList<Element>();
+	private List<Element> changeset = new ArrayList<>();
 	
 	public List<Element> getList() {
 		return changeset;

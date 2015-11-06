@@ -7,7 +7,6 @@ package net.praqma.hudson.test.integration.subscribe;
 
 import hudson.model.Result;
 import java.util.Date;
-import net.praqma.clearcase.exceptions.UCMEntityNotFoundException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 
 /**

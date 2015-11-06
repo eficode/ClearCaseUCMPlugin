@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.praqma.clearcase.PVob;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.exceptions.ViewException;
 import net.praqma.clearcase.ucm.entities.Activity;
@@ -61,17 +60,16 @@ public abstract class Util {
             buffer.append( "<changelog>" );
             buffer.append( "<changeset>" );
             buffer.append( "<entry>" );
-            buffer.append( ( "<blName>" + header + "</blName>" ) );
-
+            buffer.append( "<blName>" + header + "</blName>" );
             return this;
         }
 
         public ChangeSetGenerator addAcitivity( String name, String header, String username, List<Version> versions ) {
             if(versions.size() > 0) {
                 buffer.append( "<activity>" );
-                buffer.append( "<actName>" + name + "</actName>" );
-                buffer.append( "<actHeadline>" + header + "</actHeadline>" );
-                buffer.append( "<author>" + username + "</author>" );
+                buffer.append("<actName>").append(name).append("</actName>");
+                buffer.append("<actHeadline>").append(header).append("</actHeadline>");
+                buffer.append("<author>").append(username).append("</author>");
                 String temp = null;
                 for( Version v : versions ) {
                     try {
@@ -114,14 +112,12 @@ public abstract class Util {
 				pathExists = true;
 				hudsonOut.println( "[" + Config.nameShort + "] Reusing view root" );
 			} else {
-				if( viewroot.mkdir() ) {
-				} else {
-					throw new ScmException( "Could not create folder for view root:  " + viewroot.toString(), null );
-				}
+				if( !viewroot.mkdir() ) {
+                    throw new ScmException( "Could not create folder for view root:  " + viewroot.toString(), null );
+				} 
 			}
 		} catch( Exception e ) {
 			throw new ScmException( "Could not make workspace (for viewroot " + viewroot.toString() + "). Cause: " + e.getMessage(), e );
-
 		}
 
 		hudsonOut.println( "[" + Config.nameShort + "] Determine if view tag exists" );
@@ -189,11 +185,9 @@ public abstract class Util {
                 uw.update();				
 			} catch( ClearCaseException e ) {
 				e.print( hudsonOut );
-				if( e instanceof ViewException ) {
-					if( ((ViewException)e).getType().equals( ViewException.Type.REBASING ) ) {
-						hudsonOut.println( "The view is currently being used to rebase another stream" );
-					}
-				}
+                if(e instanceof ViewException && ((ViewException)e).getType().equals( ViewException.Type.REBASING ) ) {
+                    hudsonOut.println( "The view is currently being used to rebase another stream" );
+                }
 				throw new ScmException( "Could not update snapshot view", e );
 			} catch (IOException ioex) {
                 throw new ScmException("Could not update snapshot view, failed with IOException", ioex);

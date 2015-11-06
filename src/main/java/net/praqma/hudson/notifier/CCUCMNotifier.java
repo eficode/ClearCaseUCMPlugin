@@ -88,7 +88,7 @@ public class CCUCMNotifier extends Notifier {
 			out.println( String.format ( "%s Processing baseline", "["+Config.nameShort + "]"));
 			status.setErrorMessage( action.getError() );
 			try {
-				processBuild( build, launcher, listener, action );
+				processBuild( build, listener, action );
                 logger.fine( action.stringify() );
 				if( action.doSetDescription() ) {
 					String d = build.getDescription();
@@ -143,16 +143,14 @@ public class CCUCMNotifier extends Notifier {
 	 *            The listener of the build
 	 * @throws NotifierException
 	 */
-	private void processBuild( AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, CCUCMBuildAction pstate ) throws NotifierException {
+	private void processBuild( AbstractBuild<?, ?> build, BuildListener listener, CCUCMBuildAction pstate ) throws NotifierException {
 		Result buildResult = build.getResult();
         
         String workspace = null;
         FilePath currentWorkspace = build.getExecutor().getCurrentWorkspace();
         try {
             workspace = build.getExecutor().getCurrentWorkspace().absolutize().getRemote();
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, String.format("%s Failed to get remote workspace", Config.nameShort), ex);
-        } catch (InterruptedException ex) {
+        } catch (IOException | InterruptedException ex) {
             logger.log(Level.SEVERE, String.format("%s Failed to get remote workspace", Config.nameShort), ex);
         }
         

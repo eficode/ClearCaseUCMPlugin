@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import net.praqma.clearcase.Cool;
-import net.praqma.clearcase.exceptions.UnableToLoadEntityException;
 import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Version;

@@ -10,5 +10,5 @@ package net.praqma.hudson.scm.pollingmode;
  * @author Mads
  */
 public interface BaselineCreationEnabled {
-    public boolean isCreateBaseline();
+    boolean isCreateBaseline();
 }

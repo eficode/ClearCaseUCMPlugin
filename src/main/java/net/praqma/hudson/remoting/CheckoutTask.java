@@ -23,7 +23,6 @@ import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.*;
 import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.exception.UnableToInitializeWorkspaceException;
-import net.praqma.hudson.scm.ClearCaseChangeset;
 
 import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
@@ -42,7 +41,6 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
     private String buildProject;
     private final Stream targetStream;
     private final BuildListener listener;
-    private final Integer jobNumber;
     /**
      * Determines whether to swipe the view or not.
      *
@@ -52,9 +50,8 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
     private boolean any = false;
     private static final Logger logger = Logger.getLogger(CheckoutTask.class.getName());
 
-    public CheckoutTask(BuildListener listener, String jobname, Integer jobNumber, Stream targetStream, String loadModule, Baseline baseline, String buildProject, boolean any, boolean swipe) {
+    public CheckoutTask(BuildListener listener, String jobname, Stream targetStream, String loadModule, Baseline baseline, String buildProject, boolean any, boolean swipe) {
         this.jobname = jobname;
-        this.jobNumber = jobNumber;
         this.targetStream = targetStream;
         this.loadModule = loadModule;
         this.bl = baseline;
@@ -75,8 +72,6 @@ public class CheckoutTask implements FileCallable<EstablishResult> {
         String viewtag = Util.createAndSanitizeCCUCMViewTag(jobname);
 
         EstablishResult er = new EstablishResult();
-        ClearCaseChangeset changeset = new ClearCaseChangeset();
-
         /* We need to load target stream */
         try {
             targetStream.load();

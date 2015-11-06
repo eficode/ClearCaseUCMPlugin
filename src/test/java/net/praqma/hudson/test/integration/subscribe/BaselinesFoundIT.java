@@ -6,12 +6,10 @@
 package net.praqma.hudson.test.integration.subscribe;
 
 import hudson.model.AbstractBuild;
-import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import jenkins.model.Jenkins;
 import net.praqma.clearcase.test.annotations.ClearCaseUniqueVobName;
 import net.praqma.clearcase.test.junit.ClearCaseRule;
 import net.praqma.clearcase.ucm.entities.Baseline;
@@ -138,43 +136,12 @@ public class BaselinesFoundIT extends BaseTestClass {
 		.validate();
     } 
 
-    /*
-    @Test
-    @ClearCaseUniqueVobName( name = "subscribe-has-data" )
-    @TestDescription( title = "Poll subscribe", text = "baseline available, in database, not part of job config")
-    public void newBaselineNotInConfigTestedForcedBuild() throws Exception {
-        //Timestamp and view
-        String uname = ccenv.getUniqueName();
-        
-        //Job name is prefixed with ccucm
-        String resultingJobName = "ccucm-"+uname;
-        
-        //
-		Baseline baseline = ccenv.context.baselines.get( "model-1" ).load();
-        
-        MongoProviderImpl impl = (MongoProviderImpl)mongo.getProvider();
-        impl.create(ExternalData.createResult(resultingJobName, Result.SUCCESS, baseline));
-        
-        List<DBObject> list = impl.listAndSort(new BasicDBObject("jobName", resultingJobName), new BasicDBObject("jobName", -1));
-        Assert.assertEquals(1, list.size());       
-        Assert.assertEquals(resultingJobName, ""+list.get(0).get("jobName"));
-        Assert.assertEquals(baseline.getFullyQualifiedName(), ((List<BasicDBObject>)list.get(0).get("configuration")).get(0).get("baseline"));
-        System.out.println(list.get(0));
-        
-        //Build 1 should be ok.
-        AbstractBuild<?, ?> build1 = initiateBuild(uname, false, false, false, Arrays.asList(resultingJobName) );        
-        SystemValidator validator = new SystemValidator( build1 )
-		.validateBuild( Result.SUCCESS )
-		.validateBuiltBaseline( Project.PromotionLevel.BUILT, baseline, false )
-		.validate();
-    }
-    */
     public AbstractBuild<?, ?> initiateBuild( String projectName, boolean recommend, boolean tag, boolean description, List<String> jobNames, List<Baseline> others ) throws Exception {
         Baseline baseline = ccenv.context.baselines.get( "model-1" ).load();        
-        List<ComponentSelectionCriteriaRequirement> crit = new ArrayList<ComponentSelectionCriteriaRequirement>();
+        List<ComponentSelectionCriteriaRequirement> crit = new ArrayList<>();
         crit.add(new ComponentSelectionCriteriaRequirement(others.get(0).load().getComponent().load().getFullyQualifiedName()));
         
-        List<JobNameRequirement> jobs = new ArrayList<JobNameRequirement>();
+        List<JobNameRequirement> jobs = new ArrayList<>();
         for(String jobname : jobNames) {
             jobs.add(new JobNameRequirement(jobname, null));
         }

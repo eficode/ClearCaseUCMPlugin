@@ -26,9 +26,6 @@ import net.praqma.hudson.scm.pollingmode.PollRebaseMode;
 
 public class BaselinesFoundIT extends BaseTestClass {
 
-      
-    private static final Logger logger = Logger.getLogger(BaselinesFoundIT.class.getName());
-    
     @Rule
     public ClearCaseRule ccenv = new ClearCaseRule("ccucm", "setup-interproject.xml" );
     @Rule

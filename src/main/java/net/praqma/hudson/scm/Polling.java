@@ -1,7 +1,5 @@
 package net.praqma.hudson.scm;
 
-import hudson.FilePath.FileCallable;
-import hudson.model.Result;
 import java.io.Serializable;
 
 public class Polling implements Serializable {

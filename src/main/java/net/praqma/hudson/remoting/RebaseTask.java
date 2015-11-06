@@ -10,7 +10,6 @@ import hudson.model.TaskListener;
 import hudson.remoting.VirtualChannel;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import net.praqma.clearcase.Rebase;

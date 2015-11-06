@@ -537,7 +537,7 @@ public class CCUCMScm extends SCM {
 
     private boolean initializeWorkspace(AbstractBuild<?, ?> build, FilePath workspace, File changelogFile, BuildListener listener, CCUCMBuildAction action) throws IOException, InterruptedException {
         PrintStream consoleOutput = listener.getLogger();
-        CheckoutTask ct = new CheckoutTask(listener, jobName, build.getNumber(), action.getStream(), loadModule, action.getBaseline(), buildProject, (_getPlevel() == null), action.doRemoveViewPrivateFiles());
+        CheckoutTask ct = new CheckoutTask(listener, jobName, action.getStream(), loadModule, action.getBaseline(), buildProject, (_getPlevel() == null), action.doRemoveViewPrivateFiles());
         EstablishResult er = workspace.act(ct);
 
         String changelog = Util.createChangelog(build, er.getActivities(), action.getBaseline(), trimmedChangeSet, er.getView().getViewRoot(), er.getView().getReadOnlyLoadLines(), discard);

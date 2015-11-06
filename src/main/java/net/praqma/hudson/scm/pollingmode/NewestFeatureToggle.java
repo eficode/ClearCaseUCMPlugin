@@ -6,5 +6,5 @@ package net.praqma.hudson.scm.pollingmode;
  * @author Mads
  */
 public interface NewestFeatureToggle {
-    public boolean isNewest();
+    boolean isNewest();
 }
