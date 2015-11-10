@@ -28,7 +28,7 @@ job("${NAME}_verify_${BRANCH}") {
   	}
 
     triggers {
-    	//scm('H/3 * * * *')
+    	scm('H/3 * * * *')
     }
   
     steps {
