@@ -303,14 +303,14 @@
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>cool</artifactId>
-            <version>0.6.48</version>
+            <version>0.6.49-SNAPSHOT-PERF</version>
             <type>jar</type>
         </dependency>
 
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>cool</artifactId>
-            <version>0.6.48</version>
+            <version>0.6.49-SNAPSHOT-PERF</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
