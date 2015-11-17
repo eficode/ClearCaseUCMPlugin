@@ -922,7 +922,7 @@ public class CCUCMScm extends SCM {
         }
 
         logger.fine("Let's go!");
-
+        
         /* Check input */        
         if (checkInput(listener)) {
 
