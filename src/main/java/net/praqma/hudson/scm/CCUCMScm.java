@@ -212,6 +212,14 @@ public class CCUCMScm extends SCM {
         return component;
     } 
     
+    private boolean shouldRetrigger(AbstractBuild<?, ?> build, Baseline updated) {
+        //If the ANY promotion level is selected
+        if (mode.getPromotionLevel() == null) {
+            return true;
+        }        
+        return updated != null && mode.getPromotionLevel().equals(updated.getPromotionLevel()) && !(mode instanceof PollRebaseMode);        
+    }
+    
     @Override
     public boolean checkout(AbstractBuild<?, ?> build, Launcher launcher, FilePath workspace, BuildListener listener, File changelogFile) throws IOException, InterruptedException {
         /* Prepare job variables */
@@ -292,7 +300,7 @@ public class CCUCMScm extends SCM {
                     If the promotion level is not set, ANY, use the last found Baseline. Alternatively, if the baseline that was last built has not been altered (Rejected/Promoted)
                     the we assume we can safely do the same again.
                 */
-                if (mode.getPromotionLevel() == null || (updated != null && mode.getPromotionLevel().equals(updated.getPromotionLevel()))) {
+                if (shouldRetrigger(build, updated)) {
                     logger.fine("Configured to use the latest always.");
                     if (last != null) {
                         action.setBaseline(last.getBaseline());
