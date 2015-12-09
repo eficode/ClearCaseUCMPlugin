@@ -11,7 +11,7 @@
     </properties>
     
     <artifactId>clearcase-ucm-plugin</artifactId>
-    <version>1.6.8-SNAPSHOT</version>
+    <version>1.6.8</version>
     <name>ClearCase UCM Plugin!</name>
     <description>Integrates Jenkins to ClearCase UCM</description>
     <url>https://wiki.jenkins-ci.org/display/JENKINS/ClearCase+UCM+Plugin</url>
@@ -342,7 +342,7 @@
         <connection>scm:git:http://github.com/Praqma/ClearCaseUCMPlugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/Praqma/ClearCaseUCMPlugin.git</developerConnection>
         <url>https://github.com/Praqma/ClearCaseUCMPlugin</url>
-      <tag>HEAD</tag>
+      <tag>clearcase-ucm-plugin-1.6.8</tag>
   </scm>
 
 </project>
