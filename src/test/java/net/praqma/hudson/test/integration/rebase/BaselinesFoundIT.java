@@ -6,6 +6,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import hudson.model.AbstractBuild;
+import hudson.model.Cause;
+import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import java.io.File;
 import java.util.logging.Logger;
@@ -98,6 +100,35 @@ public class BaselinesFoundIT extends BaseTestClass {
             .validateBuiltBaseline(PromotionLevel.INITIAL, baseline, false)
             .validate();
     }
+    /**
+     * Scenario:
+     *  We have just built and rebased successfully
+     *  Jenkins kicks off a build because of a lost connection to workspace, thus nothing to rebase. We should not fail
+     *  We expect the build to be NOT_BUILT in this case
+     * @throws Exception 
+     */
+    @Test
+    @ClearCaseUniqueVobName(name = "rebase-mkbl-retrigger")
+    @TestDescription(title = "Rebase polling, succes, recommend", text = "rebase baseline available, create a baseline")
+    public void testReTriggerNothingToDo() throws Exception {
+        Baseline baseline = getNewBaseline();
+        
+        AbstractBuild<?, ?> build = initiateBuild("rebase-mkbl-retrigger" + ccenv.getUniqueName(), true, false, false, false, true);
+       
+        SystemValidator validator = new SystemValidator(build)
+            .validateBuild(Result.SUCCESS)
+            .validateBuildView()
+            .validateCreatedBaseline(true, true)
+            .validateBuiltBaselineIsInFoundation(true)
+            .validateBuiltBaseline(PromotionLevel.INITIAL, baseline, false)
+            .validate();
+        
+        AbstractBuild build2 = jenkins.getProjectBuilder((FreeStyleProject)build.getProject()).build(new Cause.UserIdCause());
+        SystemValidator validator2 = new SystemValidator(build2)
+                .validateBuild(Result.NOT_BUILT)
+                .validate();        
+    }    
+    
     
     protected Baseline getNewBaseline() throws ClearCaseException {
         /**/
