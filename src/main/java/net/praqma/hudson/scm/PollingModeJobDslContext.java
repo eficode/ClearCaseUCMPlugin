@@ -100,7 +100,7 @@ class PollingModeJobDslContext implements Context {
     }
 
     //Used by: REBASE
-    String excludeList = null;
+    String excludeList = "";
     
     public void excludeList(String value){
         excludeList = value;
