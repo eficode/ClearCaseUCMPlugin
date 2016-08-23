@@ -338,11 +338,21 @@
 
     </dependencies>
 
+     <!--
+         We need to have this section because maven.jenkins-ci.org now uses a new
+         url. We rely on older Jenkins version so this needs to be overridden.
+     -->
+     <distributionManagement>
+        <repository>
+            <id>maven.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/releases</url>
+        </repository>
+     </distributionManagement>
+
     <scm>
         <connection>scm:git:http://github.com/Praqma/ClearCaseUCMPlugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/Praqma/ClearCaseUCMPlugin.git</developerConnection>
         <url>https://github.com/Praqma/ClearCaseUCMPlugin</url>
-      <tag>HEAD</tag>
-  </scm>
+    </scm>
 
 </project>
