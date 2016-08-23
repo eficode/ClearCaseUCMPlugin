@@ -9,9 +9,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <powermock.version>1.4.12</powermock.version>
     </properties>
-    
+
     <artifactId>clearcase-ucm-plugin</artifactId>
-    <version>1.6.10-SNAPSHOT</version>
+    <version>1.7.0-SNAPSHOT</version>
     <name>ClearCase UCM Plugin!</name>
     <description>Integrates Jenkins to ClearCase UCM</description>
     <url>https://wiki.jenkins-ci.org/display/JENKINS/ClearCase+UCM+Plugin</url>
@@ -41,7 +41,7 @@
             <name>Praqma Josra</name>
         </developer>
     </developers>
-    
+
     <!-- This profile executes ALL static analysis -->
     <profiles>
         <profile>
@@ -52,7 +52,7 @@
             <properties>
                 <maven.test.skip>true</maven.test.skip>
             </properties>
-            
+
             <build>
                 <plugins>
                     <plugin>
@@ -65,7 +65,7 @@
                                 <goals>
                                     <goal>cpd</goal>
                                     <goal>pmd</goal>
-                                </goals> 
+                                </goals>
                             </execution>
                         </executions>
                     </plugin>
@@ -81,7 +81,7 @@
                                 <phase>package</phase>
                                 <goals>
                                     <goal>checkstyle</goal>
-                                </goals> 
+                                </goals>
                             </execution>
                         </executions>
                     </plugin>
@@ -127,24 +127,24 @@
                                     <goal>report</goal>
                                 </goals>
                             </execution>
-                        </executions>              
-                    </plugin>                                           
+                        </executions>
+                    </plugin>
                 </plugins>
-            </build> 
-            
+            </build>
+
             <reporting>
                 <plugins>
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>javancss-maven-plugin</artifactId>
-                        <version>2.1</version>              
+                        <version>2.1</version>
                     </plugin>
                 </plugins>
-            </reporting> 
-            
+            </reporting>
+
         </profile>
-        
-        
+
+
         <profile>
             <id>style</id>
             <activation>
@@ -165,7 +165,7 @@
                                 <goals>
                                     <goal>cpd</goal>
                                     <goal>pmd</goal>
-                                </goals> 
+                                </goals>
                             </execution>
                         </executions>
                     </plugin>
@@ -181,12 +181,12 @@
                                 <phase>package</phase>
                                 <goals>
                                     <goal>checkstyle</goal>
-                                </goals> 
+                                </goals>
                             </execution>
                         </executions>
-                    </plugin>                    
+                    </plugin>
                 </plugins>
-            </build>            
+            </build>
         </profile>
 
         <profile>
@@ -211,7 +211,7 @@
                     </plugin>
                 </plugins>
             </build>
-        </profile>      
+        </profile>
     </profiles>
 
     <build>
@@ -232,7 +232,7 @@
                     <target>1.7</target>
                 </configuration>
             </plugin>
-            
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
@@ -252,7 +252,7 @@
                     </execution>
                 </executions>
             </plugin>
-            
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -276,10 +276,10 @@
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>praqmajutils</artifactId>
-            <version>0.1.35</version>
+            <version>0.1.36</version>
         </dependency>
-        
-        <dependency>            
+
+        <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>compatibility-action-storage</artifactId>
             <version>1.0</version>
@@ -295,7 +295,7 @@
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>praqmajutils</artifactId>
-            <version>0.1.35</version>
+            <version>0.1.36</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -303,32 +303,32 @@
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>cool</artifactId>
-            <version>0.6.49</version>
+            <version>0.6.50</version>
             <type>jar</type>
         </dependency>
 
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>cool</artifactId>
-            <version>0.6.49</version>
+            <version>0.6.50</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.11</version>
             <scope>test</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-module-junit4</artifactId>
             <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>org.powermock</groupId>
             <artifactId>powermock-api-mockito</artifactId>
