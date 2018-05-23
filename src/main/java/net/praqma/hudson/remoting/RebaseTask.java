@@ -17,6 +17,7 @@ import net.praqma.clearcase.exceptions.CleartoolException;
 import net.praqma.clearcase.exceptions.RebaseException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
+import org.jenkinsci.remoting.RoleChecker;
 
 /**
  *
@@ -62,5 +63,9 @@ public class RebaseTask implements FilePath.FileCallable<Boolean> {
         }
         return true;
     }
-    
+
+    @Override
+    public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+
+    }
 }

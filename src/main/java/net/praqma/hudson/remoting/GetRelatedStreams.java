@@ -12,6 +12,7 @@ import java.util.List;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.hudson.scm.Polling;
 import net.praqma.hudson.scm.Polling.PollingType;
+import org.jenkinsci.remoting.RoleChecker;
 
 public class GetRelatedStreams implements FileCallable<List<Stream>> {
 
@@ -66,5 +67,10 @@ public class GetRelatedStreams implements FileCallable<List<Stream>> {
 		}
 
 		return streams;
+	}
+
+	@Override
+	public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+
 	}
 }

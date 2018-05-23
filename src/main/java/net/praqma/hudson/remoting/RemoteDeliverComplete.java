@@ -12,6 +12,7 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
 import hudson.remoting.VirtualChannel;
+import org.jenkinsci.remoting.RoleChecker;
 
 public class RemoteDeliverComplete implements FileCallable<Boolean> {
 
@@ -69,4 +70,8 @@ public class RemoteDeliverComplete implements FileCallable<Boolean> {
 		return true;
 	}
 
+	@Override
+	public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+
+	}
 }

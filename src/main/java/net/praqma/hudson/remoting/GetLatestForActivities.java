@@ -16,6 +16,7 @@ import net.praqma.clearcase.exceptions.UnableToLoadEntityException;
 import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.utils.VersionList;
+import org.jenkinsci.remoting.RoleChecker;
 
 /**
  *
@@ -56,5 +57,9 @@ public class GetLatestForActivities implements FilePath.FileCallable<Map<Activit
     public void setList(VersionList list) {
         this.list = list;
     }
-  
+
+    @Override
+    public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+
+    }
 }

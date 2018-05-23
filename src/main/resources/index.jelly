@@ -1,3 +1,4 @@
+<?jelly escape-by-default='true'?>
 <div>
   A ClearCase UCM plugin for Jenkins and Hudson
 </div>

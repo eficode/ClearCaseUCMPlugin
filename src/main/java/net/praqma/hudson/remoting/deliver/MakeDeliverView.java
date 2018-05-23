@@ -7,6 +7,7 @@ import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.view.SnapshotView;
 import net.praqma.hudson.Util;
 import net.praqma.hudson.exception.ScmException;
+import org.jenkinsci.remoting.RoleChecker;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,5 +50,10 @@ public class MakeDeliverView implements FilePath.FileCallable<SnapshotView> {
         File viewroot = new File( workspace, "view" );
         SnapshotView view = Util.makeView( stream, workspace, listener, loadModule, viewroot, viewtag, true );
         return view;
+    }
+
+    @Override
+    public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+
     }
 }
