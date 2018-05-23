@@ -19,6 +19,7 @@ import net.praqma.clearcase.ucm.entities.Version;
 import net.praqma.clearcase.ucm.utils.ReadOnlyVersionFilter;
 import net.praqma.clearcase.ucm.utils.VersionList;
 import net.praqma.hudson.Util;
+import org.jenkinsci.remoting.RoleChecker;
 
 /**
  *
@@ -75,5 +76,9 @@ public class CreateChangeSetRemote implements FilePath.FileCallable<String>{
 
         return csg.close().get();
     }
-    
+
+    @Override
+    public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+
+    }
 }

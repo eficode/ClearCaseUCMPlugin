@@ -22,6 +22,7 @@ import net.praqma.clearcase.util.ExceptionUtils;
 import net.praqma.hudson.Config;
 import net.praqma.hudson.scm.Unstable;
 import net.praqma.hudson.scm.pollingmode.PollSubscribeMode;
+import org.jenkinsci.remoting.RoleChecker;
 
 /**
  * 
@@ -29,7 +30,6 @@ import net.praqma.hudson.scm.pollingmode.PollSubscribeMode;
  * 
  */
 public class PollSubscribeRemotePostBuild implements FileCallable<Status> {
-
 	private static final long serialVersionUID = 1L;
 	private final String displayName;
 	private final String buildNumber;
@@ -42,7 +42,7 @@ public class PollSubscribeRemotePostBuild implements FileCallable<Status> {
 	private boolean recommend = false;
 	private final Status status;
 	private final BuildListener listener;
-	private PrintStream hudsonOut = null;
+	private transient PrintStream hudsonOut = null;
 	private Unstable unstable;
     private final List<Baseline> consideredBaselines;
     private PollSubscribeMode mode;
@@ -292,5 +292,10 @@ public class PollSubscribeRemotePostBuild implements FileCallable<Status> {
 			}
 		}
 		return s;
+	}
+
+	@Override
+	public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+
 	}
 }

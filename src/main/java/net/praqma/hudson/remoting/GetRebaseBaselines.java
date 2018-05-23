@@ -25,6 +25,7 @@ import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.clearcase.ucm.utils.BaselineList;
 import net.praqma.util.structure.Tuple;
+import org.jenkinsci.remoting.RoleChecker;
 
 /**
  *
@@ -254,4 +255,8 @@ public class GetRebaseBaselines implements FilePath.FileCallable<Tuple<List<Base
         return invokeUsingFlatStructure(f, channel);
     }
 
+    @Override
+    public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+
+    }
 }

@@ -7,6 +7,8 @@ package net.praqma.hudson.nametemplates;
 
 import hudson.FilePath;
 import hudson.remoting.VirtualChannel;
+import org.jenkinsci.remoting.RoleChecker;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
@@ -49,4 +51,8 @@ public class FileFoundable implements FilePath.FileCallable<String> {
         }
     }
 
+    @Override
+    public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+
+    }
 }

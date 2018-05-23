@@ -1,3 +1,4 @@
+<?jelly escape-by-default='true'?>
 <!--
   Displays CCUCM change log. Data in this file is set in the ChangeLogSetImpl
   This page is shown in http://localhost:8080/job/[jobname]/[buildnumber]/changes

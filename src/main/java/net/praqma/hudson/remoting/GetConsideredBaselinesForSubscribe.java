@@ -20,6 +20,7 @@ import net.praqma.clearcase.exceptions.UnableToInitializeEntityException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.hudson.scm.pollingmode.ComponentSelectionCriteriaRequirement;
+import org.jenkinsci.remoting.RoleChecker;
 
 /**
  *
@@ -75,5 +76,10 @@ public class GetConsideredBaselinesForSubscribe implements FileCallable<List<Bas
         } catch (CleartoolException ex) {
             throw new IOException(ex);
         }
+    }
+
+    @Override
+    public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+
     }
 }

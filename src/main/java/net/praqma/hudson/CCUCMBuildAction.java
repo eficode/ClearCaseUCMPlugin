@@ -18,7 +18,6 @@ public class CCUCMBuildAction implements Action {
     private AbstractBuild<?, ?> build;
     private transient TaskListener listener;
     private PollingMode mode;
-	
 	private Stream stream;
 	private Component component;
     private Project.PromotionLevel promotionLevel;

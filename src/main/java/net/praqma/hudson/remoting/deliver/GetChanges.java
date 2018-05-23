@@ -7,6 +7,7 @@ import net.praqma.clearcase.api.DiffBl;
 import net.praqma.clearcase.ucm.entities.Activity;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Stream;
+import org.jenkinsci.remoting.RoleChecker;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,5 +49,10 @@ public class GetChanges implements FilePath.FileCallable<List<Activity>> {
         } catch( Exception e ) {
             throw new IOException( "Error while retrieving changes", e );
         }
+    }
+
+    @Override
+    public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+
     }
 }
