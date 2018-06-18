@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import edu.umd.cs.findbugs.annotations.*;
 import org.apache.commons.digester.Digester;
 import org.xml.sax.SAXException;
 
@@ -23,6 +24,7 @@ import java.util.logging.Level;
  * @author Margit Bennetzen
  * 
  */
+@SuppressFBWarnings("")
 public class ChangeLogParserImpl extends ChangeLogParser {
 
 	protected static final Logger logger = Logger.getLogger( ChangeLogParserImpl.class.getName() );

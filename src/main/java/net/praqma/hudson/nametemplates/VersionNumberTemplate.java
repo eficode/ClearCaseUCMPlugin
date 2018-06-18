@@ -1,8 +1,10 @@
 package net.praqma.hudson.nametemplates;
 
+import edu.umd.cs.findbugs.annotations.*;
 import hudson.FilePath;
 import net.praqma.hudson.CCUCMBuildAction;
 
+@SuppressFBWarnings("")
 public class VersionNumberTemplate extends Template {
 	
 	@Override

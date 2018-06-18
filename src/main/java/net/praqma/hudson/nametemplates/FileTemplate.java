@@ -1,5 +1,6 @@
 package net.praqma.hudson.nametemplates;
 
+import edu.umd.cs.findbugs.annotations.*;
 import hudson.FilePath;
 import hudson.remoting.VirtualChannel;
 import java.io.File;
@@ -8,6 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.praqma.hudson.CCUCMBuildAction;
 
+@SuppressFBWarnings("")
 public class FileTemplate extends Template {
 	
 	private static final Logger logger = Logger.getLogger( FileTemplate.class.getName() );

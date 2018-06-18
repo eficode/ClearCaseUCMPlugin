@@ -5,6 +5,7 @@ import java.io.PrintStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import edu.umd.cs.findbugs.annotations.*;
 import hudson.AbortException;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -36,6 +37,7 @@ import net.praqma.hudson.remoting.RebaseCancelTask;
 import net.praqma.hudson.remoting.RebaseCompleteTask;
 import org.apache.commons.lang.StringUtils;
 
+@SuppressFBWarnings("")
 public class CCUCMNotifier extends Notifier {
 
 	private PrintStream out;

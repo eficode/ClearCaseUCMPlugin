@@ -2,12 +2,15 @@ package net.praqma.hudson;
 
 import java.util.List;
 import java.util.logging.Logger;
+
+import edu.umd.cs.findbugs.annotations.*;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.ucm.entities.Baseline;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
 import net.praqma.hudson.exception.ScmException;
 
+@SuppressFBWarnings("")
 public class Config {
 
 	public static String nameShort = "CCUCM";

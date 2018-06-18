@@ -1,5 +1,6 @@
 package net.praqma.hudson.scm;
 
+import edu.umd.cs.findbugs.annotations.*;
 import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
@@ -74,6 +75,7 @@ import org.kohsuke.stapler.export.Exported;
  * pre-build. This class defines all the files required by the user. The
  * information can be entered on the config page.
  */
+@SuppressFBWarnings("")
 public class CCUCMScm extends SCM {
 
     public static final String HLINK_DEFAULT = "AlternateDeliverTarget";

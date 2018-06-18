@@ -3,6 +3,7 @@ package net.praqma.hudson;
 import java.io.File;
 import java.util.List;
 
+import edu.umd.cs.findbugs.annotations.*;
 import hudson.model.AbstractBuild;
 import hudson.model.TaskListener;
 import net.praqma.clearcase.ucm.entities.*;
@@ -13,6 +14,7 @@ import net.praqma.hudson.scm.Polling;
 import net.praqma.hudson.scm.Unstable;
 import net.praqma.hudson.scm.pollingmode.PollingMode;
 
+@SuppressFBWarnings("")
 public class CCUCMBuildAction implements Action {
 
     private AbstractBuild<?, ?> build;

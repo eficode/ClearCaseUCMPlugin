@@ -5,6 +5,7 @@
  */
 package net.praqma.hudson.remoting;
 
+import edu.umd.cs.findbugs.annotations.*;
 import hudson.FilePath;
 import hudson.remoting.VirtualChannel;
 import java.io.File;
@@ -25,6 +26,7 @@ import org.jenkinsci.remoting.RoleChecker;
  *
  * @author Mads
  */
+@SuppressFBWarnings("")
 public class CreateChangeSetRemote implements FilePath.FileCallable<String>{
     
     private static final Logger logger = Logger.getLogger(CreateChangeSetRemote.class.getName());

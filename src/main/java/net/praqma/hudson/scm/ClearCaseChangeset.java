@@ -1,9 +1,12 @@
 package net.praqma.hudson.scm;
 
+import edu.umd.cs.findbugs.annotations.*;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressFBWarnings("")
 public class ClearCaseChangeset implements Serializable {
 
 	public class Element implements Serializable {
