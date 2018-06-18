@@ -1,5 +1,6 @@
 package net.praqma.hudson;
 
+import edu.umd.cs.findbugs.annotations.*;
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
@@ -27,6 +28,7 @@ import net.praqma.hudson.exception.ScmException;
 import net.praqma.hudson.remoting.CreateChangeSetRemote;
 import org.apache.commons.lang.SystemUtils;
 
+@SuppressFBWarnings("")
 public abstract class Util {
 
 	private static final Logger logger = Logger.getLogger( Util.class.getName() );

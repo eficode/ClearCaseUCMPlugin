@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.logging.Logger;
 
+import edu.umd.cs.findbugs.annotations.*;
 import net.praqma.clearcase.ucm.entities.Component;
 import net.praqma.clearcase.ucm.entities.Project;
 import net.praqma.clearcase.ucm.entities.Stream;
@@ -16,6 +17,7 @@ import net.praqma.clearcase.ucm.utils.filters.NoDeliver;
 import net.praqma.clearcase.ucm.utils.filters.NoLabels;
 import org.jenkinsci.remoting.RoleChecker;
 
+@SuppressFBWarnings("")
 public class GetRemoteBaselineFromStream implements FileCallable<BaselineList> {
 
 	private static final long serialVersionUID = -8984877325832486334L;

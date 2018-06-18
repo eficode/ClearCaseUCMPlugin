@@ -5,6 +5,7 @@
  */
 package net.praqma.hudson.scm.pollingmode;
 
+import edu.umd.cs.findbugs.annotations.*;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.FilePath;
@@ -42,6 +43,7 @@ import org.kohsuke.stapler.DataBoundSetter;
  *
  * @author Mads
  */
+@SuppressFBWarnings("")
 public class PollSubscribeMode extends PollingMode implements BaselineCreationEnabled, NewestFeatureToggle {
     
     private List<ComponentSelectionCriteriaRequirement> componentsToMonitor = new ArrayList<>();

@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
+import edu.umd.cs.findbugs.annotations.*;
 import net.praqma.clearcase.exceptions.ClearCaseException;
 import net.praqma.clearcase.exceptions.RebaseException;
 import net.praqma.clearcase.ucm.entities.Baseline;
@@ -31,6 +32,7 @@ import net.praqma.clearcase.ucm.view.SnapshotView.LoadRules2;
 import net.praqma.clearcase.ucm.view.UpdateView;
 import org.jenkinsci.remoting.RoleChecker;
 
+@SuppressFBWarnings("")
 public class CheckoutTask implements FileCallable<EstablishResult> {
 
     private static final long serialVersionUID = -7029877626574728221L;

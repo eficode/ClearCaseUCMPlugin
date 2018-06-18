@@ -1,5 +1,6 @@
 package net.praqma.hudson.notifier;
 
+import edu.umd.cs.findbugs.annotations.*;
 import hudson.FilePath.FileCallable;
 import hudson.model.BuildListener;
 import hudson.model.Result;
@@ -29,6 +30,7 @@ import org.jenkinsci.remoting.RoleChecker;
  * @author wolfgang
  * 
  */
+@SuppressFBWarnings("")
 public class PollSubscribeRemotePostBuild implements FileCallable<Status> {
 	private static final long serialVersionUID = 1L;
 	private final String displayName;
