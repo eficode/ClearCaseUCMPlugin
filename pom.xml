@@ -9,7 +9,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <powermock.version>1.4.12</powermock.version>
-        <jenkins.version>2.19.4</jenkins.version>
+        <jenkins.version>2.60.3</jenkins.version>
         <java.level>8</java.level>
     </properties>
 
@@ -46,16 +46,19 @@
     </developers>
 
     <dependencies>
+
         <dependency>
             <groupId>net.praqma</groupId>
             <artifactId>praqmajutils</artifactId>
-            <version>0.1.36</version>
+            <version>1.0.0</version>
         </dependency>
+
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>compatibility-action-storage</artifactId>
             <version>1.0</version>
         </dependency>
+
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>job-dsl</artifactId>
@@ -70,23 +73,8 @@
         </dependency>
         <dependency>
             <groupId>net.praqma</groupId>
-            <artifactId>praqmajutils</artifactId>
-            <version>0.1.36</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.praqma</groupId>
-            <artifactId>cool</artifactId>
-            <version>0.6.50</version>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>net.praqma</groupId>
-            <artifactId>cool</artifactId>
-            <version>0.6.50</version>
-            <type>test-jar</type>
-            <scope>test</scope>
+            <artifactId>clearcase-ucm-api</artifactId>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>
