@@ -6,6 +6,7 @@
         <version>3.12</version>
         <relativePath/>
     </parent>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <powermock.version>1.4.12</powermock.version>
@@ -24,10 +25,6 @@
         <repository>
             <id>repo.jenkins-ci.org</id>
             <url>https://repo.jenkins-ci.org/public/</url>
-        </repository>
-        <repository>
-            <id>praqma-repo</id>
-            <url>http://code.praqma.net/repo/maven/</url>
         </repository>
     </repositories>
 
