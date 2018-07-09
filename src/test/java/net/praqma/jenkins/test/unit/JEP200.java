@@ -18,9 +18,9 @@ public class JEP200 {
     public void testJEP200() throws Exception {
         FreeStyleProject fsp = jr.createProject(FreeStyleProject.class);
         FreeStyleBuild fsb = jr.buildAndAssertSuccess(fsp);
-
-        Stream s = new Stream();
-        CCUCMBuildAction action = new CCUCMBuildAction(s, null);
+        Stream s = new Stream();;
+        Component c = (Component)Component.getEntity("component:componentA@\\vobA");
+        CCUCMBuildAction action = new CCUCMBuildAction(s, c);
         fsb.addAction(action);
         fsb.save();
     }

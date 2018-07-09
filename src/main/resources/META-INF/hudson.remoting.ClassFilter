@@ -1,5 +1,6 @@
 net.praqma.clearcase.ucm.entities.Stream
 net.praqma.clearcase.ucm.entities.Activity
+net.praqma.clearcase.ucm.entities.Baseline
 net.praqma.clearcase.ucm.entities.Changeset
 net.praqma.clearcase.ucm.entities.Component
 net.praqma.clearcase.ucm.entities.Folder
@@ -8,3 +9,12 @@ net.praqma.clearcase.ucm.entities.Project
 net.praqma.clearcase.ucm.entities.Tag
 net.praqma.clearcase.ucm.entities.UCMEntity
 net.praqma.clearcase.ucm.entities.Version
+net.praqma.clearcase.Vob
+net.praqma.clearcase.PVob
+net.praqma.clearcase.ConfigSpec
+net.praqma.clearcase.Branch
+net.praqma.clearcase.Region
+net.praqma.clearcase.Deliver
+net.praqma.clearcase.Describe
+net.praqma.clearcase.Rebase
+net.praqma.clearcase.Site
