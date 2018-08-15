@@ -1,17 +1,15 @@
 multibranchPipelineJob("ClearCase UCM Jenkins Plugin") {
+
     factory {
         workflowBranchProjectFactory {
             scriptPath('jenkins-pipeline/Jenkinsfile')
         }
     }
+
     branchSources {
         git {
             credentialsId("github")
             remote("https://github.com/Praqma/ClearCaseUCMPlugin.git")
-        }
-
-        triggers {
-            periodic(20)
         }
     }
 
