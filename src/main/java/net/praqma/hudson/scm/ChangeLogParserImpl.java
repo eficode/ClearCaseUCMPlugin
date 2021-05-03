@@ -49,7 +49,7 @@ public class ChangeLogParserImpl extends ChangeLogParser {
 	@Override
 	public ChangeLogSet<? extends Entry> parse( AbstractBuild build, File changelogFile ) throws IOException, SAXException {
 		List<ChangeLogEntryImpl> entries = new ArrayList<ChangeLogEntryImpl>();
-		Digester digester = createDigester(true);
+		Digester digester = createDigester(!Boolean.getBoolean(this.getClass().getName() + ".UNSAFE"));
 		digester.push( entries );
 		digester.addObjectCreate( "*/entry/activity", ChangeLogEntryImpl.class );
 		digester.addSetProperties( "*/entry/activity" );
