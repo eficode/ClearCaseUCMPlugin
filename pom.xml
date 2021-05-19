@@ -120,10 +120,10 @@
      </distributionManagement>
 
     <scm>
-        <connection>scm:git:http://github.com/Praqma/ClearCaseUCMPlugin.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/Praqma/ClearCaseUCMPlugin.git</developerConnection>
+        <connection>scm:git:http://github.com/jenkinsci/clearcase-ucm-plugin</connection>
+        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/clearcase-ucm-plugin.git</developerConnection>
         <url>https://github.com/Praqma/ClearCaseUCMPlugin</url>
-      <tag>clearcase-ucm-plugin-1.7.2</tag>
+        <tag>clearcase-ucm-plugin-1.7.2</tag>
   </scm>
 
 </project>
